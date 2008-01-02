@@ -1,0 +1,129 @@
+#content-main {
+	padding: 0.5em;
+	-moz-border-radius-bottomleft: 5px;
+	-moz-border-radius-bottomright: 5px;
+	
+}
+
+#main-menu li {
+	-moz-border-radius-topleft: 5px;
+	-moz-border-radius-topright: 5px;
+	-khtml-border-radius: 5px;
+	-khtml-border-radius-topright: 5px;
+}
+
+/* Background colors according to selectet menu lvl1 */
+#body-summary #content-main, #main-menu .menu-summary, #body-summary .submenu { background-color: #FDD; /*border: 1px solid #FDD;*/ }
+#body-objects #content-main, #main-menu .menu-objects, #body-objects .submenu { background-color: #DDF; /*border: 1px solid #DDF;*/ }
+#body-registrars #content-main, #main-menu .menu-registrars, #body-registars .submenu  { background-color: white; /*border: 1px solid white;*/ }
+#body-logs #content-main, #main-menu .menu-logs, #body-logs .submenu  { background-color: #DFD; /*border: 1px solid #DFD;*/ }
+#body-statistics #content-main, #main-menu .menu-statistics, #body-statistics .submenu  { background-color: FFD; /*border: 1px solid #FFD;*/ }
+
+#main-menu .menu-summary, #body-summary .submenu {
+	border-top: 2px solid #FAA;
+}
+#main-menu .menu-summary, #body-summary .submenu, #body-summary #content-main {		
+	border-left: 2px solid #FAA;	
+	border-right: 2px solid #FAA;
+}
+#body-summary #content-main {
+	border-bottom: 2px solid #FAA;
+}
+
+#main-menu .menu-objects, #body-objects .submenu {
+	border-top: 2px solid #AAF;
+}
+#main-menu .menu-objects, #body-objects .submenu, #body-objects #content-main {		
+	border-left: 2px solid #AAF;	
+	border-right: 2px solid #AAF;
+}
+#body-objects #content-main {
+	border-bottom: 2px solid #AAF;
+}		
+#body-objects #main-menu .submenu {
+	border-top: 2px solid #AAF;	
+}
+
+#main-menu .menu-registrars, #body-registrars .submenu {
+	border-top: 2px solid #AAA;
+}
+#main-menu .menu-registrars, #body-registrars .submenu, #body-registrars #content-main {		
+	border-left: 2px solid #AAA;	
+	border-right: 2px solid #AAA;
+}
+#body-registrars #content-main {
+	border-bottom: 2px solid #AAA;
+}		
+
+#main-menu .menu-logs, #body-logs .submenu {
+	border-top: 2px solid #AFA;
+}
+#main-menu .menu-logs, #body-logs .submenu, #body-logs #content-main {		
+	border-left: 2px solid #AFA;	
+	border-right: 2px solid #AFA;
+}
+#body-logs #content-main {
+	border-bottom: 2px solid #AFA;
+}		
+
+#main-menu .menu-statistics, #body-statistics .submenu {
+	border-top: 2px solid #FFA;
+}
+#main-menu .menu-statistics, #body-statistics .submenu, #body-statistics #content-main {		
+	border-left: 2px solid #FFA;	
+	border-right: 2px solid #FFA;
+}
+#body-statistics #content-main {
+	border-bottom: 2px solid #FFA;
+}		
+
+
+#main-menu > div > ul > .selected-menu {
+	position: relative;
+	top: 2px;
+}
+
+
+#main-menu {
+	margin: 0.5em 0px 0px 0px;
+}
+
+
+#main-menu ul {
+	padding: 0px;
+	margin: 0px;	
+}
+
+#main-menu ul li {
+	list-style: None;
+	float: left;
+	margin-right: 1.4em;	
+}
+
+#main-menu ul ul {
+	/*position: absolute;*/
+	/*left: 0px;*/
+}
+
+.menu-item { padding: 0.2em }
+
+.menu-item > a { text-decoration: none; }
+
+.selected-menu > a { font-weight: bold; }
+
+/* Generous */
+.tcenter { text-align: center; }
+.center { text-align: center; }
+.pointer_cursor { cursor: pointer; }
+.warning { color: red; }
+
+/* forms */
+.errors {
+	color: red;
+	margin-bottom: 0px;
+	
+}
+
+.errors li {
+	margin-left: 2em; 
+}

@@ -1,0 +1,431 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2006-10-30 14:58+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Implemented"
+msgstr "Implementováno"
+
+msgid "Missing"
+msgstr "Chybí"
+
+msgid "Username"
+msgstr "Uživatelské jméno"
+
+msgid "Password"
+msgstr "Heslo"
+
+msgid "Login"
+msgstr "Přihlásit"
+
+msgid "Logout"
+msgstr "Odhlásit"
+
+msgid "Database"
+msgstr "Databáze"
+
+msgid "Browse"
+msgstr "Vyhledávání"
+
+msgid "Received_requests"
+msgstr "Došlé požadavky"
+
+msgid "Requests"
+msgstr "Požadavky"
+
+msgid "Registrars"
+msgstr "Registrátoři"
+
+msgid "Create_new"
+msgstr "Založení nového"
+
+msgid "Domain"
+msgstr "Doména"
+
+msgid "Domains"
+msgstr "Domény"
+
+msgid "Contacts"
+msgstr "Kontakty"
+
+msgid "Nameservers"
+msgstr "Nameservery"
+
+msgid "Table_as"
+msgstr "Tabulku jako"
+
+msgid "Searching_in_registrars"
+msgstr "Vyhledávání v registrátorech"
+
+msgid "Registrar_information"
+msgstr "Informace o registrátorovi"
+
+msgid "Searching_in_domains"
+msgstr "Vyhledávání v doménách"
+
+msgid "Domain_information"
+msgstr "Informace o doméně"
+
+msgid "Searching_in_contacts"
+msgstr "Vyhledávání v kontaktech"
+
+msgid "Contact_information"
+msgstr "Informace o kontaktu"
+
+msgid "Searching_in_NSSets"
+msgstr "Vyhledávání v NSSetech"
+
+msgid "NSSet_information"
+msgstr "Informace o NSSetu"
+
+msgid "Searching_in_requests"
+msgstr "Vyhledávání v požadavcích"
+
+msgid "Request_information"
+msgstr "Informace o požadavku"
+
+msgid "Searching_in_AuthInfo"
+msgstr "Vyhledávání v AuthInfo požadavcích"
+
+msgid "AuthInfo_request_detail"
+msgstr "Detail AuthInfo požadavku"
+
+msgid "Search_criteria"
+msgstr "Výběrová kritéria"
+
+msgid "Name"
+msgstr "Jméno"
+
+msgid "Domain_name"
+msgstr "Jméno domény"
+
+msgid "Status"
+msgstr "Stav"
+
+msgid "Handle"
+msgstr "Identifikátor"
+
+msgid "Identifier"
+msgstr "Identifikátor"
+
+msgid "Owner"
+msgstr "Vlastník"
+
+msgid "Admin"
+msgstr "Admin"
+
+msgid "Administrator"
+msgstr "Administrátor"
+
+msgid "Registrar"
+msgstr "Registrátor"
+
+msgid "Selected_registrar"
+msgstr "Určený registrátor"
+
+msgid "Creating_registrar"
+msgstr "Zakládající registrátor"
+
+msgid "Last_update_registrar"
+msgstr "Registrátor poslední úpravy"
+
+msgid "by_registrar"
+msgstr "registrátorem"
+
+msgid "Organization"
+msgstr "Organizace"
+
+msgid "Contact_type"
+msgstr "Typ kontaktu"
+
+msgid "Request_type"
+msgstr "Typ požadavku"
+
+msgid "Result"
+msgstr "Výsledek"
+
+msgid "clTRID"
+msgstr "clTRID"
+
+msgid "svTRID"
+msgstr "svTRID"
+
+msgid "Email"
+msgstr "Email"
+
+msgid "Notify_email"
+msgstr "Notifikační email"
+
+msgid "SSN"
+msgstr "RČ"
+
+msgid "VAT"
+msgstr "DPH"
+
+msgid "ICO"
+msgstr "IČO"
+
+msgid "IP_address"
+msgstr "IP adresa"
+
+msgid "IPs"
+msgstr "IP adresy"
+
+msgid "Nameserver_name"
+msgstr "Jméno nameserveru"
+
+msgid "Validity"
+msgstr "Platnost"
+
+msgid "Registration"
+msgstr "Registrace"
+
+msgid "Blocked"
+msgstr "Blokace"
+
+msgid "Including_history"
+msgstr "Včetně historie"
+
+msgid "Only_actual"
+msgstr "Jen aktuálně platné"
+
+msgid "Object_Id"
+msgstr "ID objektu"
+
+msgid "Request_Id"
+msgstr "ID požadavku"
+
+msgid "Request_reason"
+msgstr "Text žádosti"
+
+msgid "Close_status"
+msgstr "Stav uzavření"
+
+msgid "from"
+msgstr "od"
+
+msgid "to"
+msgstr "do"
+
+msgid "day"
+msgstr "den"
+
+msgid "Technical_contact"
+msgstr "Technický kontakt"
+
+msgid "Administrative_contacts"
+msgstr "Administrativní kontakty"
+
+msgid "NSSet"
+msgstr "NSSet"
+
+msgid "Nameserver_address"
+msgstr "Adresa nameserveru"
+
+msgid "Modified_manually"
+msgstr "Byl manuální zásah"
+
+msgid "Search"
+msgstr "Vyhledej"
+
+msgid "Clear"
+msgstr "Vyčisti"
+
+msgid "Save"
+msgstr "Ulož"
+
+msgid "Renew"
+msgstr "Obnov"
+
+msgid "Cancel"
+msgstr "Zruš"
+
+msgid "Edit"
+msgstr "Uprav"
+
+msgid "Reset"
+msgstr "Reset"
+
+msgid "date"
+msgstr "datum"
+
+msgid "Date"
+msgstr "Datum"
+
+msgid "Create_date"
+msgstr "Datum vytvoření"
+
+msgid "Registration_date"
+msgstr "Datum registrace"
+
+msgid "Expiry_date"
+msgstr "Datum expirace"
+
+msgid "Deleted_date"
+msgstr "Datum vyřazení"
+
+msgid "Cancel_date"
+msgstr "Datum zrušení"
+
+msgid "Validation_date"
+msgstr "Datum validace"
+
+msgid "Last_update_date"
+msgstr "Datum poslední aktualizace"
+
+msgid "Last_transfer_date"
+msgstr "Datum posledního transferu"
+
+msgid "Received_date"
+msgstr "Datum přijetí"
+
+msgid "Opened_date"
+msgstr "Datum založení"
+
+msgid "Closed_date"
+msgstr "Datum uzavření"
+
+msgid "Auth_info"
+msgstr "AuthInfo"
+
+msgid "AuthInfo_requests"
+msgstr "AuthInfo požadavky"
+
+msgid "Authentication"
+msgstr "Autentizace"
+
+msgid "Select_date"
+msgstr "Vyber datum"
+
+msgid "Detail_of_registrar"
+msgstr "Detail registrátora"
+
+msgid "Current_reminder"
+msgstr "Aktuální zůstatek"
+
+msgid "Address"
+msgstr "Adresa"
+
+msgid "Street"
+msgstr "Ulice"
+
+msgid "City"
+msgstr "Město"
+
+msgid "ZIP"
+msgstr "PSČ"
+
+msgid "State"
+msgstr "Stát / Oblast"
+
+msgid "Country"
+msgstr "Země"
+
+msgid "URL"
+msgstr "URL"
+
+msgid "Telephone"
+msgstr "Telefon"
+
+msgid "Fax"
+msgstr "Fax"
+
+msgid "MD5_of_certificate"
+msgstr "MD5 Certifikátu"
+
+msgid "Other_data"
+msgstr "Ostatní údaje"
+
+msgid "Options"
+msgstr "Volby"
+
+msgid "Edit_registrar"
+msgstr "Edituj registrátora"
+
+msgid "Domains_creating"
+msgstr "Domény - zakládající"
+
+msgid "Domains_selected"
+msgstr "Domény - určený"
+
+msgid "Domains_owner"
+msgstr "Domény - držitel"
+
+msgid "Domains_admin"
+msgstr "Domény - admin"
+
+msgid "Domains_all"
+msgstr "Domény - všechno"
+
+msgid "NSSets"
+msgstr "NSSety"
+
+msgid "Type"
+msgstr "Typ"
+
+msgid "Time"
+msgstr "Čas"
+
+msgid "Number_of_pages"
+msgstr "Počet stran"
+
+msgid "entries"
+msgstr "počet záznamů"
+
+msgid "lang"
+msgstr "cs"
+
+msgid "of"
+msgstr "z"
+
+msgid "All"
+msgstr "Vše"
+
+msgid "Advance"
+msgstr "Zálohové"
+
+msgid "Account"
+msgstr "Vyúčtovací"
+
+msgid "Object_not_found"
+msgstr "Objekt nenalezen"
+
+msgid "Saving_failed"
+msgstr "Uložení selhalo"
+
+msgid "Non_numeric_ID"
+msgstr "Id musí být číslo (integer)"
+
+msgid "No_entries_found"
+msgstr "Nenalezen žádný záznam"
+
+msgid "Price_Per_Unit"
+msgstr "Cena za jednotku"
+
+msgid "bytes"
+msgstr "bajtů"
+
+msgid "created"
+msgstr "vytvořen"
+
+msgid "Server_disconnected"
+msgstr "Server odpojen"
+
+msgid "Underlying_server_disconnected_error"
+msgstr "Obslužný server restartoval spojení. Je potřeba se znovu přihlásit."
+
+msgid "url_home"
+msgstr "Návrat na přihlašovací stránku"

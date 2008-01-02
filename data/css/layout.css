@@ -1,0 +1,126 @@
+@import url('navigation.css');
+@import url('edit.css');
+
+body {
+    background-color: white;
+    margin: 0px;
+    padding: 0px;
+    font-family: Verdana,Arial,sans-serif;
+    font-size: 83%;
+}
+
+#content {
+    width: 100%;
+    border-bottom: 1px solid black;
+    text-align:left;
+    max-width: 1024px;
+}
+
+#sidebar {
+    float: left;
+    width: 130px;
+    margin:0; padding:0;
+}
+
+#sidebar-content {
+    margin:0;
+    max-width: 130px;
+    background-color: maroon;
+}
+
+#main {
+    margin:0 0 0 130px; padding:0;
+}
+
+#main-content {
+    margin:0; padding: 0.5em 1em;
+    font-size: 100%;
+}
+
+hr.cleaner {
+    clear:both;
+    height:1px;
+    margin: -1px 0 0 0; padding:0;
+    border:none;
+    visibility: hidden;
+}
+
+#tablelist {
+    display: table;
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 80%;
+    background: #F8F8F8;
+}
+
+#tablelist .header {background: lightgray; text-align: center; font-weight: bolder;}
+#tablelist .right {text-align: right;} 
+#tablelist .ico {width: 14ex;}
+#tablelist .vs {width: 16ex;}
+#tablelist img {vertical-align: middle;}
+#tablelist tr {display: table-row; border-bottom: 1px solid #D9D9D9;}
+
+#tablelist td {
+    display: table-cell;
+    border-color: #D9D9D9;
+    border-style: solid;
+    border-width: 0px 1px;
+    padding: 1px 0px 1px 2px;
+    white-space: nowrap;
+}
+
+#tablelist tr:hover {background: #F0F0F0;}
+
+.calbutton {
+    cursor: pointer;
+//    border: 1px solid red;
+    margin: 0 1px;
+    vertical-align: middle;
+}
+
+.calbutton:hover {
+    background: red;
+}
+
+th {
+    background-color: lightgray;
+}
+
+input, select, checkbox {
+    background-color: #ffffcc;
+    border: 1px solid gray;
+}
+
+.disabled {
+    background-color: lightgray;
+}
+
+.discloseTrue, .discloseFalse {
+    display: block;
+    min-height: 1em;
+    background-image: url("../img/sumo.semaphore.on.gif");
+    background-position: 0% 1px;
+    background-repeat: no-repeat;
+}
+
+.discloseFalse {
+    background-image: url("../img/sumo.semaphore.off.gif");
+}
+
+.discloseTrue div, .discloseFalse div {
+    margin-left: 15px;
+}
+
+.certGroup {
+    display: table;
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid gray;
+}
+
+a img {
+    border: 0px;
+    display: block;
+    padding: 0px;
+    margin: auto;
+}

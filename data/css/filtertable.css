@@ -1,0 +1,54 @@
+/* Normal Filter Table */
+.filtertable {
+	border-collapse: collapse;
+	border: 1px solid gray;
+	padding: 0px;
+	margin: 0px;
+}
+.filtertable .filtertable {
+	width: 100%;	
+}
+
+.filtertable td, .filtertable th {
+	padding: 3px;
+}
+
+.filtertable th {
+	border-bottom: 1px solid black;
+}
+
+.filtertable .and_row td {
+	text-align: center;
+}
+
+/* Union Filter Table */
+.unionfiltertable {
+	border-collapse: collapse;
+	border: 3px solid black
+}
+
+.unionfiltertable td {
+	/*padding: 0px;
+	margin: 0px;*/
+		
+}
+.unionfiltertable .or_cell {
+	border-top: 2px solid black;
+	border-bottom: 2px solid black;
+	text-align: center;
+	font-weight: bold;
+}
+
+
+.unionfiltertable .add_cell {
+	border-top: 2px solid black;
+	text-align: center;
+}
+
+.unionfiltertable .submit_row td {
+	text-align: center;
+}
+
+.unionfiltertable td {
+	vertical-align: top;	
+}

@@ -1,0 +1,425 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2006-10-30 14:58+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Implemented"
+msgstr "Implemented"
+
+msgid "Missing"
+msgstr "Missing"
+
+msgid "Username"
+msgstr "Username"
+
+msgid "Password"
+msgstr "Password"
+
+msgid "Login"
+msgstr "Login"
+
+msgid "Logout"
+msgstr "Logout"
+
+msgid "Database"
+msgstr "Database"
+
+msgid "Browse"
+msgstr "Browse"
+
+msgid "Received_requests"
+msgstr "Received requests"
+
+msgid "Requests"
+msgstr "Requests"
+
+msgid "Registrars"
+msgstr "Registrars"
+
+msgid "Create_new"
+msgstr "Create new"
+
+msgid "Domain"
+msgstr "Domain"
+
+msgid "Domains"
+msgstr "Domains"
+
+msgid "Contacts"
+msgstr "Contacts"
+
+msgid "Nameservers"
+msgstr "Nameservers"
+
+msgid "Table_as"
+msgstr "Table as"
+
+msgid "Searching_in_registrars"
+msgstr "Searching in registrars"
+
+msgid "Registrar_information"
+msgstr "Registrar information"
+
+msgid "Searching_in_domains"
+msgstr "Searching in domains"
+
+msgid "Domain_information"
+msgstr "Domain information"
+
+msgid "Searching_in_contacts"
+msgstr "Searching in contacts"
+
+msgid "Contact_information"
+msgstr "Contact information"
+
+msgid "Searching_in_NSSets"
+msgstr "Searching in NSSets"
+
+msgid "NSSet_information"
+msgstr "NSSet information"
+
+msgid "Searching_in_requests"
+msgstr "Searching in requests"
+
+msgid "Request_information"
+msgstr "Request information"
+
+msgid "Searching_in_AuthInfo"
+msgstr "Searching in AuthInfo requests"
+
+msgid "AuthInfo_request_detail"
+msgstr "AuthInfo request detail"
+
+msgid "Search_criteria"
+msgstr "Search criteria"
+
+msgid "Name"
+msgstr "Name"
+
+msgid "Domain_name"
+msgstr "Domain name"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "Handle"
+msgstr "Handle"
+
+msgid "Identifier"
+msgstr "Identifier"
+
+msgid "Owner"
+msgstr "Owner"
+
+msgid "Admin"
+msgstr "Admin"
+
+msgid "Administrator"
+msgstr "Administrator"
+
+msgid "Registrar"
+msgstr "Registrar"
+
+msgid "Selected_registrar"
+msgstr "Selected registrar"
+
+msgid "Creating_registrar"
+msgstr "Creating registrar"
+
+msgid "Last_update_registrar"
+msgstr "Last update registrar"
+
+msgid "by_registrar"
+msgstr "by registrar"
+
+msgid "Organization"
+msgstr "Organization"
+
+msgid "Contact_type"
+msgstr "Contact type"
+
+msgid "Request_type"
+msgstr "Request type"
+
+msgid "Result"
+msgstr "Result"
+
+msgid "clTRID"
+msgstr "clTRID"
+
+msgid "svTRID"
+msgstr "svTRID"
+
+msgid "Email"
+msgstr "Email"
+
+msgid "Notify_email"
+msgstr "Notify email"
+
+msgid "SSN"
+msgstr "SSN"
+
+msgid "VAT"
+msgstr "VAT"
+
+msgid "ICO"
+msgstr "ICO"
+
+msgid "IP_address"
+msgstr "IP address"
+
+msgid "IPs"
+msgstr "IPs"
+
+msgid "Nameserver_name"
+msgstr "Nameserver name"
+
+msgid "Validity"
+msgstr "Validity"
+
+msgid "Registration"
+msgstr "Registration"
+
+msgid "Blocked"
+msgstr "Blocked"
+
+msgid "Including_history"
+msgstr "Including history"
+
+msgid "Only_actual"
+msgstr "Only actual"
+
+msgid "Object_Id"
+msgstr "Object ID"
+
+msgid "Request_Id"
+msgstr "Request ID"
+
+msgid "Request_reason"
+msgstr "Request reason"
+
+msgid "Close_status"
+msgstr "Close status"
+
+msgid "from"
+msgstr "from"
+
+msgid "to"
+msgstr "to"
+
+msgid "day"
+msgstr "day"
+
+msgid "Technical_contact"
+msgstr "Technical contact"
+
+msgid "Administrative_contacts"
+msgstr "Administrative contacts"
+
+msgid "NSSet"
+msgstr "NSSet"
+
+msgid "Nameserver_address"
+msgstr "Nameserver address"
+
+msgid "Modified_manually"
+msgstr "Modified manually"
+
+msgid "Search"
+msgstr "Search"
+
+msgid "Clear"
+msgstr "Clear"
+
+msgid "Save"
+msgstr "Save"
+
+msgid "Renew"
+msgstr "Renew"
+
+msgid "Cancel"
+msgstr "Cancel"
+
+msgid "date"
+msgstr "date"
+
+msgid "Date"
+msgstr "Date"
+
+msgid "Create_date"
+msgstr "Create date"
+
+msgid "Registration_date"
+msgstr "Registration date"
+
+msgid "Expiry_date"
+msgstr "Expiry date"
+
+msgid "Deleted_date"
+msgstr "Deleted date"
+
+msgid "Cancel_date"
+msgstr "Cancel date"
+
+msgid "Validation_date"
+msgstr "Validation date"
+
+msgid "Last_update_date"
+msgstr "Last update date"
+
+msgid "Last_transfer_date"
+msgstr "Last transfer date"
+
+msgid "Received_date"
+msgstr "Received date"
+
+msgid "Opened_date"
+msgstr "Opened date"
+
+msgid "Closed_date"
+msgstr "Closed date"
+
+msgid "Auth_info"
+msgstr "AuthInfo"
+
+msgid "AuthInfo_requests"
+msgstr "AuthInfo requests"
+
+msgid "Authentication"
+msgstr "Authentication"
+
+msgid "Select_date"
+msgstr "Select date"
+
+msgid "Detail_of_registrar"
+msgstr "Detail of registrar"
+
+msgid "Current_reminder"
+msgstr "Current reminder"
+
+msgid "Address"
+msgstr "Address"
+
+msgid "Street"
+msgstr "Street"
+
+msgid "City"
+msgstr "City"
+
+msgid "ZIP"
+msgstr "ZIP"
+
+msgid "State"
+msgstr "State"
+
+msgid "Country"
+msgstr "Country"
+
+msgid "URL"
+msgstr "URL"
+
+msgid "Telephone"
+msgstr "Telephone"
+
+msgid "Fax"
+msgstr "Fax"
+
+msgid "MD5_of_certificate"
+msgstr "MD5 of certificate"
+
+msgid "Other_data"
+msgstr "Other data"
+
+msgid "Options"
+msgstr "Options"
+
+msgid "Edit_registrar"
+msgstr "Edit registrar"
+
+msgid "Domains_creating"
+msgstr "Domains - creating"
+
+msgid "Domains_selected"
+msgstr "Domains - selected"
+
+msgid "Domains_owner"
+msgstr "Domains - owner"
+
+msgid "Domains_admin"
+msgstr "Domains - admin"
+
+msgid "Domains_all"
+msgstr "Domains - all"
+
+msgid "NSSets"
+msgstr "NSSets"
+
+msgid "Type"
+msgstr "Type"
+
+msgid "Time"
+msgstr "Time"
+
+msgid "Number_of_pages"
+msgstr "Number of pages"
+
+msgid "entries"
+msgstr "entries"
+
+msgid "lang"
+msgstr "en"
+
+msgid "of"
+msgstr "of"
+
+msgid "All"
+msgstr "All"
+
+msgid "Advance"
+msgstr "Advance"
+
+msgid "Account"
+msgstr "Account"
+
+msgid "Object_not_found"
+msgstr "Object not found"
+
+msgid "Saving_failed"
+msgstr "Saving failed"
+
+msgid "Non_numeric_ID"
+msgstr "Id must by numeric (integer)"
+
+msgid "No_entries_found"
+msgstr "No entries found"
+
+msgid "Price_Per_Unit"
+msgstr "Price Per Unit"
+
+msgid "bytes"
+msgstr "bytes"
+
+msgid "created"
+msgstr "created"
+
+msgid "Server_disconnected"
+msgstr "Server disconnected"
+
+msgid "Underlying_server_disconnected_error"
+msgstr "Stale session detected. It means backend server reset connection. You have to login again to continue."
+
+msgid "url_home"
+msgstr "Proceed to login page"

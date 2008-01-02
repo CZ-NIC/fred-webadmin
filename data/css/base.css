@@ -1,0 +1,7 @@
+#container { width:100%; min-width:760px; padding:0; }
+
+.cleaner { 
+	clear: both;
+	margin: 0px;
+	padding: 0px;
+}

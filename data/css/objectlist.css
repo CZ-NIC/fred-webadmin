@@ -1,0 +1,27 @@
+#objectlist {
+    border-collapse: collapse;
+    /*width: 100%;*/
+    font-size: 80%;
+    background: #F8F8F8;
+}
+
+#objectlist .header {background: lightgray; text-align: center; font-weight: bolder;}
+#objectlist .right {text-align: right;} 
+#objectlist .ico {width: 14ex;}
+#objectlist .vs {width: 16ex;}
+#objectlist img {
+	vertical-align: middle;
+}
+#objectlist a img {border: 0px}
+#objectlist tr {border-bottom: 1px solid #D9D9D9;}
+
+#objectlist td {
+    display: table-cell;
+    border-color: #D9D9D9;
+    border-style: solid;
+    border-width: 0px 1px;
+    padding: 1px 0px 1px 2px;
+    white-space: nowrap;
+}
+
+#objectlist tr:hover {background: #F0F0F0;}
