@@ -19,10 +19,8 @@
 #body-logs #content-main, #main-menu .menu-logs, #body-logs .submenu  { background-color: #DFD; /*border: 1px solid #DFD;*/ }
 #body-statistics #content-main, #main-menu .menu-statistics, #body-statistics .submenu  { background-color: FFD; /*border: 1px solid #FFD;*/ }
 
-#main-menu .menu-summary, #body-summary .submenu {
-	border-top: 2px solid #FAA;
-}
-#main-menu .menu-summary, #body-summary .submenu, #body-summary #content-main {		
+#main-menu .menu-summary, #body-summary .submenu, #body-summary #content-main {
+	border-top: 2px solid #FAA;		
 	border-left: 2px solid #FAA;	
 	border-right: 2px solid #FAA;
 }
@@ -30,10 +28,8 @@
 	border-bottom: 2px solid #FAA;
 }
 
-#main-menu .menu-objects, #body-objects .submenu {
-	border-top: 2px solid #AAF;
-}
 #main-menu .menu-objects, #body-objects .submenu, #body-objects #content-main {		
+	border-top: 2px solid #AAF;
 	border-left: 2px solid #AAF;	
 	border-right: 2px solid #AAF;
 }
@@ -44,10 +40,8 @@
 	border-top: 2px solid #AAF;	
 }
 
-#main-menu .menu-registrars, #body-registrars .submenu {
-	border-top: 2px solid #AAA;
-}
 #main-menu .menu-registrars, #body-registrars .submenu, #body-registrars #content-main {		
+	border-top: 2px solid #AAA;
 	border-left: 2px solid #AAA;	
 	border-right: 2px solid #AAA;
 }
@@ -55,10 +49,8 @@
 	border-bottom: 2px solid #AAA;
 }		
 
-#main-menu .menu-logs, #body-logs .submenu {
-	border-top: 2px solid #AFA;
-}
-#main-menu .menu-logs, #body-logs .submenu, #body-logs #content-main {		
+#main-menu .menu-logs, #body-logs .submenu, #body-logs #content-main {
+	border-top: 2px solid #AFA;		
 	border-left: 2px solid #AFA;	
 	border-right: 2px solid #AFA;
 }
@@ -66,10 +58,8 @@
 	border-bottom: 2px solid #AFA;
 }		
 
-#main-menu .menu-statistics, #body-statistics .submenu {
-	border-top: 2px solid #FFA;
-}
-#main-menu .menu-statistics, #body-statistics .submenu, #body-statistics #content-main {		
+#main-menu .menu-statistics, #body-statistics .submenu, #body-statistics #content-main {
+	border-top: 2px solid #FFA;		
 	border-left: 2px solid #FFA;	
 	border-right: 2px solid #FFA;
 }
