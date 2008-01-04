@@ -57,8 +57,8 @@ from translation import _
 
 
 from webwidgets.templates import BaseSite, BaseSiteMenu, LoginPage, FilterPage, ObjectList, DomainsDetail, RegistrarsDetail
-from gpyweb.gpyweb import WebWidget
-from gpyweb.gpyweb import DictLookup, attr, ul, li, a, div, span, p
+from webwidgets.gpyweb.gpyweb import WebWidget
+from webwidgets.gpyweb.gpyweb import DictLookup, attr, ul, li, a, div, span, p
 from webwidgets.utils import isiterable
 from webwidgets.menu import MenuHoriz
 from menunode import menu_tree
