@@ -6,8 +6,8 @@ def curdir(f = ''):
     return os.path.join(os.path.dirname(__file__), f) # in globlal module builtin variable __file__ is path, from which was program executed
 #base_dir = curdir()
 base_dir = '/home/glin/programming/workspace/webadmin'
-data_dir = base_dir + "/data"
-session_dir = base_dir + '/session'
+www_dir = base_dir + "/www"
+sessions_dir = base_dir + '/sessions'
 locale_dir = base_dir + '/locale'
 log_dir = base_dir
 
@@ -40,12 +40,12 @@ cherrycfg = {
         'tools.encode.encoding': 'utf-8',
         'tools.sessions.on': True,
         'tools.sessions.storage_type': 'file',
-        'tools.sessions.storage_path': session_dir,
+        'tools.sessions.storage_path': sessions_dir,
         'tools.sessions.timeout': 60, # in minutes
         'server.log_to_screen': False,
         'server.log_file': log_dir + '/fred_webadmin.log',
     },
-    '/': {'tools.staticdir.root':  data_dir},
+    '/': {'tools.staticdir.root':  www_dir},
     '/css': {'tools.staticdir.on': True,
              'tools.staticdir.dir': 'css'},
     '/js': {'tools.staticdir.on': True,
@@ -53,7 +53,7 @@ cherrycfg = {
     '/img': {'tools.staticdir.on': True,
              'tools.staticdir.dir': 'img'},
     '/favicon.ico': {'tools.staticfile.on': True,
-                     'tools.staticfile.filename': data_dir + '/data/img/favicon.png'}
+                     'tools.staticfile.filename': www_dir + '/img/favicon.png'}
 }
 
 

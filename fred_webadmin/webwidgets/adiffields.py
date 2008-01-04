@@ -1,6 +1,6 @@
 from fields import Field
 from utils import ValidationError
-from translation import _
+from fred_webadmin.translation import _
 
 class CompoundFilterField(Field):
     "Field that wraps FilterForm inside itself, value of field is data for that form"

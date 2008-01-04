@@ -10,7 +10,7 @@ from decimal import Decimal, DecimalException
 
 from gpyweb.gpyweb import WebWidget, attr, save, input, select, option, div
 from utils import ValidationError, ErrorList, isiterable
-from translation import _
+from fred_webadmin.translation import _
 
 
 

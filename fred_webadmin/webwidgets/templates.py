@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from gpyweb.gpyweb import div, span, p, a, b, attr, save, HTMLPage, hr, br, table, tr, th, td, img, form, input, h1, script
-from webwidgets.adifforms import get_filter_forms_javascript
-from translation import _
+from adifforms import get_filter_forms_javascript
+from fred_webadmin.translation import _
  
 class BaseTemplate(HTMLPage):
     def __init__(self, context = None):

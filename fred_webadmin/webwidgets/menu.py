@@ -4,7 +4,7 @@
 import types
 
 from gpyweb.gpyweb import WebWidget, attr, tagid, ul, li, a, div
-from menunode import MenuNode
+from fred_webadmin.menunode import MenuNode
 from utils import isiterable
 
 class Menu(ul):

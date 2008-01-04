@@ -5,13 +5,13 @@ from copy import copy, deepcopy
 import cherrypy
 import simplejson
 
-import config
+from fred_webadmin import config
 from forms import Form, SortedDictFromList
 from fields import *
 from adiffields import *
 from formlayouts import FilterTableFormLayout, UnionFilterFormLayout
-import config 
-from translation import _
+from fred_webadmin import config 
+from fred_webadmin.translation import _
 from utils import SortedDict, ErrorDict
 
 #__all__ = ['LoginForm', 'FilterForm']

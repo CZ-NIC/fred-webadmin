@@ -6,7 +6,7 @@ from copy import copy, deepcopy
 from gpyweb.gpyweb import WebWidget, tagid, attr, notag, table, tbody, tr, th, td, input, label, select, option, ul, li, script, a, img, strong
 from fields import ChoiceField, BooleanField, HiddenField
 from adiffields import CompoundFilterField
-from translation import _
+from fred_webadmin.translation import _
 from utils import pretty_name
 
 FIELD_COUNTER_VALUE = 'FIELD_COUNTER_VALUE'
