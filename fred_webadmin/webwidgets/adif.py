@@ -1033,11 +1033,7 @@ class Smaz(Page):
         
         return BaseSiteMenu(context).render()
 
-if __name__ == '__main__':
-#    from menunode import menu_tree
-#    print menu_tree.mprint()
-#    from webwidgets.menu import Menu
-#    print unicode(Menu(menu_tree, 'sdomains'))
+def runserver():
     print "-----====### STARTING ADIF ###====-----"
     root = ADIF()
     root.summary = Summary()
@@ -1055,3 +1051,11 @@ if __name__ == '__main__':
     root.devel = Development()
     
     cherrypy.quickstart(root, '/', config=config.cherrycfg)
+    
+
+if __name__ == '__main__':
+#    from menunode import menu_tree
+#    print menu_tree.mprint()
+#    from webwidgets.menu import Menu
+#    print unicode(Menu(menu_tree, 'sdomains'))
+    runserver()

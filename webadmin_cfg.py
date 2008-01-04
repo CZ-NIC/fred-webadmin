@@ -1,7 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
-
 debug = True
 caching_filter_form_javascript = False # if this settings is on, then when doing changes to filter form, you should erase all sessions, because old filter forms are still in session
 
@@ -9,8 +5,11 @@ def curdir(f = ''):
     import os.path
     return os.path.join(os.path.dirname(__file__), f) # in globlal module builtin variable __file__ is path, from which was program executed
 #base_dir = curdir()
-base_dir = '/home/glin/programming/workspace/cherry_admin'
-
+base_dir = '/home/glin/programming/workspace/webadmin'
+data_dir = base_dir + "/data"
+session_dir = base_dir + '/session'
+locale_dir = base_dir + '/locale'
+log_dir = base_dir
 
 idl = '/home/glin/programming/svn_enum_checkout/enum/idl/trunk/ccReg.idl'
 iors = ('corbaname::pokuston', 'corbaname::curlew')
@@ -24,7 +23,7 @@ tablesize = 45
 
 # gettext
 gettext_domain = 'adif'
-localepath = base_dir + '/locale'
+localepath = locale_dir
 lang = 'cs_CZ'
 #lang = 'en_US'
 
@@ -41,12 +40,12 @@ cherrycfg = {
         'tools.encode.encoding': 'utf-8',
         'tools.sessions.on': True,
         'tools.sessions.storage_type': 'file',
-        'tools.sessions.storage_path': base_dir + '/sessions',
+        'tools.sessions.storage_path': session_dir,
         'tools.sessions.timeout': 60, # in minutes
         'server.log_to_screen': False,
-        'server.log_file': base_dir + '/access.log',
+        'server.log_file': log_dir + '/fred_webadmin.log',
     },
-    '/': {'tools.staticdir.root':  base_dir + "/data"},
+    '/': {'tools.staticdir.root':  data_dir},
     '/css': {'tools.staticdir.on': True,
              'tools.staticdir.dir': 'css'},
     '/js': {'tools.staticdir.on': True,
@@ -54,7 +53,7 @@ cherrycfg = {
     '/img': {'tools.staticdir.on': True,
              'tools.staticdir.dir': 'img'},
     '/favicon.ico': {'tools.staticfile.on': True,
-                     'tools.staticfile.filename': '/home/glin/programming/workspace/cherry_admin/data/img/favicon.png'}
+                     'tools.staticfile.filename': data_dir + '/data/img/favicon.png'}
 }
 
 
