@@ -51,9 +51,7 @@ class FredWebAdminBuild(build):
         if cherrypy_version < '3.0.0' or cherrypy_version >= '4.0.0':
             sys.stderr.write('ImportError: \n fred-webadmin needs cherrypy version 3.x module.\n')
             sys.exit(1)
-            
 
-   
     def check_dependencies(self):
         'Check all dependencies'
         self.check_simplejson()

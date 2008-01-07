@@ -40,7 +40,7 @@
 }
 
 
-.unionfiltertable .add_cell {
+.unionfiltertable .add_or_cell {
 	border-top: 2px solid black;
 	text-align: center;
 }
@@ -51,4 +51,8 @@
 
 .unionfiltertable td {
 	vertical-align: top;	
+}
+
+.filtertable .filtertable .filtertable_header{
+	display: none;
 }

@@ -132,7 +132,7 @@ class FilterTableFormLayout(TableFormLayout):
             self.tbody.add(tr(td(attr(colspan=self.columns_count), 'Errors:', form.non_field_errors())))
         
         if not self.form.is_nested:
-            self.tbody.add(tr(th(_('Filter name')), th(_('Neg.')), th(_('Value')), th()))
+            self.tbody.add(tr(attr(cssc='filtertable_header'), th(_('Filter name')), th(_('Neg.')), th(_('Value')), th()))
 
         hidden_fields = []
         for field in form.fields.values():

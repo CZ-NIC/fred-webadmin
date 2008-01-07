@@ -12,10 +12,11 @@ function formContentToObject(formContent) {
 function delRow(thisElem, fieldName, fieldLabel) {
 	var tr = getFirstParentByTagAndClassName(thisElem, 'tr');
 	
-	
-	// add field back to field chooser
-	var select = findChildElements(tr.parentNode, ['> tr > td > select'])[0];
+	// add field back to field chooser and make field chooser visible
+	var select = findChildElements(tr.parentNode, ['> tr.and_row > td > select'])[0];
 	select.options[select.options.length]=new Option(fieldLabel, fieldName);
+	var fieldChooserTr = getFirstParentByTagAndClassName(select, tagName='tr');
+	fieldChooserTr.style.visibility = 'visible';
 	
 	// and finally remove field
 	tr.parentNode.removeChild(tr);
