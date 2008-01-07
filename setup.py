@@ -1,8 +1,10 @@
 from distutils.core import setup
-from distutils.command.build_py import build_py
+from distutils.command.build import build
 from distutils.command.install import install
 from distutils.command.install_data import install_data
+from distutils.version import StrictVersion
 import os
+import sys
 import shutil
 
 PACKAGE_NAME = 'fred_webadmin'
@@ -16,18 +18,53 @@ BIN = 'bin'
 
 EXCLUDE_FILES = ['.svn']
 
-class FredWebAdminBuild(build_py):
-    pass
-#    def run(self):
-#        #import pdb; pdb.set_trace()
-#        self.ensure_finalized()
-#        print "BEGIN RUN "
-#        print self.data_files
-#        print "END RUN "
+class FredWebAdminBuild(build):
+    def check_simplejson(self):
+        try:
+            import simplejson
+        except ImportError, msg:
+            sys.stderr.write('ImportError: %s\n fred-webadmin needs simplejson module.\n'%msg)
+            sys.exit(1)
+    
+    def check_CORBA(self):
+        try:
+            from omniORB import CORBA
+        except ImportError, msg:
+            sys.stderr.write('ImportError: %s\n fred-webadmin needs omniORB module.\n'%msg)
+            sys.exit(1)
+            
+    def check_dns(self):
+        try:
+            import dns
+        except ImportError, msg:
+            sys.stderr.write('ImportError: %s\n fred-webadmin needs dnspython module.\n'%msg)
+            sys.exit(1)
 
+    def check_cherrypy(self):
+        try:
+            import cherrypy
+        except ImportError, msg:
+            sys.stderr.write('ImportError: %s\n fred-webadmin needs cherrypy version 3.x module.\n'%msg)
+            sys.exit(1)
+        
+        cherrypy_version =  StrictVersion(cherrypy.__version__)
+        if cherrypy_version < '3.0.0' or cherrypy_version >= '4.0.0':
+            sys.stderr.write('ImportError: \n fred-webadmin needs cherrypy version 3.x module.\n')
+            sys.exit(1)
+            
 
-class FredWebAdminInstall(install):
-    pass
+   
+    def check_dependencies(self):
+        'Check all dependencies'
+        self.check_simplejson()
+        self.check_CORBA()
+        self.check_dns()
+        self.check_cherrypy()
+
+    def run(self):
+        self.check_dependencies()
+        build.run(self)
+
 
 class FredWebAdminData(install_data):
     def run(self):
@@ -103,8 +140,7 @@ if __name__ == '__main__':
                         ('/tmp/fred_webadmin_session', [])] +
                         all_files_in(SHARE_WWW, 'www') +
                         all_files_in(SHARE_LOCALE, 'locale'),
-          cmdclass = {'build_py': FredWebAdminBuild,
-                      'install': FredWebAdminInstall, 
+          cmdclass = {'build': FredWebAdminBuild,
                       'install_data': FredWebAdminData
                      },
     )

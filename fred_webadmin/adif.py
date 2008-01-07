@@ -21,10 +21,6 @@ import dns.query
 
 import config
 
-# Support functions / sources path
-sys.path.insert(0, config.lib_path)
-#sys.path.insert(0, './idlstubs')
-
 # CherryPy main import
 import cherrypy
 #cherrypy.session = cherrypy.session # to pylint stop abuse :)

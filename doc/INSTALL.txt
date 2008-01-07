@@ -1,7 +1,8 @@
 
 DEPENDENCIES:
 
-cherrypy 3.0.2
+cherrypy >= 3.0.2
 simplejson
-omniorbpy 3.0
+omniorbpy >= 3.0
+
 
