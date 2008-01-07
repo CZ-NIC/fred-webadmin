@@ -1,0 +1,7 @@
+recursive-include fred_webadmin *.*
+recursive-include doc *.*
+recursive-include locale *.*
+recursive-include www *.*
+
+include webadmin_cfg.py.example
+include webadmin.py

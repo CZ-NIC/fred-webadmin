@@ -218,7 +218,8 @@ class q(WebWidget):
 class p(WebWidget):
     tattr_list=[u'id', u'cssc', u'style', u'title', u'lang', u'xmllang', u'dir', u'onclick', u'ondblclick', u'onmousedown', u'onmouseup', u'onmouseover', u'onmousemove', u'onmouseout', u'onkeypress', u'onkeydown', u'onkeyup']
 
-class del(WebWidget):
+class dell(WebWidget):
+    tag = 'del'
     tattr_list=[u'id', u'cssc', u'style', u'title', u'lang', u'xmllang', u'dir', u'onclick', u'ondblclick', u'onmousedown', u'onmouseup', u'onmouseover', u'onmousemove', u'onmouseout', u'onkeypress', u'onkeydown', u'onkeyup', u'cite', u'datetime']
 
 class small(WebWidget):

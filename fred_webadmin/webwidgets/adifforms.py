@@ -24,7 +24,7 @@ class LoginForm(Form):
     media_files='form_files.js'
 
 class UnionFilterForm(Form):
-    'Form that contains mor Filter Forms, data for this form is list of data for its Filter Forms'
+    'Form that contains more Filter Forms, data for this form is list of data for its Filter Forms'
     tattr_list = []
     def __init__(self, data=None, initial=None, layout=UnionFilterFormLayout, form_class=None, *content, **kwd):
         print "VYTVARIM UNIONFORM"
