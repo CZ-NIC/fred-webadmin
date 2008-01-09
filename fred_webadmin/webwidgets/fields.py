@@ -645,7 +645,7 @@ class MultiValueField(Field):
             self.fields[i].value = val
     def _get_value(self):
         return self._value
-    value = property(_get_value, _set_value)
+    value = property(fget=lambda self: self._get_value(), fset=lambda self, value: self._set_value(value)) # late binding property
 
         
     def build_content(self):
@@ -752,23 +752,36 @@ class DateIntervalField(MultiValueField):
         fields = (DateField(), DateField(), DateField())
         super(DateIntervalField, self).__init__(name, value, fields, *args, **kwargs)
         self.media_files.append('/js/interval_fields.js')
-        
+    
+    def _set_value(self, value):
+        super(DateIntervalField, self)._set_value(value)
+        self.set_iterval_date_display()
+            
+    def set_iterval_date_display(self):
+        if hasattr(self, 'date_interval_span'): # when initializing value, build_content method is not yet called, so this checks if it already was
+            if self.fields[2].value or not self.value:
+                date_interval_display = 'none'
+                date_day_display = 'inline'
+            else:
+                date_interval_display = 'inline'
+                date_day_display = 'none'
+            
+            self.date_interval_span.style = 'display: %s' % date_interval_display
+            self.date_day_span.style = 'display: %s' % date_day_display
+    
     def build_content(self):
-        if self.value and not self.value[2]:
-            date_interval_display = 'none'
-            date_day_display = 'inline'
-        else:
-            date_interval_display = 'inline'
-            date_day_display = 'none'
-        self.add(span(attr(cssc='date_interval', style='display: %s' % date_interval_display),
+        self.add(span(attr(cssc='date_interval'),
+                      save(self, 'date_interval_span'),
                       _('from') + ':', self.fields[0],
                       _('to') + ':', self.fields[1],
                      ),
-                 span(attr(cssc='date_day', style='display: %s' % date_day_display),
+                 span(attr(cssc='date_day'),
+                      save(self, 'date_day_span'),
                       _('day') + ':', self.fields[2]
                      ),
                  input(attr(type='button', onclick='toggle_interva_day(this);', value='D-I'))
                 )
+        self.set_iterval_date_display()
         
             
 

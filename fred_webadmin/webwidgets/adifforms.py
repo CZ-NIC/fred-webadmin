@@ -86,7 +86,7 @@ class FilterForm(Form):
         
         super(FilterForm, self).__init__(data, files, auto_id, prefix, initial, error_class, label_suffix, layout, *content, **kwd)
         self.is_nested = is_nested
-        self.media_files = ['/js/filtertable.js', '/js/MochiKit/MochiKit.js', '/js/scw.js', '/js/interval_fields.js']
+        self.media_files = ['/js/filtertable.js', '/js/MochiKit/MochiKit.js', '/js/scw.js', '/js/interval_fields.js', '/js/scwLanguages.js']
         self.layout = layout
         self.filter_base_fields()
         self.build_fields()
@@ -122,7 +122,7 @@ class FilterForm(Form):
                 if len(name) >= 2 and name[0] == 'presention':
                     filter_name = name[1]
                     field = deepcopy(self.base_fields[filter_name])
-                    field.name = '%s|%s' % ('filter', name[1])
+                    field.name = '%s|%s' % ('filter', filter_name)
                     #print "Fieldu %s jsem nasetil %s" % (field.name, field.value_from_datadict(self.data))
                     field.value = field.value_from_datadict(self.data)
                     

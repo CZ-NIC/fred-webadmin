@@ -4,6 +4,7 @@
 from gpyweb.gpyweb import div, span, p, a, b, attr, save, HTMLPage, hr, br, table, tr, th, td, img, form, input, h1, script
 from adifforms import get_filter_forms_javascript
 from fred_webadmin.translation import _
+from fred_webadmin import config
  
 class BaseTemplate(HTMLPage):
     def __init__(self, context = None):
@@ -63,8 +64,12 @@ class FilterPage(BaseSiteMenu):
         c = self.context
         self.main.add((h1(c.get('headline', 'Filter'))))
         
+        lang_code = config.lang[0:2]
+        if lang_code == 'cs': # conversion between cs and cz identifier of lagnguage
+            lang_code = 'cz'
+        self.head.add(script(attr(type='text/javascript'), 'scwLanguage="%s" //sets language of js_calendar' % lang_code))
+
         if context.get('form'):
-            
             self.main.add(c.form)
             #print "VKLADAM JS FORMU"
             forms_js = get_filter_forms_javascript()
