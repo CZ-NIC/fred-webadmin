@@ -82,7 +82,7 @@ class WebWidget(object):
         self.tag = self.__class__.__name__
     
         self._root_widget = self # root webwidget (usualy hmtl tag)
-        self.media_files = None # list of media files, which is rendered in head tag of HTMLPage, if this element is rendered in HTMLPage
+        self.media_files = [] # list of media files, which is rendered in head tag of HTMLPage, if this element is rendered in HTMLPage
         # allows content to be added via the 'content' keyword, which
         # provides an alternative to using the 'attr' class
         content = list(content) # convert tuple to list
@@ -563,17 +563,18 @@ class JSInclude(WebWidget):
         #must contain empty string because browser take <script /> as if it was <script> and waiting for </scrpt>:        
         self.add(attr(src=js_file, type="text/javascript"), '', )
         
+GPYWEB_REPLACE_ME_WITH_MEDIA = 'GPYWEB_REPLACE_ME_WITH_MEDIA'
 class Media(WebWidget):
     def __init__(self, media_files, *content, **kwd):
         super(Media, self).__init__(*content, **kwd)
         self.tag = None
         
         if isinstance(media_files, types.StringTypes):
-            self.media_files = set([media_files])
+            self.media_files = [media_files] #set([media_files])
         elif isiterable(media_files):
-            self.media_files = set(media_files)
+            self.media_files = media_files #set(media_files)
         else:
-            self.media_files = set()
+            self.media_files = [] #set()
 
     def render_after(self):
         rstr = ''
@@ -590,7 +591,7 @@ class Media(WebWidget):
             
     def render(self, indent_level = 0):
         self.indent_level = indent_level
-        return '%(media)s'
+        return GPYWEB_REPLACE_ME_WITH_MEDIA
         print "RENDERUJU MEDIA %s" % self.media_files
         rstr = ''
         for media_file in self.media_files:
@@ -667,12 +668,15 @@ class HTMLPage(html):
 #            self.head.add(JSInclude(js_files))
                 
     def render(self, indent_level = 0):
-        return self.doctype + super(HTMLPage, self).render(indent_level) % {'media': self._media.render_after()}
-    
+        return self.doctype + super(HTMLPage, self).render(indent_level).replace(GPYWEB_REPLACE_ME_WITH_MEDIA, self._media.render_after(), 1)    
     def add_media_files(self, media_files):
         if isinstance(media_files, types.StringTypes):
             media_files = [media_files]
-        self._media.media_files.update(set(media_files))
+        #self._media.media_files.update(set(media_files))
+        
+        for media_file in media_files:
+            if media_file not in self._media.media_files:
+                self._media.media_files.append(media_file)
 
 def isiterable(par):
     # we don't want to iterate over string characters

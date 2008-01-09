@@ -169,3 +169,6 @@ def isiterable(par):
         return True
     except TypeError:
         return False
+
+def escape_js_literal(literal):
+    return literal.replace('\n', '\\n\\\n').replace("'", "\\'").replace('<', '\\<').replace('>', '\\>')

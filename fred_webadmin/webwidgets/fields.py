@@ -8,7 +8,7 @@ import datetime
 from copy import deepcopy 
 from decimal import Decimal, DecimalException
 
-from gpyweb.gpyweb import WebWidget, attr, save, input, select, option, div
+from gpyweb.gpyweb import WebWidget, attr, save, input, select, option, div, script
 from utils import ValidationError, ErrorList, isiterable
 from fred_webadmin.translation import _
 
@@ -158,10 +158,16 @@ DEFAULT_DATE_INPUT_FORMATS = (
 )
 
 class DateField(CharField):
-    def __init__(self, name='', value='', input_formats=None, *args, **kwargs):
+    def __init__(self, name='', value='', input_formats=None, js_calendar=True, *args, **kwargs):
         super(DateField, self).__init__(name, value, *args, **kwargs)
         self.input_formats = input_formats or DEFAULT_DATE_INPUT_FORMATS
-
+        self.cssc = 'datefield'
+        self.js_calendar = js_calendar
+        if js_calendar:
+#            self.media_files.append('/js/scw.js')
+            self.media_files = ['/js/scw.js']
+            self.onclick = 'scwShow(this,event);' 
+        
     def clean(self, value):
         """
         Validates that the input can be converted to a date. Returns a Python
@@ -180,6 +186,7 @@ class DateField(CharField):
             except ValueError:
                 continue
         raise ValidationError(_(u'Enter a valid date.'))
+    
 
 DEFAULT_TIME_INPUT_FORMATS = (
     u'%H:%M:%S',     # '14:30:59'

@@ -7,7 +7,7 @@ from gpyweb.gpyweb import WebWidget, tagid, attr, notag, table, tbody, tr, th, t
 from fields import ChoiceField, BooleanField, HiddenField
 from adiffields import CompoundFilterField
 from fred_webadmin.translation import _
-from utils import pretty_name
+from utils import pretty_name, escape_js_literal
 
 FIELD_COUNTER_VALUE = 'FIELD_COUNTER_VALUE'
 REPLACE_ME_WITH_EMPTY_FORM = 'REPLACE_ME_WITH_EMPTY_FORM'
@@ -92,7 +92,7 @@ class UnionFilterFormLayout(TableFormLayout):
             
     def union_form_js(self):
         output = u'function buildOrRow() {\n'
-        output += u"var row = '%s';\n" % unicode(self.build_or_row()).replace('\n', '\\n\\\n').replace("'", "\\'")
+        output += u"var row = '%s';\n" % escape_js_literal(unicode(self.build_or_row()))
         output += u'return row;\n'
         output += u'}\n\n'
         
@@ -222,7 +222,7 @@ class FilterTableFormLayout(TableFormLayout):
             field.name = u'filter|' + name
             output += u"case '%s':\n" % name
             rendered_field = unicode(self.build_field_row(field, for_javascript=True))
-            rendered_field = rendered_field.replace('\n', '\\n\\\n').replace("'", "\\'")
+            rendered_field = escape_js_literal(rendered_field)
             output += u"    row += '%s';\n" % rendered_field
             if isinstance(field, CompoundFilterField):
                 output += u"    row = row.replace(/%s/g, getEmpty%s());\n" % (REPLACE_ME_WITH_EMPTY_FORM, field.form_class.__name__)

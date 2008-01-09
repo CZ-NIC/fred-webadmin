@@ -12,7 +12,7 @@ from adiffields import *
 from formlayouts import FilterTableFormLayout, UnionFilterFormLayout
 from fred_webadmin import config 
 from fred_webadmin.translation import _
-from utils import SortedDict, ErrorDict
+from utils import SortedDict, ErrorDict, escape_js_literal
 
 #__all__ = ['LoginForm', 'FilterForm']
 
@@ -86,7 +86,7 @@ class FilterForm(Form):
         
         super(FilterForm, self).__init__(data, files, auto_id, prefix, initial, error_class, label_suffix, layout, *content, **kwd)
         self.is_nested = is_nested
-        self.media_files = ['/js/filtertable.js', '/js/MochiKit/MochiKit.js']
+        self.media_files = ['/js/filtertable.js', '/js/MochiKit/MochiKit.js', '/js/scw.js']
         self.layout = layout
         self.filter_base_fields()
         self.build_fields()
@@ -225,7 +225,18 @@ class DomainsFilterForm(FilterForm):
     trDate = DateIntervalField(label=_('Transfer date'))
     
 
-form_classes = (DomainsFilterForm, NSSetsFilterForm, ContactsFilterForm, RegistrarsFilterForm)
+class RequestsFilterForm(FilterForm):
+    default_fields_names = ['requestType']
+    
+    requestType = ChoiceField(label=_('Request type'), choices=((1, u'Poraněn'), (2, u'Přeživší'), (3, u'Mrtev'), (4, u'Nemrtvý')))
+    objectHandle = CharField(label=_('Object handle'))
+    startDate = DateIntervalField(label=_('Received date'))
+    result = ChoiceField(label=_('Result'), choices=((1, u'Poraněn'), (2, u'Preživší'), (3, u'Mrtev'), (4, u'Nemrtvý')))
+    registrar = CompoundFilterField(label=_('Registrar'), form_class=RegistrarsFilterForm)
+    svTRID = CharField(label=_('svTRID'))
+    clTRID = CharField(label=_('clTRID'))
+    
+form_classes = (DomainsFilterForm, NSSetsFilterForm, ContactsFilterForm, RegistrarsFilterForm, RequestsFilterForm)
 def get_filter_forms_javascript():
     'Javascript is cached in user session (must be there, bucause each user can have other forms, because of different permissions'
     if not cherrypy.session.has_key('filter_forms_javascript') or not config.caching_filter_form_javascript:
@@ -236,11 +247,12 @@ def get_filter_forms_javascript():
             # Function that generates empty form:
             output += "function getEmpty%s() {\n" % form.__class__.__name__
             #output += "return 'AHOJ';\n"
-            output += "return '%s'\n" % unicode(form).replace('\n', '\\n\\\n').replace("'", "\\'")
+            output += "return '%s'\n" % escape_js_literal(unicode(form))
             output += "}\n"
         cherrypy.session['filter_forms_javascript'] = output
     return cherrypy.session['filter_forms_javascript']
    
+
 #def valueToCorbaFilter(field):
 #    
 #    translation = {

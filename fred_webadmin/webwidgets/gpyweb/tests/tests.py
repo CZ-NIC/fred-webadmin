@@ -5,7 +5,7 @@ import os, sys
 #sys.path += [os.path.join(os.path.dirname(__file__), '../')] # path to gpyweb module
 sys.path += ["/home/glin/programming/workspace/gpyweb/"]
 
-from gpyweb.gpyweb import *
+from fred_webadmin.webwidgets.gpyweb.gpyweb import *
 
 def test_change_tag():
     pp = p('text')
@@ -205,8 +205,8 @@ def test_http_page():
 \t\t<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
 \t\t<title>titulka</title>
 \t\t<link href="ahoj.css" type="text/css" rel="stylesheet" />
-\t\t<script src="cus.js" type="text/javascript"></script>
 \t\t<script src="zdar.js" type="text/javascript"></script>
+\t\t<script src="cus.js" type="text/javascript"></script>
 \t</head>
 \t<body>
 \t\t<div>
@@ -214,7 +214,7 @@ def test_http_page():
 \t\t</div>
 \t</body>
 </html>
-''', 'Note: if this test failes, it is possible that it only is due to different order of media fields (because they are stored in unordered set)' 
+'''
     page.add_media_files('caues.css')
     page.add_media_files(['cusik.js', 'ahojik.css'])
     print page
@@ -224,12 +224,12 @@ def test_http_page():
 \t<head>
 \t\t<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
 \t\t<title>titulka</title>
-\t\t<link href="ahojik.css" type="text/css" rel="stylesheet" />
-\t\t<script src="cusik.js" type="text/javascript"></script>
 \t\t<link href="ahoj.css" type="text/css" rel="stylesheet" />
-\t\t<script src="cus.js" type="text/javascript"></script>
 \t\t<script src="zdar.js" type="text/javascript"></script>
+\t\t<script src="cus.js" type="text/javascript"></script>
 \t\t<link href="caues.css" type="text/css" rel="stylesheet" />
+\t\t<script src="cusik.js" type="text/javascript"></script>
+\t\t<link href="ahojik.css" type="text/css" rel="stylesheet" />
 \t</head>
 \t<body>
 \t\t<div>
@@ -237,7 +237,7 @@ def test_http_page():
 \t\t</div>
 \t</body>
 </html>
-''', 'Note: if this test failes, it is possible that it only is due to different order of media fields (because they are stored in unordered set)' 
+''' 
 
 
 def test_media_in_childs():
@@ -257,8 +257,8 @@ def test_media_in_childs():
 \t\t<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
 \t\t<title>titulka</title>
 \t\t<link href="ahoj.css" type="text/css" rel="stylesheet" />
-\t\t<script src="cus.js" type="text/javascript"></script>
 \t\t<script src="zdar.js" type="text/javascript"></script>
+\t\t<script src="cus.js" type="text/javascript"></script>
 \t</head>
 \t<body>
 \t\t<div>
@@ -266,6 +266,6 @@ def test_media_in_childs():
 \t\t</div>
 \t</body>
 </html>
-''', 'Note: if this test failes, it is possible that it only is due to different order of media fields (because they are stored in unordered set)' 
+''' 
         
         
