@@ -52,11 +52,13 @@ def test_parent():
     
 
 def test_gpyweb_tagid_save():
-    
     mydiv = div()
+    
+    myspan = span(attr(style='color: red'), span(save(mydiv, 'spaninspan')))
+    
     mydiv.add(p(tagid('myp'),
                 'Text of p'),
-              span(attr(style='color: red'), span(save(mydiv, 'spaninspan')))
+                myspan
              )
     mydiv.myp.add('additional p text')
     mydiv.spaninspan.add('text in span')
@@ -267,5 +269,22 @@ def test_media_in_childs():
 \t</body>
 </html>
 ''' 
+
+def test_root_tag():
+    'Test when widget is addet to another widget during render(), if root_widget is really root of tree, after calling render()'
+    class MyWidget(WebWidget):
+        def render(self, indent_level=0):
+            my_p = p(tagid('my_p'))
+            self.add(my_p)
+            return super(MyWidget, self).render(indent_level)
+    d = div()
+    mv = MyWidget()
+    d.add(mv)
+    
+    d.render()
+    print 'my_p.rootwidget: ', repr(mv.my_p.root_widget)
+    
+    assert mv.my_p.root_widget == d
+    
         
         

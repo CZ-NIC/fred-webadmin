@@ -8,7 +8,7 @@ import datetime
 from copy import deepcopy 
 from decimal import Decimal, DecimalException
 
-from gpyweb.gpyweb import WebWidget, attr, save, input, select, option, div, script
+from gpyweb.gpyweb import WebWidget, attr, save, input, select, option, div, span, script
 from utils import ValidationError, ErrorList, isiterable
 from fred_webadmin.translation import _
 
@@ -633,6 +633,7 @@ class MultiValueField(Field):
     name = property(_get_name, _set_name)
         
     def _set_value(self, value):
+        self._value = value
         if not value:
             for i, val in enumerate(value):
                 self.fields[i].value = None
@@ -750,12 +751,26 @@ class DateIntervalField(MultiValueField):
     def __init__(self, name='', value='', *args, **kwargs):
         fields = (DateField(), DateField(), DateField())
         super(DateIntervalField, self).__init__(name, value, fields, *args, **kwargs)
+        self.media_files.append('/js/interval_fields.js')
         
     def build_content(self):
-        self.add(_('from') + ':', self.fields[0])
-        self.add(_('to') + ':', self.fields[1])
-        self.add(_('day') + ':', self.fields[2])
+        if self.value and not self.value[2]:
+            date_interval_display = 'none'
+            date_day_display = 'inline'
+        else:
+            date_interval_display = 'inline'
+            date_day_display = 'none'
+        self.add(span(attr(cssc='date_interval', style='display: %s' % date_interval_display),
+                      _('from') + ':', self.fields[0],
+                      _('to') + ':', self.fields[1],
+                     ),
+                 span(attr(cssc='date_day', style='display: %s' % date_day_display),
+                      _('day') + ':', self.fields[2]
+                     ),
+                 input(attr(type='button', onclick='toggle_interva_day(this);', value='D-I'))
+                )
         
+            
 
     def compress(self, data_list):
         return data_list #retrun couple [from, to]

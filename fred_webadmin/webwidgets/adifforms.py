@@ -21,7 +21,7 @@ class LoginForm(Form):
     login = CharField(max_length=30, label=_('Username'))#, initial=_(u'ohíňěček ťůříšekňú'))
     password = PasswordField(max_length=30, media_files='holahola.js')
     next = HiddenField(initial='/')
-    media_files='form_files.js'
+    media_files = 'form_files.js'
 
 class UnionFilterForm(Form):
     'Form that contains more Filter Forms, data for this form is list of data for its Filter Forms'
@@ -86,7 +86,7 @@ class FilterForm(Form):
         
         super(FilterForm, self).__init__(data, files, auto_id, prefix, initial, error_class, label_suffix, layout, *content, **kwd)
         self.is_nested = is_nested
-        self.media_files = ['/js/filtertable.js', '/js/MochiKit/MochiKit.js', '/js/scw.js']
+        self.media_files = ['/js/filtertable.js', '/js/MochiKit/MochiKit.js', '/js/scw.js', '/js/interval_fields.js']
         self.layout = layout
         self.filter_base_fields()
         self.build_fields()
