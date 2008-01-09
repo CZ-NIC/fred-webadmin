@@ -67,8 +67,10 @@ class FilterPage(BaseSiteMenu):
         lang_code = config.lang[0:2]
         if lang_code == 'cs': # conversion between cs and cz identifier of lagnguage
             lang_code = 'cz'
-        self.head.add(script(attr(type='text/javascript'), 'scwLanguage="%s" //sets language of js_calendar' % lang_code))
-
+        self.head.add(script(attr(type='text/javascript'), 
+                             'scwLanguage = "%s"; //sets language of js_calendar' % lang_code,
+                             'scwDateOutputFormat = "%s"; // set output format for js_calendar' % config.js_calendar_date_format))
+                     
         if context.get('form'):
             self.main.add(c.form)
             #print "VKLADAM JS FORMU"

@@ -1,6 +1,7 @@
 debug = True
 caching_filter_form_javascript = False # if this settings is on, then when doing changes to filter form, you should erase all sessions, because old filter forms are still in session
 
+
 def curdir(f = ''):
     import os.path
     return os.path.join(os.path.dirname(__file__), f) # in globlal module builtin variable __file__ is path, from which was program executed
@@ -23,6 +24,7 @@ localepath = locale_dir
 lang = 'cs_CZ'
 #lang = 'en_US'
 
+js_calendar_date_format = 'M.D.YYYY'
 
 cherrycfg = {
     'global': {
