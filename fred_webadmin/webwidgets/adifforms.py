@@ -233,7 +233,7 @@ class DomainsFilterForm(FilterForm):
 class RequestsFilterForm(FilterForm):
     default_fields_names = ['requestType']
     
-    requestType = ChoiceField(label=_('Request type'), choices=((1, u'Poraněn'), (2, u'Přeživší'), (3, u'Mrtev'), (4, u'Nemrtvý')))
+    requestType = MultipleChoiceField(label=_('Request type'), choices=((1, u'Poraněn'), (2, u'Přeživší'), (3, u'Mrtev'), (4, u'Nemrtvý')))
     objectHandle = CharField(label=_('Object handle'))
     startDate = DateTimeIntervalField(label=_('Received date'))
     result = ChoiceField(label=_('Result'), choices=((1, u'Poraněn'), (2, u'Preživší'), (3, u'Mrtev'), (4, u'Nemrtvý')))

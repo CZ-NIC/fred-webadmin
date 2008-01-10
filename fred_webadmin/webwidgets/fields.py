@@ -469,39 +469,42 @@ class ChoiceField(Field):
     #widget = Select
     tattr_list = select.tattr_list
     def __init__(self, name='', value='', choices=(), required=True, label=None, initial=None, help_text=None, *arg, **kwargs):
-        self._choices = None
-        self._value = None
+#        self._choices = None
+#        self._value = None
         super(ChoiceField, self).__init__(name, value, required, label, initial, help_text, *arg, **kwargs)
         self.tag = 'select'
 
         self.choices = choices
         self.value = value
 
-    def regenerate_options_tags(self):
+    def make_content(self):
         self.content = []
-        if self._choices:
-            for value, caption in self._choices:
+        if self.choices:
+            for value, caption in list(self.choices):
                 if unicode(value) == self.value:
                     self.add(option(attr(value=value, selected='selected'), caption))
                 else:
                     self.add(option(attr(value=value), caption))
+                    
+    def render(self, indent_level=0):
+        self.make_content()
+        return super(ChoiceField, self).render(indent_level)
 
-
-    def _get_choices(self):
-        return self._choices
-
-    def _set_choices(self, value):
-        self._choices = list(value)
-        self.regenerate_options_tags()
-    choices = property(_get_choices, _set_choices)
-    
-    def _get_value(self):
-        return self._value
-    
-    def _set_value(self, value):
-        self._value = value
-        self.regenerate_options_tags()
-    value = property(_get_value, _set_value)
+#    def _get_choices(self):
+#        return self._choices
+#
+#    def _set_choices(self, value):
+#        self._choices = list(value)
+#        self.regenerate_options_tags()
+#    choices = property(_get_choices, _set_choices)
+#    
+#    def _get_value(self):
+#        return self._value
+#    
+#    def _set_value(self, value):
+#        self._value = value
+#        self.regenerate_options_tags()
+#    value = property(_get_value, _set_value)
 
     def clean(self, value):
         """
@@ -537,10 +540,10 @@ class MultipleChoiceField(ChoiceField):
         if self.tag == u'select':
             self.add(attr(multiple=u"multiple"))
    
-    def regenerate_options_tags(self):
+    def make_content(self):
         self.content = []
-        if self._choices:
-            for value, caption in self._choices:
+        if self.choices:
+            for value, caption in self.choices:
                 if unicode(value) in self.value:
                     self.add(option(attr(value=value, selected='selected'), caption))
                 else:

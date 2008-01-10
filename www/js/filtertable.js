@@ -4,7 +4,16 @@ function formContentToObject(formContent) {
 	keys = formContent[0];
 	vals = formContent[1];
 	for (var i = 0; i < keys.length; i++) {
-		obj[keys[i]] = vals[i];
+		var key = keys[i];
+		var val = vals[i];
+		if (isUndefined(obj[key])) {
+			obj[key] = val;
+		} else { // for example multi-select have more values under same key, so we'll create array and pushing values to it
+			prev_val = obj[key];
+			if (!(prev_val instanceof Array))
+				obj[key] = [prev_val]
+			obj[key].push(val)
+		}
 	}
 	return obj;
 }
