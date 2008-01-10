@@ -24,7 +24,7 @@ localepath = locale_dir
 lang = 'cs_CZ'
 #lang = 'en_US'
 
-js_calendar_date_format = 'M.D.YYYY'
+js_calendar_date_format = 'D.M.YYYY'
 
 cherrycfg = {
     'global': {

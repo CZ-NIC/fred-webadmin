@@ -52,6 +52,9 @@ class Field(WebWidget):
 #        print 'Jsem %s a beru si data %s' % (self.name, data.get(self.name, None))
         return data.get(self.name, None)
     
+    def is_empty(self):
+        return self.value in EMPTY_VALUES
+    
 class CharField(Field):
     tattr_list = input.tattr_list
     def __init__(self, name='', value='', max_length=None, min_length=None, *args, **kwargs):
@@ -193,7 +196,7 @@ DEFAULT_TIME_INPUT_FORMATS = (
     u'%H:%M',        # '14:30'
 )
 
-class TimeField(Field):
+class TimeField(CharField):
     tattr_list = input.tattr_list
     def __init__(self, name='', value='', input_formats=None, *args, **kwargs):
         super(TimeField, self).__init__(name, value, *args, **kwargs)
@@ -609,7 +612,7 @@ class MultiValueField(Field):
     "compressed" version of those values -- a single value.
 
     """
-    tattr_list = div.tattr_list
+    tattr_list = span.tattr_list
     def __init__(self, name='', value='', fields=(), *args, **kwargs):
         
         # Set 'required' to False on the individual fields, because the
@@ -620,7 +623,7 @@ class MultiValueField(Field):
         self.fields = fields
         self._name = '' 
         super(MultiValueField, self).__init__(name, value, *args, **kwargs)
-        self.tag = 'div'
+        self.tag = 'span'
         self.build_content()
 
 
@@ -651,8 +654,10 @@ class MultiValueField(Field):
     def build_content(self):
         
         for field in self.fields:
-            label_str = self.label or ''
-            self.add(label_str + ':', field)
+            label_str = field.label or ''
+            if label_str:
+                label_str += ':'
+            self.add(label_str, field)
 
     def clean(self, value):
         """
@@ -669,8 +674,8 @@ class MultiValueField(Field):
             if not value or not [v for v in value if v not in EMPTY_VALUES]:
                 if self.required:
                     raise ValidationError(_(u'This field is required.'))
-                else:
-                    return self.compress([])
+#                else:
+#                    return self.compress([])
         else:
             raise ValidationError(_(u'Enter a list of values.'))
         for i, field in enumerate(self.fields):
@@ -714,6 +719,12 @@ class MultiValueField(Field):
 #        print 'beru data z %s k fieldum se jmeny %s' % (str(data), str([f.name for f in self.fields]))
         return [field.value_from_datadict(data) for field in self.fields]
     
+    def is_empty(self):
+        for field in self.fields:
+            if not field.is_empty():
+                return False
+        return True
+            
 
 class SplitDateTimeField(MultiValueField):
     def __init__(self, name='', value='', *args, **kwargs):
@@ -721,7 +732,7 @@ class SplitDateTimeField(MultiValueField):
         super(SplitDateTimeField, self).__init__(name, value, fields, *args, **kwargs)
 
     def compress(self, data_list):
-        if data_list:
+        if data_list and data_list[0]:
             # Raise a validation error if time or date is empty
             # (possible if SplitDateTimeField has required=False).
             if data_list[0] in EMPTY_VALUES:
@@ -759,7 +770,9 @@ class DateIntervalField(MultiValueField):
             
     def set_iterval_date_display(self):
         if hasattr(self, 'date_interval_span'): # when initializing value, build_content method is not yet called, so this checks if it already was
-            if self.fields[2].value or not self.value:
+            print 'self.is_empty()',self.is_empty()
+            print 'self.fields[2].is_empty()',self.fields[2].is_empty()
+            if self.is_empty() or not self.fields[2].is_empty(): # day is deafult and has priority over interval
                 date_interval_display = 'none'
                 date_day_display = 'inline'
             else:
@@ -783,11 +796,51 @@ class DateIntervalField(MultiValueField):
                 )
         self.set_iterval_date_display()
         
-            
+    def clean(self, value):
+        cleaned_data = super(DateIntervalField, self).clean(value)
+        print "CLEANEDDATA", cleaned_data
+        if cleaned_data and not cleaned_data[2] and cleaned_data[0] and cleaned_data[1]: # if from and tofield filled, and not day filled
+            if cleaned_data[0] > cleaned_data[1]: # if from > to
+                errors = ErrorList(['"From" must be bigger than "To"'])
+                raise ValidationError(errors)
+        return cleaned_data
 
     def compress(self, data_list):
         return data_list #retrun couple [from, to]
         
     def decompress(self, value):
         return value
-        
+    
+class SplitTimeField(MultiValueField):
+    def __init__(self, name='', value='', *args, **kwargs):
+        fields = (ChoiceField(choices=[[u'%02d' % c, u'%02d' % c] for c in range(24)]), 
+                  ChoiceField(choices=[[u'%02d' % c, u'%02d' % c] for c in range(0, 60, 5)]))
+        super(SplitTimeField, self).__init__(name, value, fields, *args, **kwargs)
+
+    def compress(self, data_list):
+        if data_list:
+            return datetime.time(*[int(data) for data in data_list])
+        return None
+
+    def decompress(self, value):
+        if value:
+            return [value.hour, value.minute]
+        return [None, None]
+    
+class SplitDateSplitTimeField(SplitDateTimeField):
+    def __init__(self, name='', value='', *args, **kwargs): #  pylint: disable-msg=E1003 
+        fields = (DateField(), SplitTimeField())
+        # Here is called really parent of parent of this class, to avoid self.fields initialization from parent:
+        super(SplitDateTimeField, self).__init__(name, value, fields, *args, **kwargs) 
+
+    def is_empty(self):
+        return self.fields[0].is_empty()
+
+
+class DateTimeIntervalField(DateIntervalField): 
+    def __init__(self, name='', value='', *args, **kwargs): # pylint: disable-msg=E1003 
+        fields = (SplitDateSplitTimeField(), SplitDateSplitTimeField(), DateField())
+        # Here is called really parent of parent of this class, to avoid self.fields initialization from parent:
+        super(DateIntervalField, self).__init__(name, value, fields, *args, **kwargs)
+        self.media_files.append('/js/interval_fields.js')
+    

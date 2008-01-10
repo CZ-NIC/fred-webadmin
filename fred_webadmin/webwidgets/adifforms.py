@@ -166,6 +166,11 @@ class FilterForm(Form):
 #    email = EmailField(max_length=30)
 #    expired = BooleanField()
 #    valid = NullBooleanField() 
+#    cas = TimeField(label=('cas vyrazeni'))
+#    datumpropadnuti = SplitDateTimeField(label=_('Datum propadnuti'))
+#    casprejmenovani = SplitTimeField(label=_('cas prejmenovani'))
+#    datum_umrti = SplitDateSplitTimeField(label=_('datum umrti'))
+#    doba_zmrtvychvstani = DateTimeIntervalField(label=_('doba zmrtvychvstani'))
    
 class RegistrarsFilterForm(FilterForm):
     default_fields_names = ['handle']
@@ -223,14 +228,14 @@ class DomainsFilterForm(FilterForm):
     crDate = DateIntervalField(label=_('Registration date'))
     upDate = DateIntervalField(label=_('Update date'))
     trDate = DateIntervalField(label=_('Transfer date'))
-    
+
 
 class RequestsFilterForm(FilterForm):
     default_fields_names = ['requestType']
     
     requestType = ChoiceField(label=_('Request type'), choices=((1, u'Poraněn'), (2, u'Přeživší'), (3, u'Mrtev'), (4, u'Nemrtvý')))
     objectHandle = CharField(label=_('Object handle'))
-    startDate = DateIntervalField(label=_('Received date'))
+    startDate = DateTimeIntervalField(label=_('Received date'))
     result = ChoiceField(label=_('Result'), choices=((1, u'Poraněn'), (2, u'Preživší'), (3, u'Mrtev'), (4, u'Nemrtvý')))
     registrar = CompoundFilterField(label=_('Registrar'), form_class=RegistrarsFilterForm)
     svTRID = CharField(label=_('svTRID'))
