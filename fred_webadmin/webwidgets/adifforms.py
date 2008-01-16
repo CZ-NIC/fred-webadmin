@@ -13,6 +13,7 @@ from formlayouts import FilterTableFormLayout, UnionFilterFormLayout
 from fred_webadmin import config 
 from fred_webadmin.translation import _
 from utils import SortedDict, ErrorDict, escape_js_literal
+from fred_webadmin.corbalazy import CorbaLazyRequest
 
 #__all__ = ['LoginForm', 'FilterForm']
 
@@ -234,6 +235,7 @@ class RequestsFilterForm(FilterForm):
     default_fields_names = ['requestType']
     
     requestType = MultipleChoiceField(label=_('Request type'), choices=((1, u'Poraněn'), (2, u'Přeživší'), (3, u'Mrtev'), (4, u'Nemrtvý')))
+#    requestType = MultipleChoiceField(label=_('Request type'), choices=((action_name, action_name) for action_name in CorbaLazyRequest('Admin', 'getEPPActionTypeList')))
     objectHandle = CharField(label=_('Object handle'))
     startDate = DateTimeIntervalField(label=_('Received date'))
     result = ChoiceField(label=_('Result'), choices=((1, u'Poraněn'), (2, u'Preživší'), (3, u'Mrtev'), (4, u'Nemrtvý')))
