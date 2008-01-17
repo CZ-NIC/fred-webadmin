@@ -14,7 +14,7 @@ SHARE_DOC = os.path.join('share', 'doc', PACKAGE_NAME)
 SHARE_PACKAGE = os.path.join('share', PACKAGE_NAME)
 SHARE_WWW = os.path.join(SHARE_PACKAGE, 'www')
 SHARE_LOCALE = os.path.join(SHARE_PACKAGE, 'locale')
-BIN = 'bin'
+BIN = '/sbin/'
 
 EXCLUDE_FILES = ['.svn']
 
@@ -139,7 +139,7 @@ if __name__ == '__main__':
           package_dir = {PACKAGE_NAME: PACKAGE_NAME},
           
           data_files = [('/etc/fred', ['webadmin_cfg.py.example']),
-                        (BIN, ['webadmin.py']),
+                        (BIN, ['fred-webadmin']),
                         (SHARE_DOC, ['doc/INSTALL.txt']),
                         ('/var/lib/fred_webadmin/sessions', [])] +
                         all_files_in(SHARE_WWW, 'www') +
