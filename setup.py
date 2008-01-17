@@ -79,8 +79,8 @@ class FredWebAdminData(install_data):
         # copy webadmin_cfg.py.example to webadmin_cfg.py, only if webadmin_cfg.py doesn't exists
         if config_file:
             print 'Configuring:'
-            path_config_example = self.root + os.path.join(path, config_file_example) 
-            path_config = self.root + os.path.join(path, config_file)
+            path_config_example =  os.path.join(self.root or '', path, config_file_example) 
+            path_config = os.path.join(self.root or '', path, config_file)
             if not os.path.exists(path_config):
 #                print ' No old %s found, copy new from %s' % (path_config, path_config_example)
                 print ' copying %s -> %s' % (path_config_example, path_config)
@@ -91,7 +91,7 @@ class FredWebAdminData(install_data):
 
 def all_files_in(dst_directory, directory):
     'Returns couples (directory, directory/file) to all files in directory (recursive)'
-    
+
     paths = [] # list of couples (directory, directory/file) for all files
 
     for filename in os.listdir(directory):
@@ -99,7 +99,13 @@ def all_files_in(dst_directory, directory):
             continue
         full_path = os.path.join(directory, filename)
         if os.path.isfile(full_path):
-            paths.append((os.path.join(dst_directory, directory), [full_path]))
+            # exclude first directory in path from dst path (this include really only what is IN directory, not (directory AND files))
+            splitted_directory = directory.split(os.path.sep, 1)
+            if len(splitted_directory) > 1: 
+                dst_subdirectory = splitted_directory[1]
+            else: # directory is only one directory yet
+                dst_subdirectory = ''
+            paths.append((os.path.join(dst_directory, dst_subdirectory), [full_path]))
         elif os.path.isdir(full_path):
             paths.extend(all_files_in(dst_directory, full_path))    
             
@@ -135,7 +141,7 @@ if __name__ == '__main__':
           data_files = [('/etc/fred', ['webadmin_cfg.py.example']),
                         (BIN, ['webadmin.py']),
                         (SHARE_DOC, ['doc/INSTALL.txt']),
-                        ('/tmp/fred_webadmin_session', [])] +
+                        ('/var/lib/fred_webadmin/sessions', [])] +
                         all_files_in(SHARE_WWW, 'www') +
                         all_files_in(SHARE_LOCALE, 'locale'),
           cmdclass = {'build': FredWebAdminBuild,
