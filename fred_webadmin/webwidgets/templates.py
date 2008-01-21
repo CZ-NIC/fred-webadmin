@@ -62,7 +62,8 @@ class FilterPage(BaseSiteMenu):
     def __init__(self, context = None):
         super(FilterPage, self).__init__(context)
         c = self.context
-        self.main.add((h1(c.get('headline', 'Filter'))))
+        if c.get('headline'):
+            self.main.add(h1(c.headline))
         
         lang_code = config.lang[0:2]
         if lang_code == 'cs': # conversion between cs and cz identifier of lagnguage
@@ -78,14 +79,7 @@ class FilterPage(BaseSiteMenu):
             #print "a ten je konkretne", forms_js
             
             self.main.add(script(attr(type='text/javascript'), forms_js)) 
-        else:
-            self.main.add(p('tady bude nakej filter'))
-    
             
-class ObjectList(BaseSiteMenu):
-    def __init__(self, context = None):
-        super(ObjectList, self).__init__(context)
-        c = self.context
         if c.get('itertable'):
             itertable = c.itertable
             
@@ -111,18 +105,18 @@ class ObjectList(BaseSiteMenu):
             self.main.add(table(attr(id='objectlist', media_files='/css/objectlist.css'), rows))
             
             # Numbers of entries 
-            if itertable.totalRows > itertable.numRows:
-                num_rows = span(attr(cssc='warning'), itertable.numRows)
+            if itertable.total_rows > itertable.num_rows:
+                num_rows = span(attr(cssc='warning'), itertable.num_rows)
             else:
-                num_rows = itertable.numRows
+                num_rows = itertable.num_rows
             pageflip = span(
                 '%s: %s,' % (_('Number_of_pages'), itertable.last_page),
                 '%s: %s,' % (_('entries'), num_rows), 
-                '%s: %s' % (_('total'), itertable.totalRows),
+                '%s: %s' % (_('total'), itertable.total_rows),
                 br())
             
             # Pager
-            if itertable.numPages > 1:
+            if itertable.num_pages > 1:
                 pageflip.add(div(
                     a(attr(cssc='pager-button', href='?page=%s' % itertable.first_page), '&laquo;'),
                     a(attr(cssc='pager-button', href='?page=%s' % itertable.prev_page), '&lsaquo;'),
@@ -141,7 +135,7 @@ class DomainsDetail(BaseSiteMenu):
         super(DomainsDetail, self).__init__(context)
         c = self.context
         if c.get('result'):
-            self.main.add('DOMAINSDETAIL', c.result)
+            self.main.add('DOMAINSDETAIL', c.result.replace(u', ', u',<br />'))
         
     
 class RegistrarsDetail(BaseSiteMenu):

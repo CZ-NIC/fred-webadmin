@@ -90,8 +90,8 @@ menu_tree = MenuNode('root', '', '', 'menu-item', '#', [
         MenuNode('contacts', _('Search contacts'), cssc='menu-item', url='/contacts/filter/', nperm='contacts.read'),
         MenuNode('nssets', _('Search nssets'), cssc='menu-item', url='/nssets/filter/', nperm='nssets.read'),
     ]), 
-    MenuNode('registrars', _('Registrars'), 'body-registrars', 'menu-item menu-registrars', url='/registrars/list/?cf=1', nperm='registrars.read', submenu=[
-        MenuNode('registrarslist', _('List'), cssc='menu-item', url='/registrars/list/?cf=1', nperm='registrars.read'),
+    MenuNode('registrars', _('Registrars'), 'body-registrars', 'menu-item menu-registrars', url='/registrars/filter/?cf=1', nperm='registrars.read', submenu=[
+        MenuNode('registrarslist', _('List'), cssc='menu-item', url='/registrars/filter/?cf=1', nperm='registrars.read'),
         MenuNode('registrarsfilter', _('Search'), cssc='menu-item', url='/registrars/filter/', nperm='registrars.read'),
         MenuNode('registrarscreate', _('Create new'), cssc='menu-item', url='/registrars/create/', nperm='registrars.create'),
         MenuNode('invoicesfilter', _('Invoices'), cssc='menu-item', url='/invoices/filter/', nperm='invoices.read'),

@@ -52,7 +52,7 @@ except ImportError:
 from translation import _
 
 
-from webwidgets.templates import BaseSite, BaseSiteMenu, LoginPage, FilterPage, ObjectList, DomainsDetail, RegistrarsDetail
+from webwidgets.templates import BaseSite, BaseSiteMenu, LoginPage, FilterPage, DomainsDetail, RegistrarsDetail
 from webwidgets.gpyweb.gpyweb import WebWidget
 from webwidgets.gpyweb.gpyweb import DictLookup, attr, ul, li, a, div, span, p
 from webwidgets.utils import isiterable
@@ -151,8 +151,7 @@ class ListTableMixin(object):
 
     __metaclass__ = exposed.exposed
 
-    @protectedPage
-    def list(self, **kwd):
+    def _get_list(self, context, cleared_filters=None, **kwd):
         key = cherrypy.session.get('corbaSession', '')
         size = config.tablesize
         try:
@@ -163,24 +162,21 @@ class ListTableMixin(object):
             page = int(kwd.get('page', 1))
         except ValueError:
             page = 1
-        filters = {}
-        [ filters.__setitem__(x[7:], kwd[x]) for x in kwd if x.startswith('filter_') ]
-#        if not filters:
-#            filters = {'registrar':''}
-        if filters:
-            table.setFilter(self.classname, filters)
+        
+        #[ filters.__setitem__(x[7:], kwd[x]) for x in kwd if x.startswith('filter_') ]
+        if cleared_filters:
+#            import pdb; pdb.set_trace()
+            table.clear_filter()
+            table.set_filter(cleared_filters)
         if kwd.get('cf'):
-            table.clearFilter()
+            table.clear_filter()
         if kwd.get('reload'):
             table.reload()
 
-        context = {}
-        
-        if table.numRows == 0:
-            context['main'] = _("No_entries_found")
-            return self._render('base', ctx=context)
-        if table.numRows == 1:
-            rowId = table.getRowId(0)
+        if table.num_rows == 0:
+            context['main'].add(_("No_entries_found"))
+        if table.num_rows == 1:
+            rowId = table.get_row_id(0)
             raise cherrypy.HTTPRedirect('/%s/detail/?id=%s' % (self.classname, rowId))
         if kwd.get('txt', None):
             cherrypy.response.headers["Content-Type"] = "text/plain"
@@ -190,43 +186,48 @@ class ListTableMixin(object):
             cherrypy.response.headers["Content-Type"] = "application/vnd.ms-excel"
             cherrypy.response.headers["Content-Disposition"] = "attachement; filename=%s_%s.csv" % (self.classname, time.strftime('%Y-%m-%d'))
             return fileGenerator(table)
-        table.setPage(page)
+        table.set_page(page)
         
         context['itertable'] = table
-        return self._render('list', context)
+        return context
     
     @protectedPage
     def filter(self, **kwd):
         if kwd:
             print 'prisla data %s' % kwd
         
-        context = {}
-        
-        form_name = self.__class__.__name__ + 'FilterForm'
-        form_class = getattr(sys.modules[self.__module__], form_name, None)
-        if not form_class:
-            raise RuntimeError('No such formclass in modules "%s"' % form_name)
-        if kwd.has_key('json_data'):
-            print 'posilam data %s' % kwd
-            form = UnionFilterForm(kwd, form_class=form_class)
-        else:
-            form = UnionFilterForm(form_class=form_class)
-            
-        
-        if form is None:
-            context['main'] = p(_('No filter for'), self.__class__.__name__)
-            return self._render('base', ctx=context)
-        
-        context['form'] = form
-        if form.is_bound:
-            context['main'] = u'kwd:' + unicode(kwd)
-        if form.is_valid():
-            context['main'] = context.get('main', u'') + u'<br />Jsem validni<br />'
-            context['main'] = context.get('main', u'') + u'cleaned_data:' + unicode(form.cleaned_data) + '<br />'
-        elif form.is_bound:
-            context['main'] = context.get('main', u'') + u'Jsem nevalidni, errors:' + unicode(form.errors.items())
+        context = {'main': div()}
 
-        context['headline'] = '%s filter' % self.__class__.__name__
+        if kwd.get('cf'): # clear filter - whole list of objects without using filter form
+            context = self._get_list(context, **kwd)
+        else:
+            # get filter form class
+            form_name = self.__class__.__name__ + 'FilterForm'
+            form_class = getattr(sys.modules[self.__module__], form_name, None)
+            if not form_class:
+                raise RuntimeError('No such formclass in modules "%s"' % form_name)
+            
+            # bound form with data
+            if kwd.has_key('json_data'):
+                print 'posilam data %s' % kwd
+                form = UnionFilterForm(kwd, form_class=form_class)
+            else:
+                form = UnionFilterForm(form_class=form_class)
+            
+            if form.is_bound:
+                context['main'].add(p(u'kwd:' + unicode(kwd)))
+            if form.is_valid():
+                context['main'].add(u'<br />Jsem validni<br />')
+                context['main'].add(u'cleaned_data:' + unicode(form.cleaned_data) + '<br />')
+                print u'cleaned_data:' + unicode(form.cleaned_data)
+                context = self._get_list(context, form.cleaned_data, **kwd)
+                return self._render('filter', context)
+            else:
+                context['form'] = form
+                if form.is_bound:
+                    context['main'].add(u'Jsem nevalidni, errors:' + unicode(form.errors.items()))
+                    context['headline'] = '%s filter' % self.__class__.__name__
+        
         return self._render('filter', context)
 
     @protectedPage
@@ -280,8 +281,6 @@ class AdifPage(Page):
             return BaseSiteMenu
         if action == 'login':
             return LoginPage
-        elif action == 'list':
-            return ObjectList
         elif action == 'filter':
             return FilterPage
         else:
@@ -302,7 +301,7 @@ class AdifPage(Page):
         return MenuHoriz(self.menu_tree, self._get_menu_handle(action), cherrypy.session['user'])
     
     def _get_menu_handle(self, action):
-        if action in ('filter', 'list', 'create') and self.classname not in ('domains', 'contacts', 'nssets'):
+        if action in ('filter', 'create') and self.classname not in ('domains', 'contacts', 'nssets'):
             return self.classname + action
         else:
             return self.classname
@@ -420,8 +419,8 @@ class ADIF(AdifPage):
                 
                 cherrypy.session['corba_server_name'] = form.fields['corba_server'].choices[corba_server][1]
                 cherrypy.session['Admin'] = admin
-                cherrypy.session['Mailer'] = corba.getObject('fred', 'Mailer', 'Mailer')
-                cherrypy.session['FileManager'] = corba.getObject('fred', 'FileManager', 'FileManager')
+#                cherrypy.session['Mailer'] = corba.getObject('fred', 'Mailer', 'Mailer')
+#                cherrypy.session['FileManager'] = corba.getObject('fred', 'FileManager', 'FileManager')
 
 
                 raise cherrypy.HTTPRedirect(form.cleaned_data.get('next'))

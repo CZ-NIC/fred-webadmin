@@ -183,52 +183,44 @@ class RegistrarsFilterForm(FilterForm):
     crDate = DateIntervalField(label=_('Registration date'))
     upDate = DateIntervalField(label=_('Update date'))
     
-class ContactsFilterForm(FilterForm):
-    default_fields_names = ['handle', 'name']
+class ObjectsFilterForm(FilterForm):
+    default_fields_names = ['handle']
     
     handle = CharField(label=_('Handle'))
+
+    clid = CompoundFilterField(label=_('Registrar'), form_class=RegistrarsFilterForm)
+    crid = CompoundFilterField(label=_('Creation registrar'), form_class=RegistrarsFilterForm)
+    upid = CompoundFilterField(label=_('Update registrar'), form_class=RegistrarsFilterForm)
+    
+    crDate = DateIntervalField(label=_('Registration date'))
+    upDate = DateIntervalField(label=_('Update date'))
+    trDate = DateIntervalField(label=_('Transfer date'))
+    
+class ContactsFilterForm(ObjectsFilterForm):
+    default_fields_names = ObjectsFilterForm.default_fields_names + ['name']
+    
     email = EmailField(label=_('Email'))
-    registrar = CompoundFilterField(label=_('Selected registrar'), form_class=RegistrarsFilterForm)
     contact_type = MultipleChoiceField(label=_('Contact type'), choices=(('owner', _('Owner')), ('admin', _('Admin')), ('techadmin', _('techadmin')), ('temporary', _('Temporary'))))
     name = CharField(label=_('Name'))
     organisation = CharField(label=_('Organisation'))
     ssn = CharField(label=_('SSN'))
     vat = CharField(label=_('VAT'))
-    crDate = DateIntervalField(label=_('Registration date'))
-    upDate = DateIntervalField(label=_('Update date'))
-#    vatt = RegexField(label=_('Vatt'))
     
-class NSSetsFilterForm(FilterForm):
-    default_fields_names = ['handle']
-    
-    handle = CharField(label=_('Handle'))
+class NSSetsFilterForm(ObjectsFilterForm):
     ipAddr = CharField(label=_('IP address'))
     techAdmin = CompoundFilterField(label=_('Technical contact'), form_class=ContactsFilterForm)
     nsName = CharField(label=_('Nameserver name'))
-    registrar = CompoundFilterField(label=_('Registrar'), form_class=RegistrarsFilterForm)
-    createRegistrar = CompoundFilterField(label=_('Creation registrar'), form_class=RegistrarsFilterForm)
-    updateRegistrar = CompoundFilterField(label=_('Update registrar'), form_class=RegistrarsFilterForm)
-    crDate = DateIntervalField(label=_('Registration date'))
-    upDate = DateIntervalField(label=_('Update date'))
-    trDate = DateIntervalField(label=_('Transfer date'))
     
-class DomainsFilterForm(FilterForm):
+class DomainsFilterForm(ObjectsFilterForm):
     default_fields_names = ['fqdn']
     
     fqdn = CharField(label=_('Domain name'))
-    
     registrant = CompoundFilterField(label=_('Owner'), form_class=ContactsFilterForm)
     admin = CompoundFilterField(label=_('Admin'), form_class=ContactsFilterForm)
     nsset = CompoundFilterField(label=_('Nameserver set'), form_class=NSSetsFilterForm)
-    registrar = CompoundFilterField(label=_('Registrar'), form_class=RegistrarsFilterForm)
-    createRegistrar = CompoundFilterField(label=_('Creation registrar'), form_class=RegistrarsFilterForm)
-    updateRegistrar = CompoundFilterField(label=_('Update registrar'), form_class=RegistrarsFilterForm)
     
     exDate = DateIntervalField(label=_('Expiry date'))
     valExDate = DateIntervalField(label=_('Validation date'))
-    crDate = DateIntervalField(label=_('Registration date'))
-    upDate = DateIntervalField(label=_('Update date'))
-    trDate = DateIntervalField(label=_('Transfer date'))
 
 
 class RequestsFilterForm(FilterForm):
@@ -236,14 +228,14 @@ class RequestsFilterForm(FilterForm):
     
     requestType = MultipleChoiceField(label=_('Request type'), choices=((1, u'Poraněn'), (2, u'Přeživší'), (3, u'Mrtev'), (4, u'Nemrtvý')))
 #    requestType = MultipleChoiceField(label=_('Request type'), choices=((action_name, action_name) for action_name in CorbaLazyRequest('Admin', 'getEPPActionTypeList')))
-    objectHandle = CharField(label=_('Object handle'))
+    object = CompoundFilterField(label=_('Object'), form_class=ObjectsFilterForm)
     startDate = DateTimeIntervalField(label=_('Received date'))
     result = ChoiceField(label=_('Result'), choices=((1, u'Poraněn'), (2, u'Preživší'), (3, u'Mrtev'), (4, u'Nemrtvý')))
     registrar = CompoundFilterField(label=_('Registrar'), form_class=RegistrarsFilterForm)
     svTRID = CharField(label=_('svTRID'))
     clTRID = CharField(label=_('clTRID'))
     
-form_classes = (DomainsFilterForm, NSSetsFilterForm, ContactsFilterForm, RegistrarsFilterForm, RequestsFilterForm)
+form_classes = (DomainsFilterForm, NSSetsFilterForm, ObjectsFilterForm, ContactsFilterForm, RegistrarsFilterForm, RequestsFilterForm)
 def get_filter_forms_javascript():
     'Javascript is cached in user session (must be there, bucause each user can have other forms, because of different permissions'
     if not cherrypy.session.has_key('filter_forms_javascript') or not config.caching_filter_form_javascript:

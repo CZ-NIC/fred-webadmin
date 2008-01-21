@@ -12,8 +12,9 @@ sessions_dir = base_dir + '/sessions'
 locale_dir = base_dir + '/locale'
 log_dir = base_dir
 
-idl = '/home/glin/programming/svn_enum_checkout/enum/idl/trunk/ccReg.idl'
-iors = ('corbaname::pokuston', 'corbaname::curlew')
+#idl = '/home/glin/programming/svn_enum_checkout/enum/idl/trunk/ccReg.idl'
+idl = '/home/glin/programming/nic/webadmin/servers/idl_devel/idl/ccReg.idl'
+iors = ('corbaname::jarahp', 'corbaname::pokuston', 'corbaname::curlew')
 
 title = 'Web Admin / CherryPy'
 tablesize = 45
