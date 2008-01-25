@@ -23,6 +23,7 @@ class TableFormLayout(FormLayout):
         self.tag = u'table'
         self.form = form
         self.create_layout()
+        self.media_files.append('/css/filtertable.css')
         
     
     def create_layout(self):
@@ -121,7 +122,7 @@ class FilterTableFormLayout(TableFormLayout):
         self.field_counter = 0
         super(FilterTableFormLayout, self).__init__(form, *content, **kwd)
         self.cssc = u'filtertable'
-        self.media_files.append('/css/filtertable.css')
+        
         
         
     def create_layout(self):

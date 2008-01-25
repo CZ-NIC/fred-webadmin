@@ -151,7 +151,7 @@ class ListTableMixin(object):
 
     __metaclass__ = exposed.exposed
 
-    def _get_list(self, context, cleared_filters=None, **kwd):
+    def _get_list(self, context, cleaned_filters=None, **kwd):
         key = cherrypy.session.get('corbaSession', '')
         size = config.tablesize
         try:
@@ -164,13 +164,24 @@ class ListTableMixin(object):
             page = 1
         
         #[ filters.__setitem__(x[7:], kwd[x]) for x in kwd if x.startswith('filter_') ]
-        if cleared_filters:
-#            import pdb; pdb.set_trace()
+        if cleaned_filters:
+            #import pdb; pdb.set_trace()
             table.clear_filter()
-            table.set_filter(cleared_filters)
+            table.set_filter(cleaned_filters)
         if kwd.get('cf'):
             table.clear_filter()
         if kwd.get('reload'):
+            table.reload()
+        if kwd.get('load'):
+            filter_data = table.get_filter_data()
+            kwd_filter_data = {'json_data': simplejson.dumps(filter_data)}
+            form_class = self._get_form_class()
+            form = UnionFilterForm(kwd_filter_data, form_class=form_class)
+            context['form'] = form
+            context['main'].add('kwd_json_data_loaded:', kwd_filter_data)
+        if kwd.get('list_all'):
+            table.clear_filter()
+            table._table.add()
             table.reload()
 
         if table.num_rows == 0:
@@ -198,22 +209,17 @@ class ListTableMixin(object):
         
         context = {'main': div()}
 
-        if kwd.get('cf'): # clear filter - whole list of objects without using filter form
+        if kwd.get('cf') or kwd.get('page') or kwd.get('load') or kwd.get('list_all'): # clear filter - whole list of objects without using filter form
             context = self._get_list(context, **kwd)
         else:
-            # get filter form class
-            form_name = self.__class__.__name__ + 'FilterForm'
-            form_class = getattr(sys.modules[self.__module__], form_name, None)
-            if not form_class:
-                raise RuntimeError('No such formclass in modules "%s"' % form_name)
-            
+            form_class = self._get_form_class()
             # bound form with data
             if kwd.has_key('json_data'):
                 print 'posilam data %s' % kwd
                 form = UnionFilterForm(kwd, form_class=form_class)
             else:
                 form = UnionFilterForm(form_class=form_class)
-            
+            context['form'] = form
             if form.is_bound:
                 context['main'].add(p(u'kwd:' + unicode(kwd)))
             if form.is_valid():
@@ -223,12 +229,19 @@ class ListTableMixin(object):
                 context = self._get_list(context, form.cleaned_data, **kwd)
                 return self._render('filter', context)
             else:
-                context['form'] = form
+                
                 if form.is_bound:
                     context['main'].add(u'Jsem nevalidni, errors:' + unicode(form.errors.items()))
                     context['headline'] = '%s filter' % self.__class__.__name__
         
         return self._render('filter', context)
+
+    def _get_form_class(self):
+        form_name = self.__class__.__name__ + 'FilterForm'
+        form_class = getattr(sys.modules[self.__module__], form_name, None)
+        if not form_class:
+            raise RuntimeError('No such formclass in modules "%s"' % form_name)
+        return form_class
 
     @protectedPage
     def index(self):

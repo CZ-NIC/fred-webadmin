@@ -12,10 +12,12 @@ from gpyweb.gpyweb import WebWidget, attr, save, input, select, option, div, spa
 from utils import ValidationError, ErrorList, isiterable
 from fred_webadmin.translation import _
 
-
-
 EMPTY_VALUES = (None, '')
-  
+
+#cobra things:
+from fred_webadmin.corba import ccReg
+INTERVAL_CHOICES = [(choice._v, choice._n) for choice in ccReg.DateTimeIntervalType._items[1:]] # first is Day, which is special case and we omit it in choicefield  
+
 class Field(WebWidget):
     creation_counter = 0
     #tattr_list = input.tattr_list
@@ -31,7 +33,10 @@ class Field(WebWidget):
         self.needs_multipart_form = False
         
         self.name = name
-        self.value = value
+        if value == '' and initial is not None:
+            self.value = initial
+        else:
+            self.value = value
         
         # Increase the creation counter, and save our local copy.
         self.creation_counter = Field.creation_counter
@@ -94,7 +99,11 @@ class FloatField(Field):
         super(FloatField, self).__init__(name, value, *args, **kwargs)
         self.max_value = max_value
         self.min_value = min_value
-
+        self.tag = self.tag or u'input'
+        if self.tag == u'input':
+            self.type = u'text'
+        
+        
     def clean(self, value):
         """
         Validates that float() can be called on the input. Returns a float.
@@ -119,7 +128,9 @@ class DecimalField(Field):
         super(DecimalField, self).__init__(name, value,  *args, **kwargs)
         self.max_value, self.min_value = max_value, min_value
         self.max_digits, self.decimal_places = max_digits, decimal_places
-        
+        self.tag = self.tag or u'input'
+        if self.tag == u'input':
+            self.type = u'text'
 
     def clean(self, value):
         """
@@ -761,9 +772,10 @@ class IPAddressField(RegexField):
                             error_message=_(u'Enter a valid IPv4 address.'),
                             *args, **kwargs)
 
+
 class DateIntervalField(MultiValueField):
     def __init__(self, name='', value='', *args, **kwargs):
-        fields = (DateField(), DateField(), DateField())
+        fields = (DateField(size=10), DateField(size=10), DateField(size=10), ChoiceField(choices=INTERVAL_CHOICES[1:]), DecimalField(initial=0, size=5)) #first of INTERVAL_CHOICES is HOUR, which has no 
         super(DateIntervalField, self).__init__(name, value, fields, *args, **kwargs)
         self.media_files.append('/js/interval_fields.js')
     
@@ -790,6 +802,8 @@ class DateIntervalField(MultiValueField):
                       save(self, 'date_interval_span'),
                       _('from') + ':', self.fields[0],
                       _('to') + ':', self.fields[1],
+                      _('offset') + ':', self.fields[4],
+                      self.fields[3],
                      ),
                  span(attr(cssc='date_day'),
                       save(self, 'date_day_span'),
@@ -806,6 +820,9 @@ class DateIntervalField(MultiValueField):
             if cleaned_data[0] > cleaned_data[1]: # if from > to
                 errors = ErrorList(['"From" must be bigger than "To"'])
                 raise ValidationError(errors)
+        cleaned_data[3] = int(cleaned_data[3]) # choicefield intervaltype type to int
+        cleaned_data[4] = int(cleaned_data[4]) # (offset) decmal to int
+            
         return cleaned_data
 
     def compress(self, data_list):
@@ -842,7 +859,7 @@ class SplitDateSplitTimeField(SplitDateTimeField):
 
 class DateTimeIntervalField(DateIntervalField): 
     def __init__(self, name='', value='', *args, **kwargs): # pylint: disable-msg=E1003 
-        fields = (SplitDateSplitTimeField(), SplitDateSplitTimeField(), DateField())
+        fields = (SplitDateSplitTimeField(), SplitDateSplitTimeField(), DateField(), ChoiceField(choices=INTERVAL_CHOICES), DecimalField(initial=0, size=5))
         # Here is called really parent of parent of this class, to avoid self.fields initialization from parent:
         super(DateIntervalField, self).__init__(name, value, fields, *args, **kwargs)
         self.media_files.append('/js/interval_fields.js')

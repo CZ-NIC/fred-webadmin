@@ -10,7 +10,7 @@ from forms import Form, SortedDictFromList
 from fields import *
 from adiffields import *
 from formlayouts import FilterTableFormLayout, UnionFilterFormLayout
-from fred_webadmin import config 
+from fred_webadmin import config
 from fred_webadmin.translation import _
 from utils import SortedDict, ErrorDict, escape_js_literal
 from fred_webadmin.corbalazy import CorbaLazyRequest
@@ -43,7 +43,7 @@ class UnionFilterForm(Form):
         self.forms = []
         super(UnionFilterForm, self).__init__(data, initial=initial, layout=layout, *content, **kwd)
         
-        
+        self.media_files = ['/js/filtertable.js', '/js/MochiKit/MochiKit.js', '/js/scw.js', '/js/interval_fields.js', '/js/scwLanguages.js']
         if data is None: # if not bound, then create one empty dictionary
             self.forms.append(form_class())
         else: # else create form for each value in 'data' list
@@ -87,7 +87,7 @@ class FilterForm(Form):
         
         super(FilterForm, self).__init__(data, files, auto_id, prefix, initial, error_class, label_suffix, layout, *content, **kwd)
         self.is_nested = is_nested
-        self.media_files = ['/js/filtertable.js', '/js/MochiKit/MochiKit.js', '/js/scw.js', '/js/interval_fields.js', '/js/scwLanguages.js']
+        
         self.layout = layout
         self.filter_base_fields()
         self.build_fields()
@@ -176,7 +176,7 @@ class FilterForm(Form):
 class RegistrarsFilterForm(FilterForm):
     default_fields_names = ['handle']
     
-    name = CharField(label=_('Name'))
+    org = CharField(label=_('Name'))
     handle = CharField(label=_('Handle'))
     ico = CharField(label=_('ICO'))
     vat = CharField(label=_('VAT'))
@@ -192,9 +192,9 @@ class ObjectsFilterForm(FilterForm):
     crid = CompoundFilterField(label=_('Creation registrar'), form_class=RegistrarsFilterForm)
     upid = CompoundFilterField(label=_('Update registrar'), form_class=RegistrarsFilterForm)
     
-    crDate = DateIntervalField(label=_('Registration date'))
-    upDate = DateIntervalField(label=_('Update date'))
-    trDate = DateIntervalField(label=_('Transfer date'))
+    crDate = DateTimeIntervalField(label=_('Registration date'))
+    upDate = DateTimeIntervalField(label=_('Update date'))
+    trDate = DateTimeIntervalField(label=_('Transfer date'))
     
 class ContactsFilterForm(ObjectsFilterForm):
     default_fields_names = ObjectsFilterForm.default_fields_names + ['name']
@@ -202,13 +202,13 @@ class ContactsFilterForm(ObjectsFilterForm):
     email = EmailField(label=_('Email'))
     contact_type = MultipleChoiceField(label=_('Contact type'), choices=(('owner', _('Owner')), ('admin', _('Admin')), ('techadmin', _('techadmin')), ('temporary', _('Temporary'))))
     name = CharField(label=_('Name'))
-    organisation = CharField(label=_('Organisation'))
+    org = CharField(label=_('Organisation'))
     ssn = CharField(label=_('SSN'))
     vat = CharField(label=_('VAT'))
     
 class NSSetsFilterForm(ObjectsFilterForm):
     ipAddr = CharField(label=_('IP address'))
-    techAdmin = CompoundFilterField(label=_('Technical contact'), form_class=ContactsFilterForm)
+    admin = CompoundFilterField(label=_('Technical contact'), form_class=ContactsFilterForm)
     nsName = CharField(label=_('Nameserver name'))
     
 class DomainsFilterForm(ObjectsFilterForm):
@@ -224,13 +224,13 @@ class DomainsFilterForm(ObjectsFilterForm):
 
 
 class RequestsFilterForm(FilterForm):
-    default_fields_names = ['requestType']
+    default_fields_names = ['type']
     
-    requestType = MultipleChoiceField(label=_('Request type'), choices=((1, u'Poraněn'), (2, u'Přeživší'), (3, u'Mrtev'), (4, u'Nemrtvý')))
+    type = MultipleChoiceField(label=_('Request type'), choices=((1, u'Poraněn'), (2, u'Přeživší'), (3, u'Mrtev'), (4, u'Nemrtvý')))
 #    requestType = MultipleChoiceField(label=_('Request type'), choices=((action_name, action_name) for action_name in CorbaLazyRequest('Admin', 'getEPPActionTypeList')))
     object = CompoundFilterField(label=_('Object'), form_class=ObjectsFilterForm)
-    startDate = DateTimeIntervalField(label=_('Received date'))
-    result = ChoiceField(label=_('Result'), choices=((1, u'Poraněn'), (2, u'Preživší'), (3, u'Mrtev'), (4, u'Nemrtvý')))
+    time = DateTimeIntervalField(label=_('Received date'))
+    response = ChoiceField(label=_('Result'), choices=((1, u'Poraněn'), (2, u'Preživší'), (3, u'Mrtev'), (4, u'Nemrtvý')))
     registrar = CompoundFilterField(label=_('Registrar'), form_class=RegistrarsFilterForm)
     svTRID = CharField(label=_('svTRID'))
     clTRID = CharField(label=_('clTRID'))
