@@ -113,7 +113,7 @@ class UnionFilterFormLayout(TableFormLayout):
         return td(attr(cssc='or_cell', colspan=self.columns_count), 'OR')
             
     def get_submit_row(self, hidden_fields=None):
-        submit_button = input(attr(type=u'button', value=u'OK', onclick='sendUnionForm()'))
+        submit_button = input(attr(type=u'button', value=u'OK', onclick='sendUnionForm(this)'))
         return tr(attr(cssc='submit_row'), td(attr(colspan=2), hidden_fields, submit_button))
         
 class FilterTableFormLayout(TableFormLayout):
@@ -128,7 +128,6 @@ class FilterTableFormLayout(TableFormLayout):
     def create_layout(self):
         form = self.form
         self.add(tbody(tagid('tbody')))
-        
         if form.non_field_errors():
             self.tbody.add(tr(td(attr(colspan=self.columns_count), 'Errors:', form.non_field_errors())))
         

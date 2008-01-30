@@ -103,7 +103,7 @@ function sendUnionForm(thisElem) {
 	log('data = ' + data);
 	log('json_data = ' + serializeJSON(data));
 	//var form = FORM({'method':'post'}, INPUT({'type': 'hidden', 'name': 'data', 'value': encodeURIComponent(serializeJSON(data))}));
-	var form = FORM({'method':'post'}, INPUT({'type': 'hidden', 'name': 'json_data', 'value': serializeJSON(data)}));
+	var form = FORM({'method':'post', 'action': thisElem.form.action}, INPUT({'type': 'hidden', 'name': 'json_data', 'value': serializeJSON(data)}));
 	getFirstElementByTagAndClassName('body').appendChild(form);
 	form.submit();
 	return false;

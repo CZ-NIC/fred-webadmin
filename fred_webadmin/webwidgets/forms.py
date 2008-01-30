@@ -85,7 +85,24 @@ class BaseForm(form):
         # Instances should always modify self.fields; they should not modify
         # self.base_fields.
         self.fields = self.base_fields.copy()
-        
+        self.set_fields_values()
+    
+    
+    def set_fields_values(self):
+        if not self.is_bound:
+            for field in self.fields.values(): 
+                data = self.initial.get(field.name, field.initial)
+                if callable(data):
+                    data = data()
+                if data is not None:
+                    field.value = data
+        else:
+##            for key, val in self.data.items():
+##                field = self.fields.get(key)
+##                if field:
+##                    field.value = val
+            for field in self.fields.values():
+                field.value = field.value_from_datadict(self.data)
         
         
     def __iter__(self):
@@ -125,25 +142,11 @@ class BaseForm(form):
 
     def render(self, indent_level=0):
         print 'RENDERUJU %s indent_level %s' % (self.__class__.__name__, indent_level)
-        if not self.is_bound:
-            for field in self.fields.values(): 
-                data = self.initial.get(field.name, field.initial)
-                if callable(data):
-                    data = data()
-                if data is not None:
-                    field.value = data
-        else:
-#            for key, val in self.data.items():
-#                field = self.fields.get(key)
-#                if field:
-#                    field.value = val
-            for field in self.fields.values():
-                field.value = field.value_from_datadict(self.data)
+        
                 
         
         self.content = [] # empty previous content (if render would be called moretimes, there would be multiple forms instead one )
         print 'pridavam layout %s k %s' % (self.layout, self.__class__.__name__)
-        #import pdb; pdb.set_trace()
         self.add(self.layout(self))
         print 'po pridani layout %s k %s' % (self.layout, self.__class__.__name__)
         #self.layout(self).render(indent_level)
@@ -173,9 +176,9 @@ class BaseForm(form):
             # value_from_datadict() gets the data from the dictionary.
             # Each widget type knows how to retrieve its own data, because some
             # widgets split data over several HTML fields.
-            value = field.value_from_datadict(self.data, self.files)
+#            value = field.value_from_datadict(self.data, self.files)
             # HACK: ['', ''] and [None, None] deal with SplitDateTimeWidget. This should be more robust.
-            if value not in (None, '', ['', ''], [None, None]):
+            if field.value not in (None, '', ['', ''], [None, None]):
                 return False
         return True
 
@@ -189,9 +192,6 @@ class BaseForm(form):
             return
         self.cleaned_data = {}
         for name, field in self.fields.items():
-            # value_from_datadict() gets the data from the data dictionaries.
-            # Each widget type knows how to retrieve its own data, because some
-            # widgets split data over several HTML fields.
             self.clean_field(name, field)
         try:
             self.cleaned_data = self.clean()
@@ -201,9 +201,8 @@ class BaseForm(form):
             delattr(self, 'cleaned_data')
 
     def clean_field(self, name, field):
-        value = field.value_from_datadict(self.data)#, self.files, self.add_prefix(name))
         try:
-            value = field.clean(value)
+            value = field.clean()
             self.cleaned_data[name] = value
             if hasattr(self, 'clean_%s' % name):
                 value = getattr(self, 'clean_%s' % name)()

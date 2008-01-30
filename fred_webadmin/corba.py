@@ -57,6 +57,7 @@ import config
 module_name = importIDL(config.idl)[0] # this hase to be here because cherrypy session needs to know ccReg module on start (while loadin session from file)
 ccReg = sys.modules[module_name]
 orb = CORBA.ORB_init(["-ORBnativeCharCodeSet","UTF-8"], CORBA.ORB_ID)
+#orb = CORBA.ORB_init(["-ORBnativeCharCodeSet","UTF-8", "-ORBtraceLevel", "10"], CORBA.ORB_ID)
 
 # invoice types (used both in IterTabe and ADIF)
 invoices = [

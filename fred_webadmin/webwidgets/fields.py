@@ -16,7 +16,7 @@ EMPTY_VALUES = (None, '')
 
 #cobra things:
 from fred_webadmin.corba import ccReg
-INTERVAL_CHOICES = [(choice._v, choice._n) for choice in ccReg.DateTimeIntervalType._items[1:]] # first is Day, which is special case and we omit it in choicefield  
+INTERVAL_CHOICES = [(choice._v, choice._n) for choice in ccReg.DateTimeIntervalType._items] # first is Day, which is special case and we omit it in choicefield  
 
 class Field(WebWidget):
     creation_counter = 0
@@ -42,16 +42,19 @@ class Field(WebWidget):
         self.creation_counter = Field.creation_counter
         Field.creation_counter += 1
         
-    def clean(self, value):
+    def clean(self):
         """
         Validates the given value and returns its "cleaned" value as an
         appropriate Python object.
 
         Raises ValidationError for any errors.
         """
-        if self.required and value in EMPTY_VALUES:
+        if self.required and self.value in EMPTY_VALUES:
             raise ValidationError(_(u'This field is required.'))
-        return value
+        return self.value
+    
+    def set_from_clean(self, value):
+        self.value = value
     
     def value_from_datadict(self, data):
 #        print 'Jsem %s a beru si data %s' % (self.name, data.get(self.name, None))
@@ -71,17 +74,17 @@ class CharField(Field):
         if self.tag == u'input':
             self.type = u'text' 
         
-    def clean(self, value):
+    def clean(self):
         "Validates max_length and min_length. Returns a Unicode object."
-        super(CharField, self).clean(value)
-        if value in EMPTY_VALUES:
+        super(CharField, self).clean()
+        if self.is_empty():
             return u''
-        value_length = len(value)
+        value_length = len(self.value)
         if self.max_length is not None and value_length > self.max_length:
             raise ValidationError(_(u'Ensure this value has at most %(max)d characters (it has %(length)d).') % {'max': self.max_length, 'length': value_length})
         if self.min_length is not None and value_length < self.min_length:
             raise ValidationError(_(u'Ensure this value has at least %(min)d characters (it has %(length)d).') % {'min': self.min_length, 'length': value_length})
-        return value
+        return self.value
 
         
 class PasswordField(CharField):
@@ -104,16 +107,16 @@ class FloatField(Field):
             self.type = u'text'
         
         
-    def clean(self, value):
+    def clean(self):
         """
         Validates that float() can be called on the input. Returns a float.
         Returns None for empty values.
         """
-        super(FloatField, self).clean(value)
-        if not self.required and value in EMPTY_VALUES:
+        super(FloatField, self).clean()
+        if self.is_empty():
             return None
         try:
-            value = float(value)
+            value = float(self.value)
         except (ValueError, TypeError):
             raise ValidationError(_(u'Enter a number.'))
         if self.max_value is not None and value > self.max_value:
@@ -132,17 +135,17 @@ class DecimalField(Field):
         if self.tag == u'input':
             self.type = u'text'
 
-    def clean(self, value):
+    def clean(self):
         """
         Validates that the input is a decimal number. Returns a Decimal
         instance. Returns None for empty values. Ensures that there are no more
         than max_digits in the number, and no more than decimal_places digits
         after the decimal point.
         """
-        super(DecimalField, self).clean(value)
-        if not self.required and value in EMPTY_VALUES:
+        super(DecimalField, self).clean()
+        if self.is_empty():
             return None
-        value = unicode(value).strip()
+        value = unicode(self.value).strip()
         try:
             value = Decimal(value)
         except DecimalException:
@@ -161,14 +164,18 @@ class DecimalField(Field):
         if self.max_digits is not None and self.decimal_places is not None and digits > (self.max_digits - self.decimal_places):
             raise ValidationError(_(u'Ensure that there are no more than %s digits before the decimal point.') % (self.max_digits - self.decimal_places))
         return value
+    
+    def set_from_clean(self, value):
+        self.value = unicode(value)
+        
 
 DEFAULT_DATE_INPUT_FORMATS = (
+    u'%d.%m.%Y',                          # '25.10.2006'
     u'%Y-%m-%d', u'%m/%d/%Y', '%m/%d/%y', # '2006-10-25', '10/25/2006', '10/25/06'
     u'%b %d %Y', u'%b %d, %Y',            # 'Oct 25 2006', 'Oct 25, 2006'
     u'%d %b %Y', u'%d %b, %Y',            # '25 Oct 2006', '25 Oct, 2006'
     u'%B %d %Y', u'%B %d, %Y',            # 'October 25 2006', 'October 25, 2006'
     u'%d %B %Y', u'%d %B, %Y',            # '25 October 2006', '25 October, 2006'
-    u'%d.%m.%Y',                          # '25.10.2006'
 )
 
 class DateField(CharField):
@@ -182,25 +189,31 @@ class DateField(CharField):
             self.media_files = ['/js/scw.js']
             self.onclick = 'scwShow(this,event);' 
         
-    def clean(self, value):
+    def clean(self):
         """
         Validates that the input can be converted to a date. Returns a Python
         datetime.date object.
         """
-        super(DateField, self).clean(value)
-        if value in EMPTY_VALUES:
+        super(DateField, self).clean()
+        if self.is_empty():
             return None
-        if isinstance(value, datetime.datetime):
-            return value.date()
-        if isinstance(value, datetime.date):
-            return value
+        if isinstance(self.value, datetime.datetime):
+            return self.value.date()
+        if isinstance(self.value, datetime.date):
+            return self.value
         for format in self.input_formats:
             try:
-                return datetime.date(*time.strptime(value, format)[:3])
+                return datetime.date(*time.strptime(self.value, format)[:3])
             except ValueError:
                 continue
         raise ValidationError(_(u'Enter a valid date.'))
     
+    def set_from_clean(self, value):
+        date_format = self.input_formats[0]
+        if value:
+            self.value = value.strftime(str(date_format))
+        else:
+            value = None
 
 DEFAULT_TIME_INPUT_FORMATS = (
     u'%H:%M:%S',     # '14:30:59'
@@ -213,22 +226,27 @@ class TimeField(CharField):
         super(TimeField, self).__init__(name, value, *args, **kwargs)
         self.input_formats = input_formats or DEFAULT_TIME_INPUT_FORMATS
 
-    def clean(self, value):
+    def clean(self):
         """
         Validates that the input can be converted to a time. Returns a Python
         datetime.time object.
         """
-        super(TimeField, self).clean(value)
-        if value in EMPTY_VALUES:
+        super(TimeField, self).clean()
+        if self.is_empty():
             return None
-        if isinstance(value, datetime.time):
-            return value
+        if isinstance(self.value, datetime.time):
+            return self.value
         for format in self.input_formats:
             try:
-                return datetime.time(*time.strptime(value, format)[3:6])
+                return datetime.time(*time.strptime(self.value, format)[3:6])
             except ValueError:
                 continue
         raise ValidationError(_(u'Enter a valid time.'))
+
+    def set_from_clean(self, value):
+        time_format = self.input_formats[0]
+        self.value = value.strftime(time_format)
+
 
 DEFAULT_DATETIME_INPUT_FORMATS = (
     u'%Y-%m-%d %H:%M:%S',     # '2006-10-25 14:30:59'
@@ -251,24 +269,28 @@ class DateTimeField(Field):
         super(DateTimeField, self).__init__(name, value, *args, **kwargs)
         self.input_formats = input_formats or DEFAULT_DATETIME_INPUT_FORMATS
 
-    def clean(self, value):
+    def clean(self):
         """
         Validates that the input can be converted to a datetime. Returns a
         Python datetime.datetime object.
         """
-        super(DateTimeField, self).clean(value)
-        if value in EMPTY_VALUES:
+        super(DateTimeField, self).clean()
+        if self.is_empty():
             return None
-        if isinstance(value, datetime.datetime):
-            return value
-        if isinstance(value, datetime.date):
-            return datetime.datetime(value.year, value.month, value.day)
+        if isinstance(self.value, datetime.datetime):
+            return self.value
+        if isinstance(self.value, datetime.date):
+            return datetime.datetime(self.value.year, self.value.month, self.value.day)
         for format in self.input_formats:
             try:
-                return datetime.datetime(*time.strptime(value, format)[:6])
+                return datetime.datetime(*time.strptime(self.value, format)[:6])
             except ValueError:
                 continue
         raise ValidationError(_(u'Enter a valid date/time.'))
+
+    def set_from_clean(self, value):
+        datetime_format = self.input_formats[0]
+        self.value = value.strftime(datetime_format)
 
 class RegexField(CharField):
     def __init__(self, name, value, regex, max_length=None, min_length=None, error_message=None, *args, **kwargs):
@@ -301,12 +323,12 @@ class RegexField(CharField):
         memo[id(self)] = result 
         return result
 
-    def clean(self, value):
+    def clean(self):
         """
         Validates that the input matches the regular expression. Returns a
         Unicode object.
         """
-        value = super(RegexField, self).clean(value)
+        value = super(RegexField, self).clean()
         if value == u'':
             return value
         if not self.regex.search(value):
@@ -404,11 +426,12 @@ class URLField(RegexField):
         self.verify_exists = verify_exists
         self.user_agent = validator_user_agent
 
-    def clean(self, value):
+    def clean(self):
         # If no URL scheme given, assume http://
+        value = self.value
         if value and '://' not in value:
             value = u'http://%s' % value
-        value = super(URLField, self).clean(value)
+        value = super(URLField, self).clean()
         if value == u'':
             return value
         if self.verify_exists:
@@ -460,10 +483,10 @@ class BooleanField(Field):
         else:
             super(BooleanField, self).__setattr__(name, value)
 
-    def clean(self, value):
+    def clean(self):
         "Returns a Python boolean object."
-        super(BooleanField, self).clean(value)
-        return bool(value)
+        super(BooleanField, self).clean()
+        return self.bool(value)
     
 
 class HiddenField(CharField):
@@ -517,20 +540,24 @@ class ChoiceField(Field):
 #        self.regenerate_options_tags()
 #    value = property(_get_value, _set_value)
 
-    def clean(self, value):
+    def clean(self):
         """
         Validates that the input is in self.choices.
         """
-        value = super(ChoiceField, self).clean(value)
-        if value in EMPTY_VALUES:
+        value = super(ChoiceField, self).clean()
+        if self.is_empty():
             value = u''
         if value == u'':
             return value
         valid_values = set([unicode(k) for k, v in self.choices])
         
+        print 'value=', value, type(value)
         if value not in valid_values:
             raise ValidationError(_(u'Select a valid choice. That choice is not one of the available choices.'))
         return value
+    
+    def set_from_clean(self, value):
+        self.value = unicode(value)
 
 class NullBooleanField(ChoiceField):
     """
@@ -541,8 +568,8 @@ class NullBooleanField(ChoiceField):
         choices = ((u'1', _('Unknown')), (u'2', _('Yes')), (u'3', ('No')))
         super(NullBooleanField, self).__init__(name, value, choices, required, label, initial, help_text, *arg, **kwargs)
         
-    def clean(self, value):
-        return {True: True, False: False}.get(value, None)
+    def clean(self):
+        return {True: True, False: False}.get(self.value, None)
 
 
 class MultipleChoiceField(ChoiceField):
@@ -560,10 +587,11 @@ class MultipleChoiceField(ChoiceField):
                 else:
                     self.add(option(attr(value=value), caption))
 
-    def clean(self, value):
+    def clean(self):
         """
         Validates that the input is a list or tuple.
         """
+        value = self.value
         if self.required and not value:
             raise ValidationError(_(u'This field is required.'))
         elif not self.required and not value:
@@ -599,14 +627,14 @@ class ComboField(Field):
             f.required = False
         self.fields = fields
 
-    def clean(self, value):
+    def clean(self):
         """
         Validates the given value against all of self.fields, which is a
         list of Field instances.
         """
-        super(ComboField, self).clean(value)
+        super(ComboField, self).clean()
         for field in self.fields:
-            value = field.clean(value)
+            value = field.clean()
         return value
     
 
@@ -650,16 +678,17 @@ class MultiValueField(Field):
     name = property(_get_name, _set_name)
         
     def _set_value(self, value):
-        self._value = value
         if not value:
-            for i, val in enumerate(value):
-                self.fields[i].value = None
+            self._value = [None] * len(self.fields)
+            for field in self.fields:
+                field.value = None
             return
-            
-        if not isiterable(value) and len(value) != len(self.fields):
-            raise TypeError(u'value of MultiField must be sequence with same length as number of fields in multifield (was %s)' % unicode(value))
-        for i, val in enumerate(value):
-            self.fields[i].value = val
+        else:
+            self._value = value
+            if not isiterable(value) and len(value) != len(self.fields):
+                raise TypeError(u'value of MultiField must be sequence with same length as number of fields in multifield (was %s)' % unicode(value))
+            for i, val in enumerate(value):
+                self.fields[i].value = val
     def _get_value(self):
         return self._value
     value = property(fget=lambda self: self._get_value(), fset=lambda self, value: self._set_value(value)) # late binding property
@@ -673,34 +702,23 @@ class MultiValueField(Field):
                 label_str += ':'
             self.add(label_str, field)
 
-    def clean(self, value):
+    def clean(self):
         """
-        Validates every value in the given list. A value is validated against
-        the corresponding Field in self.fields.
+        Validates every value of self.fields.
 
         For example, if this MultiValueField was instantiated with
         fields=(DateField(), TimeField()), clean() would call
-        DateField.clean(value[0]) and TimeField.clean(value[1]).
+        DateField.clean() and TimeField.clean().
         """
         clean_data = []
         errors = ErrorList()
-        if not value or isinstance(value, (list, tuple)):
-            if not value or not [v for v in value if v not in EMPTY_VALUES]:
-                if self.required:
-                    raise ValidationError(_(u'This field is required.'))
-#                else:
-#                    return self.compress([])
-        else:
-            raise ValidationError(_(u'Enter a list of values.'))
+        print 'VAL:', self.value
+
         for i, field in enumerate(self.fields):
-            try:
-                field_value = value[i]
-            except IndexError:
-                field_value = None
-            if self.required and field_value in EMPTY_VALUES:
+            if self.required and field.is_required and field.is_empty():
                 raise ValidationError(_(u'This field is required.'))
             try:
-                clean_data.append(field.clean(field_value))
+                clean_data.append(field.clean())
             except ValidationError, e:
                 # Collect all validation errors in a single list, which we'll
                 # raise at the end of clean(), rather than raising a single
@@ -728,6 +746,14 @@ class MultiValueField(Field):
         non-empty.
         """
         raise NotImplementedError('Subclasses must implement this method.')
+
+    def set_from_clean(self, value):
+        val = self.decompress(value)
+        self._value = val 
+        if not isiterable(val) and len(val) != len(self.fields):
+            raise TypeError(u'value of MultiField must be sequence with same length as number of fields in multifield (was %s)' % unicode(val))
+        for i, v in enumerate(val):
+            self.fields[i].set_from_clean(v)
 
     def value_from_datadict(self, data):
 #        print 'beru data z %s k fieldum se jmeny %s' % (str(data), str([f.name for f in self.fields]))
@@ -763,6 +789,8 @@ class SplitDateTimeField(MultiValueField):
             the_time = datetime.time(t.hour,t.minute,t.second)
             return [value.date(), the_time]
         return [None, None]
+    
+    
 
 ipv4_re = re.compile(r'^(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}$')
 
@@ -775,53 +803,68 @@ class IPAddressField(RegexField):
 
 class DateIntervalField(MultiValueField):
     def __init__(self, name='', value='', *args, **kwargs):
-        fields = (DateField(size=10), DateField(size=10), DateField(size=10), ChoiceField(choices=INTERVAL_CHOICES[1:]), DecimalField(initial=0, size=5)) #first of INTERVAL_CHOICES is HOUR, which has no 
+        fields = (DateField(size=10), DateField(size=10), DateField(size=10), 
+                  ChoiceField(content=[attr(onchange='onChangeDateIntervalType(this)')], choices=INTERVAL_CHOICES[1:]), 
+                  DecimalField(initial=0, size=5)) #first of INTERVAL_CHOICES is HOUR, which has no 
         super(DateIntervalField, self).__init__(name, value, fields, *args, **kwargs)
         self.media_files.append('/js/interval_fields.js')
     
     def _set_value(self, value):
+        print "VVVAL",value, type(value)
+        if not value:
+            value = [None, None, None, 0, 0]
         super(DateIntervalField, self)._set_value(value)
+        self.set_iterval_date_display()
+    
+    def set_from_clean(self, value):
+        super(DateIntervalField, self).set_from_clean(value)
         self.set_iterval_date_display()
             
     def set_iterval_date_display(self):
         if hasattr(self, 'date_interval_span'): # when initializing value, build_content method is not yet called, so this checks if it already was
-            print 'self.is_empty()',self.is_empty()
-            print 'self.fields[2].is_empty()',self.fields[2].is_empty()
-            if self.is_empty() or not self.fields[2].is_empty(): # day is deafult and has priority over interval
-                date_interval_display = 'none'
+            date_interval_display = 'none'
+            date_day_display = 'none'
+            date_interval_offset_span = 'none'
+
+            print 'XVAL', self.value[3], type(self.value[3])
+            if int(self.value[3]) == 0: # day
                 date_day_display = 'inline'
             else:
                 date_interval_display = 'inline'
-                date_day_display = 'none'
+                if not int(self.value[3]) == 1: # not normal interval
+                    date_interval_offset_span = 'inline'
             
             self.date_interval_span.style = 'display: %s' % date_interval_display
             self.date_day_span.style = 'display: %s' % date_day_display
+            self.date_interval_offset_span.style = 'display: %s' % date_interval_offset_span
+        else:
+            print "JESTE NEBYL DEFINOVAN date_interval_span a uz se to setlo na", self.value, type(self.value)
     
     def build_content(self):
-        self.add(span(attr(cssc='date_interval'),
+        self.add(self.fields[3],
+                 span(attr(cssc='date_interval'),
                       save(self, 'date_interval_span'),
                       _('from') + ':', self.fields[0],
                       _('to') + ':', self.fields[1],
-                      _('offset') + ':', self.fields[4],
-                      self.fields[3],
+                      span(save(self, 'date_interval_offset_span'),
+                           attr(cssc='date_interval_offset'), _('offset') + ':', self.fields[4]),
                      ),
                  span(attr(cssc='date_day'),
                       save(self, 'date_day_span'),
                       _('day') + ':', self.fields[2]
                      ),
-                 input(attr(type='button', onclick='toggle_interva_day(this);', value='D-I'))
                 )
         self.set_iterval_date_display()
         
-    def clean(self, value):
-        cleaned_data = super(DateIntervalField, self).clean(value)
+    def clean(self):
+        cleaned_data = super(DateIntervalField, self).clean()
         print "CLEANEDDATA", cleaned_data
         if cleaned_data and not cleaned_data[2] and cleaned_data[0] and cleaned_data[1]: # if from and tofield filled, and not day filled
             if cleaned_data[0] > cleaned_data[1]: # if from > to
                 errors = ErrorList(['"From" must be bigger than "To"'])
                 raise ValidationError(errors)
         cleaned_data[3] = int(cleaned_data[3]) # choicefield intervaltype type to int
-        cleaned_data[4] = int(cleaned_data[4]) # (offset) decmal to int
+        cleaned_data[4] = int(cleaned_data[4] or 0) # (offset) decmal to int
             
         return cleaned_data
 
@@ -833,8 +876,8 @@ class DateIntervalField(MultiValueField):
     
 class SplitTimeField(MultiValueField):
     def __init__(self, name='', value='', *args, **kwargs):
-        fields = (ChoiceField(choices=[[u'%02d' % c, u'%02d' % c] for c in range(24)]), 
-                  ChoiceField(choices=[[u'%02d' % c, u'%02d' % c] for c in range(0, 60, 5)]))
+        fields = (ChoiceField(choices=[[u'%d' % c, u'%02d' % c] for c in range(24)]), 
+                  ChoiceField(choices=[[u'%d' % c, u'%02d' % c] for c in range(0, 60, 5)]))
         super(SplitTimeField, self).__init__(name, value, fields, *args, **kwargs)
 
     def compress(self, data_list):
@@ -845,21 +888,25 @@ class SplitTimeField(MultiValueField):
     def decompress(self, value):
         if value:
             return [value.hour, value.minute]
-        return [None, None]
+        return [u'0', u'0']
+    
     
 class SplitDateSplitTimeField(SplitDateTimeField):
     def __init__(self, name='', value='', *args, **kwargs): #  pylint: disable-msg=E1003 
-        fields = (DateField(), SplitTimeField())
+        fields = (DateField(size=10), SplitTimeField())
         # Here is called really parent of parent of this class, to avoid self.fields initialization from parent:
         super(SplitDateTimeField, self).__init__(name, value, fields, *args, **kwargs) 
 
     def is_empty(self):
         return self.fields[0].is_empty()
+    
+    
 
 
-class DateTimeIntervalField(DateIntervalField): 
+class DateTimeIntervalField(DateIntervalField):
     def __init__(self, name='', value='', *args, **kwargs): # pylint: disable-msg=E1003 
-        fields = (SplitDateSplitTimeField(), SplitDateSplitTimeField(), DateField(), ChoiceField(choices=INTERVAL_CHOICES), DecimalField(initial=0, size=5))
+        fields = (SplitDateSplitTimeField(), SplitDateSplitTimeField(), DateField(size=10), 
+                  ChoiceField(content=attr(onchange='onChangeDateIntervalType(this)'), choices=INTERVAL_CHOICES), DecimalField(initial=0, size=5))
         # Here is called really parent of parent of this class, to avoid self.fields initialization from parent:
         super(DateIntervalField, self).__init__(name, value, fields, *args, **kwargs)
         self.media_files.append('/js/interval_fields.js')

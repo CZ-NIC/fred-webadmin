@@ -213,7 +213,7 @@ class WebWidget(object):
                 kwd.update(tag_attr.kwd)
             elif isinstance(tag_attr, types.DictType):
                 kwd.update(tag_attr)
-        for key, val in kwd:
+        for key, val in kwd.items():
             if key in self.tattr_list:
                 self.tattr[key] = val
             elif key in self.normal_attrs:

@@ -26,32 +26,42 @@ class LoginForm(Form):
 
 class UnionFilterForm(Form):
     'Form that contains more Filter Forms, data for this form is list of data for its Filter Forms'
-    tattr_list = []
-    def __init__(self, data=None, initial=None, layout=UnionFilterFormLayout, form_class=None, *content, **kwd):
+    def __init__(self, data=None, data_cleaned=False, initial=None, layout=UnionFilterFormLayout, form_class=None, *content, **kwd):
+        '''
+        Form containting CompoundFilterForms (class FilterForms), between them is logical OR.
+        Can be initilalize using data parametr data - normal form data, or if data_cleaned=True, then data parametr is considered
+        to be cleaned_data (used when loaded from corba backend)
+        ''' 
         print "VYTVARIM UNIONFORM"
         if not form_class:
             raise RuntimeError('You have to specify form_class for UnionFilterForm!')
 
         if data:
             print 'data:%s' % data
-            if data.has_key('json_data'):
+            if not data_cleaned and data.has_key('json_data'):
                 print 'data jsou json, takze je trasnvormuju'
                 data = simplejson.loads(data['json_data'])
             else: print 'data nejsou json'
 
         self.form_class = form_class
         self.forms = []
+        self.data_cleaned = data_cleaned
         super(UnionFilterForm, self).__init__(data, initial=initial, layout=layout, *content, **kwd)
-        
+        print "TATT",self.tattr_list
+        self.set_tattr(action = kwd.get('action') or self.get_default_url())
         self.media_files = ['/js/filtertable.js', '/js/MochiKit/MochiKit.js', '/js/scw.js', '/js/interval_fields.js', '/js/scwLanguages.js']
-        if data is None: # if not bound, then create one empty dictionary
-            self.forms.append(form_class())
+    
+    def set_fields_values(self):
+        if not self.is_bound: # if not bound, then create one empty dictionary
+            self.forms.append(self.form_class())
         else: # else create form for each value in 'data' list
-            for form_data in data:
+            for form_data in self.data:
                 print 'vytvarim form v unionu s daty: %s' % form_data
-                form = form_class(form_data)
+                print 'a ty data jsou data_cleaned=%s' % self.data_cleaned
+                form = self.form_class(form_data, data_cleaned=self.data_cleaned)
                 self.forms.append(form)
     
+        
     def is_empty(self, exceptions=None):
         for form in self.forms:
             if form.is_empty(exceptions):
@@ -74,10 +84,23 @@ class UnionFilterForm(Form):
         if self._errors:
             delattr(self, 'cleaned_data')
             
+    def get_default_url(self):
+        '''
+        Returns url for snadard path /OBJECTs/filter where OBJECT taken from self.form_class name OBJECTFilterForm.
+        If class name is not in format, than returns ''.
+        '''
+        class_name = self.form_class.__name__ 
+        if class_name.endswith('FilterForm'):
+            return '/%s/filter/' % class_name[:-10].lower()
+        else:
+            return ''
+         
+            
 class FilterForm(Form):
     "Form for one coumpund filter (e.g. Domains Filter)"
+    tattr_list = []
     default_fields_names = []
-    def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None,
+    def __init__(self, data=None, data_cleaned=False, files=None, auto_id='id_%s', prefix=None,
                  initial=None, error_class=ErrorList, label_suffix=':', layout=FilterTableFormLayout,
                  is_nested = False,
                  *content, **kwd):
@@ -85,13 +108,16 @@ class FilterForm(Form):
             field.required = False
             field.negation = False
         
-        super(FilterForm, self).__init__(data, files, auto_id, prefix, initial, error_class, label_suffix, layout, *content, **kwd)
         self.is_nested = is_nested
-        
+        self.data_cleaned = data_cleaned
         self.layout = layout
+        super(FilterForm, self).__init__(data, files, auto_id, prefix, initial, error_class, label_suffix, layout, *content, **kwd)
         self.filter_base_fields()
         self.build_fields()
         self.tag = None
+
+    def set_fields_values(self):
+        pass # setting values is done in build_fields()
     
     def filter_base_fields(self):
         "Filters base fields against user negative permissions, so if user has nperm on field we delete it from base_fields (only in istance of FilterForm class)"
@@ -116,26 +142,42 @@ class FilterForm(Form):
         self.fields = SortedDict()
         if self.is_bound:
             fields_for_sort = {}
-                            
+            
             print "DATA", self.data
-            for name_str in self.data.keys():
-                name = name_str.split('|')
-                if len(name) >= 2 and name[0] == 'presention':
-                    filter_name = name[1]
+            print "SELF>data_cleaned", self.data_cleaned
+            if not self.data_cleaned:
+                for name_str in self.data.keys():
+                    name = name_str.split('|')
+                    if len(name) >= 2 and name[0] == 'presention':
+                        filter_name = name[1]
+                        field = deepcopy(self.base_fields[filter_name])
+                        if isinstance(field, CompoundFilterField):
+                            field.parent_form = self
+                        field.name = '%s|%s' % ('filter', filter_name)
+                        #print "Fieldu %s jsem nasetil %s" % (field.name, field.value_from_datadict(self.data))
+                        field.value = field.value_from_datadict(self.data)
+                        
+                        negation = (self.data.get('%s|%s' % ('negation', filter_name)) is not None)
+                        field.negation = negation
+                        
+                        position_in_fields_sequence = self.data[name_str] # position is value of presention field
+                        print 'position_in_fields_sequence = %s' % position_in_fields_sequence
+                        fields_for_sort[position_in_fields_sequence] = field
+                print "SORTED %s" % fields_for_sort.items()
+                for pos, field in sorted(fields_for_sort.items()):  # adding fields in order according to presention field value
+                    self.fields[field.name] = field
+            else: # data passed to form in constructor are cleaned_data (e.g. from itertable.get_filter)
+                print "data:", self.data
+                for name_str, [neg, value] in self.data.items():
+                    filter_name = name_str.split('|')[1]
+                    print 'fieldu %s nastavuji value %s' % (filter_name, value)
                     field = deepcopy(self.base_fields[filter_name])
-                    field.name = '%s|%s' % ('filter', filter_name)
-                    #print "Fieldu %s jsem nasetil %s" % (field.name, field.value_from_datadict(self.data))
-                    field.value = field.value_from_datadict(self.data)
-                    
-                    negation = (self.data.get('%s|%s' % ('negation', filter_name)) is not None)
-                    field.negation = negation
-                    
-                    position_in_fields_sequence = self.data[name_str] # position is value of presention field
-                    print 'position_in_fields_sequence = %s' % position_in_fields_sequence
-                    fields_for_sort[position_in_fields_sequence] = field
-            print "SORTED %s" % fields_for_sort.items()
-            for pos, field in sorted(fields_for_sort.items()):  # adding fields in order according to presention field value
-                self.fields[field.name] = field
+                    if isinstance(field, CompoundFilterField):
+                        field.parent_form = self
+                    field.name = name_str
+                    field.set_from_clean(value)
+                    field.negation = neg
+                    self.fields[field.name] = field
         else:
             for field_name in self.default_fields_names:
                 field = deepcopy(self.base_fields.get(field_name))
@@ -143,9 +185,8 @@ class FilterForm(Form):
                 self.fields[field.name] = field
     
     def clean_field(self, name, field):
-        value = field.value_from_datadict(self.data)#, self.files, self.add_prefix(name))
         try:
-            value = field.clean(value)
+            value = field.clean()
             self.cleaned_data[name] = [field.negation, value]
             if hasattr(self, 'clean_%s' % name):
                 value = getattr(self, 'clean_%s' % name)()
@@ -176,45 +217,51 @@ class FilterForm(Form):
 class RegistrarsFilterForm(FilterForm):
     default_fields_names = ['handle']
     
-    org = CharField(label=_('Name'))
+    name = CharField(label=_('Name'))
     handle = CharField(label=_('Handle'))
-    ico = CharField(label=_('ICO'))
-    vat = CharField(label=_('VAT'))
-    crDate = DateIntervalField(label=_('Registration date'))
-    upDate = DateIntervalField(label=_('Update date'))
+    organization = CharField(label=_('organization'))
+    city = CharField(label=_('City'))
+    country = CharField(label=_('Country'))
+    
+#    ico = CharField(label=_('ICO'))
+#    vat = CharField(label=_('VAT'))
+#    crDate = DateIntervalField(label=_('Registration date'))
+#    upDate = DateIntervalField(label=_('Update date'))
     
 class ObjectsFilterForm(FilterForm):
     default_fields_names = ['handle']
     
     handle = CharField(label=_('Handle'))
+    authinfo = CharField(label=_('Authinfo'))
 
-    clid = CompoundFilterField(label=_('Registrar'), form_class=RegistrarsFilterForm)
-    crid = CompoundFilterField(label=_('Creation registrar'), form_class=RegistrarsFilterForm)
-    upid = CompoundFilterField(label=_('Update registrar'), form_class=RegistrarsFilterForm)
+    registrar = CompoundFilterField(label=_('Registrar'), form_class=RegistrarsFilterForm)
+    createRegistrar = CompoundFilterField(label=_('Creation registrar'), form_class=RegistrarsFilterForm)
+    updateRegistrar = CompoundFilterField(label=_('Update registrar'), form_class=RegistrarsFilterForm)
     
-    crDate = DateTimeIntervalField(label=_('Registration date'))
-    upDate = DateTimeIntervalField(label=_('Update date'))
-    trDate = DateTimeIntervalField(label=_('Transfer date'))
+    createTime = DateTimeIntervalField(label=_('Registration date'))
+    updateTime = DateTimeIntervalField(label=_('Update date'))
+    transferTime = DateTimeIntervalField(label=_('Transfer date'))
+    deleteTime = DateTimeIntervalField(label=_('Delete date'))
     
 class ContactsFilterForm(ObjectsFilterForm):
     default_fields_names = ObjectsFilterForm.default_fields_names + ['name']
     
-    email = EmailField(label=_('Email'))
-    contact_type = MultipleChoiceField(label=_('Contact type'), choices=(('owner', _('Owner')), ('admin', _('Admin')), ('techadmin', _('techadmin')), ('temporary', _('Temporary'))))
+#    email = EmailField(label=_('Email'))
+#    contact_type = MultipleChoiceField(label=_('Contact type'), choices=(('owner', _('Owner')), ('admin', _('Admin')), ('techadmin', _('techadmin')), ('temporary', _('Temporary'))))
     name = CharField(label=_('Name'))
-    org = CharField(label=_('Organisation'))
-    ssn = CharField(label=_('SSN'))
-    vat = CharField(label=_('VAT'))
+    organisation = CharField(label=_('Organisation'))
+#    ssn = CharField(label=_('SSN'))
+#    vat = CharField(label=_('VAT'))
     
 class NSSetsFilterForm(ObjectsFilterForm):
-    ipAddr = CharField(label=_('IP address'))
+#    ipAddr = CharField(label=_('IP address'))
     admin = CompoundFilterField(label=_('Technical contact'), form_class=ContactsFilterForm)
-    nsName = CharField(label=_('Nameserver name'))
+#    nsName = CharField(label=_('Nameserver name'))
     
 class DomainsFilterForm(ObjectsFilterForm):
     default_fields_names = ['fqdn']
     
-    fqdn = CharField(label=_('Domain name'))
+#    fqdn = CharField(label=_('Domain name'))
     registrant = CompoundFilterField(label=_('Owner'), form_class=ContactsFilterForm)
     admin = CompoundFilterField(label=_('Admin'), form_class=ContactsFilterForm)
     nsset = CompoundFilterField(label=_('Nameserver set'), form_class=NSSetsFilterForm)

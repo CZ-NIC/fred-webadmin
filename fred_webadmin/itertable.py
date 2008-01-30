@@ -16,7 +16,7 @@ def fileGenerator(source, separator = '|'):
 
 
 class IterTable(object):
-    """ Table object representing "Table" from CORBA interface. Supports lazy
+    """ Table object representing "Table"L from CORBA interface. Supports lazy
         access to rows (fetches them on demand), thus it can access very large
         data sets without running out of memory.
     """
@@ -188,6 +188,7 @@ class CorbaFilterIterator(object):
     def __init__(self, filter_iterable):
         print "VYTVARIM CORBAFITERATOR"
         self.iter = filter_iterable.getIterator()
+        self.iter.reset()
     
     def __iter__(self):
         return self
@@ -210,7 +211,7 @@ class FilterLoader(object):
         return date and ccReg.DateType(*reversed(date.timetuple()[:3])) or ccReg.DateType(0, 0, 0)
     @staticmethod
     def corba_to_date(corba_date):
-        return datetime.date(corba_date._get_year(), corba_date._get_month(), corba_date._get_day())
+        return datetime.date(corba_date.year, corba_date.month, corba_date.day)
     
     @staticmethod
     def datetime_to_corba(date_time):
@@ -222,9 +223,11 @@ class FilterLoader(object):
     
     @staticmethod
     def corba_to_datetime(corba_date_time):
-        corba_date = corba_date_time._get_date()
-        return datetime.datetime(corba_date._get_year(), corba_date._get_month(), corba_date._get_day(), 
-                                 corba_date_time._get_hour(), corba_date_time._get_minute(), corba_date_time._get_second())
+        corba_date = corba_date_time.date
+        if corba_date.year == 0: # empty date is in corba = DateType(0, 0, 0)
+            return None
+        return datetime.datetime(corba_date.year, corba_date.month, corba_date.day, 
+                                 corba_date_time.hour, corba_date_time.minute, corba_date_time.second)
     
         
     @classmethod
@@ -240,22 +243,20 @@ class FilterLoader(object):
             interval_type = ccReg.DateTimeInterval
         print 'date_conversion_method', date_conversion_method
         c_from, c_to, c_day = [date_conversion_method(date) for date in val[:3]]
-        if val[2]: # day has priority over "form-to" pair
-            print "INTERVAL_DAY(", c_day, c_to, ccReg.DateTimeIntervalType._items[0], int(val[4]) or 0
-            print "TYP", type(ccReg.DateTimeIntervalType._items[0])
-            corba_interval = interval_type(c_day, c_to, ccReg.DateTimeIntervalType._items[0], val[4] or 0) # c_to will be ignored
+        if int(val[3]) == ccReg.DAY._v: 
+            corba_interval = interval_type(c_day, c_to, ccReg.DAY, val[4] or 0) # c_to will be ignored
         else:
-            print "val[3]:", val[3], type(val[3])
-            print "INTERVAL(", c_from, c_to, ccReg.DateTimeIntervalType._items[val[3]], val[4] or 0
             corba_interval = interval_type(c_from, c_to, ccReg.DateTimeIntervalType._items[val[3]], val[4] or 0)
         return corba_interval
 
     @classmethod
     def corba_to_date_time_interval(cls, val, date_conversion_method):
-        if val._get_isDay():
-            return [None, None, date_conversion_method(val._get_from())]
+        if val.type == ccReg.DAY:
+            return [None, None, date_conversion_method(val._from), val.type._v, 0]
+        elif val.type == ccReg.INTERVAL:
+            return [date_conversion_method(val._from), date_conversion_method(val.to), None, val.type._v, 0]
         else:
-            return [date_conversion_method(val._get_from()), date_conversion_method(val._get_to()), None]
+            return [None, None, None, val.type._v, val.offset]
                     
     @classmethod
     def set_filter(cls, itertable, union_filter_data):
@@ -265,6 +266,7 @@ class FilterLoader(object):
 
     @classmethod
     def _set_one_compound_filter(cls, compound, filter_data):
+        print 'filter_data v set:', filter_data
         for key, [neg, val] in filter_data.items():
             key = key[len(u'filter|'):] # all names starts with 'filter|'  
             func = getattr(compound, "add%s" % (key[0].capitalize() + key[1:])) # capitalize only first letter

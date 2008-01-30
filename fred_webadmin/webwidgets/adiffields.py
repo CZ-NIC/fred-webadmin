@@ -8,6 +8,7 @@ class CompoundFilterField(Field):
         self.initialized = False
         self.form_class = form_class
         super(CompoundFilterField, self).__init__(name, value, *args, **kwargs)
+        self.parent_form = None
         self._value = value
         self.form = None
         self.initialized = True
@@ -18,19 +19,25 @@ class CompoundFilterField(Field):
     def _set_value(self, value):
         print "!!!!setting value of compound field!!!!"
         self._value = value
-        if self.initialized: # to form not instatniate at time, while form classes are being built
+        if self.initialized: # to form not instantiate at time, while form classes are being built
+            
             if value is None:
                 self.form = self.form_class(is_nested=True)
             else:
-                self.form = self.form_class(data=value, is_nested=True)
+                data_cleaned = False
+                if self.parent_form and self.parent_form.data_cleaned:
+                    data_cleaned = True
+                self.form = self.form_class(data=value, data_cleaned=data_cleaned, is_nested=True)
     value = property(_get_value, _set_value) 
     
-    def clean(self, value):
-        form = self.form_class(data=value)
-        if form.is_valid():
-            return form.cleaned_data
-        else:
-            raise ValidationError(_(u'Correct errors below.'))
+    def clean(self):
+        if self.form:
+            if self.form.is_valid():
+                return self.form.cleaned_data
+            else:
+                raise ValidationError(_(u'Correct errors below.'))
+        elif self.required and not self.value:
+            raise ValidationError(_(u'This field is required.'))
     
     def render(self, indent_level=0):
         if not self.form:

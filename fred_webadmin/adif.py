@@ -165,20 +165,18 @@ class ListTableMixin(object):
         
         #[ filters.__setitem__(x[7:], kwd[x]) for x in kwd if x.startswith('filter_') ]
         if cleaned_filters:
-            #import pdb; pdb.set_trace()
             table.clear_filter()
             table.set_filter(cleaned_filters)
         if kwd.get('cf'):
             table.clear_filter()
         if kwd.get('reload'):
             table.reload()
-        if kwd.get('load'):
-            filter_data = table.get_filter_data()
-            kwd_filter_data = {'json_data': simplejson.dumps(filter_data)}
+        if kwd.get('load'): # load current filter from backend
+            cleaned_filter_data = table.get_filter_data()
             form_class = self._get_form_class()
-            form = UnionFilterForm(kwd_filter_data, form_class=form_class)
+            form = UnionFilterForm(cleaned_filter_data, form_class=form_class, data_cleaned=True)
             context['form'] = form
-            context['main'].add('kwd_json_data_loaded:', kwd_filter_data)
+            context['main'].add('kwd_json_data_loaded:', cleaned_filter_data)
         if kwd.get('list_all'):
             table.clear_filter()
             table._table.add()
@@ -402,7 +400,7 @@ class ADIF(AdifPage):
         else:
             raise cherrypy.HTTPRedirect('/login/')
         
-    def login(self, **kwd):
+    def login(self, *args, **kwd):
         
         #html = self._template('index', self.classname)
         #here = self.here.copy()
@@ -466,7 +464,7 @@ class ADIF(AdifPage):
             #html = self._template('disconnected', self.classname)
             #here = self.here.copy()
             #here['page']['content'] = html
-            return self._render('disconnected')
+            return self._render(p('disconnected, please ', a(attr(href='/login/'), 'log in'), 'again.'))
         else:
             raise cherrypy.HTTPRedirect('/')
 
