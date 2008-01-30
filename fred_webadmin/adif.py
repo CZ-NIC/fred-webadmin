@@ -52,7 +52,7 @@ except ImportError:
 from translation import _
 
 
-from webwidgets.templates import BaseSite, BaseSiteMenu, LoginPage, FilterPage, DomainsDetail, RegistrarsDetail
+from webwidgets.templates import BaseSite, BaseSiteMenu, LoginPage, DisconnectedPage, FilterPage, DomainsDetail, RegistrarsDetail
 from webwidgets.gpyweb.gpyweb import WebWidget
 from webwidgets.gpyweb.gpyweb import DictLookup, attr, ul, li, a, div, span, p
 from webwidgets.utils import isiterable
@@ -294,6 +294,8 @@ class AdifPage(Page):
             return LoginPage
         elif action == 'filter':
             return FilterPage
+        elif action == 'disconnected':
+            return DisconnectedPage
         else:
             # returns ClassName + Action (e.g. DomainsDetail) class from module of this class, if there is no such, then it returns BaseSiteMenu: 
             template_name = self.__class__.__name__ + action.capitalize()
@@ -464,7 +466,7 @@ class ADIF(AdifPage):
             #html = self._template('disconnected', self.classname)
             #here = self.here.copy()
             #here['page']['content'] = html
-            return self._render(p('disconnected, please ', a(attr(href='/login/'), 'log in'), 'again.'))
+            return self._render('disconnected')
         else:
             raise cherrypy.HTTPRedirect('/')
 

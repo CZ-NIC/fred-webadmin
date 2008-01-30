@@ -49,6 +49,14 @@ class LoginPage(BaseSite):
         c = self.context
         self.main.add(c.form)
         
+class DisconnectedPage(BaseSite):
+    def __init__(self, context = None):
+        super(DisconnectedPage, self).__init__(context)
+        self.main.add(p('disconnected, please ', a(attr(href='/login/'), 'log in'), 'again.'))
+        
+        
+
+        
 class BaseSiteMenu(BaseSite):
     def __init__(self, context = None):
         super(BaseSiteMenu, self).__init__(context)
