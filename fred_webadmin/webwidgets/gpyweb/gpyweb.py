@@ -276,7 +276,6 @@ class WebWidget(object):
     def render_content(self, indent_level = 0):
         rstr = ''
         
-        con_predecessor = None
         for con in self.content:
             #if hasattr(con, '_is_tag_widget'):
             if isinstance(con, WebWidget):
