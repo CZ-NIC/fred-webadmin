@@ -10,7 +10,7 @@ idl = '/usr/share/idl/fred/ccReg.idl'
 iors = ('corbaname::pokuston', 'corbaname::curlew')
 
 title = 'SUMO2 / CherryPy'
-tablesize = 45
+tablesize = 25
 
 # gettext
 gettext_domain = 'adif'

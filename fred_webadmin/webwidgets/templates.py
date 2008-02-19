@@ -10,15 +10,17 @@ class BaseTemplate(HTMLPage):
     def __init__(self, context = None):
         super(BaseTemplate, self).__init__(context)
         self.add_media_files('/css/base.css')
-        
+        print "pred body template"
         self.body.add(div(attr(id='container'),
                           save(self, 'container'),
                           div(attr(id='header'), save(self, 'header')),
-                          div(cssc='cleaner'),
-                          div(attr(id='columnwrap'), save(self, 'columnwrap'),
-                              div(attr(id='content-main'), save(self, 'main'))),
-                          div(cssc='cleaner'),
+                          #div(cssc='cleaner'),
+                          div(attr(id='content_all'), save(self, 'content_all'), #cannot be "content", because of content attribute of gpyweb widgets
+                              div(attr(id='columnwrap'), save(self, 'columnwrap'),
+                                  div(attr(id='content-main'), save(self, 'main')))),
+                          #div(cssc='cleaner'),
                           div(attr(id='footer'), save(self, 'footer'), '&copy; CZ.NIC z.s.p.o.')))
+        print "za body template"
         
         
 class BaseSite(BaseTemplate):
@@ -30,13 +32,21 @@ class BaseSite(BaseTemplate):
         c = self.context
         self.add_media_files('/css/basesite.css')
         
+        self.header.add(
+            div(attr(id='branding'), save(self, 'branding'),
+                div(attr(id='user_tools'), save(self, 'user_tools'))),
+            div(attr(id='menu_container'), save(self, 'menu_container')),
+        )
+        
         if c.get('corba_server'):
-            self.header.add(span('Server: %s' % c.corba_server))
+            self.branding.add(h1('Daphne'))
         
         if c.get('user'):
-            self.header.add(span('User: %s' % c.user.login), 
-                            '|', 
-                            a(attr(href="/logout"), 'logout'))
+            self.user_tools.add(span('Server: %s' % c.corba_server),
+                                '|',
+                                span('User: %s' % c.user.login), 
+                                '|', 
+                                a(attr(href="/logout"), 'logout'))
 
         if c.get('main'):
             self.main.add(context.main)
@@ -62,7 +72,7 @@ class BaseSiteMenu(BaseSite):
         super(BaseSiteMenu, self).__init__(context)
         c = self.context
         if c.has_key('menu'):
-            self.header.add(div(attr(id='main-menu'), c.menu))
+            self.menu_container.add(div(attr(id='main-menu'), c.menu))
         if c.get('body_id'):
             self.body.add(attr(id=c.body_id))
 
@@ -90,7 +100,9 @@ class FilterPage(BaseSiteMenu):
             
         if c.get('itertable'):
             itertable = c.itertable
-            
+            self.main.add(div(attr(id='div_for_itertable', media_files=['/css/ext/css/ext-all.css', '/js/ext/ext-base.js', '/js/ext/ext-all.js', '/js/itertable.js']), 'tady bude itertable'))
+
+            self.main.add(br(), br())
             header = tr(attr(cssc="header"))
             for htext in itertable.header:
                 header.add(td(htext))

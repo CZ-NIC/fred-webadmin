@@ -29,9 +29,10 @@ class IterTable(object):
         self.rawheader = [ x.name for x in table.getColumnHeaders() ]
         self.rawheader.insert(0, 'Id')
         self.header = [ _(x) for x in self.rawheader ]
-        self.headerType = [ x.type._n for x in table.getColumnHeaders() ]
-        self.headerType.insert(0, header_id)
-        print 'HEADER_TYPE=%s' % self.headerType
+        self.header_type = [ x.type._n for x in table.getColumnHeaders() ]
+        self.header_type.insert(0, header_id)
+        print 'HEADER=%s' % self.header
+        print 'HEADER_TYPE=%s' % self.header_type
         self._table = table
         self._table._set_pageSize(pagesize)
         
@@ -58,19 +59,19 @@ class IterTable(object):
         return table, header_id
     
     def _update(self):
-        self._page_index = self._table._get_page()
-        self._page_size = self._table._get_pageSize()
-        self._page_start = self._table._get_start()
-        self.num_rows = self._table._get_numRows()
-        self.total_rows = self._table._get_resultSize()
+        self.page_index = self._table._get_page()
+        self.page_size = self._table._get_pageSize()
+        self.page_start = self._table._get_start()
+        self.num_rows = self._table._get_numRows() # number of rows in table
+        self.total_rows = self._table._get_resultSize() # number of rows in database
         self.num_pages = self._table._get_numPages()
-        page_end = min(self._page_start + self._page_size, self.num_rows)
-        self._page_rows = page_end - self._page_start 
+        page_end = min(self.page_start + self.page_size, self.num_rows)
+        self._page_rows = page_end - self.page_start 
 #        if page_end > self.num_rows:
-#            self._page_rows = self._page_size - (page_end - self.num_rows)
+#            self._page_rows = self.page_size - (page_end - self.num_rows)
 #        else:
-#            self._page_rows = self._page_size
-        self.current_page = self._page_index + 1
+#            self._page_rows = self.page_size
+        self.current_page = self.page_index + 1
         self.first_page = 1
         self.last_page = self.num_pages
         self.prev_page = self.current_page - 1
@@ -79,7 +80,7 @@ class IterTable(object):
         self.next_page = self.current_page + 1
         if self.next_page > self.last_page: 
             self.next_page = self.last_page
-        self._row_index = self._page_start
+        self._row_index = self.page_start
             
     def __iter__(self):
         return self
@@ -105,13 +106,48 @@ class IterTable(object):
 
     def get_row_id(self, index):
         return self._table.getRowId(index)
+    
+    def get_rows(self, start, limit):
+        index = start
+        limit = min(limit, self.total_rows)
+        while index < start + limit:
+            yield self.get_row_id(index)
+            
+    def get_rows_dict(self, start = None, limit = None):
+        ''' Get rows, where each rows is dict (key: value), where key is header name (used for extjs grid) '''
+        if start is None:
+            start = self.page_start
+        else:
+            start = int(start)
+        
+        if limit is None:
+            limit = self.page_size
+        else:
+            limit = int(limit)
+            self.set_page_size(limit)
+            
+        rows = []
+        index = start
+        print "limit = min(limit, self.num_rows - start)", limit, ' = min(%s, %s - %s = %s)' % (limit, self.num_rows, start, self.total_rows - start) 
+        limit = min(limit, self.num_rows - start)
+        header = self.header
+        while index < start + limit:
+            print index, start + limit
+            row = {}
+            irow = self._get_row(index)
+            for i, col in enumerate(irow):
+                row[header[i]] = col['value']
+            rows.append(row)
+            index += 1
+        return rows
+    
 
     def get_absolute_row(self, index):
         return self._table.getRow(index)
 
     def next(self):
         print "V nextu, row_index:", self._row_index
-        if self._row_index >= (self._page_start + self._page_rows):
+        if self._row_index >= (self.page_start + self._page_rows):
             raise StopIteration
         row = self._get_row(self._row_index)
         self._row_index += 1
@@ -123,17 +159,17 @@ class IterTable(object):
                         'CT_REGISTRAR_HANDLE': {'url': r'%s/registrars/detail/?handle=%%s' % baseurl},
                         'CT_DOMAIN_HANDLE': {'url': r'%s/domains/detail/?handle=%%s' % baseurl},
                         'CT_NSSET_HANDLE': {'url': r'%s/nssets/detail/?handle=%%s' % baseurl},
-                        'CT_CONTACT_ID': {'url': r'%s/contacts/detail/?id=%%s' % baseurl, 'value': '*', 'icon': 'list.gif', 'cssc': 'tcenter'},
-                        'CT_REGISTRAR_ID': {'url': r'%s/registrars/detail/?id=%%s' % baseurl, 'value': '*', 'icon': 'list.gif', 'cssc': 'tcenter'},
-                        'CT_DOMAIN_ID': {'url': r'%s/domains/detail/?id=%%s' % baseurl, 'value': '*', 'icon': 'list.gif', 'cssc': 'tcenter'},
-                        'CT_NSSET_ID': {'url': r'%s/nssets/detail/?id=%%s' % baseurl, 'value': '*', 'icon': 'list.gif', 'cssc': 'tcenter'},
-                        'CT_MAIL_ID': {'url': r'%s/mails/detail/?id=%%s' % baseurl, 'value': '*', 'icon': 'list.gif', 'cssc': 'tcenter'},
-                        'CT_AUTHINFO_ID': {'url': r'%s/authinfos/detail/?id=%%s' % baseurl, 'value': '*', 'icon': 'list.gif', 'cssc': 'tcenter'},
-                        'CT_REQUEST_ID': {'url': r'%s/requests/detail/?id=%%s' % baseurl, 'value': '*', 'icon': 'list.gif', 'cssc': 'tcenter'},
-                        'CT_INVOICE_ID': {'url': r'%s/invoices/detail/?id=%%s' % baseurl, 'value': '*', 'icon': 'list.gif', 'cssc': 'tcenter'},
+                        'CT_CONTACT_ID': {'url': r'%s/contacts/detail/?id=%%s' % baseurl,  'icon': 'list.gif', 'cssc': 'tcenter'},
+                        'CT_REGISTRAR_ID': {'url': r'%s/registrars/detail/?id=%%s' % baseurl,  'icon': 'list.gif', 'cssc': 'tcenter'},
+                        'CT_DOMAIN_ID': {'url': r'%s/domains/detail/?id=%%s' % baseurl,  'icon': 'list.gif', 'cssc': 'tcenter'},
+                        'CT_NSSET_ID': {'url': r'%s/nssets/detail/?id=%%s' % baseurl,  'icon': 'list.gif', 'cssc': 'tcenter'},
+                        'CT_MAIL_ID': {'url': r'%s/mails/detail/?id=%%s' % baseurl,  'icon': 'list.gif', 'cssc': 'tcenter'},
+                        'CT_AUTHINFO_ID': {'url': r'%s/authinfos/detail/?id=%%s' % baseurl,  'icon': 'list.gif', 'cssc': 'tcenter'},
+                        'CT_REQUEST_ID': {'url': r'%s/requests/detail/?id=%%s' % baseurl,  'icon': 'list.gif', 'cssc': 'tcenter'},
+                        'CT_INVOICE_ID': {'url': r'%s/invoices/detail/?id=%%s' % baseurl,  'icon': 'list.gif', 'cssc': 'tcenter'},
                         'CT_OTHER': {}
                        }
-        contentType = self.headerType[cell['index']]
+        contentType = self.header_type[cell['index']]
         for key in rewrite_rules[contentType]:
             if key == 'url':
                 cell[key] = rewrite_rules[contentType][key] % (cell['value'],)
@@ -153,6 +189,15 @@ class IterTable(object):
         self._table.reloadF()
         print "FILTER PO RELOAD"
         self._update()
+
+    def set_sort(self, column_name, direction):
+        bool_dir = {u'ASC': True, u'DESC': False}[direction]
+        try:
+            col_num = self.header.index(column_name) - 1 # - 1 because of headers are with ID, but in corba server without ID
+        except ValueError:
+            print 'VALUEERROR pri index: (header: %s, index: %s)' % (self.header, column_name)
+            raise
+        self._table.sortByColumn(col_num, bool_dir)
 
     def get_filter_data(self):
         return FilterLoader.get_filter_data(self)
@@ -179,6 +224,11 @@ class IterTable(object):
             num = 1
         self._table.setPage(num - 1)
         self._update()
+    
+    def set_page_start(self, start):
+        page_num = start % self.page_size
+        self.set_page(page_num)
+    
 
     def set_page_size(self, size):
         self._table._set_pageSize(size)

@@ -14,10 +14,10 @@ log_dir = base_dir
 
 #idl = '/home/glin/programming/svn_enum_checkout/enum/idl/trunk/ccReg.idl'
 idl = '/home/glin/programming/nic/webadmin/servers/idl_devel/idl/ccReg.idl'
-iors = ('corbaname::jarahp', 'corbaname::pokuston', 'corbaname::curlew')
+iors = ('corbaname::localhost', 'corbaname::pokuston', 'corbaname::curlew')
 
 title = 'Web Admin / CherryPy'
-tablesize = 45
+tablesize = 25
 
 # gettext
 gettext_domain = 'adif'

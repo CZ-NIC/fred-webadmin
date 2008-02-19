@@ -61,6 +61,7 @@ from menunode import menu_tree
 from webwidgets.adifforms import *
 
 from itertable import IterTable, fileGenerator
+from fred_webadmin.utils import json_response
 
 
 class AdifError(Exception):
@@ -151,13 +152,17 @@ class ListTableMixin(object):
 
     __metaclass__ = exposed.exposed
 
-    def _get_list(self, context, cleaned_filters=None, **kwd):
+    def _get_itertable(self):
         key = cherrypy.session.get('corbaSession', '')
         size = config.tablesize
         try:
-            table = IterTable(self.classname, key, size)
+            itertable = IterTable(self.classname, key, size)
         except CorbaServerDisconnectedException:
             self._disconnected()
+        return itertable
+
+    def _get_list(self, context, cleaned_filters=None, **kwd):
+        table = self._get_itertable()
         try:
             page = int(kwd.get('page', 1))
         except ValueError:
@@ -199,9 +204,46 @@ class ListTableMixin(object):
         
         context['itertable'] = table
         return context
+
+   
+    @protectedPage
+    def _filter_json_header(self):
+        itertable = self._get_itertable()
+        return json_response({
+            'header': itertable.header,
+            'header_type': itertable.header_type,
+            'page_size': itertable.page_size
+        })
     
     @protectedPage
-    def filter(self, **kwd):
+    def _filter_json_rows(self, **kwd):
+        print "A json rows delam s kwd: %s" % kwd
+        itertable = self._get_itertable()
+        if kwd.get('sort') and kwd.get('dir') is not None:
+            itertable.set_sort(kwd['sort'], kwd['dir'])
+        
+        rows = itertable.get_rows_dict(kwd.get('start'), kwd.get('limit'))
+
+        #rows = itertable.get_rows_dict(kwd.get('start', 0), kwd.get('limit', itertable.page_size))
+        
+        json_data = json_response({
+            'rows': rows,
+            'num_rows': itertable.num_rows,
+            'num_rows_in_db': itertable.total_rows
+        })
+        print "vracim %s" % json_data
+        return json_data
+    
+    
+    @protectedPage
+    def filter(self, *args, **kwd):
+        print "ARGS:", args
+        if args:
+            if args[0] == 'jsondata':
+                return self._filter_json_rows(**kwd)
+            elif args[0] == 'jsonheader':
+                return self._filter_json_header() 
+            
         if kwd:
             print 'prisla data %s' % kwd
         
