@@ -461,7 +461,7 @@
             '*/'                                                        +
             'table.scw      {padding:       1px;'                       +
                             'vertical-align:middle;'                    +
-                            'border:        ridge 2px;'                 +
+                            'border:        2px solid #CCC;'            +
                             'font-size:     10pt;'                      +
                             'font-family:   ' +
                                    'Verdana,Arial,Helvetica,Sans-Serif;'+
@@ -519,33 +519,33 @@
                                         'vertical-align:    middle;}'   +
             '/* Blend the colours into your page here...    */'         +
             '/* Calendar background */'                                 +
-            'table.scw                  {background-color:  #6666CC;}'  +
+            'table.scw                  {background-color:  #E9F3FF;}'  +
             '/* Drag Handle */'                                         +
             'td.scwDrag                 {background-color:  #9999CC;'   +
                                         'color:             #CCCCFF;}'  +
             '/* Week number heading */'                                 +
-            'td.scwWeekNumberHead       {color:             #6666CC;}'  +
+            'td.scwWeekNumberHead       {color:             #E9F3FF;}'  +
             '/* Week day headings */'                                   +
-            'td.scwWeek                 {color:             #CCCCCC;}'  +
+            'td.scwWeek                 {color:             #333333;}'  +
             '/* Week numbers */'                                        +
             'td.scwWeekNo               {background-color:  #776677;'   +
-                                        'color:             #CCCCCC;}'  +
+                                        'color:             #333333;}'  +
             '/* Enabled Days */'                                        +
             '/* Week Day */'                                            +
-            'td.scwCells                {background-color:  #CCCCCC;'   +
+            'td.scwCells                {background-color:  #EEEEEE;'   +
                                         'color:             #000000;}'  +
             '/* Day matching the input date */'                         +
             'td.scwInputDate            {background-color:  #CC9999;'   +
                                         'color:             #FF0000;}'  +
             '/* Weekend Day */'                                         +
-            'td.scwCellsWeekend         {background-color:  #CCCCCC;'   +
+            'td.scwCellsWeekend         {background-color:  #EEEEEE;'   +
                                         'color:             #CC6666;}'  +
             '/* Day outside the current month */'                       +
-            'td.scwCellsExMonth         {background-color:  #CCCCCC;'   +
+            'td.scwCellsExMonth         {background-color:  #EEEEEE;'   +
                                         'color:             #666666;}'  +
             '/* Today selector */'                                      +
-            'td.scwFoot                 {background-color:  #6666CC;'   +
-                                        'color:             #FFFFFF;}'  +
+            'td.scwFoot                 {background-color:  #E9F3FF;'   +
+                                        'color:             #111111;}'  +
             '/* MouseOver/Hover formatting '                            +
             '       If you want to "turn off" any of the formatting '   +
             '       then just set to the same as the standard format'   +
@@ -580,7 +580,7 @@
                                         'color:             #000000;}'  +
             '/* Today selector */'                                      +
             'td.scwFoot:hover,'                                         +
-            'td.scwFootHover            {color:             #FFFF00;'   +
+            'td.scwFootHover            {background-color:  #FFFF00;'   +
                                         'cursor:            pointer;'   +
                                         'font-weight:       bold;}'     +
             '/* Disabled cells */'                                      +
@@ -596,7 +596,7 @@
             '/* Day outside the current month */'                       +
             'td.scwCellsExMonthDisabled {background-color:  #999999;'   +
                                         'color:             #666666;}'  +
-            'td.scwFootDisabled         {background-color:  #6666CC;'   +
+            'td.scwFootDisabled         {background-color:  #E9F3FF;'   +
                                         'color:             #FFFFFF;}'  +
         '</style>'
                     );
