@@ -492,7 +492,8 @@
                                         'font-weight:   normal;}'       +
             'table.scwCells             {text-align:    right;'         +
                                         'font-size:     8pt;'           +
-                                        'width:         96%;}'          +
+                                        'width:         96%;' +
+                                        'border-collapse:collapse;}'          +
             'td.scwCells,'                  +
             'td.scwCellsHover,'             +
             'td.scwCells:hover,'            +
