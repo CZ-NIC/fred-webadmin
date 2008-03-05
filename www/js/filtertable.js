@@ -22,8 +22,8 @@ function composedNameLessThan(composeName1, composeName2) {
 
 function fieldPresented(ftable, composedName) {
 	// log('volam fieldPresented(', ftable, ',', composedName, ')');
-	result = false;
-	trs = ftable.select('.field_row').elements;
+	var result = false;
+	var trs = ftable.select('.field_row').elements;
 	for (var i = 0; i < trs.length; i++) {
 		var tr = trs[i];
 		if (tr.getAttribute('class').split(' ')[1] == composedName) {
@@ -90,7 +90,7 @@ function getFilterFieldsByComposedName(composedName) {
 		var names = composedName.split('-');
 		log('names:', names);
 		for (var i = 0; i < names.length; i++) {
-			name = names[i];
+			var name = names[i];
 			log('name:', name);
             formName = fields[name].formName;
             fields = allFieldsDict[formName];
@@ -114,6 +114,7 @@ function getFormMenu(ftable, composedName, composedLabel) {
 		var fieldRec = fields[filterName];
 		var formName = fieldRec['formName'];
         var filterLabel = fieldRec['label'];
+        var menuItem;
 		if (formName)
 			menuItem = new Ext.menu.Item();
 		else
@@ -155,7 +156,7 @@ function fieldMenuItemBeforeRender(menuItem) {
 function addFilterButton(ftable) {
 	var fieldButtonTd = ftable.select('.for_fields_button').elements[0];
 	log('pridavam button do ' + fieldButtonTd);
-	menu = getFormMenu(ftable)
+	var menu = getFormMenu(ftable)
 	button = new Ext.Button( {
 		text : 'Fields',
 		menu : menu,
@@ -164,13 +165,13 @@ function addFilterButton(ftable) {
 }
 
 function addFieldsButtons() {
-	Ext.select('.filtertable').each(addFilterButton);
+	Ext.select('.filtertable', true).each(addFilterButton);
 }
 
 function formContentToObject(formContent) {
-	obj = {};
-	keys = formContent[0];
-	vals = formContent[1];
+	var obj = {};
+	var keys = formContent[0];
+	var vals = formContent[1];
 	for (var i = 0; i < keys.length; i++) {
 		var key = keys[i];
 		var val = vals[i];
@@ -178,7 +179,7 @@ function formContentToObject(formContent) {
 			obj[key] = val;
 		} else { // for example multi-select have more values under same key,
 					// so we'll create array and pushing values to it
-			prev_val = obj[key];
+			var prev_val = obj[key];
 			if (!(prev_val instanceof Array))
 				obj[key] = [prev_val]
 			obj[key].push(val)
@@ -218,6 +219,13 @@ function addOrForm(thisElem) {
 	or_tr.innerHTML = buildOrRow();
 	form_tr.innerHTML = buildForm();
 	addFilterButton(Ext.get(form_tr));
+}
+
+function removeOr(thisElem) {
+    var myTr = Ext.get(thisElem).findParent('tr', true, true);
+    var formTr = myTr.next();
+    myTr.remove();
+    formTr.remove();
 }
 
 function getFieldRowData(fieldRow) {
@@ -362,7 +370,7 @@ function getNewFieldNum(thisElem) {
 	return numberFormatter('000')(num);
 }
 
-function addRow(thisElem, form_name) {
+/*function addRow(thisElem, form_name) {
 	var my_tr = getFirstParentByTagAndClassName(thisElem, tagName = 'tr');
 	var name = getNameToAdd(my_tr)
 	var fieldNum = getNewFieldNum(thisElem);
@@ -372,7 +380,7 @@ function addRow(thisElem, form_name) {
 	insertSiblingNodesBefore(my_tr, new_tr);
 
 	new_tr.innerHTML = window['createRow' + form_name](name, fieldNum);
-	fieldChooser = getFirstElementByTagAndClassName('select', '', my_tr);
+	var fieldChooser = getFirstElementByTagAndClassName('select', '', my_tr);
 
 	fieldChooser.remove(fieldChooser.selectedIndex);
 	if (fieldChooser.length <= 0) {
@@ -382,4 +390,4 @@ function addRow(thisElem, form_name) {
 	}
 
 	return null;
-}
+}*/

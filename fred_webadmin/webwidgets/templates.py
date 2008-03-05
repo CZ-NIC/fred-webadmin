@@ -19,7 +19,10 @@ class BaseTemplate(HTMLPage):
                               div(attr(id='columnwrap'), save(self, 'columnwrap'),
                                   div(attr(id='content-main'), save(self, 'main')))),
                           #div(cssc='cleaner'),
-                          div(attr(id='footer'), save(self, 'footer'), '&copy; CZ.NIC z.s.p.o.')))
+                          div(attr(id='footer'), save(self, 'footer'), 
+                              #'&copy; CZ.NIC z.s.p.o.'
+                             )
+                          ))
         print "za body template"
         
         

@@ -36,21 +36,21 @@
 	border-top: 2px solid black;
 	border-bottom: 2px solid black;
 	text-align: center;
+	vertical-align: middle;
 	font-weight: bold;
 }
 
-
-.unionfiltertable .add_or_cell {
-	border-top: 2px solid black;
-	text-align: center;
-}
-
 .unionfiltertable .submit_row td {
+	border-top: 2px solid black;
 	text-align: center;
 }
 
 .unionfiltertable td {
 	vertical-align: top;	
+}
+
+.unionfiltertable .submit_row td, .unionfiltertable .or_cell {
+	padding: 0.1em 0.3em;	
 }
 
 .filtertable .filtertable .filtertable_header{

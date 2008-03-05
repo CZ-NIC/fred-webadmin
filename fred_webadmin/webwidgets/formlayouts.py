@@ -5,7 +5,7 @@ from copy import copy, deepcopy
 from fred_webadmin.webwidgets.utils import SortedDict
 import simplejson
 
-from gpyweb.gpyweb import WebWidget, tagid, attr, notag, div, table, tbody, tr, th, td, input, label, select, option, ul, li, script, a, img, strong
+from gpyweb.gpyweb import WebWidget, tagid, attr, notag, div, span, table, tbody, tr, th, td, input, label, select, option, ul, li, script, a, img, strong
 from fields import ChoiceField, BooleanField, HiddenField
 #from fred_webadmin.webwidgets.adifforms import FilterForm
 import forms
@@ -73,6 +73,7 @@ class TableFormLayout(FormLayout):
         return tr(td(attr(colspan=self.columns_count, cssc='center'), hidden_fields, input(attr(type=u'submit', value=u'OK', name=u'submit'))))
       
 class UnionFilterFormLayout(TableFormLayout):
+    columns_count = 1
     def __init__(self, form, *content, **kwd):
         super(UnionFilterFormLayout, self).__init__(form, *content, **kwd)
         self.cssc = u'unionfiltertable'
@@ -87,13 +88,13 @@ class UnionFilterFormLayout(TableFormLayout):
             if i > 0 and i < form_count:
                 self.tbody.add(tr(attr(cssc='or_row'), self.build_or_row()))
             self.tbody.add(tr(td(inner_form)))
-        self.tbody.add(tr(#attr(cssc='filtertable_row'),
-                    td(attr(cssc='add_or_cell'),
-                       strong('OR'),
-                       a(attr(cssc='pointer_cursor', onclick='addOrForm(this)'), 
-                         img(src='/img/icons/green_plus.gif')))
-                   )
-                )
+#        self.tbody.add(tr(#attr(cssc='filtertable_row'),
+#                    td(attr(cssc='add_or_cell'),
+#                       strong('OR'),
+#                       a(attr(cssc='pointer_cursor', onclick='addOrForm(this)'), 
+#                         img(src='/img/icons/green_plus.gif')))
+#                   )
+#                )
         self.tbody.add(self.get_submit_row())
         self.add(script(attr(type='text/javascript'), 'Ext.onReady(function () {addFieldsButtons()})')) 
 
@@ -119,11 +120,15 @@ class UnionFilterFormLayout(TableFormLayout):
             
     def build_or_row(self):
         #return tr(attr(cssc='or_row'), td(attr(colspan=self.columns_count), 'OR'))
-        return td(attr(cssc='or_cell', colspan=self.columns_count), 'OR')
+        #return td(attr(cssc='or_cell', colspan=self.columns_count), 'OR')
+        return td(attr(cssc='or_cell', colspan=self.columns_count), input(attr(type="button", value="OR-", onclick="removeOr(this)", style="float: left;")), div(attr(style="padding-top: 0.3em"), 'OR'))
             
     def get_submit_row(self, hidden_fields=None):
-        submit_button = input(attr(type=u'button', value=u'OK', onclick='sendUnionForm(this)'))
-        return tr(attr(cssc='submit_row'), td(attr(colspan=2), hidden_fields, submit_button))
+        or_plus_button = input(attr(type="button", value="OR+", onclick="addOrForm(this)", style="float: left;"))
+        submit_button = input(attr(type=u'button', value=u'OK', onclick='sendUnionForm(this)', style="float: right;"))
+        return tr(attr(cssc='submit_row'), 
+                  td(or_plus_button, hidden_fields, submit_button),
+                 )
 
         
 class FilterTableFormLayout(TableFormLayout):
@@ -155,7 +160,6 @@ class FilterTableFormLayout(TableFormLayout):
                     if error_name == forms.NON_FIELD_ERRORS:
                         continue
                     error_filter_name = error_name.split('|')[1]
-                    print "Pridavam error",  '-'.join(names + [error_filter_name]), error
                     self.all_errors['-'.join(names + [error_filter_name])] = error
             
                 for field in reversed(tmp_node.fields.values()): # 'reversed': because order in stack will be reversed, so to companate it
@@ -169,7 +173,7 @@ class FilterTableFormLayout(TableFormLayout):
                 composed_name = '-'.join(names + [filter_name])
                 tmp_node.label = '.'.join(labels + [tmp_node.label])
                 self.all_fields.append([composed_name, tmp_node])
-        print "ALL_ERRORS:", self.all_errors
+        
         if non_field_errors:
             self.tbody.add(tr(td(attr(colspan=self.columns_count), 'Errors:', form.non_field_errors())))
         
