@@ -78,6 +78,7 @@ var IterTableUI = function() {
                     case 'CT_REQUEST_ID':
                         colSpec['renderer'] = renderIDFunc('requests');
                         colSpec['sortable'] = false;
+                        
                     /*case 'CT_DOMAIN_HANDLE':
                         colSpec['renderer'] = renderHandleFunc('domain');*/
                         
@@ -132,8 +133,11 @@ var IterTableUI = function() {
 	        //title:'',
 	        store: store,
 	        cm: cm,
+            //viewConfig:{forceFit: true},
 	        trackMouseOver:false,
 	        //sm: new Ext.grid.RowSelectionModel({selectRow:Ext.emptyFn}),
+            sm: new Ext.grid.CellSelectionModel(),//{selectRow:Ext.emptyFn}),
+            //disableSelection: true,
 	        loadMask: true,
 	        bbar: new Ext.PagingToolbar({
 	            pageSize: pageSize,
@@ -152,8 +156,12 @@ var IterTableUI = function() {
 	        })
 	    });
         
+        
+        //grid.on('beforeColMenuShow', setCSSExtjsMenu);
         // render it
         grid.render();
+        grid.getView().colMenu.getEl().addClass('extjs');
+        grid.getView().hmenu.getEl().addClass('extjs');
     }
 
     
@@ -178,7 +186,11 @@ var IterTableUI = function() {
             } 
         });
     }
-    
+    function setCSSExtjsMenu() {
+        // sets all elements with css class x-menu css class extjs
+        log('nazdar bazar csss menu')
+        Ext.select('.x-menu').addClass('extjs');
+    }
     /*function toggleDetails(btn, pressed){
         var view = grid.getView();
         view.showPreview = pressed;

@@ -2,7 +2,7 @@
 #container { position:relative; width:100%; min-width:760px; padding:0; }
 #content { margin:0px; }
 #header { width:100%; }
-#content-main { float:left; width:100%; }
+#content-main { float:left; /*width:100%;*/ }
 #content-related { float:right; width:18em; position:relative; margin-right:-19em; }
 #footer { clear:both; padding:10px; }
 
@@ -16,10 +16,10 @@
 .dashboard #content { width:500px; }
 
 /*  BRANDING  */
-#branding { background:#417690; color:#ffc; overflow:hidden; border-bottom:1px solid #ccc;}
+#branding { background:#417690; color:#ffc; overflow:hidden; /*border-bottom:1px solid #ccc;*/}
 #branding a:link, #branding a:visited { color:white; }
 #branding a:hover { text-decoration:underline; }
-#branding h1 { padding:0 10px; font-size:18px; margin:8px 0; font-weight:normal; color:#f4f379; display: inline; }
+#branding h1 { padding:0 10px; font-size:20px; margin:8px 0; font-weight:normal; color:#f4f379; display: inline; }
 #branding h2 { padding:0 10px; font-size:14px; margin:-8px 0 8px 0; font-weight:normal; color:#ffc; }
 #user_tools { position:absolute; top:0; right:0; padding: 3px 6px 0px 0px; font-size:11px; text-align:right; }
 

@@ -11,7 +11,7 @@ class ErrorDict(dict, ul):
         dict.__init__(self, from_dict or {})
         ul.__init__(self, *content, **kwd)
         self.tag = 'ul'
-        self.cssc = 'errors'
+        self.cssc = 'errorlist'
         
     def render(self, indent_level = 0):
         self.content = []
@@ -24,7 +24,7 @@ class ErrorList(list, ul):
         list.__init__(self, from_list or [])
         ul.__init__(self, *content, **kwd)
         self.tag = 'ul'
-        self.cssc = 'errors'
+        self.cssc = 'errorlist'
         
     def render(self, indent_level = 0):
         self.content = []

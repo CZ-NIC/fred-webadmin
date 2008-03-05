@@ -2,14 +2,21 @@
 # -*- coding: utf-8 -*-
 
 from copy import copy, deepcopy
+from fred_webadmin.webwidgets.utils import SortedDict
+import simplejson
 
-from gpyweb.gpyweb import WebWidget, tagid, attr, notag, table, tbody, tr, th, td, input, label, select, option, ul, li, script, a, img, strong
+from gpyweb.gpyweb import WebWidget, tagid, attr, notag, div, table, tbody, tr, th, td, input, label, select, option, ul, li, script, a, img, strong
 from fields import ChoiceField, BooleanField, HiddenField
+#from fred_webadmin.webwidgets.adifforms import FilterForm
+import forms
+import adifforms
 from adiffields import CompoundFilterField
 from fred_webadmin.translation import _
 from utils import pretty_name, escape_js_literal
 
+
 FIELD_COUNTER_VALUE = 'FIELD_COUNTER_VALUE'
+REPLACE_ME_WITH_LABEL = 'REPLACE_ME_WITH_LABEL'
 REPLACE_ME_WITH_EMPTY_FORM = 'REPLACE_ME_WITH_EMPTY_FORM'
 
 class FormLayout(WebWidget):
@@ -21,10 +28,9 @@ class TableFormLayout(FormLayout):
     def __init__(self, form, *content, **kwd):
         super(TableFormLayout, self).__init__(*content, **kwd)
         self.tag = u'table'
+        self.cssc = 'form_table'
         self.form = form
         self.create_layout()
-        self.media_files.append('/css/filtertable.css')
-        
     
     def create_layout(self):
         form = self.form
@@ -64,12 +70,14 @@ class TableFormLayout(FormLayout):
         return label_str
     
     def get_submit_row(self, hidden_fields=None):
-        return tr(td(attr(colspan=self.columns_count), hidden_fields, input(attr(type=u'submit', value=u'OK', name=u'submit'))))
+        return tr(td(attr(colspan=self.columns_count, cssc='center'), hidden_fields, input(attr(type=u'submit', value=u'OK', name=u'submit'))))
       
 class UnionFilterFormLayout(TableFormLayout):
     def __init__(self, form, *content, **kwd):
         super(UnionFilterFormLayout, self).__init__(form, *content, **kwd)
         self.cssc = u'unionfiltertable'
+        self.id = u'unionfiltertable'
+        self.media_files=['/css/filtertable.css', '/css/ext/css/ext-all.css', '/js/ext/ext-base.js', '/js/ext/ext-all.js']
         
     def create_layout(self):
         self.add(tbody(tagid('tbody')))
@@ -81,12 +89,13 @@ class UnionFilterFormLayout(TableFormLayout):
             self.tbody.add(tr(td(inner_form)))
         self.tbody.add(tr(#attr(cssc='filtertable_row'),
                     td(attr(cssc='add_or_cell'),
-                       strong('OR'), 
+                       strong('OR'),
                        a(attr(cssc='pointer_cursor', onclick='addOrForm(this)'), 
                          img(src='/img/icons/green_plus.gif')))
                    )
                 )
         self.tbody.add(self.get_submit_row())
+        self.add(script(attr(type='text/javascript'), 'Ext.onReady(function () {addFieldsButtons()})')) 
 
         self.tbody.add(script(attr(type='text/javascript'), self.union_form_js()))
         print "za create uionlayout"
@@ -115,59 +124,83 @@ class UnionFilterFormLayout(TableFormLayout):
     def get_submit_row(self, hidden_fields=None):
         submit_button = input(attr(type=u'button', value=u'OK', onclick='sendUnionForm(this)'))
         return tr(attr(cssc='submit_row'), td(attr(colspan=2), hidden_fields, submit_button))
+
         
 class FilterTableFormLayout(TableFormLayout):
-    columns_count = 4    
+    columns_count = 3
     def __init__(self, form, *content, **kwd):
         self.field_counter = 0
+        self.all_fields = []
+        self.all_errors = {}
         super(FilterTableFormLayout, self).__init__(form, *content, **kwd)
         self.cssc = u'filtertable'
-        
-        
         
     def create_layout(self):
         form = self.form
         self.add(tbody(tagid('tbody')))
-        if form.non_field_errors():
+
+        # following block creates self.all_fields, self.errors and non_field_errors from fields and their forms (if they are compound fields) recursively
+        # (obtaining linear structure from tree structure)
+        non_field_errors = []
+        open_nodes = [[[], [], self.form]] # [names, labels, form or field], it is stack (depth-first-search) 
+        
+        while open_nodes:
+#            import pdb; pdb.set_trace()
+            names, labels, tmp_node = open_nodes.pop()
+            
+            #add errors from this tmp_node - for fields using composed name and join all non_field_errors together
+            if isinstance(tmp_node, adifforms.FilterForm):
+                non_field_errors.extend(tmp_node.non_field_errors())
+                for error_name, error in tmp_node.errors.items():
+                    if error_name == forms.NON_FIELD_ERRORS:
+                        continue
+                    error_filter_name = error_name.split('|')[1]
+                    print "Pridavam error",  '-'.join(names + [error_filter_name]), error
+                    self.all_errors['-'.join(names + [error_filter_name])] = error
+            
+                for field in reversed(tmp_node.fields.values()): # 'reversed': because order in stack will be reversed, so to companate it
+                    filter_name = field.name.split('|')[1]
+                    if not isinstance(field,  CompoundFilterField):
+                        open_nodes.append([names, labels, field])
+                    else:
+                        open_nodes.append([names + [filter_name], labels + [field.label], field.form])
+            else:
+                filter_name = tmp_node.name.split('|')[1]
+                composed_name = '-'.join(names + [filter_name])
+                tmp_node.label = '.'.join(labels + [tmp_node.label])
+                self.all_fields.append([composed_name, tmp_node])
+        print "ALL_ERRORS:", self.all_errors
+        if non_field_errors:
             self.tbody.add(tr(td(attr(colspan=self.columns_count), 'Errors:', form.non_field_errors())))
         
-        if not self.form.is_nested:
-            self.tbody.add(tr(attr(cssc='filtertable_header'), th(_('Filter name')), th(_('Neg.')), th(_('Value')), th()))
+        self.tbody.add(tr(attr(cssc='filtertable_header'), 
+                          th(attr(colspan='2'), _(self.form.__class__.__name__[:-len('FilterForm')])), 
+                          th(div(attr(cssc='for_fields_button extjs')))))
 
-        hidden_fields = []
-        for field in form.fields.values():
-            self.tbody.add(tr(attr(cssc='field_row'), self.build_field_row(field, hidden_fields)))
-        self.tbody.add(self.build_and_row())
-        
-        
+        for composed_name, field in self.all_fields:
+            errors = errors = self.all_errors.get(composed_name, None)
+            self.tbody.add(tr(attr(cssc='field_row ' + composed_name), self.build_field_row(field, errors)))
+        self.add(script(attr(type='text/javascript'), 'filterObjectName = "%s"' % self.form.get_object_name())) # global javascript variable
+        self.tbody.add(self.build_fields_button())
 
-    def get_field_chooser(self):
-        print 'KEYS %s' % self.form.fields.keys()
-        print 'BFS %s' % self.form.base_fields.keys()
-        fields = [field_name.split('|')[1] for field_name in self.form.fields.keys()]
-        field_choices = [(name, self.get_label_name(field)) for name, field in self.form.base_fields.items() if name not in fields]
-        print 'FC %s' % field_choices
-        return ChoiceField(choices=field_choices)
-    
+#    def get_field_chooser(self):
+#        print 'KEYS %s' % self.form.fields.keys()
+#        print 'BFS %s' % self.form.base_fields.keys()
+#        fields = [field_name.split('|')[1] for field_name in self.form.fields.keys()]
+#        field_choices = [(name, self.get_label_name(field)) for name, field in self.form.base_fields.items() if name not in fields]
+#        print 'FC %s' % field_choices
+#        return ChoiceField(choices=field_choices)
         
-    def build_field_row(self, field, hidden_fields=None, for_javascript=False):#, field_chooser_value=None):
-        if field.is_hidden:
-            if hidden_fields is not None:
-                hidden_fields.append(field)
-            return ''
+    def build_field_row(self, field, errors = None, for_javascript=False):#, field_chooser_value=None):
         
 
-        errors = self.form.errors.get(field.name, None)
-
-#        current_field_chooser = self.get_field_chooser()
-#        if field_chooser_value:
-#            current_field_chooser.value = field_chooser_value
-#        else:
-#            current_field_chooser.value = field.name.split('|')[3]
-        field_name = field.name.split('|')[1]
-        label_str = self.get_label_name(field)
+        if for_javascript:
+            label_str = REPLACE_ME_WITH_LABEL + ':'
+        else:
+            label_str = self.get_label_name(field)
+        
         negation_field = BooleanField(field.name.replace('filter', 'negation'), field.negation)
-        del_row_td = td(a(attr(cssc='pointer_cursor', onclick=u"delRow(this, '%s', '%s')" % (field_name, label_str)), img(src='/img/icons/purple_minus.gif')))
+        #del_row_td = td(a(attr(cssc='pointer_cursor', onclick=u"delRow(this, '%s', '%s')" % (field_name, label_str)), img(src='/img/icons/purple_minus.gif')))
         if for_javascript:
             presention_field = HiddenField(field.name.replace('filter', 'presention'), FIELD_COUNTER_VALUE) # needed for detecting presention of fields as checkboxes and multiple selects, because they do not send data if nonchecket or selected no option
         else: 
@@ -176,49 +209,43 @@ class FilterTableFormLayout(TableFormLayout):
 
         if not isinstance(field,  CompoundFilterField):
             return notag(td(label_str),
-                         td(presention_field, negation_field),
-                         td(errors, field),
-                         del_row_td
-                        )
-        else:
-            if for_javascript:
-                field = REPLACE_ME_WITH_EMPTY_FORM
-            return notag(td(attr(colspan=self.columns_count-1),
-                            label_str, presention_field, negation_field, errors,
-                            field
-                           ),
-                         del_row_td
+                         td(presention_field, errors, field),
+                         td(negation_field, 'NOT')
                         )
         
             
-                
-    def build_and_row(self):
-        field_chooser = self.get_field_chooser()
-        
-        if not field_chooser.choices:
-            style = 'visibility: hidden'
-        else:
-            style = ''
-        
-        return tr(attr(cssc='and_row'),
-                  td(attr(colspan=self.columns_count), 
-#                     ChoiceField(choices=(('AND', 'AND'), ('OR', 'OR'))),
-                     strong('AND'),
-#                     a(attr(href=u'javascript:addRow(this)'), u'+')))
-                     field_chooser,
-                     a(attr(cssc='pointer_cursor', onclick="addRow(this, '%s')" % self.form.__class__.__name__), img(src='/img/icons/green_plus.gif'))))
+    def build_fields_button(self): 
+        pass
+    
+#    def build_and_row(self):
+#        field_chooser = self.get_field_chooser()
+#        
+#        if not field_chooser.choices:
+#            style = 'visibility: hidden'
+#        else:
+#            style = ''
+#        
+#        return tr(attr(cssc='and_row'),
+#                  td(attr(colspan=self.columns_count), 
+##                     ChoiceField(choices=(('AND', 'AND'), ('OR', 'OR'))),
+#                     strong('AND'),
+##                     a(attr(href=u'javascript:addRow(this)'), u'+')))
+#                     field_chooser,
+#                     a(attr(cssc='pointer_cursor', onclick="addRow(this, '%s')" % self.form.__class__.__name__), img(src='/img/icons/green_plus.gif'))))
     
 
         
     def get_javascript_gener_field(self):
         # --- function createRow ---
-        output = u'function createRow%s(fieldName, fieldNum) {\n' % self.form.__class__.__name__
+        
+        output = u'function createRow%s(fieldName, fieldLabel) {\n' % self.form.get_object_name()
         output += u'var row = "";\n'
 
         output += u'switch (fieldName) {\n'
         base_fields = deepcopy(self.form.base_fields)
         output += u"default:\n" # if not specified, first field is taken
-        for name, field in base_fields.items():
+        fields_js_dict = SortedDict()
+        for field_num, (name, field) in enumerate(base_fields.items()):
             field.name = u'filter|' + name
             output += u"case '%s':\n" % name
             rendered_field = unicode(self.build_field_row(field, for_javascript=True))
@@ -226,36 +253,20 @@ class FilterTableFormLayout(TableFormLayout):
             output += u"    row += '%s';\n" % rendered_field
             if isinstance(field, CompoundFilterField):
                 output += u"    row = row.replace(/%s/g, getEmpty%s());\n" % (REPLACE_ME_WITH_EMPTY_FORM, field.form_class.__name__)
+                fields_js_dict[name] = {'label': field.label, 'fieldNum': field_num, 'formName': field.form_class.get_object_name()}#, 'createRowFunction': 'createRow%s' % self.form.get_object_name()}
+            else:
+                fields_js_dict[name] = {'label': field.label, 'fieldNum': field_num}
             output += u"    break;\n"
-        output += u'}\n'
+        output += u'}\n' # end of switch
+        output += u'row = row.replace(/%s/g, fieldLabel);\n' % REPLACE_ME_WITH_LABEL
+        output += u'return row;\n'
+        output += u'}\n' # end of createRow function
         
         
         # replaces field counter value with row num in form (it is there to be able to sort form field in order that user created them:
-        output += u'row = row.replace(/%s/g, fieldNum);\n' % FIELD_COUNTER_VALUE
-        output += u'return row;\n'
-        output += u'}\n\n'
+#        output += u'row = row.replace(/%s/g, fieldNum);\n' % FIELD_COUNTER_VALUE
+#        output += u'return row;\n'
+#        output += u'}\n\n'
         
-#        output += u"""
-#            function addRow%(form_name)s(thisElem, name) {
-#                var my_tr = getFirstParentByTagAndClassName(thisElem, tagName='tr');
-#                var name = getNameToAdd(my_tr)
-#                var fieldNum = getNewFieldNum(thisElem);
-#                var new_tr = TR({'class': 'field_row'});
-#                insertSiblingNodesBefore(my_tr, new_tr);
-#                
-#                new_tr.innerHTML = createRow%(form_name)s(name, fieldNum);
-#                fieldChooser = getFirstElementByTagAndClassName('select', '', my_tr);
-#                fieldChooser.remove(name);
-#                if (fieldChooser.length <= 0) {
-#                    //my_tr.parentNode.removeChild(my_tr);\
-#                    log('vypinam vysibylyty of my_tr);
-#                    my_tr.style.visibility = 'hidden';
-#                }
-#                
-#                
-#                return null;
-#            }
-#            
-#        """ % {'form_name': self.form.__class__.__name__}
-        return output
+        return (output, fields_js_dict)
     

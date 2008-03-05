@@ -1,3 +1,171 @@
+function composedNameLessThan(composeName1, composeName2) {
+    //composed name less than (according to order (fieldNum) in allFieldsDict)
+    var names1 = composeName1.split('-');
+    var names2 = composeName2.split('-');
+    var formName = filterObjectName;
+    var fields = allFieldsDict[formName]; // filterObjectName is global variable created in UnionFilterFormLayout
+    var i = 0;
+    while (true) {
+        var num1 = fields[names1[i]].fieldNum
+        var num2 = fields[names2[i]].fieldNum
+        log('num1 < num2 =', num1, '<', num2, '=', num1 < num2);
+        if (num1 < num2) {
+            return true;
+        } else if (num1 > num2) {
+            return false;
+        }
+        log(fields[names1[i]].formName);
+        fields = allFieldsDict[fields[names1[i]].formName];
+        i++;
+    }
+}
+
+function fieldPresented(ftable, composedName) {
+	// log('volam fieldPresented(', ftable, ',', composedName, ')');
+	result = false;
+	trs = ftable.select('.field_row').elements;
+	for (var i = 0; i < trs.length; i++) {
+		var tr = trs[i];
+		if (tr.getAttribute('class').split(' ')[1] == composedName) {
+            return true;
+        }
+	}
+	return result;
+}
+
+function createFieldRow(ftable, formName, composedName, composedLabel, filterName) {
+    function insertRowToTable(newFieldTr) {
+        var fieldRows = ftable.select('.field_row');
+        if (fieldRows.getCount()) {
+	        for (var i = 0, len = fieldRows.getCount(); i < len; i++) {
+	            var fieldRow = fieldRows.item(i);
+	            var rowComposedName = fieldRow.dom.getAttribute('class').split(' ')[1];
+	            if (composedNameLessThan(composedName, rowComposedName)) {
+	                fieldRow.insertSibling(newFieldTr, 'before');
+	                return;
+	            }
+	            fieldRow.insertSibling(newFieldTr, 'after');
+	        }
+        } else {
+            ftable.select('.filtertable_header').item(0).insertSibling(newFieldTr, 'after');
+        }
+    }
+    
+    log('createFieldRow formName = "' + formName + '"');
+    var fieldTr = new Ext.Element(document.createElement('tr'));
+    fieldTr.set({'class': 'field_row ' + composedName});
+    var createCommand = 'createRow' + formName + '("' + filterName + '", "' + composedLabel + '");';
+    log('createCommand:', createCommand);
+    var fieldTrInnerHTML = eval(createCommand);
+    log(fieldTrInnerHTML);
+    
+    
+    /*var previousTr = ftable.select('.field_row').last();
+    if (!previousTr) 
+        previousTr = ftable.select('.filtertable_header');
+    previousTr.insertSibling(fieldTr, 'after');*/
+    insertRowToTable(fieldTr);
+    
+    fieldTr.update(fieldTrInnerHTML);
+    fieldTr.highlight();
+}
+
+function fieldMenuItemCheck(menuItem, checked) {
+	log('clicknul jsem na menuItem', menuItem.text, 'ktere je checked =',
+		 checked, 'a jeho composedName =', menuItem.composedName);
+    
+	if (checked) { // create new row
+        createFieldRow(menuItem.ftable, menuItem.formName, menuItem.composedName, menuItem.composedLabel, menuItem.filterName);
+	} else { // delete exiting row
+		var fieldTr = menuItem.ftable.select('.' + menuItem.composedName).item(0);
+        fieldTr.remove();
+	}
+}
+
+function getFilterFieldsByComposedName(composedName) {
+    var formName = filterObjectName
+	var fields = allFieldsDict[formName]; // filterObjectName is global variable created in UnionFilterFormLayout
+
+	if (composedName) {
+		var names = composedName.split('-');
+		log('names:', names);
+		for (var i = 0; i < names.length; i++) {
+			name = names[i];
+			log('name:', name);
+            formName = fields[name].formName;
+            fields = allFieldsDict[formName];
+		}
+	}
+	return [fields, formName];
+}
+
+function getFormMenu(ftable, composedName, composedLabel) {
+	// return menu items for last level in composedName
+	// if composedName not specified, menu of filterObjectName is returned
+	var menuItems = [];
+
+	var fields, parentFormName;
+    [fields, parentFormName] = getFilterFieldsByComposedName(composedName);
+
+	log('fields: ' + Ext.encode(fields));
+
+	for (var filterName in fields) {
+		log('filterName:', filterName);
+		var fieldRec = fields[filterName];
+		var formName = fieldRec['formName'];
+        var filterLabel = fieldRec['label'];
+		if (formName)
+			menuItem = new Ext.menu.Item();
+		else
+			menuItem = new Ext.menu.CheckItem();
+		menuItem.text = filterLabel;
+        
+        menuItem.filterName = filterName;
+		menuItem.hideOnClick = false;
+		menuItem.composedName = (composedName ? (composedName + '-') : '') + filterName;
+        menuItem.composedLabel = (composedLabel ? (composedLabel + '.') : '') + filterLabel;
+		menuItem.ftable = ftable;
+        menuItem.formName = parentFormName;
+		if (formName) { // is compound
+			menuItem.on('beforerender', fieldMenuItemBeforeRender);
+			// ['beforerender'] = fieldMenuItemBeforeRender
+		} else {
+			log(menuItem.composedName, 'neni compound, takze mu davam checked');
+            log('fieldPresented(' + ftable + ', '+menuItem.composedName+') = '+fieldPresented(ftable, filterName))
+			menuItem.checked = fieldPresented(ftable, menuItem.composedName);
+			menuItem.on('checkchange', fieldMenuItemCheck);
+		}
+		menuItems.push(menuItem);
+	}
+
+	return new Ext.menu.Menu( {
+		items : menuItems,
+        cls: 'extjs',
+		defaults : {
+			hideOnClick : false
+		}
+	});
+}
+
+function fieldMenuItemBeforeRender(menuItem) {
+	log('volame fieldMenuItemBeforeRender menuItem.text = ', menuItem.text);
+	menuItem.menu = getFormMenu(menuItem.ftable, menuItem.composedName, menuItem.composedLabel);
+}
+
+function addFilterButton(ftable) {
+	var fieldButtonTd = ftable.select('.for_fields_button').elements[0];
+	log('pridavam button do ' + fieldButtonTd);
+	menu = getFormMenu(ftable)
+	button = new Ext.Button( {
+		text : 'Fields',
+		menu : menu,
+		renderTo : fieldButtonTd
+	});
+}
+
+function addFieldsButtons() {
+	Ext.select('.filtertable').each(addFilterButton);
+}
 
 function formContentToObject(formContent) {
 	obj = {};
@@ -8,7 +176,8 @@ function formContentToObject(formContent) {
 		var val = vals[i];
 		if (isUndefined(obj[key])) {
 			obj[key] = val;
-		} else { // for example multi-select have more values under same key, so we'll create array and pushing values to it
+		} else { // for example multi-select have more values under same key,
+					// so we'll create array and pushing values to it
 			prev_val = obj[key];
 			if (!(prev_val instanceof Array))
 				obj[key] = [prev_val]
@@ -20,13 +189,14 @@ function formContentToObject(formContent) {
 
 function delRow(thisElem, fieldName, fieldLabel) {
 	var tr = getFirstParentByTagAndClassName(thisElem, 'tr');
-	
+
 	// add field back to field chooser and make field chooser visible
-	var select = findChildElements(tr.parentNode, ['> tr.and_row > td > select'])[0];
-	select.options[select.options.length]=new Option(fieldLabel, fieldName);
-	var fieldChooserTr = getFirstParentByTagAndClassName(select, tagName='tr');
+	var select = findChildElements(tr.parentNode,
+			['> tr.and_row > td > select'])[0];
+	select.options[select.options.length] = new Option(fieldLabel, fieldName);
+	var fieldChooserTr = getFirstParentByTagAndClassName(select, tagName = 'tr');
 	fieldChooserTr.style.visibility = 'visible';
-	
+
 	// and finally remove field
 	tr.parentNode.removeChild(tr);
 }
@@ -38,30 +208,31 @@ function getNameToAdd(tr) {
 }
 
 function addOrForm(thisElem) {
-	var my_tr = getFirstParentByTagAndClassName(thisElem, tagName='tr');
-	var or_tr = TR({'class': 'or_row'});
+	var my_tr = getFirstParentByTagAndClassName(thisElem, tagName = 'tr');
+	var or_tr = TR( {
+		'class' : 'or_row'
+	});
 	var form_tr = TR();
 	insertSiblingNodesBefore(my_tr, or_tr);
 	insertSiblingNodesBefore(my_tr, form_tr);
 	or_tr.innerHTML = buildOrRow();
 	form_tr.innerHTML = buildForm();
+	addFilterButton(Ext.get(form_tr));
 }
-
-
 
 function getFieldRowData(fieldRow) {
 	var rowData = {};
 
-	var innerFTable = findChildElements(fieldRow, ['.filtertable'])[0];
-	if (innerFTable) { //compound field
+	//var innerFTable = findChildElements(fieldRow, ['.filtertable'])[0];
+	/*if (innerFTable) { // compound field
 		var td = getFirstElementByTagAndClassName('td', '', fieldRow);
-		
+
 		// presention (with velue as position) aned negation inputs:
 		var presAndNegInputs = findChildElements(fieldRow, ['> td > input']);
 		rowData[presAndNegInputs[0].name] = presAndNegInputs[0].value;
 		if (presAndNegInputs[1].checked)
 			rowData[presAndNegInputs[1].name] = presAndNegInputs[1].value;
-		
+
 		// inner filtertable:
 		var negInput = presAndNegInputs[1];
 		var filterName = negInput.name.replace('negation', 'filter');
@@ -69,41 +240,98 @@ function getFieldRowData(fieldRow) {
 		var innerTableData = {};
 		innerTableData[filterName] = getFTableData(innerFTable);
 		update(rowData, innerTableData);
-	} else {
-		rowData = formContentToObject(formContents(fieldRow));
-	}
+	} else {*/
+		rowData = formContentToObject(formContents(fieldRow.dom));
+	/*}*/
 	log('j_rowData = ' + serializeJSON(rowData));
 	return rowData;
 }
 
-function getFTableData(ftable) {
+function getFTableData(ftable, ftData) {
 	var ftData = {}; // {} is same as (now deprecated): new Object();
-	var fieldRows = findChildElements(ftable, ['> tbody > tr.field_row']);
-	log('fieldRows.length = ' + fieldRows.length);
-	for (var i = 0; i < fieldRows.length; i++) {
-		var fieldRow = fieldRows[i];
-		update(ftData, getFieldRowData(fieldRow));
+	var fieldRows = ftable.select('.field_row');
+	log('fieldRows.length = ' + fieldRows.getCount());
+	for (var j = 0, len = fieldRows.getCount(); j < len; j++) {
+		var fieldRow = fieldRows.item(j);
+        var rowData = getFieldRowData(fieldRow);
+        var composedName = fieldRow.dom.getAttribute('class').split(' ')[1];
+        var names = composedName.split('-');
+        var dataRec = ftData;
+        for (var i = 0; i < names.length; i++) {
+            var name = names[i];
+            
+            if (i == names.length - 1) { //this is the last name in composedName
+                Ext.apply(dataRec, rowData);
+            } else { //this is not the last name in composedName (it is compound filter)
+                if (!dataRec['filter|' + name]) { // if data object for this subfilter doesn't exist, create one
+                    dataRec['filter|' + name] = {};
+                    dataRec['presention|' + name] = 'on';
+                }
+                dataRec = dataRec['filter|' + name];
+            }
+        }
 	}
-	//update(ft_data, {'ahoj': 'cau'})
+	// update(ft_data, {'ahoj': 'cau'})
 	return ftData
 }
 
 function sendUnionForm(thisElem) {
+    var data = [];
+    var ftables = Ext.select('.unionfiltertable > tbody > tr > td > .filtertable');
+    for (var i = 0, len = ftables.getCount(); i < len; i++) {
+        var ftable = ftables.item(i);
+        data.push(getFTableData(ftable));
+    }
+    log('union form DATA:', Ext.encode(data));
+    var form = FORM({
+        'method' : 'post',
+        'action' : thisElem.form.action
+    }, INPUT( {
+        'type' : 'hidden',
+        'name' : 'json_data',
+        'value' : serializeJSON(data)
+    }));
+    getFirstElementByTagAndClassName('body').appendChild(form);
+    form.submit();
+    return false;
+}
+
+function getFTableDataOld(ftable) {
+    var ftData = {}; // {} is same as (now deprecated): new Object();
+    var fieldRows = findChildElements(ftable, ['> tbody > tr.field_row']);
+    log('fieldRows.length = ' + fieldRows.length);
+    for (var i = 0; i < fieldRows.length; i++) {
+        var fieldRow = fieldRows[i];
+        update(ftData, getFieldRowData(fieldRow));
+    }
+    // update(ft_data, {'ahoj': 'cau'})
+    return ftData
+}
+
+function sendUnionFormOld(thisElem) {
 	var data = [];
-	
+
 	var ftables = $$('.unionfiltertable > tbody > tr > td > .filtertable');
 	log('ftables = ' + ftables);
-	
+
 	for (var i = 0; i < ftables.length; i++) {
 		var ftable = ftables[i];
 		log('row ' + ftable);
 		data.push(getFTableData(ftable));
 	}
-	
+
 	log('data = ' + data);
 	log('json_data = ' + serializeJSON(data));
-	//var form = FORM({'method':'post'}, INPUT({'type': 'hidden', 'name': 'data', 'value': encodeURIComponent(serializeJSON(data))}));
-	var form = FORM({'method':'post', 'action': thisElem.form.action}, INPUT({'type': 'hidden', 'name': 'json_data', 'value': serializeJSON(data)}));
+	// var form = FORM({'method':'post'}, INPUT({'type': 'hidden', 'name':
+	// 'data', 'value': encodeURIComponent(serializeJSON(data))}));
+	var form = FORM({
+		'method' : 'post',
+		'action' : thisElem.form.action
+	}, INPUT( {
+		'type' : 'hidden',
+		'name' : 'json_data',
+		'value' : serializeJSON(data)
+	}));
 	getFirstElementByTagAndClassName('body').appendChild(form);
 	form.submit();
 	return false;
@@ -111,44 +339,47 @@ function sendUnionForm(thisElem) {
 
 function getNewFieldNum(thisElem) {
 	function getFieldNumInTr(tr) {
-		// var inputs = findChildElements(tr, ["input[name^='presention|']"]); // name starts with "presention|"
+		// var inputs = findChildElements(tr, ["input[name^='presention|']"]);
+		// // name starts with "presention|"
 		log('tr.className = ' + tr.className);
 		var input = getFirstElementByTagAndClassName('input', '', tr);
 		log('input = ' + input);
 		if (input) {
-			log('input.value ='+input.value);
+			log('input.value =' + input.value);
 			return (Number(input.value) + 1)
 		} else {
 			return 0;
 		}
 	}
-	
-	var my_tr = getFirstParentByTagAndClassName(thisElem, tagName='tr');
+
+	var my_tr = getFirstParentByTagAndClassName(thisElem, tagName = 'tr');
 	var prev_tr = my_tr.previousSibling;
 	while (prev_tr && prev_tr.nodeName != 'TR')
 		prev_tr = prev_tr.previousSibling;
-	
+
 	var num = getFieldNumInTr(prev_tr);
 	log(num);
 	return numberFormatter('000')(num);
 }
 
 function addRow(thisElem, form_name) {
-    var my_tr = getFirstParentByTagAndClassName(thisElem, tagName='tr');
-    var name = getNameToAdd(my_tr)
-    var fieldNum = getNewFieldNum(thisElem);
-    var new_tr = TR({'class': 'field_row'});
-    insertSiblingNodesBefore(my_tr, new_tr);
-    
-    new_tr.innerHTML = window['createRow' + form_name](name, fieldNum);
-    fieldChooser = getFirstElementByTagAndClassName('select', '', my_tr);
+	var my_tr = getFirstParentByTagAndClassName(thisElem, tagName = 'tr');
+	var name = getNameToAdd(my_tr)
+	var fieldNum = getNewFieldNum(thisElem);
+	var new_tr = TR( {
+		'class' : 'field_row'
+	});
+	insertSiblingNodesBefore(my_tr, new_tr);
 
-    fieldChooser.remove(fieldChooser.selectedIndex);
-    if (fieldChooser.length <= 0) {
-        //my_tr.parentNode.removeChild(my_tr);\
-        log('vypinam vysibylyty of my_tr');
-        my_tr.style.visibility = 'hidden';
-    }
-    
-    return null;
+	new_tr.innerHTML = window['createRow' + form_name](name, fieldNum);
+	fieldChooser = getFirstElementByTagAndClassName('select', '', my_tr);
+
+	fieldChooser.remove(fieldChooser.selectedIndex);
+	if (fieldChooser.length <= 0) {
+		// my_tr.parentNode.removeChild(my_tr);\
+		log('vypinam vysibylyty of my_tr');
+		my_tr.style.visibility = 'hidden';
+	}
+
+	return null;
 }

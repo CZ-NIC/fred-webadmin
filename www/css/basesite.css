@@ -1,7 +1,7 @@
 @import url('forms.css');
 
 #content-main {
-	padding: 0.5em;
+	padding: 1em;
 }
 
 #main-menu li {
@@ -15,7 +15,7 @@
 
 
 #main-menu ul {
-	padding: 3px;
+	/*padding: 3px;*/
 	margin: 0px;	
 }
 
@@ -23,7 +23,8 @@
 	list-style: None;
 	/*float: left;*/
 	display: inline;
-	margin-right: 1.4em;	
+	margin-right: 0.8em;
+	margin-left: 0.8em;
 }
 
 #main-menu ul ul {
@@ -43,3 +44,4 @@
 .pointer_cursor { cursor: pointer; }
 .warning { color: red; }
 
+td, th { padding: 1px}

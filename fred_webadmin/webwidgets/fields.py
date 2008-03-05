@@ -31,6 +31,7 @@ class Field(WebWidget):
         self.initial = initial
         self.help_text = help_text
         self.needs_multipart_form = False
+        self.order = 0 # order in form, set during form creation
         
         self.name = name
         if value == '' and initial is not None:
@@ -63,6 +64,7 @@ class Field(WebWidget):
     def is_empty(self):
         return self.value in EMPTY_VALUES
     
+    
 class CharField(Field):
     tattr_list = input.tattr_list
     def __init__(self, name='', value='', max_length=None, min_length=None, *args, **kwargs):
@@ -72,8 +74,8 @@ class CharField(Field):
         self.tag = self.tag or u'input'
         
         if self.tag == u'input':
-            self.type = u'text' 
-        
+            self.type = u'text'
+             
     def clean(self):
         "Validates max_length and min_length. Returns a Unicode object."
         super(CharField, self).clean()

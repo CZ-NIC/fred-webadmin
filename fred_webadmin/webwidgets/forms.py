@@ -51,9 +51,9 @@ class DeclarativeFieldsMetaclass(WebWidget.__metaclass__):
                 fields = base.base_fields.items() + fields
 
         attrs['base_fields'] = SortedDictFromList(fields)
-        for field_name, field in attrs['base_fields'].items():
+        for i, (field_name, field) in enumerate(attrs['base_fields'].items()):
             field.name = field_name
-            
+            field.order = i
 
         new_class = type.__new__(cls, name, bases, attrs)
         return new_class
@@ -90,7 +90,7 @@ class BaseForm(form):
     
     def set_fields_values(self):
         if not self.is_bound:
-            for field in self.fields.values(): 
+            for i, field in enumerate(self.fields.values()): 
                 data = self.initial.get(field.name, field.initial)
                 if callable(data):
                     data = data()

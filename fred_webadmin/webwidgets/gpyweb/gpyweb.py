@@ -48,7 +48,7 @@ class WebWidget(object):
     
 #    # normal attributes are not rendered to html output
     # normal (class) attributes, that can be passed through attr object or as kwd argument (normally only tag attributes can be passed using attr object)
-    normal_attrs = ['tag', 'enclose_content', 'media_files'] 
+    normal_attrs = ['tag', 'enclose_content', 'empty_tag_as_xml', 'media_files'] 
     tattr_list = []
     
     # some attributes need to be translated before render, because they have no format of python attributes
@@ -61,7 +61,8 @@ class WebWidget(object):
     indent_char = u'\t'
     delimiter_char = u'\n'
     
-    enclose_content = False 
+    enclose_content = False
+    empty_tag_as_xml = True
     #- True: 
     # <a>content</a>
     #
@@ -251,7 +252,7 @@ class WebWidget(object):
                 rstr += indent_level * self.indent_char
             rstr += u'<' + self.tag
             rstr += self.render_tattr()
-            if len(self.content):
+            if len(self.content) or not self.empty_tag_as_xml:
                 rstr += u'>'
             else:
                 rstr += u' />'
@@ -260,7 +261,7 @@ class WebWidget(object):
         
         rstr += self.render_content(indent_level + 1)
         
-        if self.tag and len(self.content) > 0:
+        if self.tag and (len(self.content) > 0 or not self.empty_tag_as_xml):
             if not self.enclose_content:
                 rstr += indent_level * self.indent_char
             rstr += u'</' + self.tag + u'>'
@@ -537,6 +538,7 @@ class small(WebWidget):
     tattr_list=['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
 
 class div(WebWidget):
+    empty_tag_as_xml = False # because <div /> is treated by browsers as <div>, so then unclosed divs happend and layout is broken
     tattr_list=['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
 
 class tt(WebWidget):
@@ -643,7 +645,7 @@ class HTMLPage(html):
         self.add(attr(xmlns = "http://www.w3.org/1999/xhtml", xmllang=lang),
                  head(save(self, 'head'),
                       meta(attr(httpequiv = "Content-Type", content="text/html; charset=%s" % charset)),
-                      title(save(self, 'title_tag'), 
+                      title(save(self, 'title_tag'),
                             title_str
                            ),
                       Media(media_files, save(self, '_media')),

@@ -27,7 +27,7 @@ class BaseSite(BaseTemplate):
     def __init__(self, context = None):
         context = context or {}
         if not context.get('title'):
-            context['title'] = 'FRED WebAdmin'
+            context['title'] = 'Daphne'
         super(BaseSite, self).__init__(context)
         c = self.context
         self.add_media_files('/css/basesite.css')
@@ -37,19 +37,19 @@ class BaseSite(BaseTemplate):
                 div(attr(id='user_tools'), save(self, 'user_tools'))),
             div(attr(id='menu_container'), save(self, 'menu_container')),
         )
+        self.branding.add(h1('Daphne'))
         
-        if c.get('corba_server'):
-            self.branding.add(h1('Daphne'))
+            
         
-        if c.get('user'):
+        if c.get('user') and c.get('corba_server'):
             self.user_tools.add(span('Server: %s' % c.corba_server),
                                 '|',
                                 span('User: %s' % c.user.login), 
                                 '|', 
-                                a(attr(href="/logout"), 'logout'))
+                                a(attr(href="/logout"), 'Log out'))
 
         if c.get('main'):
-            self.main.add(context.main)
+            self.main.add(c.main)
             
         
 
@@ -76,6 +76,13 @@ class BaseSiteMenu(BaseSite):
         if c.get('body_id'):
             self.body.add(attr(id=c.body_id))
 
+#        self.main.add(div(attr(media_files=['/css/ext/css/ext-all.css', 
+#                                            '/js/ext/ext-base.js', 
+#                                            '/js/ext/ext-all.js', 
+#                                            #'/js/itertable.js', 
+#                                            '/js/smaz.js'
+#                                           ])))
+
 class FilterPage(BaseSiteMenu):
     def __init__(self, context = None):
         super(FilterPage, self).__init__(context)
@@ -100,7 +107,7 @@ class FilterPage(BaseSiteMenu):
             
         if c.get('itertable'):
             itertable = c.itertable
-            self.main.add(div(attr(id='div_for_itertable', media_files=['/css/ext/css/ext-all.css', '/js/ext/ext-base.js', '/js/ext/ext-all.js', '/js/itertable.js']), 'tady bude itertable'))
+            self.main.add(div(attr(id='div_for_itertable', cssc='extjs', media_files=['/css/ext/css/ext-all.css', '/js/ext/ext-base.js', '/js/ext/ext-all.js', '/js/itertable.js']), 'tady bude itertable'))
 
             self.main.add(br(), br())
             header = tr(attr(cssc="header"))

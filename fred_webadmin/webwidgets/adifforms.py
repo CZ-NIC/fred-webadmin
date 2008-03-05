@@ -20,7 +20,7 @@ from fred_webadmin.corbalazy import CorbaLazyRequest
 class LoginForm(Form):
     corba_server = ChoiceField(choices=[(str(i), ior.split('::')[1]) for i, ior in enumerate(config.iors)], label=_("Server"))
     login = CharField(max_length=30, label=_('Username'))#, initial=_(u'ohíňěček ťůříšekňú'))
-    password = PasswordField(max_length=30, media_files='holahola.js')
+    password = PasswordField(max_length=30)
     next = HiddenField(initial='/')
     media_files = 'form_files.js'
 
@@ -39,7 +39,7 @@ class UnionFilterForm(Form):
         if data:
             print 'data:%s' % data
             if not data_cleaned and data.has_key('json_data'):
-                print 'data jsou json, takze je trasnvormuju'
+                print 'data jsou json, takze je transformuju'
                 data = simplejson.loads(data['json_data'])
             else: print 'data nejsou json'
 
@@ -86,7 +86,7 @@ class UnionFilterForm(Form):
             
     def get_default_url(self):
         '''
-        Returns url for snadard path /OBJECTs/filter where OBJECT taken from self.form_class name OBJECTFilterForm.
+        Returns url for snadard path /OBJECTs/filter where OBJECT taken from self.form_class name OBJECTsFilterForm.
         If class name is not in format, than returns ''.
         '''
         class_name = self.form_class.__name__ 
@@ -115,6 +115,10 @@ class FilterForm(Form):
         self.filter_base_fields()
         self.build_fields()
         self.tag = None
+    
+    @classmethod
+    def get_object_name(cls):
+        return cls.__name__[:-len('sFilterForm')].lower()
 
     def set_fields_values(self):
         pass # setting values is done in build_fields()
@@ -144,6 +148,7 @@ class FilterForm(Form):
             fields_for_sort = {}
             
             print "DATA", self.data
+            print "DATA.keys()", self.data.keys()
             print "SELF>data_cleaned", self.data_cleaned
             if not self.data_cleaned:
                 for name_str in self.data.keys():
@@ -154,18 +159,20 @@ class FilterForm(Form):
                         if isinstance(field, CompoundFilterField):
                             field.parent_form = self
                         field.name = '%s|%s' % ('filter', filter_name)
+                        print 'fpos:', field.order, 'fname:', field.name
                         #print "Fieldu %s jsem nasetil %s" % (field.name, field.value_from_datadict(self.data))
                         field.value = field.value_from_datadict(self.data)
                         
                         negation = (self.data.get('%s|%s' % ('negation', filter_name)) is not None)
                         field.negation = negation
                         
-                        position_in_fields_sequence = self.data[name_str] # position is value of presention field
-                        print 'position_in_fields_sequence = %s' % position_in_fields_sequence
-                        fields_for_sort[position_in_fields_sequence] = field
+#                        position_in_fields_sequence = self.data[name_str] # position is value of presention field
+#                        print 'position_in_fields_sequence = %s' % position_in_fields_sequence
+                        fields_for_sort[field.order] = field
                 print "SORTED %s" % fields_for_sort.items()
                 for pos, field in sorted(fields_for_sort.items()):  # adding fields in order according to presention field value
                     self.fields[field.name] = field
+                print "VYSLEDNY FIELDS PO SORTED %s" % self.fields.items()
             else: # data passed to form in constructor are cleaned_data (e.g. from itertable.get_filter)
                 print "data:", self.data
                 for name_str, [neg, value] in self.data.items():
@@ -195,6 +202,30 @@ class FilterForm(Form):
             self._errors[name] = e.messages
             if name in self.cleaned_data:
                 del self.cleaned_data[name]
+
+#    def get_fields_for_layout(self, parent_prefix_composed_name, parent_prefix_label):
+#        fields = []
+#        
+#        for field in self.fields.values():
+#            new_label = '%s.%s' % (parent_prefix_label, field.label)
+#            new_composed_name = '%s.%s' % (parent_prefix_composed_name, field.composed_name)
+#            
+#            if not isinstance(field,  CompoundFilterField):
+#                field.label = new_label
+#                field.composed_name = new_composed_name 
+#                fields.append(field)
+#            else:
+#                fields.extend(field.form.get_fields_for_layout(new_label, new_composed_name))
+#        
+#        return fields
+#        
+#    def get_non_fields_errors_for_layout(self):
+#        non_fields_errors = self.non_field_errors()
+#        
+#        for field in self.fields.values():
+#            if isinstance(field,  CompoundFilterField):
+#                non_fields_errors.extend(field.form.get_non_fields_errors_for_layout)
+#        return non_fields_errors
 
 #class DomainsFilterForm2(FilterForm):
 #    default_fields_names = ['owner', 'domain_name', 'crdate']
@@ -271,7 +302,7 @@ class DomainsFilterForm(ObjectsFilterForm):
 
 
 class RequestsFilterForm(FilterForm):
-    default_fields_names = ['type']
+    default_fields_names = ['svTRID']
     
     type = MultipleChoiceField(label=_('Request type'), choices=((1, u'Poraněn'), (2, u'Přeživší'), (3, u'Mrtev'), (4, u'Nemrtvý')))
 #    requestType = MultipleChoiceField(label=_('Request type'), choices=((action_name, action_name) for action_name in CorbaLazyRequest('Admin', 'getEPPActionTypeList')))
@@ -282,19 +313,31 @@ class RequestsFilterForm(FilterForm):
     svTRID = CharField(label=_('svTRID'))
     clTRID = CharField(label=_('clTRID'))
     
-form_classes = (DomainsFilterForm, NSSetsFilterForm, ObjectsFilterForm, ContactsFilterForm, RegistrarsFilterForm, RequestsFilterForm)
+form_classes = (DomainsFilterForm, 
+                NSSetsFilterForm, 
+                ObjectsFilterForm, 
+                ContactsFilterForm, 
+                RegistrarsFilterForm, 
+                RequestsFilterForm)
+
 def get_filter_forms_javascript():
     'Javascript is cached in user session (must be there, bucause each user can have other forms, because of different permissions'
     if not cherrypy.session.has_key('filter_forms_javascript') or not config.caching_filter_form_javascript:
         output = u''
-        for form in [form_class() for form_class in form_classes]:
+        all_fields_dict = {}
+        for form_class in form_classes: 
+            form = form_class()
             # Function for generating field of form
-            output += form.layout(form).get_javascript_gener_field()
+            output_part, fields_js_dict = form.layout(form).get_javascript_gener_field()
+            output += output_part
+            
+            all_fields_dict[form.get_object_name()] = fields_js_dict
+            
             # Function that generates empty form:
             output += "function getEmpty%s() {\n" % form.__class__.__name__
-            #output += "return 'AHOJ';\n"
-            output += "return '%s'\n" % escape_js_literal(unicode(form))
+            output += "    return '%s'\n" % escape_js_literal(unicode(form))
             output += "}\n"
+        output += u'allFieldsDict = %s' % (simplejson.dumps(all_fields_dict) + u'\n')
         cherrypy.session['filter_forms_javascript'] = output
     return cherrypy.session['filter_forms_javascript']
    
