@@ -5,6 +5,7 @@ var IterTableUI = function() {
     var header = 'nenastaveno'; //json header informations
     var headerType = 'nenast'; //json header type informations
     var pageSize;
+    var objectName;
    
     function setupDataSource() {
 	    // create the Data Store
@@ -37,7 +38,7 @@ var IterTableUI = function() {
             
 
     // pluggable renders
-    function renderTopic(value, p, record){
+    function renderTopic(value, p, record) {
         return String.format(
                 '<b><a href="http://extjs.com/forum/showthread.php?t={2}" target="_blank">{0}</a></b><a href="http://extjs.com/forum/forumdisplay.php?f={3}" target="_blank">{1} Forum</a>',
                 value, record.data.forumtitle, record.id, record.data.forumid);
@@ -45,14 +46,14 @@ var IterTableUI = function() {
     function renderLast(value, p, r){
         return String.format('{0}<br/>by {1}', value.dateFormat('M j, Y, g:i a'), r.data['lastposter']);
     }
-    function renderIDFunc(object_name) {
+    function renderIDFunc(objectName) {
         return function(value) {
-            return '<a href="/' + object_name + '/detail?id=' + value + '">ID</a>';
+            return '<a href="/' + objectName + 's/detail/?id=' + value + '"><img src="/img/contenttypes/list.gif" /></a>';
         };
     }
-    function renderHandleFunc(object_name) {
+    function renderHandleFunc(objectName) {
         return function(value) {
-            return '<a href="/' + object_name + "/detail?handle='" + value + '">ID</a>';
+            return '<a href="/' + objectName + 's/detail/?handle=' + value + '">' + value + '</a>';
         };
     }
 
@@ -74,13 +75,25 @@ var IterTableUI = function() {
                     dataIndex: colHeader,
                 }
                 
+                if (colHeaderType.substr(colHeaderType.length - '_ID'.length) == '_ID') {// endsWith('_ID')
+                    colSpec['sortable'] = false;
+                    colSpec['width'] = 25;
+                    colSpec['hidden'] = true; 
+                }
+                    
                 switch (colHeaderType) {
                     case 'CT_REQUEST_ID':
-                        colSpec['renderer'] = renderIDFunc('requests');
-                        colSpec['sortable'] = false;
+                        colSpec['renderer'] = renderIDFunc('request');
                         
-                    /*case 'CT_DOMAIN_HANDLE':
-                        colSpec['renderer'] = renderHandleFunc('domain');*/
+                        break;
+                        
+                    case 'CT_DOMAIN_HANDLE':
+                        colSpec['renderer'] = renderHandleFunc('domain');
+                        break;
+                        
+                    case 'CT_REGISTRAR_HANDLE':
+                        colSpec['renderer'] = renderHandleFunc('registrar');
+                        break;
                         
                     //here are special renderers
                     default:;
@@ -134,9 +147,9 @@ var IterTableUI = function() {
 	        store: store,
 	        cm: cm,
             //viewConfig:{forceFit: true},
-	        trackMouseOver:false,
+	        //trackMouseOver:false,
 	        //sm: new Ext.grid.RowSelectionModel({selectRow:Ext.emptyFn}),
-            sm: new Ext.grid.CellSelectionModel(),//{selectRow:Ext.emptyFn}),
+            //sm: new Ext.grid.CellSelectionModel(),//{selectRow:Ext.emptyFn}),
             //disableSelection: true,
 	        loadMask: true,
 	        bbar: new Ext.PagingToolbar({
@@ -162,6 +175,9 @@ var IterTableUI = function() {
         grid.render();
         grid.getView().colMenu.getEl().addClass('extjs');
         grid.getView().hmenu.getEl().addClass('extjs');
+        window.grid = grid;
+        grid.on('rowclick', function(grid, rowNum) {location.href='/' + objectName + '/detail/?id=' + grid.getStore().getAt(rowNum)['id']});
+        
     }
 
     
@@ -177,6 +193,7 @@ var IterTableUI = function() {
                 header = result['header'];
                 headerType = result['header_type'];
                 pageSize = result['page_size'];
+                objectName = result['object_name'];
                 setupDataSource();
                 getColumnModel();
                 buildGrid();

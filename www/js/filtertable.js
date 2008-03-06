@@ -26,7 +26,7 @@ function fieldPresented(ftable, composedName) {
 	var trs = ftable.select('.field_row').elements;
 	for (var i = 0; i < trs.length; i++) {
 		var tr = trs[i];
-		if (tr.getAttribute('class').split(' ')[1] == composedName) {
+		if (tr.className.split(' ')[1] == composedName) {
             return true;
         }
 	}
@@ -39,7 +39,7 @@ function createFieldRow(ftable, formName, composedName, composedLabel, filterNam
         if (fieldRows.getCount()) {
 	        for (var i = 0, len = fieldRows.getCount(); i < len; i++) {
 	            var fieldRow = fieldRows.item(i);
-	            var rowComposedName = fieldRow.dom.getAttribute('class').split(' ')[1];
+	            var rowComposedName = fieldRow.dom.className.split(' ')[1];
 	            if (composedNameLessThan(composedName, rowComposedName)) {
 	                fieldRow.insertSibling(newFieldTr, 'before');
 	                return;
@@ -105,7 +105,10 @@ function getFormMenu(ftable, composedName, composedLabel) {
 	var menuItems = [];
 
 	var fields, parentFormName;
-    [fields, parentFormName] = getFilterFieldsByComposedName(composedName);
+    //[fields, parentFormName] = getFilterFieldsByComposedName(composedName); //doesn't work in fucking IE
+    var fieldsAndFormName = getFilterFieldsByComposedName(composedName);
+    fields = fieldsAndFormName[0];
+    parentFormName =fieldsAndFormName[1];
 
 	log('fields: ' + Ext.encode(fields));
 
@@ -262,7 +265,7 @@ function getFTableData(ftable, ftData) {
 	for (var j = 0, len = fieldRows.getCount(); j < len; j++) {
 		var fieldRow = fieldRows.item(j);
         var rowData = getFieldRowData(fieldRow);
-        var composedName = fieldRow.dom.getAttribute('class').split(' ')[1];
+        var composedName = fieldRow.dom.className.split(' ')[1];
         var names = composedName.split('-');
         var dataRec = ftData;
         for (var i = 0; i < names.length; i++) {
@@ -295,7 +298,7 @@ function sendUnionForm(thisElem) {
         'method' : 'post',
         'action' : thisElem.form.action
     }, INPUT( {
-        'type' : 'hidden',
+        //'type' : 'hidden',
         'name' : 'json_data',
         'value' : serializeJSON(data)
     }));

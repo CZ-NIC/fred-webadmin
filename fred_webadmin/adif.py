@@ -212,7 +212,8 @@ class ListTableMixin(object):
         return json_response({
             'header': itertable.header,
             'header_type': itertable.header_type,
-            'page_size': itertable.page_size
+            'page_size': itertable.page_size,
+            'object_name': itertable.request_object,
         })
     
     @protectedPage
