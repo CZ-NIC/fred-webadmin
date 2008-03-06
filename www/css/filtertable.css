@@ -64,6 +64,6 @@
 }
 
 .extjs .x-grid3-row td, .extjs .x-grid3-summary-row td {
-	/*-moz-user-select:text!important; /* it is not possible to set it to 'normal', but 'text' has propably same effect
+	-moz-user-select:text!important; /* it is not possible to set it to 'normal', but 'text' has propably same effect
 /*	-khtml-user-select: normal !important;*/
 }

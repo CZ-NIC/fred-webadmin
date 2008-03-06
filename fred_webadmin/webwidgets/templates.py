@@ -166,6 +166,13 @@ class DomainsDetail(BaseSiteMenu):
         c = self.context
         if c.get('result'):
             self.main.add('DOMAINSDETAIL', c.result.replace(u', ', u',<br />'))
+
+class RequestsDetail(BaseSiteMenu):
+    def __init__(self, context = None):
+        super(RequestsDetail, self).__init__(context)
+        c = self.context
+        if c.get('result'):
+            self.main.add('REQUESTSDETAIL', unicode(c.result).replace(u', ', u',<br />'))
         
     
 class RegistrarsDetail(BaseSiteMenu):

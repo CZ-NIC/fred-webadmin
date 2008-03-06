@@ -67,17 +67,20 @@ class Field(WebWidget):
     
 class CharField(Field):
     tattr_list = input.tattr_list
-    def __init__(self, name='', value='', max_length=None, min_length=None, *args, **kwargs):
+    def __init__(self, name='', value='', max_length=None, min_length=None, strip_spaces=True, *args, **kwargs):
         super(CharField, self).__init__(name, value, *args, **kwargs)
         self.maxlength = self.max_length = max_length # `maxlength' as html tag attribute and max_length as object's attribute
         self.min_length = min_length
         self.tag = self.tag or u'input'
+        self.strip_spaces = strip_spaces
         
         if self.tag == u'input':
             self.type = u'text'
              
     def clean(self):
         "Validates max_length and min_length. Returns a Unicode object."
+        if self.strip_spaces:
+            self.value = self.value.strip()
         super(CharField, self).clean()
         if self.is_empty():
             return u''

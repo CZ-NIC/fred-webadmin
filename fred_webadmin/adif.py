@@ -52,7 +52,7 @@ except ImportError:
 from translation import _
 
 
-from webwidgets.templates import BaseSite, BaseSiteMenu, LoginPage, DisconnectedPage, FilterPage, DomainsDetail, RegistrarsDetail
+from webwidgets.templates import BaseSite, BaseSiteMenu, LoginPage, DisconnectedPage, FilterPage, DomainsDetail, RegistrarsDetail, RequestsDetail
 from webwidgets.gpyweb.gpyweb import WebWidget
 from webwidgets.gpyweb.gpyweb import DictLookup, attr, ul, li, a, div, span, p
 from webwidgets.utils import isiterable
@@ -636,7 +636,13 @@ class Requests(AdifPage, ListTableMixin):
     def __init__(self):
         AdifPage.__init__(self)
         ListTableMixin.__init__(self)
-
+    
+    def _get_menu_handle(self, action):
+        if action == 'detail':
+            return 'logs'
+        else:
+            return super(Requests, self)._get_menu_handle(action)
+        
     @protectedPage
     def detail(self, **kwd):
         context = {}
@@ -659,7 +665,7 @@ class Requests(AdifPage, ListTableMixin):
             return self._render('base', ctx=context)
 
         if result.registrarHandle:
-            result.registrar = c2u(cherrypy.session.get('Admin').getRegistrarByHandle(result.registrarHandle))
+            result.registrar = c2u(cherrypy.session.get('Admin').getRegistrarByHandle(u2c(result.registrarHandle)))
         result.xml = prettify(result.xml)
         context['result'] = result
         return self._render('detail', context)
@@ -823,11 +829,11 @@ class NSSets(AdifPage, ListTableMixin):
                     techs.append(c2u(admin.getContactByHandle(tech)))
                 result.admins = techs
                 if result.createRegistrarHandle:
-                    result.createRegistrar = c2u(admin.getRegistrarByHandle(result.createRegistrarHandle))
+                    result.createRegistrar = c2u(admin.getRegistrarByHandle(u2c(result.createRegistrarHandle)))
                 if result.updateRegistrarHandle:
-                    result.updateRegistrar = c2u(admin.getRegistrarByHandle(result.updateRegistrarHandle))
+                    result.updateRegistrar = c2u(admin.getRegistrarByHandle(u2c(result.updateRegistrarHandle)))
                 if result.registrarHandle:
-                    result.registrar = c2u(admin.getRegistrarByHandle(result.registrarHandle))
+                    result.registrar = c2u(admin.getRegistrarByHandle(u2c(result.registrarHandle)))
 
         context['edit'] = kwd.get('edit')
         context['result'] = result

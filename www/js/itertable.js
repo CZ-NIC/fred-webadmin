@@ -48,7 +48,7 @@ var IterTableUI = function() {
     }
     function renderIDFunc(objectName) {
         return function(value) {
-            return '<a href="/' + objectName + 's/detail/?id=' + value + '"><img src="/img/contenttypes/list.gif" /></a>';
+            return '<a href="/' + objectName + 's/detail/?id=' + value + '"><img src="/img/icons/open.png" /></a>';
         };
     }
     function renderHandleFunc(objectName) {
@@ -77,8 +77,8 @@ var IterTableUI = function() {
                 
                 if (colHeaderType.substr(colHeaderType.length - '_ID'.length) == '_ID') {// endsWith('_ID')
                     colSpec['sortable'] = false;
-                    colSpec['width'] = 25;
-                    colSpec['hidden'] = true; 
+                    colSpec['width'] = 30;
+                    //colSpec['hidden'] = true; 
                 }
                     
                 switch (colHeaderType) {
@@ -175,8 +175,8 @@ var IterTableUI = function() {
         grid.render();
         grid.getView().colMenu.getEl().addClass('extjs');
         grid.getView().hmenu.getEl().addClass('extjs');
-        window.grid = grid;
-        grid.on('rowclick', function(grid, rowNum) {location.href='/' + objectName + '/detail/?id=' + grid.getStore().getAt(rowNum)['id']});
+        //window.grid = grid;
+        //grid.on('rowclick', function(grid, rowNum) {location.href='/' + objectName + '/detail/?id=' + grid.getStore().getAt(rowNum)['id']});
         
     }
 

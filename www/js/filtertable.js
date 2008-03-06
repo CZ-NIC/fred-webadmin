@@ -296,11 +296,13 @@ function sendUnionForm(thisElem) {
     log('union form DATA:', Ext.encode(data));
     var form = FORM({
         'method' : 'post',
-        'action' : thisElem.form.action
+        'action' : thisElem.form.action,
+        'style' : 'display: none'
     }, INPUT( {
         //'type' : 'hidden',
         'name' : 'json_data',
-        'value' : serializeJSON(data)
+        'value' : serializeJSON(data),
+        'style' : 'display: none'
     }));
     getFirstElementByTagAndClassName('body').appendChild(form);
     form.submit();
