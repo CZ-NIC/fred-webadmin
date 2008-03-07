@@ -17,6 +17,10 @@ from fred_webadmin.corbalazy import CorbaLazyRequest
 
 #__all__ = ['LoginForm', 'FilterForm']
 
+class FilterFormEmptyValue(object):
+    '''Class used in clean method of Field as empty value (if field.is_emtpy()=True, than clean vill return instance of this object'''
+    pass
+
 class LoginForm(Form):
     corba_server = ChoiceField(choices=[(str(i), ior.split('::')[1]) for i, ior in enumerate(config.iors)], label=_("Server"))
     login = CharField(max_length=30, label=_('Username'))#, initial=_(u'ohíňěček ťůříšekňú'))
@@ -194,6 +198,8 @@ class FilterForm(Form):
     def clean_field(self, name, field):
         try:
             value = field.clean()
+            if field.is_empty():
+                value = FilterFormEmptyValue()
             self.cleaned_data[name] = [field.negation, value]
             if hasattr(self, 'clean_%s' % name):
                 value = getattr(self, 'clean_%s' % name)()

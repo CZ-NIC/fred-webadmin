@@ -4,6 +4,7 @@ import datetime
 from corba import ccReg, CorbaServerDisconnectedException
 from adif import u2c
 from translation import _
+from fred_webadmin.webwidgets.adifforms import FilterFormEmptyValue
 
 def fileGenerator(source, separator = '|'):
     "Generates CVS stream from IterTable object"
@@ -320,24 +321,26 @@ class FilterLoader(object):
         for key, [neg, val] in filter_data.items():
             key = key[len(u'filter|'):] # all names starts with 'filter|'  
             func = getattr(compound, "add%s" % (key[0].capitalize() + key[1:])) # capitalize only first letter
-            sub_filter = func()
+            sub_filter = func() # add
             print "SUB_FILTER:", sub_filter
 #            import pdb; pdb.set_trace()
-            if isinstance(sub_filter, ccReg.Filters._objref_Compound):#Compound):
+            if isinstance(sub_filter, ccReg.Filters._objref_Compound): # Compound:
                 cls._set_one_compound_filter(sub_filter, val)
             else:
-                if isinstance(sub_filter, ccReg.Filters._objref_Date):
-                    value = cls.date_time_interval_to_corba(val, cls.date_to_corba)
-                elif isinstance(sub_filter, ccReg.Filters._objref_DateTime):
-                    value = cls.date_time_interval_to_corba(val, cls.datetime_to_corba)
-                elif isinstance(sub_filter, ccReg.Filters._objref_Int):
-                    value = int(val)
-                else:
-                    value = val
-
-                print "SETTING VALUE TO USBFILTer:", u2c(value)
-                sub_filter._set_value(u2c(value))
-                sub_filter._set_neg(u2c(neg))
+                print "VVVAL", val
+                if not isinstance(val, FilterFormEmptyValue): # set only filters, that are active (have value) - 
+                    if isinstance(sub_filter, ccReg.Filters._objref_Date):
+                        value = cls.date_time_interval_to_corba(val, cls.date_to_corba)
+                    elif isinstance(sub_filter, ccReg.Filters._objref_DateTime):
+                        value = cls.date_time_interval_to_corba(val, cls.datetime_to_corba)
+                    elif isinstance(sub_filter, ccReg.Filters._objref_Int):
+                        value = int(val)
+                    else:
+                        value = val
+    
+                    print "SETTING VALUE TO USBFILTer:", u2c(value)
+                    sub_filter._set_value(u2c(value))
+                    sub_filter._set_neg(u2c(neg))
                 
         
     @classmethod

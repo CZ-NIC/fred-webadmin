@@ -18,6 +18,7 @@ EMPTY_VALUES = (None, '')
 from fred_webadmin.corba import ccReg
 INTERVAL_CHOICES = [(choice._v, choice._n) for choice in ccReg.DateTimeIntervalType._items] # first is Day, which is special case and we omit it in choicefield  
 
+
 class Field(WebWidget):
     creation_counter = 0
     #tattr_list = input.tattr_list

@@ -243,7 +243,7 @@ class ListTableMixin(object):
             if args[0] == 'jsondata':
                 return self._filter_json_rows(**kwd)
             elif args[0] == 'jsonheader':
-                return self._filter_json_header() 
+                return self._filter_json_header()
             
         if kwd:
             print 'prisla data %s' % kwd
