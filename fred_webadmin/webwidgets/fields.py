@@ -16,7 +16,7 @@ EMPTY_VALUES = (None, '')
 
 #cobra things:
 from fred_webadmin.corba import ccReg
-INTERVAL_CHOICES = [(choice._v, choice._n) for choice in ccReg.DateTimeIntervalType._items] # first is Day, which is special case and we omit it in choicefield  
+INTERVAL_CHOICES = [(choice._v, _(choice._n)) for choice in ccReg.DateTimeIntervalType._items[1:]] # first is None (which means that date is not active)
 
 
 class Field(WebWidget):
@@ -357,6 +357,7 @@ class EmailField(RegexField):
         result.label = self.label
         result.initial = self.initial
         result.help_text = self.help_text
+        result.order = self.order
         memo[id(self)] = result 
         return result
 
@@ -810,15 +811,15 @@ class IPAddressField(RegexField):
 class DateIntervalField(MultiValueField):
     def __init__(self, name='', value='', *args, **kwargs):
         fields = (DateField(size=10), DateField(size=10), DateField(size=10), 
-                  ChoiceField(content=[attr(onchange='onChangeDateIntervalType(this)')], choices=INTERVAL_CHOICES[1:]), 
-                  DecimalField(initial=0, size=5)) #first of INTERVAL_CHOICES is HOUR, which has no 
+                  ChoiceField(content=[attr(onchange='onChangeDateIntervalType(this)')], choices=INTERVAL_CHOICES), 
+                  DecimalField(initial=1, size=5)) #first of INTERVAL_CHOICES is HOUR, which has no 
         super(DateIntervalField, self).__init__(name, value, fields, *args, **kwargs)
         self.media_files.append('/js/interval_fields.js')
     
     def _set_value(self, value):
         print "VVVAL",value, type(value)
         if not value:
-            value = [None, None, None, 0, 0]
+            value = [None, None, None, 1, 0]
         super(DateIntervalField, self)._set_value(value)
         self.set_iterval_date_display()
     
@@ -832,19 +833,17 @@ class DateIntervalField(MultiValueField):
             date_day_display = 'none'
             date_interval_offset_span = 'none'
 
-            print 'XVAL', self.value[3], type(self.value[3])
-            if int(self.value[3]) == 0: # day
+            print "XXX: self.value[3] =", self.value[3]
+            if int(self.value[3]) == ccReg.DAY._v: # day
                 date_day_display = 'inline'
-            else:
+            elif int(self.value[3]) >= ccReg.INTERVAL._v: # not normal interval
                 date_interval_display = 'inline'
-                if not int(self.value[3]) == 1: # not normal interval
+                if not int(self.value[3]) > ccReg.INTERVAL._v: # not normal interval
                     date_interval_offset_span = 'inline'
             
             self.date_interval_span.style = 'display: %s' % date_interval_display
             self.date_day_span.style = 'display: %s' % date_day_display
             self.date_interval_offset_span.style = 'display: %s' % date_interval_offset_span
-        else:
-            print "JESTE NEBYL DEFINOVAN date_interval_span a uz se to setlo na", self.value, type(self.value)
     
     def build_content(self):
         self.add(self.fields[3],
@@ -880,6 +879,12 @@ class DateIntervalField(MultiValueField):
     def decompress(self, value):
         return value
     
+    def is_emptry(self):
+        return ((self.value[3] == ccReg.DAY._v and self.fields[0].is_empty()) or 
+                (self.value[3] == ccReg.INTERVAL._v and self.fields[1].is_empty() and self.fields[2].is_empty()) or
+                (self.value[3] == ccReg.INTERVAL._v and self.fields[4].is_empty())
+               )
+    
 class SplitTimeField(MultiValueField):
     def __init__(self, name='', value='', *args, **kwargs):
         fields = (ChoiceField(choices=[[u'%d' % c, u'%02d' % c] for c in range(24)]), 
@@ -912,7 +917,7 @@ class SplitDateSplitTimeField(SplitDateTimeField):
 class DateTimeIntervalField(DateIntervalField):
     def __init__(self, name='', value='', *args, **kwargs): # pylint: disable-msg=E1003 
         fields = (SplitDateSplitTimeField(), SplitDateSplitTimeField(), DateField(size=10), 
-                  ChoiceField(content=attr(onchange='onChangeDateIntervalType(this)'), choices=INTERVAL_CHOICES), DecimalField(initial=0, size=5))
+                  ChoiceField(content=attr(onchange='onChangeDateIntervalType(this)'), choices=INTERVAL_CHOICES), DecimalField(initial=1, size=5))
         # Here is called really parent of parent of this class, to avoid self.fields initialization from parent:
         super(DateIntervalField, self).__init__(name, value, fields, *args, **kwargs)
         self.media_files.append('/js/interval_fields.js')

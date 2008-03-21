@@ -51,7 +51,6 @@ class UnionFilterForm(Form):
         self.forms = []
         self.data_cleaned = data_cleaned
         super(UnionFilterForm, self).__init__(data, initial=initial, layout=layout, *content, **kwd)
-        print "TATT",self.tattr_list
         self.set_tattr(action = kwd.get('action') or self.get_default_url())
         self.media_files = ['/js/filtertable.js', '/js/MochiKit/MochiKit.js', '/js/scw.js', '/js/interval_fields.js', '/js/scwLanguages.js']
     
@@ -256,7 +255,7 @@ class RegistrarsFilterForm(FilterForm):
     
     name = CharField(label=_('Name'))
     handle = CharField(label=_('Handle'))
-    organization = CharField(label=_('organization'))
+    organization = CharField(label=_('Organization'))
     city = CharField(label=_('City'))
     country = CharField(label=_('Country'))
     
@@ -283,12 +282,12 @@ class ObjectsFilterForm(FilterForm):
 class ContactsFilterForm(ObjectsFilterForm):
     default_fields_names = ObjectsFilterForm.default_fields_names + ['name']
     
-#    email = EmailField(label=_('Email'))
+    email = EmailField(label=_('Email'))
 #    contact_type = MultipleChoiceField(label=_('Contact type'), choices=(('owner', _('Owner')), ('admin', _('Admin')), ('techadmin', _('techadmin')), ('temporary', _('Temporary'))))
     name = CharField(label=_('Name'))
-    organisation = CharField(label=_('Organisation'))
-#    ssn = CharField(label=_('SSN'))
-#    vat = CharField(label=_('VAT'))
+    organization = CharField(label=_('Organization'))
+    ssn = CharField(label=_('SSN'))
+    vat = CharField(label=_('VAT'))
     
 class NSSetsFilterForm(ObjectsFilterForm):
 #    ipAddr = CharField(label=_('IP address'))
@@ -296,18 +295,19 @@ class NSSetsFilterForm(ObjectsFilterForm):
 #    nsName = CharField(label=_('Nameserver name'))
     
 class DomainsFilterForm(ObjectsFilterForm):
-    default_fields_names = ['fqdn']
+    default_fields_names = ['handle']
     
 #    fqdn = CharField(label=_('Domain name'))
     registrant = CompoundFilterField(label=_('Owner'), form_class=ContactsFilterForm)
-    admin = CompoundFilterField(label=_('Admin'), form_class=ContactsFilterForm)
+    adminContact = CompoundFilterField(label=_('Admin'), form_class=ContactsFilterForm)
+    tempContact = CompoundFilterField(label=_('Temp'), form_class=ContactsFilterForm)
     nsset = CompoundFilterField(label=_('Nameserver set'), form_class=NSSetsFilterForm)
     
     exDate = DateIntervalField(label=_('Expiry date'))
     valExDate = DateIntervalField(label=_('Validation date'))
 
 
-class RequestsFilterForm(FilterForm):
+class ActionsFilterForm(FilterForm):
     default_fields_names = ['svTRID']
     
     type = MultipleChoiceField(label=_('Request type'), choices=((1, u'Poraněn'), (2, u'Přeživší'), (3, u'Mrtev'), (4, u'Nemrtvý')))
@@ -324,7 +324,14 @@ form_classes = (DomainsFilterForm,
                 ObjectsFilterForm, 
                 ContactsFilterForm, 
                 RegistrarsFilterForm, 
-                RequestsFilterForm)
+                ActionsFilterForm)
+
+class FiltersFilterForm(FilterForm):
+    default_fields_names = ['name']
+    
+    userName = CharField(label=_('User name'))
+    groupName = CharField(label=_('Group name'))
+    type = ChoiceField(label=_('Result'), choices=((1, u'Poraněn'), (2, u'Preživší'), (3, u'Mrtev'), (4, u'Nemrtvý')))
 
 def get_filter_forms_javascript():
     'Javascript is cached in user session (must be there, bucause each user can have other forms, because of different permissions'

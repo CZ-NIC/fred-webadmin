@@ -41,7 +41,7 @@ class TestFilterLoader:
         print 'printing'
         input_filter_data = [{u'filter|object': [False, {u'filter|handle': [False, u'test.cz']}]}, {u'filter|registrar': [False, {u'filter|handle': [True, u'REG-FRED_A']}]}]
         
-        itable = IterTable('requests', self.corbaSession)
+        itable = IterTable('actions', self.corbaSession)
         print "SET FILTERS:"
         FilterLoader.set_filter(itable, input_filter_data)
         print "GET FILTERS DATA:"

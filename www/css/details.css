@@ -1,0 +1,5 @@
+.discloseTrue { background-color: #8F4; }
+.discloseFalse { background-color: #F88; }
+
+.object_detail > table { margin: 1em 0em; }
+.object_detail table th { text-align: left; }

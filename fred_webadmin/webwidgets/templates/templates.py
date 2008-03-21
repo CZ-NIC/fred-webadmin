@@ -6,7 +6,7 @@ from fred_webadmin.webwidgets.adifforms import get_filter_forms_javascript
 from fred_webadmin.translation import _
 from fred_webadmin import config
 
-from details import ContactDetailDiv, DomainDetailDiv, NSSetDetailDiv, ActionDetailDiv, RegistrarDetailDiv, AuthInfoDetailDiv, MailDetailDiv, InvoiceDetailDiv
+from details import ContactDetailDiv, DomainDetailDiv, NSSetDetailDiv, ActionDetailDiv, RegistrarDetailDiv, AuthInfoDetailDiv, MailDetailDiv, InvoiceDeatilDiv
 
 class BaseTemplate(HTMLPage):
     def __init__(self, context = None):

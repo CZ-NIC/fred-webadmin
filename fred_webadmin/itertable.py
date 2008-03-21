@@ -5,6 +5,7 @@ from corba import ccReg, CorbaServerDisconnectedException
 from adif import u2c
 from translation import _
 from fred_webadmin.webwidgets.adifforms import FilterFormEmptyValue
+from fred_webadmin.mappings import f_name_enum, f_header_ids
 
 def fileGenerator(source, separator = '|'):
     "Generates CVS stream from IterTable object"
@@ -27,10 +28,11 @@ class IterTable(object):
         self.iterable = True
         self.request_object = request_object
         table, header_id = self._map_request(sessionKey)
-        self.rawheader = [ x.name for x in table.getColumnHeaders() ]
+        columnHeaders = table.getColumnHeaders()
+        self.rawheader = [x.name for x in columnHeaders]
         self.rawheader.insert(0, 'Id')
         self.header = [ _(x) for x in self.rawheader ]
-        self.header_type = [ x.type._n for x in table.getColumnHeaders() ]
+        self.header_type = [x.type._n for x in columnHeaders]
         self.header_type.insert(0, header_id)
         print 'HEADER=%s' % self.header
         print 'HEADER_TYPE=%s' % self.header_type
@@ -41,22 +43,29 @@ class IterTable(object):
         self._update()
 
     def _map_request(self, sessionKey):
-        types = {'requests': {'func': 'getEPPActions', 'id': 'CT_REQUEST_ID'},
-                     'registrars': {'func': 'getRegistrars', 'id': 'CT_REGISTRAR_ID'},
-                     'domains': {'func': 'getDomains', 'id': 'CT_DOMAIN_ID'},
-                     'nssets': {'func': 'getNSSets', 'id': 'CT_NSSET_ID'},
-                     'mails': {'func': 'getMails', 'id': 'CT_MAIL_ID'},
-                     'contacts': {'func': 'getContacts', 'id': 'CT_CONTACT_ID'},
-                     'authinfo': {'func': 'getAuthInfoRequests', 'id': 'CT_AUTHINFO_ID'},
-                     'invoices': {'func': 'getInvoices', 'id': 'CT_INVOICE_ID'}}
+#        types = {'actions': {'func': 'getEPPActions', 'id': 'CT_REQUEST_ID'},
+#                     'registrars': {'func': 'getRegistrars', 'id': 'CT_REGISTRAR_ID'},
+#                     'domains': {'func': 'getDomains', 'id': 'CT_DOMAIN_ID'},
+#                     'nssets': {'func': 'getNSSets', 'id': 'CT_NSSET_ID'},
+#                     'mails': {'func': 'getMails', 'id': 'CT_MAIL_ID'},
+#                     'contacts': {'func': 'getContacts', 'id': 'CT_CONTACT_ID'},
+#                     'authinfos': {'func': 'getAuthInfoRequests', 'id': 'CT_AUTHINFO_ID'},
+#                     'invoices': {'func': 'getInvoices', 'id': 'CT_INVOICE_ID'},
+#                     'filters': {'func': 'getFilters', 'id': 'CT_FILTER_ID'},
+#                }
         try:
-            print "GETTING ADMIN, ktery je:", cherrypy.session.get('Admin', 'Admin')
+            print "GETTING ADMIN, ktery je:", cherrypy.session.get('Admin', 'Admin'), 'a sessionkey=', sessionKey
             corbaSession = cherrypy.session.get('Admin').getSession(sessionKey)
         except ccReg.Admin.ObjectNotFound:
             raise CorbaServerDisconnectedException
-        func = getattr(corbaSession, types[self.request_object]['func'])
-        table = func()
-        header_id = types[self.request_object]['id']
+        #func = getattr(corbaSession, types[self.request_object]['func'])
+        #table = func()
+        
+        #table = corbaSession.getPageTable(ccReg.FT_ACTION)#f_name_enum[self.request_object])
+        print "REQUEST_OBJECT  = ", self.request_object
+        table = corbaSession.getPageTable(f_name_enum[self.request_object])
+        print "VRACENA PageTable:", table
+        header_id = f_header_ids[self.request_object]#types[self.request_object]['id']
         return table, header_id
     
     def _update(self):
@@ -113,9 +122,11 @@ class IterTable(object):
         limit = min(limit, self.total_rows)
         while index < start + limit:
             yield self.get_row_id(index)
-            
-    def get_rows_dict(self, start = None, limit = None):
+    def get_rows_dict_raw(self):
         ''' Get rows, where each rows is dict (key: value), where key is header name (used for extjs grid) '''
+        
+    def get_rows_dict(self, start = None, limit = None, raw_header = False):
+        ''' Get rows, where each rows is dict (key: value), where key is header name (used for extjs grid and FilterList) '''
         if start is None:
             start = self.page_start
         else:
@@ -131,7 +142,10 @@ class IterTable(object):
         index = start
         print "limit = min(limit, self.num_rows - start)", limit, ' = min(%s, %s - %s = %s)' % (limit, self.num_rows, start, self.total_rows - start) 
         limit = min(limit, self.num_rows - start)
-        header = self.header
+        if raw_header:
+            header = self.rawheader
+        else:
+            header = self.header
         while index < start + limit:
             print index, start + limit
             row = {}
@@ -166,8 +180,9 @@ class IterTable(object):
                         'CT_NSSET_ID': {'url': r'%s/nssets/detail/?id=%%s' % baseurl,  'icon': 'list.gif', 'cssc': 'tcenter'},
                         'CT_MAIL_ID': {'url': r'%s/mails/detail/?id=%%s' % baseurl,  'icon': 'list.gif', 'cssc': 'tcenter'},
                         'CT_AUTHINFO_ID': {'url': r'%s/authinfos/detail/?id=%%s' % baseurl,  'icon': 'list.gif', 'cssc': 'tcenter'},
-                        'CT_REQUEST_ID': {'url': r'%s/requests/detail/?id=%%s' % baseurl,  'icon': 'list.gif', 'cssc': 'tcenter'},
+                        'CT_ACTION_ID': {'url': r'%s/requests/detail/?id=%%s' % baseurl,  'icon': 'list.gif', 'cssc': 'tcenter'},
                         'CT_INVOICE_ID': {'url': r'%s/invoices/detail/?id=%%s' % baseurl,  'icon': 'list.gif', 'cssc': 'tcenter'},
+                        'CT_FILTER_ID': {}, #{'url': r'%s/requests/detail/?id=%%s' % baseurl,  'icon': 'list.gif', 'cssc': 'tcenter'},
                         'CT_OTHER': {}
                        }
         contentType = self.header_type[cell['index']]
@@ -184,12 +199,11 @@ class IterTable(object):
 
       
     def set_filter(self, union_filter_data):
+        self.clear_filter()
         FilterLoader.set_filter(self, union_filter_data)
-
-        print "FILTER PRED RELOAD"
-        self._table.reloadF()
-        print "FILTER PO RELOAD"
-        self._update()
+        self.reload()
+        
+        
 
     def set_sort(self, column_name, direction):
         bool_dir = {u'ASC': True, u'DESC': False}[direction]
@@ -203,20 +217,27 @@ class IterTable(object):
     def get_filter_data(self):
         return FilterLoader.get_filter_data(self)
 
+    def all_fields_filled(self):
+        return FilterLoader.all_fields_filled(self)
+
     def clear_filter(self):
-        t_iter = self._table.getIterator()
-        t_iter.clearF()
         self._table.clear()
-#        self._table.clearF()
 #        self._table.reload()
-#        self._table.reloadF()
         self._update()
 
     def reload(self):
-#        self._table.reload()
-        self._table.reloadF()
+        print "FILTER PRED RELOAD"
+        #import pdb; pdb.set_trace()
+        self._table.reload()
+        print "FILTER PO RELOAD"
         self._update()
+        
+    def load_filter(self, filter_id):
+        self._table.loadFilter(filter_id)
 
+    def save_filter(self, name):
+        pass
+        
     def set_page(self, num):
 #        import pdb; pdb.set_trace()
         if (self.num_pages > 0) and (num > self.num_pages):
@@ -311,6 +332,7 @@ class FilterLoader(object):
                     
     @classmethod
     def set_filter(cls, itertable, union_filter_data):
+        #import pdb; pdb.set_trace()
         for filter_data in union_filter_data:
             compound = itertable._table.add()
             cls._set_one_compound_filter(compound, filter_data)
@@ -370,8 +392,27 @@ class FilterLoader(object):
             
             filter_data['filter|' + name] = [neg, value]
         return filter_data
-            
-            
+    
+    @classmethod
+    def all_fields_filled(cls, itertable):
+        ''' Return true when all fields are filled in (filter isActive of all fields is True
+            It ignores isActive() method in CompoundFilter and so recursively goes inside it. 
+        '''
+        for compound_filter in CorbaFilterIterator(itertable._table):
+            if not cls._one_compound_all_fields_filled(compound_filter):
+                return False
+        return True
+    
+    @classmethod
+    def _one_compound_all_fields_filled(cls, compound_filter):
+        for sub_filter in CorbaFilterIterator(compound_filter):
+            if isinstance(sub_filter, ccReg.Filters._objref_Compound):#Compound):
+                if not cls._one_compound_all_fields_filled(sub_filter):
+                    return False
+            else:
+                if not sub_filter.isActive():
+                    return False
+        return True
                 
         
         

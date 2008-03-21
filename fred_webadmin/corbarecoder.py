@@ -43,8 +43,8 @@ class CorbaRecode(object):
             # EXTRA: types which needs extra treating should be evaluated first
             # special case - "CORBA.EnumItem" type
             # probably omniORB specific ('EnumItem' can be implemented as type, not only as class)
-            if answer.__class__.__name__ == 'EnumItem':
-                return self.decode(answer._n)
+#            if answer.__class__.__name__ == 'EnumItem':
+#                return self.decode(answer._n)
             # EXTRA: end
             for name in dir(answer):
                 item = getattr(answer, name)

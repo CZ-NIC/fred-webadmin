@@ -15,7 +15,7 @@ from fred_webadmin.translation import _
 from utils import pretty_name, escape_js_literal
 
 
-FIELD_COUNTER_VALUE = 'FIELD_COUNTER_VALUE'
+#FIELD_COUNTER_VALUE = 'FIELD_COUNTER_VALUE'
 REPLACE_ME_WITH_LABEL = 'REPLACE_ME_WITH_LABEL'
 REPLACE_ME_WITH_EMPTY_FORM = 'REPLACE_ME_WITH_EMPTY_FORM'
 
@@ -206,7 +206,7 @@ class FilterTableFormLayout(TableFormLayout):
         negation_field = BooleanField(field.name.replace('filter', 'negation'), field.negation)
         #del_row_td = td(a(attr(cssc='pointer_cursor', onclick=u"delRow(this, '%s', '%s')" % (field_name, label_str)), img(src='/img/icons/purple_minus.gif')))
         if for_javascript:
-            presention_field = HiddenField(field.name.replace('filter', 'presention'), FIELD_COUNTER_VALUE) # needed for detecting presention of fields as checkboxes and multiple selects, because they do not send data if nonchecket or selected no option
+            presention_field = HiddenField(field.name.replace('filter', 'presention'), 'on') # needed for detecting presention of fields as checkboxes and multiple selects, because they do not send data if nonchecket or selected no option
         else: 
             presention_field = HiddenField(field.name.replace('filter', 'presention'), '%03d' % self.field_counter) # needed for detecting presention of fileds as checkboxes and multiple selects, because they do not send data if nonchecket or selected no option 
             self.field_counter += 1

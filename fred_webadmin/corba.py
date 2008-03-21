@@ -51,7 +51,7 @@ cookie = None
 
 omniORB.installTransientExceptionHandler(cookie, transientFailure)
 omniORB.installCommFailureExceptionHandler(cookie, commFailure)
-omniORB.installSystemExceptionHandler(cookie, systemFailure)
+#omniORB.installSystemExceptionHandler(cookie, systemFailure)
 
 import config
 module_name = importIDL(config.idl)[0] # this hase to be here because cherrypy session needs to know ccReg module on start (while loadin session from file)

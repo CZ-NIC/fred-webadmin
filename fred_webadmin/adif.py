@@ -52,19 +52,28 @@ except ImportError:
 from translation import _
 
 
-from webwidgets.templates import BaseSite, BaseSiteMenu, LoginPage, DisconnectedPage, FilterPage, DomainsDetail, RegistrarsDetail, RequestsDetail
+from webwidgets.templates.pages import (
+    BaseSite, BaseSiteMenu, LoginPage, DisconnectedPage, AllFiltersPage, FilterPage, 
+    DomainsDetail, ContactsDetail, NSSetsDetail, RegistrarsDetail, ActionsDetail, AuthInfosDetail, MailsDetail, InvoicesDetail
+)
 from webwidgets.gpyweb.gpyweb import WebWidget
 from webwidgets.gpyweb.gpyweb import DictLookup, attr, ul, li, a, div, span, p
 from webwidgets.utils import isiterable
 from webwidgets.menu import MenuHoriz
+from webwidgets.filterlist import FilterList
 from menunode import menu_tree
 from webwidgets.adifforms import *
 
 from itertable import IterTable, fileGenerator
 from fred_webadmin.utils import json_response
 
+from mappings import f_name_enum
+from user import User
+from decorator import update_wrapper
 
 class AdifError(Exception):
+    pass
+class PermissionDeniedError(AdifError):
     pass
 class IorNotFoundError(AdifError):
     pass
@@ -77,92 +86,90 @@ class MenuDoesNotExistsError(AdifError):
     def __unicode__(self):
         return self.__str__()
 
-# decorator for login-required pages
-def protectedPage(fn):
+def login_required(view_func):
+    ''' decorator for login-required pages '''
     def _wrapper(*args, **kwd):
         if cherrypy.session.get('user', None):
-            return fn(*args, **kwd)
+            return view_func(*args, **kwd)
         redir_addr = '/login/?next=%s' % cherrypy.request.path_info
         if cherrypy.request.query_string:
             redir_addr += '?' + cherrypy.request.query_string
         raise cherrypy.HTTPRedirect(redir_addr)
+    #update_wrapper(_wrapper, view_func)
     return _wrapper
 
-def protectedPageNP(fn, nperms, nperm_type='all'):
-    def _wrapper(*args, **kwd):
-        user = cherrypy.session.get('user', None)
-        if user:
-            if not user.check_nperms(nperms, nperm_type):
-                return fn(*args, **kwd)
-            else:
-                context = {}
-                context['main'] = _('You have not permissions for this')
-                if config.debug:
-                    context['main'] += ' usernperm = %s, nperms=%s, nperm_type=%s' % (user.perms, nperms, nperm_type)
-                return BaseSiteMenu(context)
-        raise cherrypy.HTTPRedirect('/login/?next=%s' % cherrypy.request.path_info + '?' + cherrypy.request.query_string)
 
+def check_nperm(nperms, nperm_type='all'):
+    ''' decorator for login-required and negative permissions check '''
+    def _decorator(view_func):
+        def _wrapper(*args, **kwd):
+            user = cherrypy.session.get('user', None)
+            if user:
+                if not user.check_nperms(nperms, nperm_type):
+                    return view_func(*args, **kwd)
+                else:
+                    context = {'main': div()}
+                    context['main'].add(p(_("You don't have permissions for this page!")))
+                    if config.debug:
+                        context['main'].add(p('nperms=%s, nperm_type=%s' % (nperms, nperm_type)))
+                    return BaseSiteMenu(context).render()
 
-
-class User(object):
-    def __init__(self, login):
-        self.login = login
-        # negative permissions or forbiddance 
-#        self.nperms = ['domain.read', 'domain.create', 'domain.change', 'domain.delete',
-#                       'contact.read', 'contact.create', 'contact.change', 'contact.delete',
-#                       'nsset.read', 'nsset.create', 'nsset.change', 'nsset.delete',
-#                       'registrar.read', 'registrar.create', 'registrar.change', 'registrar.delete',
-#                      ]
-        #self.nperms = ['domains.read', 'contacts.read', 'nssets.read']
-        self.nperms = ['domains.filter.owner', 'domains.filter.email']
-        print 'vytvoren user s nperms = ', str(self.nperms)
+            redir_addr = '/login/?next=%s' % cherrypy.request.path_info
+            if cherrypy.request.query_string:
+                redir_addr += '?' + cherrypy.request.query_string
+            raise cherrypy.HTTPRedirect(redir_addr)
         
-    def has_nperm(self, nperm):
-        return nperm in self.nperms
-    
-    def has_all_nperms(self, nperms):
-        for nperm in nperms:
-            if nperm not in self.nperms:
-                return False
-        return True
-    
-    def has_one_nperms(self, nperms):
-        if not nperms:
-            return True
-        else:
-            for nperm in nperms:
-                if nperm in self.nperms:
-                    return True
-            return False
+        return _wrapper
+    #update_wrapper(_wrapper, view_func)
+    return _decorator
 
-    def check_nperms(self, nperms, nperm_type = 'all'):
-        'Returns True if user has NOT permmission (has negative permission)'
-        #print 'USER NPERM pri checku: %s, proti %s, check_type %s' % (self.nperms, nperms, nperm_type),  
-        result = ((isinstance(nperms, types.StringTypes) and self.has_nperm(nperms)) or 
-                (isiterable(nperms) and 
-                     (nperm_type == 'all' and self.has_all_nperms(nperms) or
-                      nperm_type == 'one' and self.has_one_nperms(nperms))
-                )
-               )
-        #print ' -> %s' % result
-        return result 
+def check_onperm(objects_nperms, check_type='all'):
+    def _decorator(view_func):
+        def _wrapper(*args, **kwd):
+            self = args[0]
+            user = cherrypy.session.get('user', None)
+            if user:
+                nperms = []
+                if isinstance(objects_nperms, types.StringTypes):
+                    onperms = [objects_nperms]
+                else:
+                    onperms = objects_nperms
+                for objects_nperm in onperms:
+                    nperms.append('%s.%s' % (self.classname[:-1], objects_nperm))
+                if user.check_nperms(nperms, check_type):
+                    context = {'main': div()}
+                    context['main'].add(p(_("You don't have permissions for this page!")))
+                    if config.debug:
+                        context['main'].add(p(' usernperm = %s,<br/>nperms=%s,<br/>nperm_type=%s' % (user.nperms, nperms, check_type)))
+                        context['main'].add(p('a tohle to je udelano nejsofistikovanejsim decoratorem'))
+                    return self._render('error', context)
+                return view_func(*args, **kwd)
 
+            redir_addr = '/login/?next=%s' % cherrypy.request.path_info
+            if cherrypy.request.query_string:
+                redir_addr += '?' + cherrypy.request.query_string
+            raise cherrypy.HTTPRedirect(redir_addr)
+        
+        return _wrapper
+    #update_wrapper(_wrapper, view_func)
+    return _decorator
 
 class ListTableMixin(object):
 
-    __metaclass__ = exposed.exposed
+    __metaclass__ = exposed.AdifPageMetaClass
 
-    def _get_itertable(self):
-        key = cherrypy.session.get('corbaSession', '')
+    def _get_itertable(self, request_object = None):
+        if not request_object:
+            request_object = self.classname
+        key = cherrypy.session.get('corbaSessionString', '')
         size = config.tablesize
-        try:
-            itertable = IterTable(self.classname, key, size)
-        except CorbaServerDisconnectedException:
-            self._disconnected()
+        itertable = IterTable(request_object, key, size)
+
         return itertable
 
     def _get_list(self, context, cleaned_filters=None, **kwd):
         table = self._get_itertable()
+        show_result = True
         try:
             page = int(kwd.get('page', 1))
         except ValueError:
@@ -172,6 +179,16 @@ class ListTableMixin(object):
         if cleaned_filters:
             table.clear_filter()
             table.set_filter(cleaned_filters)
+        if kwd.get('filter_id'):
+            import pdb; pdb.set_trace()
+            table.load_filter(int(kwd.get('filter_id')))
+            if kwd.get('show_form') or not table.all_fields_filled():
+                show_result = False
+                filter_data = table.get_filter_data()
+                form_class = self._get_form_class()
+                context['form'] = UnionFilterForm(filter_data, data_cleaned=True, form_class=form_class)
+                
+                
         if kwd.get('cf'):
             table.clear_filter()
         if kwd.get('reload'):
@@ -187,26 +204,27 @@ class ListTableMixin(object):
             table._table.add()
             table.reload()
 
-        if table.num_rows == 0:
-            context['main'].add(_("No_entries_found"))
-        if table.num_rows == 1:
-            rowId = table.get_row_id(0)
-            raise cherrypy.HTTPRedirect('/%s/detail/?id=%s' % (self.classname, rowId))
-        if kwd.get('txt', None):
-            cherrypy.response.headers["Content-Type"] = "text/plain"
-            cherrypy.response.headers["Content-Disposition"] = "inline; filename=%s_%s.txt" % (self.classname, time.strftime('%Y-%m-%d'))
-            return fileGenerator(table)
-        elif kwd.get('csv', None):
-            cherrypy.response.headers["Content-Type"] = "application/vnd.ms-excel"
-            cherrypy.response.headers["Content-Disposition"] = "attachement; filename=%s_%s.csv" % (self.classname, time.strftime('%Y-%m-%d'))
-            return fileGenerator(table)
-        table.set_page(page)
-        
-        context['itertable'] = table
+        if show_result:
+            if table.num_rows == 0:
+                context['result'] = _("No_entries_found")
+            if table.num_rows == 1:
+                rowId = table.get_row_id(0)
+                raise cherrypy.HTTPRedirect('/%s/detail/?id=%s' % (self.classname, rowId))
+            if kwd.get('txt', None):
+                cherrypy.response.headers["Content-Type"] = "text/plain"
+                cherrypy.response.headers["Content-Disposition"] = "inline; filename=%s_%s.txt" % (self.classname, time.strftime('%Y-%m-%d'))
+                return fileGenerator(table)
+            elif kwd.get('csv', None):
+                cherrypy.response.headers["Content-Type"] = "application/vnd.ms-excel"
+                cherrypy.response.headers["Content-Disposition"] = "attachement; filename=%s_%s.csv" % (self.classname, time.strftime('%Y-%m-%d'))
+                return fileGenerator(table)
+            table.set_page(page)
+            
+            context['itertable'] = table
         return context
 
    
-    @protectedPage
+    @login_required
     def _filter_json_header(self):
         itertable = self._get_itertable()
         return json_response({
@@ -216,7 +234,7 @@ class ListTableMixin(object):
             'object_name': itertable.request_object,
         })
     
-    @protectedPage
+    @login_required
     def _filter_json_rows(self, **kwd):
         print "A json rows delam s kwd: %s" % kwd
         itertable = self._get_itertable()
@@ -235,22 +253,21 @@ class ListTableMixin(object):
         print "vracim %s" % json_data
         return json_data
     
-    
-    @protectedPage
+    @check_onperm('read')
     def filter(self, *args, **kwd):
+        
         print "ARGS:", args
         if args:
             if args[0] == 'jsondata':
                 return self._filter_json_rows(**kwd)
             elif args[0] == 'jsonheader':
                 return self._filter_json_header()
-            
+
         if kwd:
             print 'prisla data %s' % kwd
-        
         context = {'main': div()}
-
-        if kwd.get('cf') or kwd.get('page') or kwd.get('load') or kwd.get('list_all'): # clear filter - whole list of objects without using filter form
+        
+        if kwd.get('cf') or kwd.get('page') or kwd.get('load') or kwd.get('list_all') or kwd.get('filter_id'): # clear filter - whole list of objects without using filter form
             context = self._get_list(context, **kwd)
         else:
             form_class = self._get_form_class()
@@ -276,6 +293,18 @@ class ListTableMixin(object):
                     context['headline'] = '%s filter' % self.__class__.__name__
         
         return self._render('filter', context)
+    
+    @check_onperm('read')
+    #@login_required
+    def allfilters(self, *args, **kwd):
+        context = {'main': div()}
+        
+        itertable = self._get_itertable('filters')
+        itertable.set_filter({})#{'userId': cherrypy.session.get('user').id,
+#                          'type': f_name_enum[self.classname]
+#                         })
+        context['main'].add(FilterList(itertable.get_rows_dict(raw_header=True), self.classname))
+        return self._render('allfilters', context)
 
     def _get_form_class(self):
         form_name = self.__class__.__name__ + 'FilterForm'
@@ -284,14 +313,14 @@ class ListTableMixin(object):
             raise RuntimeError('No such formclass in modules "%s"' % form_name)
         return form_class
 
-    @protectedPage
+    @login_required
     def index(self):
         raise cherrypy.HTTPRedirect('/%s/filter/' % (self.classname))
 
 
 class Page(object):
 
-    __metaclass__ = exposed.exposed
+    __metaclass__ = exposed.AdifPageMetaClass
 
     def __init__(self):
         super(Page, self).__init__()
@@ -302,9 +331,9 @@ class Page(object):
     def default(self, *params, **kwd):
         """catch-all for any non-defined method"""
         return '%s,%s,%s' % (self.__class__, params, kwd)
+    
 
 class AdifPage(Page):
-
     def __init__(self):
         Page.__init__(self)
         self.classname = self.__class__.__name__.lower()
@@ -320,7 +349,14 @@ class AdifPage(Page):
         #self.filemanager = None
 
         self.__defaults__()
-
+    
+    def _get_corba_session(self):
+        try:
+            corbaSessionString = cherrypy.session.get('corbaSessionString')
+            return cherrypy.session.get('Admin').getSession(corbaSessionString)
+        except ccReg.Admin.ObjectNotFound:
+            raise CorbaServerDisconnectedException
+    
     def __defaults__(self):
         pass
         #self.here = {}
@@ -337,11 +373,16 @@ class AdifPage(Page):
             return LoginPage
         elif action == 'filter':
             return FilterPage
+        elif action == 'filters':
+            return AllFiltersPage
         elif action == 'disconnected':
             return DisconnectedPage
+        elif action == 'error':
+            return BaseSiteMenu
         else:
             # returns ClassName + Action (e.g. DomainsDetail) class from module of this class, if there is no such, then it returns BaseSiteMenu: 
             template_name = self.__class__.__name__ + action.capitalize()
+            print 'Snazim se vzit templatu jmenem:', template_name
             template = getattr(sys.modules[self.__module__], template_name, None)
             if template is None:
                 print "TEMPLATE %s IN MODULE %s NOT FOUND, USING DEFAULT: BaseSiteMenu" % (template_name, sys.modules[self.__module__])
@@ -357,7 +398,7 @@ class AdifPage(Page):
         return MenuHoriz(self.menu_tree, self._get_menu_handle(action), cherrypy.session['user'])
     
     def _get_menu_handle(self, action):
-        if action in ('filter', 'create') and self.classname not in ('domains', 'contacts', 'nssets'):
+        if action in ('allfilters', 'filter', 'create') and self.classname in ('registrars'):
             return self.classname + action
         else:
             return self.classname
@@ -392,6 +433,35 @@ class AdifPage(Page):
         result = temp_class.render()
         
         return result
+    
+#    def _check_onperm(self, objects_nperms, check_type='all'):
+#        ''' Checks objects nperms. Takes self.classname and all nperms from first parameter are joined with classname
+#            and than checked.
+#            (This cannot be achieved by decorator, because it have no access to class nor object instance)
+#            If permission needs are not met, this method throws an exception PermissionDeniedError, which is caugth
+#            by catch_webadmin_exceptions_decorator, which is added in AdifPageMetaClass for all views in all objects.
+#        '''
+#        return
+#        user = cherrypy.session.get('user', None)
+#        if user:
+#            nperms = []
+#            if isinstance(objects_nperms, types.StringTypes):
+#                objects_nperms = [objects_nperms]
+#            for objects_nperm in objects_nperms:
+#                nperms.append('%s.%s' % (self.classname[:-1], objects_nperm))
+#            if user.check_nperms(nperms, check_type):
+#                context = {'main': div()}
+#                context['main'].add(p(_("You don't have permissions for this page!")))
+#                if config.debug:
+#                    context['main'].add(p(' usernperm = %s,<br/>nperms=%s,<br/>nperm_type=%s' % (user.nperms, nperms, check_type)))
+##                message = _('You have not permissions for this action!')
+##                if config.debug:    
+##                    message += ' (nperms=%s, nperm_type=%s)' % (nperms, check_type)
+#                #import pdb; pdb.set_trace()
+#                raise PermissionDeniedError(self._render('error', context))
+#        else:  
+#            raise cherrypy.HTTPRedirect('/login/?next=%s' % cherrypy.request.path_info + '?' + cherrypy.request.query_string)
+        
 
     def _registrars(self):
         registrars = c2u(cherrypy.session.get('Admin').getRegistrars())
@@ -423,7 +493,7 @@ class AdifPage(Page):
         cherrypy.session['corbaSession'] = None
         raise cherrypy.HTTPRedirect('/disconnected')
 
-    @protectedPage
+    @login_required
     def index(self):
         #html = self._template('index', self.classname)
         #here = self.here.copy()
@@ -434,11 +504,13 @@ class ADIF(AdifPage):
 
     def __init__(self):
         AdifPage.__init__(self)
+
+    
     
     def _get_menu_handle(self, action):
         return 'summary'
     
-    @protectedPage
+    @login_required
     def index(self):
         if cherrypy.session.get('user'):
             raise cherrypy.HTTPRedirect('/summary/')
@@ -446,14 +518,10 @@ class ADIF(AdifPage):
             raise cherrypy.HTTPRedirect('/login/')
         
     def login(self, *args, **kwd):
-        
-        #html = self._template('index', self.classname)
-        #here = self.here.copy()
-        #here['page']['content'] = html
         if kwd:
             if cherrypy.request.method == 'GET' and kwd.get('next'):
                 form = LoginForm(action='/login/', method='post')
-                form.fields['next'].initial = kwd['next']
+                form.fields['next'].value = kwd['next']
             else:
                 form = LoginForm(kwd, action='/login/', method='post')
         else:
@@ -461,23 +529,25 @@ class ADIF(AdifPage):
             
         if form.is_valid():
             print 'form is valid'
-            login = form.cleaned_data.get('login', '')    
+            login = form.cleaned_data.get('login', '')
             password = form.cleaned_data.get('password', '')
             corba_server = int(form.cleaned_data.get('corba_server', 0))
             try:
                 ior=config.iors[corba_server]
                 corba.connect(ior)
                 admin = corba.getObject('fred', 'Admin', 'Admin')
-                corbaSession = admin.login(u2c(login), u2c(password))
-                cherrypy.session['corbaSession'] = corbaSession
-                
-                cherrypy.session['user'] = User(login) #XXX to tu nebude, to vrati korba
+                corbaSessionString = admin.login(u2c(login), u2c(password))
+                cherrypy.session['corbaSessionString'] = corbaSessionString
                 
                 cherrypy.session['corba_server_name'] = form.fields['corba_server'].choices[corba_server][1]
                 cherrypy.session['Admin'] = admin
-#                cherrypy.session['Mailer'] = corba.getObject('fred', 'Mailer', 'Mailer')
-#                cherrypy.session['FileManager'] = corba.getObject('fred', 'FileManager', 'FileManager')
-
+                
+                
+                corbaSession = self._get_corba_session()
+                cherrypy.session['user'] = User(corbaSession.getUser())
+                
+                #cherrypy.session['Mailer'] = corba.getObject('fred', 'Mailer', 'Mailer')
+                #cherrypy.session['FileManager'] = corba.getObject('fred', 'FileManager', 'FileManager')
 
                 raise cherrypy.HTTPRedirect(form.cleaned_data.get('next'))
             except omniORB.CORBA.BAD_PARAM, e:
@@ -505,7 +575,7 @@ class ADIF(AdifPage):
         raise cherrypy.HTTPRedirect('/')
 
     def disconnected(self):
-        if not cherrypy.session.get('corbaSession', None):
+        if not cherrypy.session.get('corbaSessionString', None):
             #html = self._template('disconnected', self.classname)
             #here = self.here.copy()
             #here['page']['content'] = html
@@ -521,7 +591,7 @@ class Summary(AdifPage):
         else:
             return BaseSiteMenu
         
-    @protectedPage
+    @login_required
     def index(self):
         context = DictLookup()
         context.main = ul(
@@ -533,7 +603,7 @@ class Logs(AdifPage):
     def _template(self, action=''):
         return BaseSiteMenu
         
-    @protectedPage
+    @login_required
     def index(self):
         context = DictLookup()
         context.main = p('Tady asi nic nebude, pokud jo, tak asi registrar/filter, a tim padem by tahle klasa Logs byla zbytecna')
@@ -549,7 +619,7 @@ class Registrars(AdifPage, ListTableMixin):
         AdifPage.__init__(self)
         ListTableMixin.__init__(self)
     
-    @protectedPage
+    @check_onperm('read')
     def detail(self, **kwd):
         context = {}
         create = kwd.get('new')
@@ -588,18 +658,19 @@ class Registrars(AdifPage, ListTableMixin):
         context['utils']['certCount'] = len(result.access)
         return self._render('detail', context)
 
-    @protectedPage
+    
+    @check_onperm('write')
     def edit(self, *params, **kwd):
         kwd['edit'] = True
         return self.detail(*params, **kwd)
-
-    @protectedPage
+    
+    @check_onperm('write')
     def create(self, *params, **kwd):
         kwd['edit'] = True
         kwd['new'] = True
         return self.detail(*params, **kwd)
 
-    @protectedPage
+    @check_onperm('write')
     def modify(self, **kwd):
         k = ['id', 'handle', 'name', 'organization', 'street1', 'street2', 
             'street3', 'city', 'stateorprovince', 'postalcode', 'country', 
@@ -631,7 +702,7 @@ class Registrars(AdifPage, ListTableMixin):
             return self._render('modify', context)
         raise cherrypy.HTTPRedirect('/%s/list/?reload=1' % (self.classname))
 
-class Requests(AdifPage, ListTableMixin):
+class Actions(AdifPage, ListTableMixin):
 
     def __init__(self):
         AdifPage.__init__(self)
@@ -641,9 +712,9 @@ class Requests(AdifPage, ListTableMixin):
         if action == 'detail':
             return 'logs'
         else:
-            return super(Requests, self)._get_menu_handle(action)
-        
-    @protectedPage
+            return super(Actions, self)._get_menu_handle(action)
+    
+    @check_onperm('read')    
     def detail(self, **kwd):
         context = {}
         admin = cherrypy.session.get('Admin') 
@@ -666,6 +737,8 @@ class Requests(AdifPage, ListTableMixin):
 
         if result.registrarHandle:
             result.registrar = c2u(cherrypy.session.get('Admin').getRegistrarByHandle(u2c(result.registrarHandle)))
+        else:
+            result.registrar = None
         result.xml = prettify(result.xml)
         context['result'] = result
         return self._render('detail', context)
@@ -676,8 +749,8 @@ class Domains(AdifPage, ListTableMixin):
     def __init__(self):
         AdifPage.__init__(self)
         ListTableMixin.__init__(self)
-        
-    @protectedPage
+    
+    @check_onperm('read')
     def detail(self, **kwd):
         context = {}
         create = kwd.get('new')
@@ -704,13 +777,14 @@ class Domains(AdifPage, ListTableMixin):
                 return self._render('detail', context)
             else:
                 result.registrant = c2u(admin.getContactByHandle(u2c(result.registrantHandle)))
+                nsset = None
                 if result.nssetHandle:
                     nsset = c2u(admin.getNSSetByHandle(u2c(result.nssetHandle)))
                     techs = []
                     for tech in nsset.admins:
                         techs.append(c2u(admin.getContactByHandle(u2c(tech))))
                     nsset.admins = techs
-                    result.__dict__['nsset'] = nsset
+                result.__dict__['nsset'] = nsset
                 adm = []
                 for admin_handle in result.admins:
                     adm.append(c2u(admin.getContactByHandle(u2c(admin_handle))))
@@ -724,18 +798,24 @@ class Domains(AdifPage, ListTableMixin):
                     print "HANDLE", result.createRegistrarHandle
                     res = admin.getRegistrarByHandle(u2c(result.createRegistrarHandle))
                     result.createRegistrar = c2u(res)
+                else:
+                    result.createRegistrar = None
                 if result.updateRegistrarHandle:
                     result.updateRegistrar = c2u(admin.getRegistrarByHandle(u2c(result.updateRegistrarHandle)))
+                else:
+                    result.updateRegistrar = None
                 if result.registrarHandle:
                     result.registrar = c2u(admin.getRegistrarByHandle(u2c(result.registrarHandle)))
+                else:
+                    result.registrar = None
         
         context['edit'] = kwd.get('edit')
         
         print "RESULT", result
-        context['result'] = (repr(result)) or "bez vysledku"
+        context['result'] = result
         return self._render('detail', context)
 
-    @protectedPage
+    @check_onperm('read')
     def dig(self, **kwd):
         context = {}
         handle = kwd.get('handle', None)
@@ -760,7 +840,7 @@ class Contacts(AdifPage, ListTableMixin):
         AdifPage.__init__(self)
         ListTableMixin.__init__(self)
 
-    @protectedPage
+    @check_onperm('read')
     def detail(self, **kwd):
         context = {}
         create = kwd.get('new')
@@ -799,7 +879,7 @@ class NSSets(AdifPage, ListTableMixin):
         AdifPage.__init__(self)
         ListTableMixin.__init__(self)
 
-    @protectedPage
+    @check_onperm('read')
     def detail(self, **kwd):
         context = {}
         create = kwd.get('new') 
@@ -826,17 +906,24 @@ class NSSets(AdifPage, ListTableMixin):
             else:
                 techs = []
                 for tech in result.admins:
-                    techs.append(c2u(admin.getContactByHandle(tech)))
+                    techs.append(c2u(admin.getContactByHandle(u2c(tech))))
                 result.admins = techs
                 if result.createRegistrarHandle:
                     result.createRegistrar = c2u(admin.getRegistrarByHandle(u2c(result.createRegistrarHandle)))
+                else:
+                    result.createRegistrar = None
                 if result.updateRegistrarHandle:
                     result.updateRegistrar = c2u(admin.getRegistrarByHandle(u2c(result.updateRegistrarHandle)))
+                else:
+                    result.updateRegistrar = None
                 if result.registrarHandle:
                     result.registrar = c2u(admin.getRegistrarByHandle(u2c(result.registrarHandle)))
+                else:
+                    result.registrar = None
 
         context['edit'] = kwd.get('edit')
         context['result'] = result
+
         return self._render('detail', context)
 
 class Mails(AdifPage, ListTableMixin):
@@ -861,8 +948,8 @@ class Mails(AdifPage, ListTableMixin):
             except corba.module.FileManager.IdNotFound:
                 new.append({'name': 'ERROR-ATTACHMENT-ID:%s' % attId})
         return new
-
-    @protectedPage
+    
+    @check_onperm('read')
     def detail(self, **kwd):
         context = {}
         create = kwd.get('create')
@@ -889,7 +976,7 @@ class Mails(AdifPage, ListTableMixin):
         context['result'] = result
         return self._render('detail', context)
 
-    @protectedPage
+    @check_onperm('read')
     def attachment(self, **kwd):
         context = {}
         try:
@@ -922,7 +1009,7 @@ class AuthInfos(AdifPage, ListTableMixin):
         AdifPage.__init__(self)
         ListTableMixin.__init__(self)
 
-    @protectedPage
+    @check_onperm('read')
     def detail(self, **kwd):
         context = {}
         try:
@@ -943,7 +1030,7 @@ class AuthInfos(AdifPage, ListTableMixin):
         context['result'] = result
         return self._render('detail', context)
 
-    @protectedPage
+    @check_onperm('write')
     def resolve(self, **kwd):
         context = {}
         try:
@@ -954,7 +1041,7 @@ class AuthInfos(AdifPage, ListTableMixin):
         cherrypy.session.get('Admin').processAuthInfoRequest(id_ai, False)
         raise cherrypy.HTTPRedirect('/%s/list/?reload=1' % (self.classname))
 
-    @protectedPage
+    @check_onperm('write')
     def close(self, **kwd):
         context = {}
         try:
@@ -972,14 +1059,14 @@ class Invoices(AdifPage, ListTableMixin):
         AdifPage.__init__(self)
         ListTableMixin.__init__(self)
 
-    @protectedPage
+    @check_onperm('read')
     def filter(self, **kwd):
         context = {}
         context['result'] = {}
         context['result']['typelist'] = self._invoiceTypeList()
         return self._render('filter', ctx=context)
 
-    @protectedPage
+    @check_onperm('read')
     def detail(self, **kwd):
         context = {}
         try:
@@ -1002,8 +1089,12 @@ class Invoices(AdifPage, ListTableMixin):
         filemanager = cherrypy.session.get('FileManager')
         if result.filePDF:
             result.filePDFinfo = filemanager.info(result.filePDF)
+        else:
+            result.filePDFinfo = None
         if result.fileXML:
             result.fileXMLinfo = filemanager.info(result.fileXML)
+        else:
+            result.fileXMLinfo = None
         # hack, these need remapping to other values.
         if result.actions:
             [ x.__dict__.__setitem__('actionType', 'RREG') for x in result.actions if x.actionType == 0 ]
@@ -1012,7 +1103,7 @@ class Invoices(AdifPage, ListTableMixin):
         context['result'] = result
         return self._render('detail', context)
 
-    @protectedPage
+    @check_onperm('read')
     def attachment(self, **kwd):
         context = {}
         try:
@@ -1048,7 +1139,7 @@ class Bankstatements(AdifPage, ListTableMixin):
 
 class Development(object):
 
-    __metaclass__ = exposed.exposed
+    __metaclass__ = exposed.AdifPageMetaClass
 
     def __init__(self):
         object.__init__(self)
@@ -1096,7 +1187,7 @@ def runserver():
     root.summary = Summary()
     root.logs = Logs()
     root.registrars = Registrars()
-    root.requests = Requests()
+    root.actions = Actions()
     root.domains = Domains()
     root.contacts = Contacts()
     root.nssets = NSSets()

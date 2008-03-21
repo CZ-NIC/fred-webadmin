@@ -76,7 +76,6 @@ class WebWidget(object):
     def __init__(self, *content, **kwd):
 #        self.__dict__['normal_attrs'] = ['normal_attrs', 'tag', '    ', 'parent_widget', 'delimiter_char', 'indent_char', 'tagid', 'enclose_content']    
         self.__dict__['tattr'] = {} # attributes, that will be rendered into tag as attribute (eg. <a href="/">...)
-        
         self.content = [] # To not pydev(or pylint) complain about assigning to undefined membet 'attr'
         self.parent_widget = None
         
@@ -397,6 +396,7 @@ class param(WebWidget):
     tattr_list=['id', 'name', 'value', 'valuetype', 'type']
 
 class li(WebWidget):
+    enclose_content = True
     tattr_list=['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
 
 class acronym(WebWidget):

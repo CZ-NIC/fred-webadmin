@@ -5,17 +5,17 @@ function onChangeDateIntervalType(thisElem) {
 	var day_span = getFirstElementByTagAndClassName('span', 'date_day', parent_div);
 	
 	switch(thisElem.value) {
-		case "0":
+		case "1":  //ccReg.DAY
 			day_span.style.display = 'inline';
 			interval_span.style.display = 'none';
 			break;
-		case "1":
+		case "2": //ccReg.INTERVAL
 			day_span.style.display = 'none';
 			interval_span.style.display = 'inline';
 			interval_offset_span.style.display = 'none';
 			break;
 		default:
-			// pak tu jeste bude ze od do jsou readonly a pocitani do do z toho intervalu
+			// pak tu jeste bude ze od do jsou readonly a pocitani (od do) z toho intervalu
 			day_span.style.display = 'none';
 			interval_span.style.display = 'inline';
 			interval_offset_span.style.display = 'inline';

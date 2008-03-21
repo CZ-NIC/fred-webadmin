@@ -82,8 +82,8 @@ var IterTableUI = function() {
                 }
                     
                 switch (colHeaderType) {
-                    case 'CT_REQUEST_ID':
-                        colSpec['renderer'] = renderIDFunc('request');
+                    case 'CT_ACTION_ID':
+                        colSpec['renderer'] = renderIDFunc('action');
                         
                         break;
                         
