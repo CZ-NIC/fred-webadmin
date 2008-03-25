@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from fred_webadmin.webwidgets.gpyweb.gpyweb import attr, div, span, h2, table, tbody, tr, th, td, p, strong, b, small, a, form, input, select, option, textarea, script, pre, br, acronym
+from fred_webadmin.webwidgets.adifwidgets import FilterPanel
 from fred_webadmin.translation import _
 from fred_webadmin.mappings import f_urls, f_objectType_name
 
@@ -73,35 +74,15 @@ class ContactDetailDiv(DetailDiv):
         if c.get('edit'):
             self.add(p(input(attr(type='submit', value=':Save:')), input(attr(type='reset', value=':Renew:'))))
         else:
-            #import pdb; pdb.set_trace()
-            self.add(
-                table(attr(style='width: 96%', border='1'), tbody(tr(th(attr(colspan='6'), b(_('Options')))),
-                      tr(td(form(attr(action = f_urls['domains'] + 'filter/', method='POST'), 
-                                 textarea(attr(style='display: none;', name='json_data'), 
-                                          u'[{"filter|registrant": {"presention|handle": "on", "filter|handle": "%s"}, "presention|registrant": "on"}]' % result.handle), 
-                                 input(attr(type='submit', value=_('Domains_owner'))))), 
-                         td(form(attr(action = f_urls['domains'] + 'filter/', method='POST'), 
-                                 textarea(attr(style='display: none;', name='json_data'), 
-                                          u'[{"filter|adminContact":{"presention|handle":"on", "filter|handle":"%s"}, "presention|adminContact":"on"}]' % result.handle), 
-                                 input(attr(type='submit', value=_('Domains_admin'))))), 
-                         td(form(attr(action = f_urls['domains'] + 'filter/', method='POST'), 
-                                 textarea(attr(style='display: none', name='filter_'), 
-                                          u'%s' % result.handle), 
-                                 input(attr(type='submit', value='Domains_all', cssc='disabled', disabled='disabled')))), 
-                         td(form(attr(action = f_urls['nssets'] + 'filter/', method='POST'), 
-                                 textarea(attr(style='display: none', name='json_data'), 
-                                          u'[{"filter|admin":{"presention|handle":"on", "filter|handle":"%s"}, "presention|admin":"on"}]' % result.handle), 
-                                 input(attr(type='submit', value=_('NSSets'))))), 
-                         td(form(attr(action = f_urls['actions'] + 'filter/', method='POST'), 
-                                 textarea(attr(style='display: none', name='json_data'),
-                                          u'[{"filter|object":{"presention|handle":"on", "filter|handle":"%s"}, "presention|object":"on"}]' % result.handle), 
-                                 input(attr(type='submit', value=_('Requests'))))), 
-                         td(form(attr(action = f_urls['mails'] + 'filter/', method='POST'), 
-                                 textarea(attr(style='display: none', name='filter_handle'),
-                                          u'%s' % result.handle), 
-                                 input(attr(type='submit', value=_('Emails')))))
-                     )))
-            )
+            self.add(FilterPanel([
+                [_('Domains_owner'), 'domains', [{'registrant.handle': result.handle}]],
+                [_('Domains_admin'), 'domains', [{'adminContact.handle': result.handle}]],
+                [_('Domains_all'), 'domains', [{'registrant.handle': result.handle}, {'adminContact.handle': result.handle}]],
+                [_('NSSets'), 'nssets', [{'admin.handle': result.handle}]],
+                [_('Requests'), 'actions', [{'object.handle': result.handle}]],
+                [_('Emails'), 'mails', [{'object.handle': result.handle}]],
+            ]))
+            
         
 
 class DomainDetailDiv(DetailDiv):
@@ -224,22 +205,14 @@ class DomainDetailDiv(DetailDiv):
                          th(_('Date'))), 
                       tr(td(result.updateRegistrar.name), 
                          td(a(attr(href=f_urls['registrars'] + 'detail/?handle=' + result.updateRegistrarHandle), result.updateRegistrarHandle)), 
-                         td(result.updateDate))),
-
-            table(attr(style='width: 96%', border='1'), tbody(tr(th(attr(colspan='3'), strong(_('Options')))), 
-                  tr(td(form(attr(action=f_urls['actions'] + 'filter', method='POST'), 
-                             textarea(attr(style='display: none', name='filter_handle'), 
-                                      result.fqdn), 
-                             input(attr(type='submit', value=_('Requests'))))), 
-                     td(form(attr(action=f_urls['mails'] + 'filter', method='POST'), 
-                             textarea(attr(style='display: none', name='filter_handle'),
-                                      result.fqdn), 
-                             input(attr(type='submit', value=_('Emails'))))), 
-                     td(form(attr(action=f_urls['domains'] + 'dig', method='GET'), 
-                             textarea(attr(style='display: none', name='handle'), 
-                                      result.fqdn), 
-                             input(attr(type='submit', value=_('dig'))))))))
-        )
+                         td(result.updateDate)))
+            )
+            
+            self.add(FilterPanel([
+                [_('Requests'), 'actions', [{'object.handle': result.fqdn}]],
+                [_('Emails'), 'mails', [{'object.handle': result.fqdn}]],
+                [_('dig'), f_urls['domains'] + 'dig/?handle=' + result.fqdn]
+            ]))
         
 class NSSetDetailDiv(DetailDiv):
     def __init__(self, context):
@@ -285,22 +258,13 @@ class NSSetDetailDiv(DetailDiv):
                            td(a(attr(href=f_urls['registrars'] + 'detail/?handle=' + result.updateRegistrarHandle), result.updateRegistrarHandle))),
                         tr(th(_('Last_transfer_date:')), 
                            td(attr(colspan='5'), span(result.transferDate))))),
-    
-            table(attr(style='width: 96%', border='1'), 
-                  tbody(tr(th(attr(colspan='3'), b(_('Options')))),
-                        tr(td(form(attr(action = f_urls['domains'] + 'filter', method='POST'), 
-                                   textarea(attr(style='display: none', name='filter_nssetHandle'),
-                                            result.handle), 
-                                   input(attr(type='submit', value=_('Domains'))))), 
-                           td(form(attr(action = f_urls['actions'] + 'filter', method='POST'), 
-                                   textarea(attr(style='display: none', name='filter_handle'), 
-                                            result.handle), 
-                                   input(attr(type='submit', value=_('Requests'))))), 
-                           td(form(attr(action = f_urls['mails'] + 'filter', method='POST'), 
-                                   textarea(attr(style='display: none', name='filter_handle'), 
-                                            result.handle), 
-                                   input(attr(type='submit', value=_('Emails'))))))))
+            
         )
+        self.add(FilterPanel([
+            [_('Domains'), 'domains', [{'nSSet.handle': result.handle}]],
+            [_('Requests'), 'actions', [{'object.handle': result.handle}]],
+            [_('Emails'), 'mails', [{'object.handle': result.handle}]],
+        ]))
 
 class ActionDetailDiv(DetailDiv):
     def __init__(self, context):
@@ -395,25 +359,13 @@ class RegistrarDetailDiv(DetailDiv):
             )
         self.add(auth_table)
 
-#        self.add(
-#            table(attr(TAL_condition='not:here/edit', width='96%', border='1'), 
-#                  tr(th(attr(colspan='5'), strong(_('Options')))), 
-#                  tr(td(form(attr(TAL_attributes='action string:${runtime/approot}domains/list', method='POST'), 
-#                             input(attr(type='hidden', name='filter_registrarHandle', TAL_attributes='value string: ${here/result/handle}')), 
-#                             input(attr(type='submit', value=':Domains_selected:')))), 
-#                     td(form(attr(TAL_attributes='action string:${runtime/approot}domains/list', method='POST'), 
-#                             input(attr(type='hidden', name='filter_createRegistrarHandle', TAL_attributes='value string: ${here/result/handle}')), 
-#                             input(attr(type='submit', value=':Domains_creating:')))), 
-#                     td(form(attr(TAL_attributes='action string:${runtime/approot}contacts/list', method='POST'), 
-#                             input(attr(type='hidden', name='filter_registrarHandle', TAL_attributes='value string: ${here/result/handle}')), 
-#                             input(attr(type='submit', value=':Contacts:')))), 
-#                     td(form(attr(TAL_attributes='action string:${runtime/approot}requests/list', method='POST'), 
-#                             input(attr(type='hidden', name='filter_registrarHandle', TAL_attributes='value string: ${here/result/handle}')), 
-#                             input(attr(type='submit', value=':Requests:')))), 
-#                     td(form(attr(TAL_attributes='action string:${runtime/approot}mails/list', method='POST'), 
-#                             input(attr(type='hidden', name='filter_registrarHandle', TAL_attributes='value string: ${here/result/handle}')), 
-#                             input(attr(type='submit', value=':Emails:'))))))
-#        )
+        self.add(FilterPanel([
+            [_('Domains_selected'), 'domains', [{'registrar.handle': result.handle}]],
+            [_('Domains_creating'), 'domains', [{'createRegistrar.handle': result.handle}]],
+            [_('Contacts'), 'contacts', [{'registrar.handle': result.handle}]],
+            [_('Requests'), 'actions', [{'registrar.handle': result.handle}]],
+            [_('Emails'), 'mails', [{'object.registrar.handle': result.handle}]],
+        ]))
 
 class AuthInfoDetailDiv(DetailDiv):
     def __init__(self, context):
@@ -458,6 +410,13 @@ class AuthInfoDetailDiv(DetailDiv):
                                  input(attr(type='button', value=_('Invalidate_and_close'), onclick='closeAuthInfo(this); return false;'))))))
     
             )
+            self.add(FilterPanel([
+                [_('Domains_selected'), 'domains', [{'registrar.handle': result.handle}]],
+                [_('Domains_creating'), 'domains', [{'createRegistrar.handle': result.handle}]],
+                [_('Contacts'), 'contacts', [{'registrar.handle': result.handle}]],
+                [_('Requests'), 'actions', [{'registrar.handle': result.handle}]],
+                [_('Emails'), 'mails', [{'object.registrar.handle': result.handle}]],
+            ]))
 
 
 class MailDetailDiv(DetailDiv):

@@ -58,9 +58,9 @@ from webwidgets.templates.pages import (
 )
 from webwidgets.gpyweb.gpyweb import WebWidget
 from webwidgets.gpyweb.gpyweb import DictLookup, attr, ul, li, a, div, span, p
-from webwidgets.utils import isiterable
+from webwidgets.utils import isiterable, convert_linear_filter_to_form_output
 from webwidgets.menu import MenuHoriz
-from webwidgets.filterlist import FilterList
+from webwidgets.adifwidgets import FilterList
 from menunode import menu_tree
 from webwidgets.adifforms import *
 
@@ -267,13 +267,18 @@ class ListTableMixin(object):
             print 'prisla data %s' % kwd
         context = {'main': div()}
         
+        
+            
+        
         if kwd.get('cf') or kwd.get('page') or kwd.get('load') or kwd.get('list_all') or kwd.get('filter_id'): # clear filter - whole list of objects without using filter form
             context = self._get_list(context, **kwd)
         else:
             form_class = self._get_form_class()
             # bound form with data
-            if kwd.has_key('json_data'):
-                print 'posilam data %s' % kwd
+            if kwd.has_key('json_data') or kwd.get('json_linear_filter'):
+                if kwd.get('json_linear_filter'):
+                    kwd['json_data'] = simplejson.dumps(convert_linear_filter_to_form_output(simplejson.loads(kwd['json_linear_filter'])))
+                print 'Form inicializuju datama', kwd
                 form = UnionFilterForm(kwd, form_class=form_class)
             else:
                 form = UnionFilterForm(form_class=form_class)

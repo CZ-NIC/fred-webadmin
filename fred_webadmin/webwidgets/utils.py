@@ -172,3 +172,41 @@ def isiterable(par):
 
 def escape_js_literal(literal):
     return literal.replace('\n', '\\n\\\n').replace("'", "\\'").replace('<', '\\<').replace('>', '\\>')
+
+
+def convert_linear_filter_to_form_output(or_filters):
+    ''' Get filters in linear form (see FilterPanel) and converts it to 
+        the same output as FilterForm (see UnionFilterForm and FilterForm)
+    '''
+    def create_or_get_filter(new_or_filter, fname):
+        splitted_name = fname.split('.')
+        tmp_filter = new_or_filter
+        for name in splitted_name[:-1]: # last is actual name of filter
+            if not tmp_filter.has_key(name):
+                tmp_filter['presention|' + name] = 'on'
+                tmp_filter['filter|' + name] = {}
+            tmp_filter = tmp_filter['filter|' + name]
+        return tmp_filter, splitted_name[-1]
+    
+    result = []
+    for or_filter in or_filters:
+        print "ORF", or_filter
+        new_or_filter = {}
+        for fname, fval in or_filter.items():
+            current_filter, last_fname = create_or_get_filter(new_or_filter, fname)
+            
+            # negation is expressed by fval==[True, fval] instead on just fval, here could be problem, if some field could return list of 2 booleans or so, 
+            # but it is unlikely, and we gets much clenaer notation of filter (as negation is rarely use) 
+            if isinstance(fval, (types.ListType, types.TupleType)) and len(fval) == 2 and isinstance(fval[0], types.BooleanType):
+                negation = True
+                fval = fval[1]
+            else:
+                negation = False
+            
+            current_filter['presention|' + last_fname] = 'on'  
+            current_filter['filter|' + last_fname] =  fval
+            if negation:
+                current_filter['negation|' + last_fname] = 'on'
+        result.append(new_or_filter)
+    return result
+        
