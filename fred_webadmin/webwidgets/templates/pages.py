@@ -114,6 +114,8 @@ class FilterPage(BaseSiteMenu):
         if context.get('form'):
             self.main.add(c.form)
             #print "VKLADAM JS FORMU"
+            #import cProfile
+            #cProfile.runctx('forms_js = get_filter_forms_javascript()', globals(), locals(), 'prof2')
             forms_js = get_filter_forms_javascript()
             #print "a ten je konkretne", forms_js
             
@@ -124,7 +126,7 @@ class FilterPage(BaseSiteMenu):
         
         if c.get('itertable'):
             itertable = c.itertable
-            self.main.add(div(attr(id='div_for_itertable', cssc='extjs', media_files=['/css/ext/css/ext-all.css', '/js/ext/ext-base.js', '/js/ext/ext-all.js', '/js/itertable.js']), 'tady bude itertable'))
+            self.main.add(div(attr(id='div_for_itertable', cssc='extjs', media_files=['/css/ext/css/ext-all.css', '/js/MochiKit/MochiKit.js', '/js/ext/ext-base.js', '/js/ext/ext-all.js', '/js/itertable.js']), 'tady bude itertable'))
 
             self.main.add(br(), br())
             header = tr(attr(cssc="header"))

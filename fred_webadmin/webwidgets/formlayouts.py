@@ -1,10 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from copy import copy, deepcopy
-from fred_webadmin.webwidgets.utils import SortedDict
+from copy import deepcopy
 import simplejson
 
+from fred_webadmin.webwidgets.utils import SortedDict
 from gpyweb.gpyweb import WebWidget, tagid, attr, notag, div, span, table, tbody, tr, th, td, input, label, select, option, ul, li, script, a, img, strong
 from fields import ChoiceField, BooleanField, HiddenField
 #from fred_webadmin.webwidgets.adifforms import FilterForm

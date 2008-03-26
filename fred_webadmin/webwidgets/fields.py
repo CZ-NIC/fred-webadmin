@@ -5,7 +5,6 @@ import re
 import types
 import time
 import datetime
-from copy import deepcopy 
 from decimal import Decimal, DecimalException
 
 from gpyweb.gpyweb import WebWidget, attr, save, input, select, option, div, span, script

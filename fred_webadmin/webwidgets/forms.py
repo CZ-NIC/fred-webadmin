@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import copy
+from copy import deepcopy
 import types
 
 from gpyweb.gpyweb import WebWidget, form
@@ -30,7 +30,7 @@ class SortedDictFromList(SortedDict):
         dict.__init__(self, dict(data))
 
     def copy(self):
-        return SortedDictFromList([(k, copy.deepcopy(v)) for k, v in self.items()])
+        return SortedDictFromList([(k, deepcopy(v)) for k, v in self.items()])
 
 class DeclarativeFieldsMetaclass(WebWidget.__metaclass__):
     """
