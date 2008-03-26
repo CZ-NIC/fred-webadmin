@@ -1,5 +1,5 @@
 debug = True
-caching_filter_form_javascript = True # if this settings is on, then when doing changes to filter form, you should erase all sessions, because old filter forms are still in session
+caching_filter_form_javascript = False # if this settings is on, then when doing changes to filter form, you should erase all sessions, because old filter forms are still in session
 
 
 def curdir(f = ''):
@@ -14,7 +14,10 @@ log_dir = base_dir
 
 #idl = '/home/glin/programming/svn_enum_checkout/enum/idl/trunk/ccReg.idl'
 idl = '/home/glin/programming/nic/webadmin/servers/idl_devel/idl/ccReg.idl'
-iors = ('corbaname::localhost', 'corbaname::pokuston', 'corbaname::curlew')
+iors = ('corbaname::localhost',
+        'corbaname::jsadek', 
+        'corbaname::pokuston', 
+        'corbaname::curlew')
 
 title = 'Web Admin / CherryPy'
 tablesize = 25

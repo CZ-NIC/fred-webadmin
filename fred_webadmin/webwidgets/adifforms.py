@@ -303,8 +303,8 @@ class DomainsFilterForm(ObjectsFilterForm):
     tempContact = CompoundFilterField(label=_('Temp'), form_class=ContactsFilterForm)
     nsset = CompoundFilterField(label=_('Nameserver set'), form_class=NSSetsFilterForm)
     
-    exDate = DateIntervalField(label=_('Expiry date'))
-    valExDate = DateIntervalField(label=_('Validation date'))
+    expirationDate = DateIntervalField(label=_('Expiry date'))
+    validationExpirationDate = DateIntervalField(label=_('Validation date'))
 
 
 class ActionsFilterForm(FilterForm):

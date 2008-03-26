@@ -176,18 +176,24 @@ class ListTableMixin(object):
             page = 1
         
         #[ filters.__setitem__(x[7:], kwd[x]) for x in kwd if x.startswith('filter_') ]
-        if cleaned_filters:
+        if cleaned_filters is not None:
             table.clear_filter()
             table.set_filter(cleaned_filters)
-        if kwd.get('filter_id'):
-            import pdb; pdb.set_trace()
+            if kwd.get('save_input'): # save filter
+                table.save_filter(kwd['save_input'])
+                context['main'].add(_('Filter saved as "%s"') % kwd['save_input'])
+                show_result = False
+            else: # normal setting filter
+                table.reload()
+        if kwd.get('filter_id'): # load filter
             table.load_filter(int(kwd.get('filter_id')))
             if kwd.get('show_form') or not table.all_fields_filled():
                 show_result = False
+                #import pdb;pdb.set_trace()
                 filter_data = table.get_filter_data()
                 form_class = self._get_form_class()
                 context['form'] = UnionFilterForm(filter_data, data_cleaned=True, form_class=form_class)
-                
+
                 
         if kwd.get('cf'):
             table.clear_filter()
@@ -255,7 +261,6 @@ class ListTableMixin(object):
     
     @check_onperm('read')
     def filter(self, *args, **kwd):
-        
         print "ARGS:", args
         if args:
             if args[0] == 'jsondata':
@@ -308,6 +313,7 @@ class ListTableMixin(object):
         itertable.set_filter({})#{'userId': cherrypy.session.get('user').id,
 #                          'type': f_name_enum[self.classname]
 #                         })
+        itertable.reload()
         context['main'].add(FilterList(itertable.get_rows_dict(raw_header=True), self.classname))
         return self._render('allfilters', context)
 

@@ -201,9 +201,10 @@ class IterTable(object):
     def set_filter(self, union_filter_data):
         self.clear_filter()
         FilterLoader.set_filter(self, union_filter_data)
-        self.reload()
         
-        
+    def save_filter(self, name):
+        self._table.saveFilter(u2c(name))
+
 
     def set_sort(self, column_name, direction):
         bool_dir = {u'ASC': True, u'DESC': False}[direction]

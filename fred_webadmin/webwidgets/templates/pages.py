@@ -46,8 +46,6 @@ class BaseSite(BaseTemplate):
         )
         self.branding.add(h1('Daphne'))
         
-            
-        
         if c.get('user') and c.get('corba_server'):
             self.user_tools.add(span('Server: %s' % c.corba_server),
                                 '|',

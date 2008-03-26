@@ -286,7 +286,7 @@ function getFTableData(ftable, ftData) {
 	return ftData
 }
 
-function sendUnionForm(thisElem) {
+function sendUnionForm(thisElem, saveName) {
     var data = [];
     var ftables = Ext.select('.unionfiltertable > tbody > tr > td > .filtertable');
     for (var i = 0, len = ftables.getCount(); i < len; i++) {
@@ -298,15 +298,39 @@ function sendUnionForm(thisElem) {
         'method' : 'post',
         'action' : thisElem.form.action,
         'style' : 'display: none'
-    }, INPUT( {
-        //'type' : 'hidden',
+    }, INPUT({
+        'type' : 'hidden',
         'name' : 'json_data',
         'value' : serializeJSON(data),
         'style' : 'display: none'
     }));
+    if (saveName) {
+        form.appendChild(
+	        INPUT({
+		        'type' : 'hidden',
+		        'name' : 'save_input',
+		        'value' : saveName,
+		        'style' : 'display: none'
+		    })
+        );
+    }
     getFirstElementByTagAndClassName('body').appendChild(form);
     form.submit();
     return false;
+}
+
+function saveUnionForm(thisElem) {
+    var thisEl = Ext.get(thisElem);
+    saveEdit = thisEl.prev()
+    if (saveEdit.dom.disabled) {
+        saveEdit.dom.disabled = false;
+        saveEdit.dom.style.display = 'inline';
+        saveEdit.focus();
+        saveEdit.dom.select();
+        return false;
+    } else {
+        sendUnionForm(thisElem, saveEdit.dom.value);
+    }
 }
 
 function getFTableDataOld(ftable) {

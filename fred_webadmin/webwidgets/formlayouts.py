@@ -125,9 +125,11 @@ class UnionFilterFormLayout(TableFormLayout):
             
     def get_submit_row(self, hidden_fields=None):
         or_plus_button = input(attr(type="button", value="OR+", onclick="addOrForm(this)", style="float: left;"))
+        save_input = input(attr(id='save_input', type="text", name="save_input", value=_('name'), disabled='disabled', style="float: left; margin-left: 0.4em; display:none;"))
+        save_button = input(attr(type="button", value="Save", onclick="saveUnionForm(this)", style="float: left; margin-left: 0.4em"))
         submit_button = input(attr(type=u'button', value=u'OK', onclick='sendUnionForm(this)', style="float: right;"))
         return tr(attr(cssc='submit_row'), 
-                  td(or_plus_button, hidden_fields, submit_button),
+                  td(or_plus_button, save_input, save_button, hidden_fields, submit_button),
                  )
 
         
@@ -155,12 +157,13 @@ class FilterTableFormLayout(TableFormLayout):
             
             #add errors from this tmp_node - for fields using composed name and join all non_field_errors together
             if isinstance(tmp_node, adifforms.FilterForm):
-                non_field_errors.extend(tmp_node.non_field_errors())
-                for error_name, error in tmp_node.errors.items():
-                    if error_name == forms.NON_FIELD_ERRORS:
-                        continue
-                    error_filter_name = error_name.split('|')[1]
-                    self.all_errors['-'.join(names + [error_filter_name])] = error
+                if tmp_node.is_bound:
+                    non_field_errors.extend(tmp_node.non_field_errors())
+                    for error_name, error in tmp_node.errors.items():
+                        if error_name == forms.NON_FIELD_ERRORS:
+                            continue
+                        error_filter_name = error_name.split('|')[1]
+                        self.all_errors['-'.join(names + [error_filter_name])] = error
             
                 for field in reversed(tmp_node.fields.values()): # 'reversed': because order in stack will be reversed, so to companate it
                     filter_name = field.name.split('|')[1]
@@ -182,7 +185,7 @@ class FilterTableFormLayout(TableFormLayout):
                           th(div(attr(cssc='for_fields_button extjs')))))
 
         for composed_name, field in self.all_fields:
-            errors = errors = self.all_errors.get(composed_name, None)
+            errors = self.all_errors.get(composed_name, None)
             self.tbody.add(tr(attr(cssc='field_row ' + composed_name), self.build_field_row(field, errors)))
         self.add(script(attr(type='text/javascript'), 'filterObjectName = "%s"' % self.form.get_object_name())) # global javascript variable
         self.tbody.add(self.build_fields_button())

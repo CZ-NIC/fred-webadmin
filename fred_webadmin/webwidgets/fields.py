@@ -80,7 +80,7 @@ class CharField(Field):
              
     def clean(self):
         "Validates max_length and min_length. Returns a Unicode object."
-        if self.strip_spaces:
+        if self.strip_spaces and isinstance(self.value, types.StringTypes):
             self.value = self.value.strip()
         super(CharField, self).clean()
         if self.is_empty():
@@ -220,6 +220,7 @@ class DateField(CharField):
             self.value = value.strftime(str(date_format))
         else:
             value = None
+            
 
 DEFAULT_TIME_INPUT_FORMATS = (
     u'%H:%M:%S',     # '14:30:59'
