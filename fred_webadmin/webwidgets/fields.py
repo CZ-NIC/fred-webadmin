@@ -833,14 +833,15 @@ class DateIntervalField(MultiValueField):
             date_interval_display = 'none'
             date_day_display = 'none'
             date_interval_offset_span = 'none'
-
+            
             print "XXX: self.value[3] =", self.value[3]
             if int(self.value[3]) == ccReg.DAY._v: # day
                 date_day_display = 'inline'
             elif int(self.value[3]) >= ccReg.INTERVAL._v: # not normal interval
                 date_interval_display = 'inline'
-                if not int(self.value[3]) > ccReg.INTERVAL._v: # not normal interval
+                if int(self.value[3]) > ccReg.INTERVAL._v: # not normal interval
                     date_interval_offset_span = 'inline'
+                    
             
             self.date_interval_span.style = 'display: %s' % date_interval_display
             self.date_day_span.style = 'display: %s' % date_day_display

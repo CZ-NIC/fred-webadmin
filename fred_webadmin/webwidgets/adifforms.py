@@ -335,23 +335,23 @@ class FiltersFilterForm(FilterForm):
 
 def get_filter_forms_javascript():
     'Javascript is cached in user session (must be there, bucause each user can have other forms, because of different permissions'
-    if not cherrypy.session.has_key('filter_forms_javascript') or not config.caching_filter_form_javascript:
-        output = u''
-        all_fields_dict = {}
-        for form_class in form_classes: 
-            form = form_class()
-            # Function for generating field of form
-            output_part, fields_js_dict = form.layout(form).get_javascript_gener_field()
-            output += output_part
-            
-            all_fields_dict[form.get_object_name()] = fields_js_dict
-            
-            # Function that generates empty form:
-            output += "function getEmpty%s() {\n" % form.__class__.__name__
-            output += "    return '%s'\n" % escape_js_literal(unicode(form))
-            output += "}\n"
-        output += u'allFieldsDict = %s' % (simplejson.dumps(all_fields_dict) + u'\n')
-        cherrypy.session['filter_forms_javascript'] = output
+    #if not cherrypy.session.has_key('filter_forms_javascript') or not config.caching_filter_form_javascript:
+    output = u''
+    all_fields_dict = {}
+    for form_class in form_classes: 
+        form = form_class()
+        # Function for generating field of form
+        output_part, fields_js_dict = form.layout(form).get_javascript_gener_field()
+        output += output_part
+        
+        all_fields_dict[form.get_object_name()] = fields_js_dict
+        
+        # Function that generates empty form:
+        output += "function getEmpty%s() {\n" % form.__class__.__name__
+        output += "    return '%s'\n" % escape_js_literal(unicode(form))
+        output += "}\n"
+    output += u'allFieldsDict = %s' % (simplejson.dumps(all_fields_dict) + u'\n')
+#        cherrypy.session['filter_forms_javascript'] = output
     return cherrypy.session['filter_forms_javascript']
    
 

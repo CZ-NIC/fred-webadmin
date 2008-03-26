@@ -193,6 +193,8 @@ class ListTableMixin(object):
                 filter_data = table.get_filter_data()
                 form_class = self._get_form_class()
                 context['form'] = UnionFilterForm(filter_data, data_cleaned=True, form_class=form_class)
+            else:
+                table.reload()
 
                 
         if kwd.get('cf'):

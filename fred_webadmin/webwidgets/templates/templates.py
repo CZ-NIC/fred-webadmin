@@ -116,6 +116,8 @@ class FilterPage(BaseSiteMenu):
         if context.get('form'):
             self.main.add(c.form)
             #print "VKLADAM JS FORMU"
+            #import cProfile
+            #cProfile.runctx('forms_js = get_filter_forms_javascript()', globals(), locals(), 'prof')
             forms_js = get_filter_forms_javascript()
             #print "a ten je konkretne", forms_js
             
