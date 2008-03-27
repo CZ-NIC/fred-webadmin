@@ -314,6 +314,7 @@ class notag(WebWidget):
         self.tag = ''
 
 class pre(WebWidget):
+    enclose_content = True    
     tattr_list=['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'xml:space']
 
 class em(WebWidget):

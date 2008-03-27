@@ -7,3 +7,8 @@
 	padding: 0px;
 }
 
+#traceback {
+    color: red;
+    font-family: monospace;
+    font-size: 12px;
+}

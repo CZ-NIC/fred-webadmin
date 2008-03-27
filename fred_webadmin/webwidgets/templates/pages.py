@@ -56,7 +56,7 @@ class BaseSite(BaseTemplate):
         if c.get('main'):
             self.main.add(c.main)
             
-        
+
 
 class LoginPage(BaseSite):
     def __init__(self, context = None):
@@ -67,9 +67,7 @@ class LoginPage(BaseSite):
 class DisconnectedPage(BaseSite):
     def __init__(self, context = None):
         super(DisconnectedPage, self).__init__(context)
-        self.main.add(p('disconnected, please ', a(attr(href='/login/'), 'log in'), 'again.'))
-        
-        
+        self.main.add(p(_('disconnected, please %s again') % a(attr(href='/login/'), _('log in'))))        
 
         
 class BaseSiteMenu(BaseSite):
@@ -89,6 +87,14 @@ class BaseSiteMenu(BaseSite):
 #                                            '/js/smaz.js'
 #                                           ])))
 
+class ErrorPage(BaseSiteMenu):
+    def __init__(self, context = None):
+        super(ErrorPage, self).__init__(context)
+        c = self.context
+        self.main.add(h1('Error:'))
+        if c.has_key('message'):
+            self.main.add(p(c.message))
+    
 class AllFiltersPage():
     ''' List of filters is displayed here. '''
     

@@ -53,7 +53,7 @@ from translation import _
 
 
 from webwidgets.templates.pages import (
-    BaseSite, BaseSiteMenu, LoginPage, DisconnectedPage, AllFiltersPage, FilterPage, 
+    BaseSite, BaseSiteMenu, LoginPage, DisconnectedPage, AllFiltersPage, FilterPage, ErrorPage, 
     DomainsDetail, ContactsDetail, NSSetsDetail, RegistrarsDetail, ActionsDetail, AuthInfosDetail, MailsDetail, InvoicesDetail
 )
 from webwidgets.gpyweb.gpyweb import WebWidget
@@ -136,11 +136,11 @@ def check_onperm(objects_nperms, check_type='all'):
                 for objects_nperm in onperms:
                     nperms.append('%s.%s' % (self.classname[:-1], objects_nperm))
                 if user.check_nperms(nperms, check_type):
-                    context = {'main': div()}
-                    context['main'].add(p(_("You don't have permissions for this page!")))
+                    context = {'message': div()}
+                    context['message'].add(p(_("You don't have permissions for this page!")))
                     if config.debug:
-                        context['main'].add(p(' usernperm = %s,<br/>nperms=%s,<br/>nperm_type=%s' % (user.nperms, nperms, check_type)))
-                        context['main'].add(p('a tohle to je udelano nejsofistikovanejsim decoratorem'))
+                        context['message'].add(p(' usernperm = %s,<br/>nperms=%s,<br/>nperm_type=%s' % (user.nperms, nperms, check_type)))
+                        context['message'].add(p('a tohle to je udelano nejsofistikovanejsim decoratorem'))
                     return self._render('error', context)
                 return view_func(*args, **kwd)
 
@@ -313,7 +313,7 @@ class ListTableMixin(object):
         itertable = self._get_itertable('filters')
         #itertable.set_filter({})
         itertable.set_filter([{#'userId': cherrypy.session.get('user').id,
-#                              'filter|type': [False, f_name_id[self.classname]]
+                              'filter|type': [False, f_name_id[self.classname]]
                              }])
         itertable.reload()
         context['main'].add(FilterList(itertable.get_rows_dict(raw_header=True), self.classname))
@@ -391,7 +391,7 @@ class AdifPage(Page):
         elif action == 'disconnected':
             return DisconnectedPage
         elif action == 'error':
-            return BaseSiteMenu
+            return ErrorPage
         else:
             # returns ClassName + Action (e.g. DomainsDetail) class from module of this class, if there is no such, then it returns BaseSiteMenu: 
             template_name = self.__class__.__name__ + action.capitalize()
