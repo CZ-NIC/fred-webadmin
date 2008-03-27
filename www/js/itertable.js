@@ -72,7 +72,7 @@ var IterTableUI = function() {
                 log(colHeader,colHeaderType)
                 var colSpec = {
                     header: colHeader,
-                    dataIndex: colHeader,
+                    dataIndex: colHeader
                 }
                 
                 if (colHeaderType.substr(colHeaderType.length - '_ID'.length) == '_ID') {// endsWith('_ID')
@@ -80,8 +80,17 @@ var IterTableUI = function() {
                     colSpec['width'] = 30;
                     //colSpec['hidden'] = true; 
                 }
-                    
-                switch (colHeaderType) {
+                var reHandle = new RegExp(/CT_([^_]*)_HANDLE/);
+                var reId     = new RegExp(/CT_([^_]*)_ID/);
+                var match;
+                if (match = reHandle.exec(colHeaderType)) {
+                    var obj_name = match[1]; // first matching group
+                    colSpec['renderer'] = renderHandleFunc(obj_name.toLowerCase());
+                } else if (match = reId.exec(colHeaderType)) {
+                    var obj_name = match[1]; // first matching group
+                    colSpec['renderer'] = renderIDFunc(obj_name.toLowerCase());
+                }
+                /*switch (colHeaderType) {
                     case 'CT_ACTION_ID':
                         colSpec['renderer'] = renderIDFunc('action');
                         
@@ -97,7 +106,7 @@ var IterTableUI = function() {
                         
                     //here are special renderers
                     default:;
-                }
+                }*/
                 
                 colsSpec.push(colSpec);
             }
@@ -157,7 +166,7 @@ var IterTableUI = function() {
 	            store: store,
 	            displayInfo: true,
 	            displayMsg: 'Displaying results {0} - {1} of {2}',
-	            emptyMsg: "No results to display",
+	            emptyMsg: "No results to display"
 	            /*items:[
 	                '-', {
 	                pressed: true,

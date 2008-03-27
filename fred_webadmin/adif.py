@@ -67,7 +67,7 @@ from webwidgets.adifforms import *
 from itertable import IterTable, fileGenerator
 from fred_webadmin.utils import json_response
 
-from mappings import f_name_enum
+from mappings import f_name_enum, f_name_id
 from user import User
 from decorator import update_wrapper
 
@@ -312,9 +312,10 @@ class ListTableMixin(object):
         context = {'main': div()}
         
         itertable = self._get_itertable('filters')
-        itertable.set_filter({})#{'userId': cherrypy.session.get('user').id,
-#                          'type': f_name_enum[self.classname]
-#                         })
+        #itertable.set_filter({})
+        itertable.set_filter([{#'userId': cherrypy.session.get('user').id,
+#                              'filter|type': [False, f_name_id[self.classname]]
+                             }])
         itertable.reload()
         context['main'].add(FilterList(itertable.get_rows_dict(raw_header=True), self.classname))
         return self._render('allfilters', context)
@@ -411,10 +412,13 @@ class AdifPage(Page):
         return MenuHoriz(self.menu_tree, self._get_menu_handle(action), cherrypy.session['user'])
     
     def _get_menu_handle(self, action):
-        if action in ('allfilters', 'filter', 'create') and self.classname in ('registrars'):
-            return self.classname + action
-        else:
-            return self.classname
+        if self.classname in ('registrars'):
+            if action in ('allfilters', 'filter'):
+                return self.classname + 'filter'
+            elif action in ('create'): 
+                return self.classname + action
+            
+        return self.classname
 
     def _get_selected_menu_body_id(self, action):
         handle = self._get_menu_handle(action)
