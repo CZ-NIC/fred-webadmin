@@ -69,7 +69,6 @@ from fred_webadmin.utils import json_response
 
 from mappings import f_name_enum, f_name_id
 from user import User
-from decorator import update_wrapper
 
 class AdifError(Exception):
     pass

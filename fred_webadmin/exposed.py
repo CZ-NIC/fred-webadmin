@@ -3,7 +3,6 @@
 
 import types
 import adif
-from decorator import update_wrapper
 from omniORB import CORBA
 
 def catch_webadmin_exceptions_decorator(view_func):
