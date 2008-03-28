@@ -1,10 +1,10 @@
 debug = True
 caching_filter_form_javascript = False # if this settings is on, then when doing changes to filter form, you should erase all sessions, because old filter forms are still in session
 
-www_dir = '/usr/share/fred_webadmin/www'
-locale_dir = '/usr/share/fred_webadmin/locale'
-sessions_dir = '/var/lib/fred_webadmin/sessions'
-log_dir = '/var/log'
+www_dir = '/usr/share/fred_webadmin/www/'
+locale_dir = '/usr/share/fred_webadmin/locale/'
+sessions_dir = '/var/lib/fred_webadmin/sessions/'
+log_dir = '/var/log/'
 
 idl = '/usr/share/idl/fred/ccReg.idl'
 iors = ('corbaname::pokuston', 'corbaname::curlew')
@@ -34,7 +34,7 @@ cherrycfg = {
         'tools.sessions.storage_path': sessions_dir,
         'tools.sessions.timeout': 60, # in minutes
         'server.log_to_screen': False,
-        'server.log_file': log_dir + '/fred_webadmin.log',
+        'server.log_file': log_dir + 'fred_webadmin.log',
     },
     '/': {'tools.staticdir.root':  www_dir},
     '/css': {'tools.staticdir.on': True,
@@ -44,7 +44,7 @@ cherrycfg = {
     '/img': {'tools.staticdir.on': True,
              'tools.staticdir.dir': 'img'},
     '/favicon.ico': {'tools.staticfile.on': True,
-                     'tools.staticfile.filename': www_dir + '/img/favicon.png'}
+                     'tools.staticfile.filename': www_dir + 'img/favicon.png'}
 }
 
 
