@@ -7,16 +7,11 @@ import time
 import datetime
 from decimal import Decimal, DecimalException
 
-from gpyweb.gpyweb import WebWidget, attr, save, input, select, option, div, span, script
+from gpyweb.gpyweb import WebWidget, attr, select, option, span, input
 from utils import ValidationError, ErrorList, isiterable
 from fred_webadmin.translation import _
 
 EMPTY_VALUES = (None, '')
-
-#cobra things:
-from fred_webadmin.corba import ccReg
-INTERVAL_CHOICES = [(choice._v, _(choice._n)) for choice in ccReg.DateTimeIntervalType._items[1:]] # first is None (which means that date is not active)
-
 
 class Field(WebWidget):
     creation_counter = 0
@@ -493,7 +488,7 @@ class BooleanField(Field):
     def clean(self):
         "Returns a Python boolean object."
         super(BooleanField, self).clean()
-        return self.bool(value)
+        return bool(self.value)
     
 
 class HiddenField(CharField):
@@ -807,85 +802,6 @@ class IPAddressField(RegexField):
                             error_message=_(u'Enter a valid IPv4 address.'),
                             *args, **kwargs)
 
-
-class DateIntervalField(MultiValueField):
-    def __init__(self, name='', value='', *args, **kwargs):
-        fields = (DateField(size=10), DateField(size=10), DateField(size=10), 
-                  ChoiceField(content=[attr(onchange='onChangeDateIntervalType(this)')], choices=INTERVAL_CHOICES), 
-                  DecimalField(initial=1, size=5)) #first of INTERVAL_CHOICES is HOUR, which has no 
-        super(DateIntervalField, self).__init__(name, value, fields, *args, **kwargs)
-        self.media_files.append('/js/interval_fields.js')
-    
-    def _set_value(self, value):
-        print "VVVAL",value, type(value)
-        if not value:
-            value = [None, None, None, 1, 0]
-        super(DateIntervalField, self)._set_value(value)
-        self.set_iterval_date_display()
-    
-    def set_from_clean(self, value):
-        super(DateIntervalField, self).set_from_clean(value)
-        self.set_iterval_date_display()
-            
-    def set_iterval_date_display(self):
-        if hasattr(self, 'date_interval_span'): # when initializing value, build_content method is not yet called, so this checks if it already was
-            date_interval_display = 'none'
-            date_day_display = 'none'
-            date_interval_offset_span = 'none'
-            
-            print "XXX: self.value[3] =", self.value[3]
-            if int(self.value[3]) == ccReg.DAY._v: # day
-                date_day_display = 'inline'
-            elif int(self.value[3]) >= ccReg.INTERVAL._v: # not normal interval
-                date_interval_display = 'inline'
-                if int(self.value[3]) > ccReg.INTERVAL._v: # not normal interval
-                    date_interval_offset_span = 'inline'
-                    
-            
-            self.date_interval_span.style = 'display: %s' % date_interval_display
-            self.date_day_span.style = 'display: %s' % date_day_display
-            self.date_interval_offset_span.style = 'display: %s' % date_interval_offset_span
-    
-    def build_content(self):
-        self.add(self.fields[3],
-                 span(attr(cssc='date_interval'),
-                      save(self, 'date_interval_span'),
-                      _('from') + ':', self.fields[0],
-                      _('to') + ':', self.fields[1],
-                      span(save(self, 'date_interval_offset_span'),
-                           attr(cssc='date_interval_offset'), _('offset') + ':', self.fields[4]),
-                     ),
-                 span(attr(cssc='date_day'),
-                      save(self, 'date_day_span'),
-                      _('day') + ':', self.fields[2]
-                     ),
-                )
-        self.set_iterval_date_display()
-        
-    def clean(self):
-        cleaned_data = super(DateIntervalField, self).clean()
-        print "CLEANEDDATA", cleaned_data
-        if cleaned_data and not cleaned_data[2] and cleaned_data[0] and cleaned_data[1]: # if from and tofield filled, and not day filled
-            if cleaned_data[0] > cleaned_data[1]: # if from > to
-                errors = ErrorList(['"From" must be bigger than "To"'])
-                raise ValidationError(errors)
-        cleaned_data[3] = int(cleaned_data[3]) # choicefield intervaltype type to int
-        cleaned_data[4] = int(cleaned_data[4] or 0) # (offset) decmal to int
-            
-        return cleaned_data
-
-    def compress(self, data_list):
-        return data_list #retrun couple [from, to]
-        
-    def decompress(self, value):
-        return value
-    
-    def is_emptry(self):
-        return ((self.value[3] == ccReg.DAY._v and self.fields[0].is_empty()) or 
-                (self.value[3] == ccReg.INTERVAL._v and self.fields[1].is_empty() and self.fields[2].is_empty()) or
-                (self.value[3] == ccReg.INTERVAL._v and self.fields[4].is_empty())
-               )
-    
 class SplitTimeField(MultiValueField):
     def __init__(self, name='', value='', *args, **kwargs):
         fields = (ChoiceField(choices=[[u'%d' % c, u'%02d' % c] for c in range(24)]), 
@@ -902,7 +818,6 @@ class SplitTimeField(MultiValueField):
             return [value.hour, value.minute]
         return [u'0', u'0']
     
-    
 class SplitDateSplitTimeField(SplitDateTimeField):
     def __init__(self, name='', value='', *args, **kwargs): #  pylint: disable-msg=E1003 
         fields = (DateField(size=10), SplitTimeField())
@@ -915,11 +830,3 @@ class SplitDateSplitTimeField(SplitDateTimeField):
     
 
 
-class DateTimeIntervalField(DateIntervalField):
-    def __init__(self, name='', value='', *args, **kwargs): # pylint: disable-msg=E1003 
-        fields = (SplitDateSplitTimeField(), SplitDateSplitTimeField(), DateField(size=10), 
-                  ChoiceField(content=attr(onchange='onChangeDateIntervalType(this)'), choices=INTERVAL_CHOICES), DecimalField(initial=1, size=5))
-        # Here is called really parent of parent of this class, to avoid self.fields initialization from parent:
-        super(DateIntervalField, self).__init__(name, value, fields, *args, **kwargs)
-        self.media_files.append('/js/interval_fields.js')
-    

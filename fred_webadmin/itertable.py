@@ -205,7 +205,6 @@ class IterTable(object):
     def save_filter(self, name):
         self._table.saveFilter(u2c(name))
 
-
     def set_sort(self, column_name, direction):
         bool_dir = {u'ASC': True, u'DESC': False}[direction]
         try:
@@ -236,9 +235,6 @@ class IterTable(object):
     def load_filter(self, filter_id):
         self._table.loadFilter(filter_id)
 
-    def save_filter(self, name):
-        pass
-        
     def set_page(self, num):
 #        import pdb; pdb.set_trace()
         if (self.num_pages > 0) and (num > self.num_pages):

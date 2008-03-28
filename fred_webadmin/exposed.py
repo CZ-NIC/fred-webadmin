@@ -8,6 +8,7 @@ import adif
 from omniORB import CORBA
 from fred_webadmin.webwidgets.gpyweb.gpyweb import attr, div, p, pre
 from fred_webadmin import config
+from translation import _
 
 def catch_webadmin_exceptions_decorator(view_func):
     ''' This decorator is applicated to all view methods of website,

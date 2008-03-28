@@ -8,6 +8,7 @@ function onChangeDateIntervalType(thisElem) {
 		case "1":  //ccReg.DAY
 			day_span.style.display = 'inline';
 			interval_span.style.display = 'none';
+            interval_offset_span.style.display = 'none';
 			break;
 		case "2": //ccReg.INTERVAL
 			day_span.style.display = 'none';
@@ -15,9 +16,8 @@ function onChangeDateIntervalType(thisElem) {
 			interval_offset_span.style.display = 'none';
 			break;
 		default:
-			// pak tu jeste bude ze od do jsou readonly a pocitani (od do) z toho intervalu
 			day_span.style.display = 'none';
-			interval_span.style.display = 'inline';
+			interval_span.style.display = 'none';
 			interval_offset_span.style.display = 'inline';
 			break;		
 	}

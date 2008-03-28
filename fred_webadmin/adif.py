@@ -176,7 +176,6 @@ class ListTableMixin(object):
         
         #[ filters.__setitem__(x[7:], kwd[x]) for x in kwd if x.startswith('filter_') ]
         if cleaned_filters is not None:
-            table.clear_filter()
             table.set_filter(cleaned_filters)
             if kwd.get('save_input'): # save filter
                 table.save_filter(kwd['save_input'])

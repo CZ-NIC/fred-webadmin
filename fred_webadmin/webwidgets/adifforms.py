@@ -16,6 +16,7 @@ from fred_webadmin import config
 from fred_webadmin.translation import _
 from utils import SortedDict, ErrorDict, escape_js_literal
 from fred_webadmin.corbalazy import CorbaLazyRequest
+from fred_webadmin.corba import ccReg
 
 #__all__ = ['LoginForm', 'FilterForm']
 
@@ -316,7 +317,7 @@ class ActionsFilterForm(FilterForm):
 #    requestType = MultipleChoiceField(label=_('Request type'), choices=((action_name, action_name) for action_name in CorbaLazyRequest('Admin', 'getEPPActionTypeList')))
     object = CompoundFilterField(label=_('Object'), form_class=ObjectsFilterForm)
     time = DateTimeIntervalField(label=_('Received date'))
-    response = ChoiceField(label=_('Result'), choices=((1, u'Poraněn'), (2, u'Preživší'), (3, u'Mrtev'), (4, u'Nemrtvý')))
+    response = CorbaEnumChoiceField(label=_('Result'), corba_enum=ccReg.EPPActionsFilter.ResultType)
     registrar = CompoundFilterField(label=_('Registrar'), form_class=RegistrarsFilterForm)
     svTRID = CharField(label=_('svTRID'))
     clTRID = CharField(label=_('clTRID'))
