@@ -304,7 +304,7 @@ class DomainsFilterForm(ObjectsFilterForm):
     registrant = CompoundFilterField(label=_('Owner'), form_class=ContactsFilterForm)
     adminContact = CompoundFilterField(label=_('Admin'), form_class=ContactsFilterForm)
     tempContact = CompoundFilterField(label=_('Temp'), form_class=ContactsFilterForm)
-    nsset = CompoundFilterField(label=_('Nameserver set'), form_class=NSSetsFilterForm)
+    nSSet = CompoundFilterField(label=_('Nameserver set'), form_class=NSSetsFilterForm)
     
     expirationDate = DateIntervalField(label=_('Expiry date'))
     validationExpirationDate = DateIntervalField(label=_('Validation date'))

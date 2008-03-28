@@ -132,7 +132,7 @@ class FilterPage(BaseSiteMenu):
         
         if c.get('itertable'):
             itertable = c.itertable
-            self.main.add(div(attr(id='div_for_itertable', cssc='extjs', media_files=['/css/ext/css/ext-all.css', '/js/MochiKit/MochiKit.js', '/js/ext/ext-base.js', '/js/ext/ext-all.js', '/js/itertable.js']), 'tady bude itertable'))
+            self.main.add(div(attr(id='div_for_itertable', cssc='extjs', media_files=['/css/ext/css/ext-all.css', '/js/MochiKit/MochiKit.js', '/js/ext/ext-base.js', '/js/ext/ext-all.js', '/js/itertable.js'])))
 
             self.main.add(br(), br())
             header = tr(attr(cssc="header"))
@@ -153,31 +153,32 @@ class FilterPage(BaseSiteMenu):
                     
                     row.add(td(attr(cssc=col.get('cssc')), val))
                 rows.append(row)
-            
-            self.main.add(table(attr(id='objectlist', media_files='/css/objectlist.css'), rows))
-            
-            # Numbers of entries 
-            if itertable.total_rows > itertable.num_rows:
-                num_rows = span(attr(cssc='warning'), itertable.num_rows)
-            else:
-                num_rows = itertable.num_rows
-            pageflip = span(
-                '%s: %s,' % (_('Number_of_pages'), itertable.last_page),
-                '%s: %s,' % (_('entries'), num_rows), 
-                '%s: %s' % (_('total'), itertable.total_rows),
-                br())
-            
-            # Pager
-            if itertable.num_pages > 1:
-                pageflip.add(div(
-                    a(attr(cssc='pager-button', href='?page=%s' % itertable.first_page), '&laquo;'),
-                    a(attr(cssc='pager-button', href='?page=%s' % itertable.prev_page), '&lsaquo;'),
-#                    a(attr(cssc='pager-button', href='?page=%s' % itertable._number), itertable._number),
-                    form(attr(style='display: inline;', method='GET'), input(attr(type='text', size='2', name='page', value=itertable.current_page))),
-                    a(attr(cssc='pager-button', href='?page=%s' % itertable.next_page), '&rsaquo;'),
-                    a(attr(cssc='pager-button', href='?page=%s' % itertable.last_page), '&raquo;')
-                ))
-            self.main.add(pageflip)
+
+            if config.debug:
+                self.main.add(table(attr(id='objectlist', media_files='/css/objectlist.css'), rows))
+                
+                # Numbers of entries 
+                if itertable.total_rows > itertable.num_rows:
+                    num_rows = span(attr(cssc='warning'), itertable.num_rows)
+                else:
+                    num_rows = itertable.num_rows
+                pageflip = span(
+                    '%s: %s,' % (_('Number_of_pages'), itertable.last_page),
+                    '%s: %s,' % (_('entries'), num_rows), 
+                    '%s: %s' % (_('total'), itertable.total_rows),
+                    br())
+                
+                # Pager
+                if itertable.num_pages > 1:
+                    pageflip.add(div(
+                        a(attr(cssc='pager-button', href='?page=%s' % itertable.first_page), '&laquo;'),
+                        a(attr(cssc='pager-button', href='?page=%s' % itertable.prev_page), '&lsaquo;'),
+    #                    a(attr(cssc='pager-button', href='?page=%s' % itertable._number), itertable._number),
+                        form(attr(style='display: inline;', method='GET'), input(attr(type='text', size='2', name='page', value=itertable.current_page))),
+                        a(attr(cssc='pager-button', href='?page=%s' % itertable.next_page), '&rsaquo;'),
+                        a(attr(cssc='pager-button', href='?page=%s' % itertable.last_page), '&raquo;')
+                    ))
+                self.main.add(pageflip)
             
 
 

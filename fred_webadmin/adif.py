@@ -288,19 +288,20 @@ class ListTableMixin(object):
             else:
                 form = UnionFilterForm(form_class=form_class)
             context['form'] = form
-            if form.is_bound:
+            if form.is_bound and config.debug:
                 context['main'].add(p(u'kwd:' + unicode(kwd)))
             if form.is_valid():
-                context['main'].add(u'<br />Jsem validni<br />')
-                context['main'].add(u'cleaned_data:' + unicode(form.cleaned_data) + '<br />')
+                if config.debug:
+                    context['main'].add(u'<br />Jsem validni<br />')
+                    context['main'].add(u'cleaned_data:' + unicode(form.cleaned_data) + '<br />')
                 print u'cleaned_data:' + unicode(form.cleaned_data)
                 context = self._get_list(context, form.cleaned_data, **kwd)
                 return self._render('filter', context)
             else:
                 
-                if form.is_bound:
+                if form.is_bound and config.debug:
                     context['main'].add(u'Jsem nevalidni, errors:' + unicode(form.errors.items()))
-                    context['headline'] = '%s filter' % self.__class__.__name__
+                context['headline'] = '%s filter' % self.__class__.__name__
         
         return self._render('filter', context)
     
@@ -327,7 +328,7 @@ class ListTableMixin(object):
 
     @login_required
     def index(self):
-        raise cherrypy.HTTPRedirect('/%s/filter/' % (self.classname))
+        raise cherrypy.HTTPRedirect('/%s/allfilters/' % (self.classname))
 
 
 class Page(object):
@@ -337,8 +338,8 @@ class Page(object):
     def __init__(self):
         super(Page, self).__init__()
 
-    def index(self):
-        """index page, similiar to index.php, index.html and so on"""
+#    def index(self):
+#        """index page, similiar to index.php, index.html and so on"""
 
     def default(self, *params, **kwd):
         """catch-all for any non-defined method"""
@@ -500,20 +501,20 @@ class AdifPage(Page):
         return mailtypes
 
     def default(self, *params, **kwd):
-        raise cherrypy.HTTPRedirect('/%s' % (self.classname))
-#        return "%s<br />%s" % (str(params), str(kwd))
+        #raise cherrypy.HTTPRedirect('/%s' % (self.classname))
+        return "%s<br />%s" % (str(params), str(kwd))
 
     def _disconnected(self):
         cherrypy.session['user'] = False
         cherrypy.session['corbaSession'] = None
         raise cherrypy.HTTPRedirect('/disconnected')
 
-    @login_required
-    def index(self):
+#    @login_required
+#    def index(self):
         #html = self._template('index', self.classname)
         #here = self.here.copy()
         #here['page']['content'] = html
-        return self._render()
+#        return self._render()
 
 class ADIF(AdifPage):
 
