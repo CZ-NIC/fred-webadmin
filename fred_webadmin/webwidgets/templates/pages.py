@@ -117,7 +117,7 @@ class FilterPage(BaseSiteMenu):
                              'scwLanguage = "%s"; //sets language of js_calendar' % lang_code,
                              'scwDateOutputFormat = "%s"; // set output format for js_calendar' % config.js_calendar_date_format))
                      
-        if context.get('form'):
+        if context.get('form') and (config.debug or not c.get('itertable')):
             self.main.add(c.form)
             #print "VKLADAM JS FORMU"
             #import cProfile
@@ -189,7 +189,8 @@ class DomainsDetail(BaseSiteMenu):
         c = self.context
         if c.get('result'):
             self.main.add(DomainDetailDiv(context))
-            self.main.add('DOMAINSDETAIL', unicode(c.result).replace(u', ', u',<br />'))
+            if config.debug:
+                self.main.add('DOMAINSDETAIL', unicode(c.result).replace(u', ', u',<br />'))
 
 class ContactsDetail(BaseSiteMenu):
     def __init__(self, context = None):
@@ -197,7 +198,8 @@ class ContactsDetail(BaseSiteMenu):
         c = self.context
         if c.get('result'):
             self.main.add(ContactDetailDiv(context))
-            self.main.add('ContactDETAIL', unicode(c.result).replace(u', ', u',<br />'))
+            if config.debug:            
+                self.main.add('ContactDETAIL', unicode(c.result).replace(u', ', u',<br />'))
 
 class NSSetsDetail(BaseSiteMenu):
     def __init__(self, context = None):
@@ -205,7 +207,8 @@ class NSSetsDetail(BaseSiteMenu):
         c = self.context
         if c.get('result'):
             self.main.add(NSSetDetailDiv(context))
-            self.main.add('NSSetDETAIL', unicode(c.result).replace(u', ', u',<br />'))
+            if config.debug:
+                self.main.add('NSSetDETAIL', unicode(c.result).replace(u', ', u',<br />'))
 
 class ActionsDetail(BaseSiteMenu):
     def __init__(self, context = None):
@@ -213,7 +216,8 @@ class ActionsDetail(BaseSiteMenu):
         c = self.context
         if c.get('result'):
             self.main.add(ActionDetailDiv(context))
-            self.main.add('ACTIONSDETAIL', unicode(c.result).replace(u', ', u',<br />'))
+            if config.debug:
+                self.main.add('ACTIONSDETAIL', unicode(c.result).replace(u', ', u',<br />'))
         
     
 class RegistrarsDetail(BaseSiteMenu):
@@ -222,7 +226,8 @@ class RegistrarsDetail(BaseSiteMenu):
         c = self.context        
         if c.get('result'):
             self.main.add(RegistrarDetailDiv(context))
-            self.main.add('RegistrarSDETAIL', unicode(c.result).replace(u', ', u',<br />'))
+            if config.debug:
+                self.main.add('RegistrarSDETAIL', unicode(c.result).replace(u', ', u',<br />'))
             
 class AuthInfosDetail(BaseSiteMenu):
     def __init__(self, context = None):
@@ -230,7 +235,8 @@ class AuthInfosDetail(BaseSiteMenu):
         c = self.context
         if c.get('result'):
             self.main.add(AuthInfoDetailDiv(context))
-            self.main.add('AuthInfoSDETAIL', unicode(c.result).replace(u', ', u',<br />'))
+            if config.debug:
+                self.main.add('AuthInfoSDETAIL', unicode(c.result).replace(u', ', u',<br />'))
   
 class MailsDetail(BaseSiteMenu):
     def __init__(self, context = None):
@@ -238,8 +244,8 @@ class MailsDetail(BaseSiteMenu):
         c = self.context
         if c.get('result'):
             self.main.add(MailDetailDiv(context))
-            self.main.add('MailDETAIL', unicode(c.result).replace(u', ', u',<br />'))
-
+            if config.debug:
+                self.main.add('MailDETAIL', unicode(c.result).replace(u', ', u',<br />'))
 
 class InvoicesDetail(BaseSiteMenu):
     def __init__(self, context = None):
@@ -247,7 +253,9 @@ class InvoicesDetail(BaseSiteMenu):
         c = self.context
         if c.get('result'):
             self.main.add(InvoiceDetailDiv(context))
-            self.main.add('InvoiceDETAIL', unicode(c.result).replace(u', ', u',<br />'))
+            if config.debug:
+                self.main.add('InvoiceDETAIL', unicode(c.result).replace(u', ', u',<br />'))
+
 
 class DigPage(BaseSiteMenu):
     def __init__(self, context = None):

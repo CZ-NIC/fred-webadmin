@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from fred_webadmin.webwidgets.gpyweb.gpyweb import attr, div, span, h2, table, tbody, tr, th, td, p, strong, b, small, a, form, input, select, option, textarea, script, pre, br, acronym
+from fred_webadmin.webwidgets.gpyweb.gpyweb import attr, div, span, h1, table, tbody, tr, th, td, p, strong, b, small, a, form, input, select, option, textarea, script, pre, br, acronym
 from fred_webadmin.webwidgets.adifwidgets import FilterPanel
 from fred_webadmin.translation import _
 from fred_webadmin.mappings import f_urls, f_objectType_name
@@ -20,6 +20,7 @@ class ContactDetailDiv(DetailDiv):
         c = context
         result = c['result']
         self.add(
+            h1(_('Detail_of_contact')),
             table(attr(border='1', style='width: 96%'),
                   tr(th(attr(style='width: 180px'), _('Handle')), 
                      td(strong(span(result.handle)), span(attr(cssc='epp'), small('(EPP id:', span(result.roid, 'epp id'), ')'))), 
@@ -91,6 +92,7 @@ class DomainDetailDiv(DetailDiv):
         c = context
         result = c['result']
         self.add(
+            h1(_('Domain_information')),
             table(attr(border='1', style='width: 96%'), 
                   tr(th(attr(style='width: 180px'), _('Domain')), 
                      td(strong(span(result.fqdn)), span(attr(cssc='epp'), small('(EPP id:', span(result.roid), ')'))), 
@@ -246,6 +248,7 @@ class NSSetDetailDiv(DetailDiv):
             )
         
         self.add(
+            h1(_('NSSet_information')),
             nsset_table,
             table(attr(border='1', style='width: 96%'), 
                   tbody(tr(th(attr(style='width: 180px'), _('Create_date')), 
@@ -273,7 +276,7 @@ class ActionDetailDiv(DetailDiv):
         result = c['result']
         self.media_files.extend(('/js/shCore.js', '/js/shBrushXml.js', '/css/SyntaxHighlighter.css'))
         self.add(
-            h2(_('Request_information')),
+            h1(_('Request_information')),
             table(attr(style='width: 96%', border='1'), 
                   tr(th(attr(style='width: 180px'), _('Received_date')), 
                      td(strong(span(result.time)))), 
@@ -304,7 +307,7 @@ class RegistrarDetailDiv(DetailDiv):
         result = c['result']
         if c.get('edit'):
             self.media_files.append('/js/edit.js')
-        self.add(h2(_('Detail_of_registrar')))
+        self.add(h1(_('Detail_of_registrar')))
         
         self.add(table(attr(style='width: 96%', border='1'), 
             tr(th(attr(style='width: 180px'), _('Type')), 
@@ -375,7 +378,7 @@ class AuthInfoDetailDiv(DetailDiv):
         self.media_files.append('/js/edit.js')
         
         self.add(
-            h2(_('AuthInfo_detail')),
+            h1(_('AuthInfo_detail')),
             
             table(attr(border='1', style='width: 96%'), 
                   tr(th(attr(style='width=180px'), _('Handle')), 
@@ -437,7 +440,7 @@ class MailDetailDiv(DetailDiv):
             else:
                 div(attachment.name)
         self.add(
-            h2(_('Detail_of_email')),
+            h1(_('Detail_of_email')),
             table(attr(border='1', width='96%'), 
                   tr(th(attr(width='180'), _('Handles')),
                      handles),
@@ -460,7 +463,7 @@ class InvoiceDetailDiv(DetailDiv):
         result = c['result']
         
         self.add(
-            h2(_('Invoice_detail')),
+            h1(_('Invoice_detail')),
             table(attr(border='1', width='96%'), 
                   tr(th(attr(width='180'), _('Number')), 
                      td(result.number)), 
