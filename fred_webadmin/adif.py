@@ -272,8 +272,9 @@ class ListTableMixin(object):
             print 'prisla data %s' % kwd
         context = {'main': div()}
         
-        
-            
+        action = 'filter'
+        if kwd.get('list_all'):
+            action = 'list'
         
         if kwd.get('cf') or kwd.get('page') or kwd.get('load') or kwd.get('list_all') or kwd.get('filter_id'): # clear filter - whole list of objects without using filter form
             context = self._get_list(context, **kwd)
@@ -303,7 +304,7 @@ class ListTableMixin(object):
                     context['main'].add(u'Jsem nevalidni, errors:' + unicode(form.errors.items()))
                 context['headline'] = '%s filter' % self.__class__.__name__
         
-        return self._render('filter', context)
+        return self._render(action, context)
     
     @check_onperm('read')
     #@login_required
@@ -384,7 +385,7 @@ class AdifPage(Page):
             return BaseSiteMenu
         if action == 'login':
             return LoginPage
-        elif action == 'filter':
+        elif action in ('filter', 'list'):
             return FilterPage
         elif action == 'filters':
             return AllFiltersPage
@@ -416,7 +417,7 @@ class AdifPage(Page):
         if self.classname in ('registrars'):
             if action in ('allfilters', 'filter'):
                 return self.classname + 'filter'
-            elif action in ('create'): 
+            elif action in ('create', 'list'): 
                 return self.classname + action
             
         return self.classname

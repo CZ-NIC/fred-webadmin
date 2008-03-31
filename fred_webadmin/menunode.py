@@ -92,7 +92,7 @@ menu_tree = MenuNode('root', '', '', 'menu-item', '#', [
         MenuNode('nssets', _('Search nssets'), cssc='menu-item', url=f_urls['nssets'] + 'allfilters/', nperm='nsset.read'),
     ]), 
     MenuNode('registrars', _('Registrars'), 'body-registrars', 'menu-item menu-registrars', url=f_urls['registrars'] + 'filter/?cf=1', nperm='registrar.read', submenu=[
-        MenuNode('registrarslist', _('List'), cssc='menu-item', url=f_urls['registrars'] + 'filter/?cf=1', nperm='registrar.read'),
+        MenuNode('registrarslist', _('List'), cssc='menu-item', url=f_urls['registrars'] + 'filter/?list_all=1', nperm='registrar.read'),
         MenuNode('registrarsfilter', _('Search'), cssc='menu-item', url=f_urls['registrars'] + 'allfilters/', nperm='registrar.read'),
         MenuNode('registrarscreate', _('Create new'), cssc='menu-item', url=f_urls['registrars'] + 'create/', nperm='registrar.create'),
         MenuNode('invoices', _('Invoices'), cssc='menu-item', url=f_urls['invoices'] + 'allfilters/', nperm='invoice.read'),
