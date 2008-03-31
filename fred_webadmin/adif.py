@@ -53,7 +53,7 @@ from translation import _
 
 
 from webwidgets.templates.pages import (
-    BaseSite, BaseSiteMenu, LoginPage, DisconnectedPage, AllFiltersPage, FilterPage, ErrorPage, 
+    BaseSite, BaseSiteMenu, LoginPage, DisconnectedPage, AllFiltersPage, FilterPage, ErrorPage, DigPage, 
     DomainsDetail, ContactsDetail, NSSetsDetail, RegistrarsDetail, ActionsDetail, AuthInfosDetail, MailsDetail, InvoicesDetail
 )
 from webwidgets.gpyweb.gpyweb import WebWidget
@@ -313,7 +313,7 @@ class ListTableMixin(object):
         itertable = self._get_itertable('filters')
         #itertable.set_filter({})
         itertable.set_filter([{#'userId': cherrypy.session.get('user').id,
-                              'filter|type': [False, f_name_id[self.classname]]
+                              'filter|Type': [False, f_name_id[self.classname]]
                              }])
         itertable.reload()
         context['main'].add(FilterList(itertable.get_rows_dict(raw_header=True), self.classname))
@@ -392,6 +392,8 @@ class AdifPage(Page):
             return DisconnectedPage
         elif action == 'error':
             return ErrorPage
+        elif action == 'dig':
+            return DigPage
         else:
             # returns ClassName + Action (e.g. DomainsDetail) class from module of this class, if there is no such, then it returns BaseSiteMenu: 
             template_name = self.__class__.__name__ + action.capitalize()
@@ -840,13 +842,12 @@ class Domains(AdifPage, ListTableMixin):
         try:
             query = dns.message.make_query(handle, 'ANY')
             resolver = dns.resolver.get_default_resolver().nameservers[0]
-            dig = c2u(dns.query.udp(query, resolver).to_text())
+            dig = dns.query.udp(query, resolver).to_text()
         except:
             context['main'] = _("Object_not_found")
             return self._render('base', ctx=context)
-        context['result'] = {}
-        context['result']['handle'] = handle
-        context['result']['dig'] = dig
+        context['handle'] = handle
+        context['dig'] = dig
         return self._render('dig', context)
         
 

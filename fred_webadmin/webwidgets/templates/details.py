@@ -75,12 +75,12 @@ class ContactDetailDiv(DetailDiv):
             self.add(p(input(attr(type='submit', value=':Save:')), input(attr(type='reset', value=':Renew:'))))
         else:
             self.add(FilterPanel([
-                [_('Domains_owner'), 'domains', [{'registrant.handle': result.handle}]],
-                [_('Domains_admin'), 'domains', [{'adminContact.handle': result.handle}]],
-                [_('Domains_all'), 'domains', [{'registrant.handle': result.handle}, {'adminContact.handle': result.handle}]],
-                [_('NSSets'), 'nssets', [{'admin.handle': result.handle}]],
-                [_('Requests'), 'actions', [{'object.handle': result.handle}]],
-                [_('Emails'), 'mails', [{'object.handle': result.handle}]],
+                [_('Domains_owner'), 'domains', [{'Registrant.Handle': result.handle}]],
+                [_('Domains_admin'), 'domains', [{'AdminContact.Handle': result.handle}]],
+                [_('Domains_all'), 'domains', [{'Registrant.Handle': result.handle}, {'AdminContact.Handle': result.handle}]],
+                [_('NSSets'), 'nssets', [{'AdminContact.Handle': result.handle}]],
+                [_('Requests'), 'actions', [{'Object.Handle': result.handle}]],
+                [_('Emails'), 'mails', [{'Object.Handle': result.handle}]],
             ]))
             
         
@@ -209,8 +209,8 @@ class DomainDetailDiv(DetailDiv):
             )
             
             self.add(FilterPanel([
-                [_('Requests'), 'actions', [{'object.handle': result.fqdn}]],
-                [_('Emails'), 'mails', [{'object.handle': result.fqdn}]],
+                [_('Requests'), 'actions', [{'Object.Handle': result.fqdn}]],
+                [_('Emails'), 'mails', [{'Object.Handle': result.fqdn}]],
                 [_('dig'), f_urls['domains'] + 'dig/?handle=' + result.fqdn]
             ]))
         
@@ -261,9 +261,9 @@ class NSSetDetailDiv(DetailDiv):
             
         )
         self.add(FilterPanel([
-            [_('Domains'), 'domains', [{'nSSet.handle': result.handle}]],
-            [_('Requests'), 'actions', [{'object.handle': result.handle}]],
-            [_('Emails'), 'mails', [{'object.handle': result.handle}]],
+            [_('Domains'), 'domains', [{'NSSet.Handle': result.handle}]],
+            [_('Requests'), 'actions', [{'Object.Handle': result.handle}]],
+            [_('Emails'), 'mails', [{'Object.Handle': result.handle}]],
         ]))
 
 class ActionDetailDiv(DetailDiv):
@@ -360,11 +360,11 @@ class RegistrarDetailDiv(DetailDiv):
         self.add(auth_table)
 
         self.add(FilterPanel([
-            [_('Domains_selected'), 'domains', [{'registrar.handle': result.handle}]],
-            [_('Domains_creating'), 'domains', [{'createRegistrar.handle': result.handle}]],
-            [_('Contacts'), 'contacts', [{'registrar.handle': result.handle}]],
-            [_('Requests'), 'actions', [{'registrar.handle': result.handle}]],
-            [_('Emails'), 'mails', [{'object.registrar.handle': result.handle}]],
+            [_('Domains_selected'), 'domains', [{'Registrar.Handle': result.handle}]],
+            [_('Domains_creating'), 'domains', [{'CreateRegistrar.Handle': result.handle}]],
+            [_('Contacts'), 'contacts', [{'Registrar.Handle': result.handle}]],
+            [_('Requests'), 'actions', [{'Registrar.Handle': result.handle}]],
+            [_('Emails'), 'mails', [{'Object.Registrar.Handle': result.handle}]],
         ]))
 
 class AuthInfoDetailDiv(DetailDiv):
@@ -411,11 +411,11 @@ class AuthInfoDetailDiv(DetailDiv):
     
             )
             self.add(FilterPanel([
-                [_('Domains_selected'), 'domains', [{'registrar.handle': result.handle}]],
-                [_('Domains_creating'), 'domains', [{'createRegistrar.handle': result.handle}]],
-                [_('Contacts'), 'contacts', [{'registrar.handle': result.handle}]],
-                [_('Requests'), 'actions', [{'registrar.handle': result.handle}]],
-                [_('Emails'), 'mails', [{'object.registrar.handle': result.handle}]],
+                [_('Domains_selected'), 'domains', [{'Registrar.Handle': result.handle}]],
+                [_('Domains_creating'), 'domains', [{'CreateRegistrar.Handle': result.handle}]],
+                [_('Contacts'), 'contacts', [{'Registrar.Handle': result.handle}]],
+                [_('Requests'), 'actions', [{'Registrar.Handle': result.handle}]],
+                [_('Emails'), 'mails', [{'Object.Registrar.Handle': result.handle}]],
             ]))
 
 

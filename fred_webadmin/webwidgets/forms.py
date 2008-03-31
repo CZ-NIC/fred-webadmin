@@ -15,11 +15,6 @@ from utils import SortedDict
 
 NON_FIELD_ERRORS = '__all__'
 
-def pretty_name(name):
-    "Converts 'first_name' to 'First name'"
-    name = name[0].upper() + name[1:]
-    return name.replace('_', ' ')
-
 class SortedDictFromList(SortedDict):
     "A dictionary that keeps its keys in the order in which they're inserted."
     # This is different than django.utils.datastructures.SortedDict, because

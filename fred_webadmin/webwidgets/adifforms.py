@@ -257,13 +257,13 @@ class FilterForm(Form):
 #    doba_zmrtvychvstani = DateTimeIntervalField(label=_('doba zmrtvychvstani'))
    
 class RegistrarsFilterForm(FilterForm):
-    default_fields_names = ['handle']
+    Default_fields_names = ['Handle']
     
-    name = CharField(label=_('Name'))
-    handle = CharField(label=_('Handle'))
-    organization = CharField(label=_('Organization'))
-    city = CharField(label=_('City'))
-    country = CharField(label=_('Country'))
+    Name = CharField(label=_('Name'))
+    Handle = CharField(label=_('Handle'))
+    Organization = CharField(label=_('Organization'))
+    City = CharField(label=_('City'))
+    Country = CharField(label=_('Country'))
     
 #    ico = CharField(label=_('ICO'))
 #    vat = CharField(label=_('VAT'))
@@ -271,59 +271,59 @@ class RegistrarsFilterForm(FilterForm):
 #    upDate = DateIntervalField(label=_('Update date'))
     
 class ObjectsFilterForm(FilterForm):
-    default_fields_names = ['handle']
+    default_fields_names = ['Handle']
     
-    handle = CharField(label=_('Handle'))
-    authinfo = CharField(label=_('Authinfo'))
+    Handle = CharField(label=_('Handle'))
+    AuthInfo = CharField(label=_('AuthInfo'))
 
-    registrar = CompoundFilterField(label=_('Registrar'), form_class=RegistrarsFilterForm)
-    createRegistrar = CompoundFilterField(label=_('Creation registrar'), form_class=RegistrarsFilterForm)
-    updateRegistrar = CompoundFilterField(label=_('Update registrar'), form_class=RegistrarsFilterForm)
+    Registrar = CompoundFilterField(label=_('Registrar'), form_class=RegistrarsFilterForm)
+    CreateRegistrar = CompoundFilterField(label=_('Creation registrar'), form_class=RegistrarsFilterForm)
+    UpdateRegistrar = CompoundFilterField(label=_('Update registrar'), form_class=RegistrarsFilterForm)
     
-    createTime = DateTimeIntervalField(label=_('Registration date'))
-    updateTime = DateTimeIntervalField(label=_('Update date'))
-    transferTime = DateTimeIntervalField(label=_('Transfer date'))
-    deleteTime = DateTimeIntervalField(label=_('Delete date'))
+    CreateTime = DateTimeIntervalField(label=_('Registration date'))
+    UpdateTime = DateTimeIntervalField(label=_('Update date'))
+    TransferTime = DateTimeIntervalField(label=_('Transfer date'))
+    DeleteTime = DateTimeIntervalField(label=_('Delete date'))
     
 class ContactsFilterForm(ObjectsFilterForm):
     default_fields_names = ObjectsFilterForm.default_fields_names + ['name']
     
-    email = EmailField(label=_('Email'))
+    Email = EmailField(label=_('Email'))
 #    contact_type = MultipleChoiceField(label=_('Contact type'), choices=(('owner', _('Owner')), ('admin', _('Admin')), ('techadmin', _('techadmin')), ('temporary', _('Temporary'))))
-    name = CharField(label=_('Name'))
-    organization = CharField(label=_('Organization'))
-    ssn = CharField(label=_('SSN'))
-    vat = CharField(label=_('VAT'))
+    Name = CharField(label=_('Name'))
+    Organization = CharField(label=_('Organization'))
+    Ssn = CharField(label=_('SSN'))
+    Vat = CharField(label=_('VAT'))
     
 class NSSetsFilterForm(ObjectsFilterForm):
 #    ipAddr = CharField(label=_('IP address'))
-    admin = CompoundFilterField(label=_('Technical contact'), form_class=ContactsFilterForm)
+    Admin = CompoundFilterField(label=_('Technical contact'), form_class=ContactsFilterForm)
 #    nsName = CharField(label=_('Nameserver name'))
     
 class DomainsFilterForm(ObjectsFilterForm):
-    default_fields_names = ['handle']
+    default_fields_names = ['Handle']
     
 #    fqdn = CharField(label=_('Domain name'))
-    registrant = CompoundFilterField(label=_('Owner'), form_class=ContactsFilterForm)
-    adminContact = CompoundFilterField(label=_('Admin'), form_class=ContactsFilterForm)
-    tempContact = CompoundFilterField(label=_('Temp'), form_class=ContactsFilterForm)
-    nSSet = CompoundFilterField(label=_('Nameserver set'), form_class=NSSetsFilterForm)
+    Registrant = CompoundFilterField(label=_('Owner'), form_class=ContactsFilterForm)
+    AdminContact = CompoundFilterField(label=_('Admin'), form_class=ContactsFilterForm)
+    TempContact = CompoundFilterField(label=_('Temp'), form_class=ContactsFilterForm)
+    NSSet = CompoundFilterField(label=_('Nameserver set'), form_class=NSSetsFilterForm)
     
-    expirationDate = DateIntervalField(label=_('Expiry date'))
-    validationExpirationDate = DateIntervalField(label=_('Validation date'))
+    ExpirationDate = DateIntervalField(label=_('Expiry date'))
+    ValidationExpirationDate = DateIntervalField(label=_('Validation date'))
 
 
 class ActionsFilterForm(FilterForm):
-    default_fields_names = ['svTRID']
+    default_fields_names = ['SvTRID']
     
-    type = MultipleChoiceField(label=_('Request type'), choices=((1, u'Poraněn'), (2, u'Přeživší'), (3, u'Mrtev'), (4, u'Nemrtvý')))
+    Type = MultipleChoiceField(label=_('Request type'), choices=((1, u'Poraněn'), (2, u'Přeživší'), (3, u'Mrtev'), (4, u'Nemrtvý')))
 #    requestType = MultipleChoiceField(label=_('Request type'), choices=((action_name, action_name) for action_name in CorbaLazyRequest('Admin', 'getEPPActionTypeList')))
-    object = CompoundFilterField(label=_('Object'), form_class=ObjectsFilterForm)
-    time = DateTimeIntervalField(label=_('Received date'))
-    response = CorbaEnumChoiceField(label=_('Result'), corba_enum=ccReg.EPPActionsFilter.ResultType)
-    registrar = CompoundFilterField(label=_('Registrar'), form_class=RegistrarsFilterForm)
-    svTRID = CharField(label=_('svTRID'))
-    clTRID = CharField(label=_('clTRID'))
+    Object = CompoundFilterField(label=_('Object'), form_class=ObjectsFilterForm)
+    Time = DateTimeIntervalField(label=_('Received date'))
+    Response = CorbaEnumChoiceField(label=_('Result'), corba_enum=ccReg.EPPActionsFilter.ResultType)
+    Registrar = CompoundFilterField(label=_('Registrar'), form_class=RegistrarsFilterForm)
+    SvTRID = CharField(label=_('SvTRID'))
+    clTRID = CharField(label=_('ClTRID'))
     
 form_classes = (DomainsFilterForm, 
                 NSSetsFilterForm, 
@@ -333,7 +333,7 @@ form_classes = (DomainsFilterForm,
                 ActionsFilterForm)
 
 class FiltersFilterForm(FilterForm):
-    default_fields_names = ['name']
+    default_fields_names = ['Name']
     
     userName = CharField(label=_('User name'))
     groupName = CharField(label=_('Group name'))

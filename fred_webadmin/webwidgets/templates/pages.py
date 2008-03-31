@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from fred_webadmin.webwidgets.gpyweb.gpyweb import div, span, p, a, b, attr, save, HTMLPage, hr, br, table, tr, th, td, img, form, input, h1, script
+from fred_webadmin.webwidgets.gpyweb.gpyweb import div, span, p, a, b, h2, h3, attr, save, HTMLPage, hr, br, table, tr, th, td, img, form, input, h1, script, pre
 from fred_webadmin.webwidgets.adifforms import get_filter_forms_javascript
 from fred_webadmin.translation import _
 from fred_webadmin import config
@@ -249,4 +249,12 @@ class InvoicesDetail(BaseSiteMenu):
             self.main.add(InvoiceDetailDiv(context))
             self.main.add('InvoiceDETAIL', unicode(c.result).replace(u', ', u',<br />'))
 
-
+class DigPage(BaseSiteMenu):
+    def __init__(self, context = None):
+        super(DigPage, self).__init__(context)
+        c = self.context
+        self.main.add(h2(_('dig_query')))
+        if c.get('handle'):
+            self.main.add(h3(_('Domain'), c.handle))
+        if c.get('dig'):
+            self.main.add(pre(c.dig))
