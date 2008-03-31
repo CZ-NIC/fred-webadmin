@@ -29,7 +29,7 @@ if __name__ == '__main__':
         ('f_name_id', f_name_id),
         ('f_id_name', f_id_name),
         ('f_urls', f_urls),
-        ('f_heder_ids', f_header_ids),
+        ('f_header_ids', f_header_ids),
         ('f_objectType_name', f_objectType_name),
     )
                         

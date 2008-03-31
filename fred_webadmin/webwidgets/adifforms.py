@@ -56,6 +56,9 @@ class UnionFilterForm(Form):
         super(UnionFilterForm, self).__init__(data, initial=initial, layout=layout, *content, **kwd)
         self.set_tattr(action = kwd.get('action') or self.get_default_url())
         self.media_files = ['/js/filtertable.js', '/js/MochiKit/MochiKit.js', '/js/scw.js', '/js/interval_fields.js', '/js/scwLanguages.js']
+        #self.onsubmit = '''alert('submituji');sendUnionForm(this); return false;'''
+        #self.onsubmit = '''alert('submituju'); false;'''
+        self.onkeypress = 'if (event.keyCode == 13) {sendUnionForm(this);}' # submit on enter
     
     def set_fields_values(self):
         if not self.is_bound: # if not bound, then create one empty dictionary

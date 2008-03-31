@@ -128,6 +128,7 @@ class UnionFilterFormLayout(TableFormLayout):
         save_input = input(attr(id='save_input', type="text", name="save_input", value=_('name'), disabled='disabled', style="float: left; margin-left: 0.4em; display:none;"))
         save_button = input(attr(type="button", value="Save", onclick="saveUnionForm(this)", style="float: left; margin-left: 0.4em"))
         submit_button = input(attr(type=u'button', value=u'OK', onclick='sendUnionForm(this)', style="float: right;"))
+#        submit_button = input(attr(type=u'submit', value=u'OK', style="float: right;"))
         return tr(attr(cssc='submit_row'), 
                   td(or_plus_button, save_input, save_button, hidden_fields, submit_button),
                  )

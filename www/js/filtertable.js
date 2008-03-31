@@ -287,6 +287,12 @@ function getFTableData(ftable, ftData) {
 }
 
 function sendUnionForm(thisElem, saveName) {
+    var thisForm;
+    if (thisElem.nodeName == 'FORM')
+        thisForm = thisElem;
+    else
+        thisForm = thisElem.form;
+    
     var data = [];
     var ftables = Ext.select('.unionfiltertable > tbody > tr > td > .filtertable');
     for (var i = 0, len = ftables.getCount(); i < len; i++) {
@@ -296,7 +302,7 @@ function sendUnionForm(thisElem, saveName) {
     log('union form DATA:', Ext.encode(data));
     var form = FORM({
         'method' : 'post',
-        'action' : thisElem.form.action,
+        'action' : thisForm.action,
         'style' : 'display: none'
     }, INPUT({
         'type' : 'hidden',
@@ -345,7 +351,7 @@ function getFTableDataOld(ftable) {
     return ftData
 }
 
-function sendUnionFormOld(thisElem) {
+/*function sendUnionFormOld(thisElem) {
 	var data = [];
 
 	var ftables = $$('.unionfiltertable > tbody > tr > td > .filtertable');
@@ -363,7 +369,7 @@ function sendUnionFormOld(thisElem) {
 	// 'data', 'value': encodeURIComponent(serializeJSON(data))}));
 	var form = FORM({
 		'method' : 'post',
-		'action' : thisElem.form.action
+		'action' : this.form.action
 	}, INPUT( {
 		'type' : 'hidden',
 		'name' : 'json_data',
@@ -372,7 +378,7 @@ function sendUnionFormOld(thisElem) {
 	getFirstElementByTagAndClassName('body').appendChild(form);
 	form.submit();
 	return false;
-}
+}*/
 
 function getNewFieldNum(thisElem) {
 	function getFieldNumInTr(tr) {
@@ -420,3 +426,5 @@ function getNewFieldNum(thisElem) {
 
 	return null;
 }*/
+
+            
