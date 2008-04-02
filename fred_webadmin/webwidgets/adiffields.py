@@ -74,7 +74,7 @@ class DateIntervalField(MultiValueField):
     def __init__(self, name='', value='', *args, **kwargs):
         fields = (DateField(size=10), DateField(size=10), DateField(size=10), 
                   ChoiceField(content=[attr(onchange='onChangeDateIntervalType(this)')], choices=INTERVAL_CHOICES), 
-                  DecimalField(initial=1, size=5)) #first of INTERVAL_CHOICES is HOUR, which has no 
+                  DecimalField(initial=1, size=5, min_value=-32768, max_value=32767)) #first of INTERVAL_CHOICES is HOUR, which has no 
         super(DateIntervalField, self).__init__(name, value, fields, *args, **kwargs)
         self.media_files.append('/js/interval_fields.js')
     
@@ -128,7 +128,7 @@ class DateIntervalField(MultiValueField):
     def clean(self):
         cleaned_data = super(DateIntervalField, self).clean()
         print "CLEANEDDATA", cleaned_data
-        if cleaned_data and not cleaned_data[2] and cleaned_data[0] and cleaned_data[1]: # if from and tofield filled, and not day filled
+        if cleaned_data and int(cleaned_data[3]) == ccReg.INTERVAL._v and cleaned_data[0] and cleaned_data[1]: # if from and to field filled, and not day filled
             if cleaned_data[0] > cleaned_data[1]: # if from > to
                 errors = ErrorList(['"From" must be bigger than "To"'])
                 raise ValidationError(errors)
@@ -154,7 +154,8 @@ class DateIntervalField(MultiValueField):
 class DateTimeIntervalField(DateIntervalField):
     def __init__(self, name='', value='', *args, **kwargs): # pylint: disable-msg=E1003 
         fields = (SplitDateSplitTimeField(), SplitDateSplitTimeField(), DateField(size=10), 
-                  ChoiceField(content=attr(onchange='onChangeDateIntervalType(this)'), choices=INTERVAL_CHOICES), DecimalField(initial=1, size=5))
+                  ChoiceField(content=attr(onchange='onChangeDateIntervalType(this)'), choices=INTERVAL_CHOICES), 
+                  DecimalField(initial=1, size=5, min_value=-32768, max_value=32767))
         # Here is called really parent of parent of this class, to avoid self.fields initialization from parent:
         super(DateIntervalField, self).__init__(name, value, fields, *args, **kwargs)
         self.media_files.append('/js/interval_fields.js')
