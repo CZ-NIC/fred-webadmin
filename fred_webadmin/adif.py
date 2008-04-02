@@ -23,6 +23,7 @@ import config
 
 # CherryPy main import
 import cherrypy
+from cherrypy.lib import http
 #cherrypy.session = cherrypy.session # to pylint stop abuse :)
 
 # decorator for exposing methods
@@ -69,6 +70,8 @@ from fred_webadmin.utils import json_response
 
 from mappings import f_name_enum, f_name_id
 from user import User
+
+from fred_webadmin.webwidgets.adifforms import get_filter_forms_javascript
 
 class AdifError(Exception):
     pass
@@ -530,11 +533,26 @@ class ADIF(AdifPage):
         return 'summary'
     
     @login_required
-    def index(self):
+    def index(self, *args):
+        
         if cherrypy.session.get('user'):
             raise cherrypy.HTTPRedirect('/summary/')
         else:
             raise cherrypy.HTTPRedirect('/login/')
+
+    def default(self, *args, **kwd):
+        if args and args[0] == 'filter_forms_javascript.js':
+            #import pdb; pdb.set_trace()
+            if config.caching_filter_form_javascript:
+                since = cherrypy.request.headers.get('If-Unmodified-Since') 
+                since2 = cherrypy.request.headers.get('If-Modified-Since')
+                if since or since2:
+                    raise cherrypy.HTTPRedirect("", 304)
+                cherrypy.response.headers['Last-Modified'] = http.HTTPDate(time.time())
+            return get_filter_forms_javascript()
+        else:
+            super(ADIF, self).default(*args, **kwd)
+        
         
     def login(self, *args, **kwd):
         if kwd:
@@ -601,6 +619,7 @@ class ADIF(AdifPage):
             return self._render('disconnected')
         else:
             raise cherrypy.HTTPRedirect('/')
+
 
 
 class Summary(AdifPage):

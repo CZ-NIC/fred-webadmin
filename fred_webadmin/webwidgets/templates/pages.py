@@ -95,7 +95,7 @@ class ErrorPage(BaseSiteMenu):
         if c.has_key('message'):
             self.main.add(p(c.message))
     
-class AllFiltersPage():
+class AllFiltersPage(BaseSiteMenu):
     ''' List of filters is displayed here. '''
     
     def __init__(self, context = None):
@@ -122,17 +122,21 @@ class FilterPage(BaseSiteMenu):
             #print "VKLADAM JS FORMU"
             #import cProfile
             #cProfile.runctx('forms_js = get_filter_forms_javascript()', globals(), locals(), 'prof2')
-            forms_js = get_filter_forms_javascript()
-            #print "a ten je konkretne", forms_js
-            
-            self.main.add(script(attr(type='text/javascript'), forms_js)) 
+
+            #forms_js = get_filter_forms_javascript()
+            #self.main.add(script(attr(type='text/javascript'), forms_js)) 
         
         if c.get('result'):
             self.main.add(p(c['result']))
         
         if c.get('itertable'):
             itertable = c.itertable
-            self.main.add(div(attr(id='div_for_itertable', cssc='extjs', media_files=['/css/ext/css/ext-all.css', '/js/MochiKit/MochiKit.js', '/js/ext/ext-base.js', '/js/ext/ext-all.js', '/js/itertable.js'])))
+            self.main.add(div(attr(id='div_for_itertable', cssc='extjs', 
+                                   media_files=['/css/ext/css/ext-all.css', 
+#                                                '/js/MochiKit/MochiKit.js', 
+                                                '/js/ext/ext-base.js', 
+                                                '/js/ext/ext-all.js', 
+                                                '/js/itertable.js'])))
 
             self.main.add(br(), br())
             header = tr(attr(cssc="header"))

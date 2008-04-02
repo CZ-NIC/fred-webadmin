@@ -78,7 +78,12 @@ class UnionFilterFormLayout(TableFormLayout):
         super(UnionFilterFormLayout, self).__init__(form, *content, **kwd)
         self.cssc = u'unionfiltertable'
         self.id = u'unionfiltertable'
-        self.media_files=['/css/filtertable.css', '/css/ext/css/ext-all.css', '/js/ext/ext-base.js', '/js/ext/ext-all.js']
+        self.media_files=['/css/filtertable.css', 
+                          '/css/ext/css/ext-all.css',
+                          '/js/logging.js', 
+                          '/js/ext/ext-base.js', 
+                          '/js/ext/ext-all.js'
+                          ]
         
     def create_layout(self):
         self.add(tbody(tagid('tbody')))

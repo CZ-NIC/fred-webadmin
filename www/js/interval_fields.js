@@ -1,8 +1,8 @@
 function onChangeDateIntervalType(thisElem) {
 	var parent_div = thisElem.parentNode;
-	var interval_span = getFirstElementByTagAndClassName('span', 'date_interval', parent_div);
-	var interval_offset_span = getFirstElementByTagAndClassName('span', 'date_interval_offset', parent_div);
-	var day_span = getFirstElementByTagAndClassName('span', 'date_day', parent_div);
+	var interval_span = Ext.query('span.date_interval', parent_div)[0];
+	var interval_offset_span = Ext.query('span.date_interval_offset', parent_div)[0];
+	var day_span = Ext.query('span.date_day', parent_div)[0];
 	
 	switch(thisElem.value) {
 		case "1":  //ccReg.DAY

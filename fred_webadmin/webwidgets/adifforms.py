@@ -55,7 +55,14 @@ class UnionFilterForm(Form):
         self.data_cleaned = data_cleaned
         super(UnionFilterForm, self).__init__(data, initial=initial, layout=layout, *content, **kwd)
         self.set_tattr(action = kwd.get('action') or self.get_default_url())
-        self.media_files = ['/js/filtertable.js', '/js/MochiKit/MochiKit.js', '/js/scw.js', '/js/interval_fields.js', '/js/scwLanguages.js']
+        self.media_files = ['/js/filtertable.js', 
+                            #'/js/MochiKit/MochiKit.js', 
+                            '/js/scw.js', 
+                            '/js/interval_fields.js', 
+                            '/js/scwLanguages.js',
+                            '/js/form_content.js',
+                            '/filter_forms_javascript.js'
+                           ]
         #self.onsubmit = '''alert('submituji');sendUnionForm(this); return false;'''
         #self.onsubmit = '''alert('submituju'); false;'''
         self.onkeypress = 'if (event.keyCode == 13) {sendUnionForm(this);}' # submit on enter
@@ -286,7 +293,7 @@ class ObjectsFilterForm(FilterForm):
     DeleteTime = DateTimeIntervalField(label=_('Delete date'))
     
 class ContactsFilterForm(ObjectsFilterForm):
-    default_fields_names = ObjectsFilterForm.default_fields_names + ['name']
+    default_fields_names = ObjectsFilterForm.default_fields_names + ['Name']
     
     Email = EmailField(label=_('Email'))
 #    contact_type = MultipleChoiceField(label=_('Contact type'), choices=(('owner', _('Owner')), ('admin', _('Admin')), ('techadmin', _('techadmin')), ('temporary', _('Temporary'))))

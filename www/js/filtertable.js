@@ -8,7 +8,7 @@ function composedNameLessThan(composeName1, composeName2) {
     while (true) {
         var num1 = fields[names1[i]].fieldNum
         var num2 = fields[names2[i]].fieldNum
-        log('num1 < num2 =', num1, '<', num2, '=', num1 < num2);
+        log('num1 < num2 =' + num1 + '<' + num2 + '=' + num1 < num2);
         if (num1 < num2) {
             return true;
         } else if (num1 > num2) {
@@ -55,7 +55,7 @@ function createFieldRow(ftable, formName, composedName, composedLabel, filterNam
     var fieldTr = new Ext.Element(document.createElement('tr'));
     fieldTr.set({'class': 'field_row ' + composedName});
     var createCommand = 'createRow' + formName + '("' + filterName + '", "' + composedLabel + '");';
-    log('createCommand:', createCommand);
+    log('createCommand:' + createCommand);
     var fieldTrInnerHTML = eval(createCommand);
     log(fieldTrInnerHTML);
     
@@ -71,8 +71,8 @@ function createFieldRow(ftable, formName, composedName, composedLabel, filterNam
 }
 
 function fieldMenuItemCheck(menuItem, checked) {
-	log('clicknul jsem na menuItem', menuItem.text, 'ktere je checked =',
-		 checked, 'a jeho composedName =', menuItem.composedName);
+	log('clicknul jsem na menuItem' + menuItem.text + 'ktere je checked =' +
+		 checked + 'a jeho composedName =' + menuItem.composedName);
     
 	if (checked) { // create new row
         createFieldRow(menuItem.ftable, menuItem.formName, menuItem.composedName, menuItem.composedLabel, menuItem.filterName);
@@ -88,10 +88,10 @@ function getFilterFieldsByComposedName(composedName) {
 
 	if (composedName) {
 		var names = composedName.split('-');
-		log('names:', names);
+		log('names:' + names);
 		for (var i = 0; i < names.length; i++) {
 			var name = names[i];
-			log('name:', name);
+			log('name:' + name);
             formName = fields[name].formName;
             fields = allFieldsDict[formName];
 		}
@@ -113,7 +113,7 @@ function getFormMenu(ftable, composedName, composedLabel) {
 	log('fields: ' + Ext.encode(fields));
 
 	for (var filterName in fields) {
-		log('filterName:', filterName);
+		log('filterName:' + filterName);
 		var fieldRec = fields[filterName];
 		var formName = fieldRec['formName'];
         var filterLabel = fieldRec['label'];
@@ -134,8 +134,8 @@ function getFormMenu(ftable, composedName, composedLabel) {
 			menuItem.on('beforerender', fieldMenuItemBeforeRender);
 			// ['beforerender'] = fieldMenuItemBeforeRender
 		} else {
-			log(menuItem.composedName, 'neni compound, takze mu davam checked');
-            log('fieldPresented(' + ftable + ', '+menuItem.composedName+') = '+fieldPresented(ftable, filterName))
+			log(menuItem.composedName + 'neni compound, takze mu davam checked');
+            log('fieldPresented(' + ftable + ', ' + menuItem.composedName+') = ' + fieldPresented(ftable, filterName))
 			menuItem.checked = fieldPresented(ftable, menuItem.composedName);
 			menuItem.on('checkchange', fieldMenuItemCheck);
 		}
@@ -152,7 +152,7 @@ function getFormMenu(ftable, composedName, composedLabel) {
 }
 
 function fieldMenuItemBeforeRender(menuItem) {
-	log('volame fieldMenuItemBeforeRender menuItem.text = ', menuItem.text);
+	log('volame fieldMenuItemBeforeRender menuItem.text = ' + menuItem.text);
 	menuItem.menu = getFormMenu(menuItem.ftable, menuItem.composedName, menuItem.composedLabel);
 }
 
@@ -178,7 +178,7 @@ function formContentToObject(formContent) {
 	for (var i = 0; i < keys.length; i++) {
 		var key = keys[i];
 		var val = vals[i];
-		if (isUndefined(obj[key])) {
+		if (obj[key] == undefined) {
 			obj[key] = val;
 		} else { // for example multi-select have more values under same key,
 					// so we'll create array and pushing values to it
@@ -191,7 +191,7 @@ function formContentToObject(formContent) {
 	return obj;
 }
 
-function delRow(thisElem, fieldName, fieldLabel) {
+/*function delRow(thisElem, fieldName, fieldLabel) {
 	var tr = getFirstParentByTagAndClassName(thisElem, 'tr');
 
 	// add field back to field chooser and make field chooser visible
@@ -203,24 +203,25 @@ function delRow(thisElem, fieldName, fieldLabel) {
 
 	// and finally remove field
 	tr.parentNode.removeChild(tr);
-}
+}*/
 
-function getNameToAdd(tr) {
+/*function getNameToAdd(tr) {
 	// get name of field, which will be added in addRow*
 	var fieldChooser = getFirstElementByTagAndClassName('select', '', tr);
 	return fieldChooser.value
-}
+}*/
 
 function addOrForm(thisElem) {
-	var my_tr = getFirstParentByTagAndClassName(thisElem, tagName = 'tr');
-	var or_tr = TR( {
-		'class' : 'or_row'
-	});
-	var form_tr = TR();
-	insertSiblingNodesBefore(my_tr, or_tr);
-	insertSiblingNodesBefore(my_tr, form_tr);
-	or_tr.innerHTML = buildOrRow();
-	form_tr.innerHTML = buildForm();
+    thisElem = Ext.get(thisElem);
+	var my_tr = thisElem.parent('tr');
+	var or_tr = new Ext.Element(document.createElement('tr'));
+    or_tr.set({'class' : 'or_row'});
+	var form_tr = new Ext.Element(document.createElement('tr'));;
+
+    my_tr.insertSibling(or_tr, 'before');
+    my_tr.insertSibling(form_tr, 'before');
+	or_tr.dom.innerHTML = buildOrRow();
+	form_tr.dom.innerHTML = buildForm();
 	addFilterButton(Ext.get(form_tr));
 }
 
@@ -254,7 +255,7 @@ function getFieldRowData(fieldRow) {
 	} else {*/
 		rowData = formContentToObject(formContents(fieldRow.dom));
 	/*}*/
-	log('j_rowData = ' + serializeJSON(rowData));
+	log('j_rowData = ' + Ext.encode(rowData));
 	return rowData;
 }
 
@@ -283,6 +284,7 @@ function getFTableData(ftable, ftData) {
         }
 	}
 	// update(ft_data, {'ahoj': 'cau'})
+    log('ftData:' + Ext.encode(ftData));
 	return ftData
 }
 
@@ -297,31 +299,38 @@ function sendUnionForm(thisElem, saveName) {
     var ftables = Ext.select('.unionfiltertable > tbody > tr > td > .filtertable');
     for (var i = 0, len = ftables.getCount(); i < len; i++) {
         var ftable = ftables.item(i);
-        data.push(getFTableData(ftable));
+        ftdata = getFTableData(ftable)
+        log('Do data pushuju ftdata:' + Ext.encode(ftdata));
+        data.push(ftdata);
+        log('data po pushu: ' + Ext.encode(data));
     }
-    log('union form DATA:', Ext.encode(data));
-    var form = FORM({
+    log('union form DATA:' + Ext.encode(data));
+    var form = new Ext.Element(document.createElement('form'))
+    form.set({
         'method' : 'post',
         'action' : thisForm.action,
         'style' : 'display: none'
-    }, INPUT({
+    });
+    var dataInput = new Ext.Element(document.createElement('input'));
+    dataInput.set({
         'type' : 'hidden',
         'name' : 'json_data',
-        'value' : serializeJSON(data),
+        'value' : Ext.encode(data),
         'style' : 'display: none'
-    }));
+    });
+    form.appendChild(dataInput)
     if (saveName) {
-        form.appendChild(
-	        INPUT({
-		        'type' : 'hidden',
-		        'name' : 'save_input',
-		        'value' : saveName,
-		        'style' : 'display: none'
-		    })
-        );
+        saveInput = new Ext.Element(document.createElement('input')); 
+	    saveInput.set({
+	        'type' : 'hidden',
+	        'name' : 'save_input',
+	        'value' : saveName,
+	        'style' : 'display: none'
+	    });
+        form.appendChild(saveInput);
     }
-    getFirstElementByTagAndClassName('body').appendChild(form);
-    form.submit();
+    Ext.getBody().appendChild(form);
+    form.dom.submit();
     return false;
 }
 
@@ -339,7 +348,7 @@ function saveUnionForm(thisElem) {
     }
 }
 
-function getFTableDataOld(ftable) {
+/*function getFTableDataOld(ftable) {
     var ftData = {}; // {} is same as (now deprecated): new Object();
     var fieldRows = findChildElements(ftable, ['> tbody > tr.field_row']);
     log('fieldRows.length = ' + fieldRows.length);
@@ -349,7 +358,7 @@ function getFTableDataOld(ftable) {
     }
     // update(ft_data, {'ahoj': 'cau'})
     return ftData
-}
+}*/
 
 /*function sendUnionFormOld(thisElem) {
 	var data = [];
@@ -380,15 +389,16 @@ function getFTableDataOld(ftable) {
 	return false;
 }*/
 
-function getNewFieldNum(thisElem) {
+/*function getNewFieldNum(thisElem) {
 	function getFieldNumInTr(tr) {
 		// var inputs = findChildElements(tr, ["input[name^='presention|']"]);
 		// // name starts with "presention|"
 		log('tr.className = ' + tr.className);
-		var input = getFirstElementByTagAndClassName('input', '', tr);
+		var input = Ext.query('input', tr)[0];
+        
 		log('input = ' + input);
 		if (input) {
-			log('input.value =' + input.value);
+			log('input.value = ' + input.value);
 			return (Number(input.value) + 1)
 		} else {
 			return 0;
@@ -403,7 +413,7 @@ function getNewFieldNum(thisElem) {
 	var num = getFieldNumInTr(prev_tr);
 	log(num);
 	return numberFormatter('000')(num);
-}
+}*/
 
 /*function addRow(thisElem, form_name) {
 	var my_tr = getFirstParentByTagAndClassName(thisElem, tagName = 'tr');
