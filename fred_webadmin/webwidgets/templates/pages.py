@@ -133,7 +133,8 @@ class FilterPage(BaseSiteMenu):
             itertable = c.itertable
             self.main.add(div(attr(id='div_for_itertable', cssc='extjs', 
                                    media_files=['/css/ext/css/ext-all.css', 
-#                                                '/js/MochiKit/MochiKit.js', 
+#                                                '/js/MochiKit/MochiKit.js',
+                                                '/js/logging.js', 
                                                 '/js/ext/ext-base.js', 
                                                 '/js/ext/ext-all.js', 
                                                 '/js/itertable.js'])))

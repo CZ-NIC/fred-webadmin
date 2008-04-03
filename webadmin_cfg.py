@@ -20,6 +20,7 @@ iors = (#'corbaname::jarahp',
         'corbaname::pokuston', 
         'corbaname::curlew')
 
+auth_method = 'LDAP' # 'LDAP', 'CORBA'
 LDAP_server = 'ldap.office.nic.cz'
 LDAP_scope = 'uid=%s,ou=People,dc=nic,dc=cz'
 

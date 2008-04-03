@@ -1,3 +1,21 @@
+Ext.ItertablesPagingToolbar = Ext.extend(Ext.PagingToolbar, {
+    /* overrides updateInfo to expect 4 arguments in displayMsg string (added num_row_in_db as last argument) */ 
+    updateInfo : function() {
+        if(this.displayEl){
+            var count = this.store.getCount();
+            var msg = count == 0 ?
+                this.emptyMsg :
+                String.format(
+                    this.displayMsg,
+                    this.cursor+1, this.cursor+count, this.store.getTotalCount(), this.store.reader.jsonData.num_rows_in_db
+                );
+            this.displayEl.update(msg);
+        }
+    }
+});
+    
+
+
 var IterTableUI = function() { 
     var store; //hold our data
     var grid; //component
@@ -6,7 +24,8 @@ var IterTableUI = function() {
     var headerType = 'nenast'; //json header type informations
     var pageSize;
     var objectName;
-   
+    var totalInDB;
+    
     function setupDataSource() {
 	    // create the Data Store
         log('header pred create Store:' + Ext.encode(header));
@@ -17,7 +36,7 @@ var IterTableUI = function() {
 	
 	        reader: new Ext.data.JsonReader({
 	            totalProperty: 'num_rows',
-	            //totalInDB: 'num_rows_in_db',
+	            totalInDB: 'num_rows_in_db',
 	            root: 'rows',
 	            id: 'Id', // id must be unique identifier of row
 	            fields: header /*[
@@ -32,7 +51,11 @@ var IterTableUI = function() {
 	        remoteSort: true
 	    });
 	    //store.setDefaultSort('Id', 'ASC');
+        
         store.load();
+        
+        window.store = store;
+        
     }
     
             
@@ -161,11 +184,11 @@ var IterTableUI = function() {
             //sm: new Ext.grid.CellSelectionModel(),//{selectRow:Ext.emptyFn}),
             //disableSelection: true,
 	        loadMask: true,
-	        bbar: new Ext.PagingToolbar({
+	        bbar: new Ext.ItertablesPagingToolbar({
 	            pageSize: pageSize,
 	            store: store,
 	            displayInfo: true,
-	            displayMsg: 'Displaying results {0} - {1} of {2}',
+                displayMsg: 'Displaying results {0} - {1} of {2} ({3})',
 	            emptyMsg: "No results to display"
 	            /*items:[
 	                '-', {
@@ -182,9 +205,13 @@ var IterTableUI = function() {
         //grid.on('beforeColMenuShow', setCSSExtjsMenu);
         // render it
         grid.render();
+        /*grid.bottomToolbar.displayMsg = 'Displaying results {0} - {1} of {2} blabla'
+        grid.store.on('beforeload', function (store) {
+            grid.bottomToolbar.displayMsg = 'Displaying results {0} - {1} of {2} (' + store.reader.jsonData.num_rows_in_db + ')';
+        });*/
         grid.getView().colMenu.getEl().addClass('extjs');
         grid.getView().hmenu.getEl().addClass('extjs');
-        //window.grid = grid;
+        window.grid = grid;
         //grid.on('rowclick', function(grid, rowNum) {location.href='/' + objectName + '/detail/?id=' + grid.getStore().getAt(rowNum)['id']});
         
     }

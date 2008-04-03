@@ -19,6 +19,8 @@ import dns.message
 import dns.resolver
 import dns.query
 
+import ldap
+
 import config
 
 # CherryPy main import
@@ -155,6 +157,16 @@ def check_onperm(objects_nperms, check_type='all'):
         return _wrapper
     #update_wrapper(_wrapper, view_func)
     return _decorator
+
+class LDAPBackend:
+    def __init__(self):
+        self.ldap_scope = config.LDAP_scope
+        self.ldap_server = config.LDAP_server
+        
+    def authenticate(self, username=None, password=None):
+        l = ldap.open(config.LDAP_server)
+        l.simple_bind_s(self.ldap_scope % username, password)
+        
 
 class ListTableMixin(object):
 
@@ -573,7 +585,12 @@ class ADIF(AdifPage):
                 ior=config.iors[corba_server]
                 corba.connect(ior)
                 admin = corba.getObject('fred', 'Admin', 'Admin')
-                corbaSessionString = admin.login(u2c(login), u2c(password))
+                
+                if config.auth_method == 'LDAP':
+                    LDAPBackend().authenticate(login, password) # throws ldap.INVALID_CREDENTIALS if user is not valid
+                else:
+                    pass # admin.AuthenticateUser(u2c(login), u2c('superuser')) 
+                corbaSessionString = admin.login(u2c(login), u2c('superuser'))
                 cherrypy.session['corbaSessionString'] = corbaSessionString
                 
                 cherrypy.session['corba_server_name'] = form.fields['corba_server'].choices[corba_server][1]
@@ -587,6 +604,10 @@ class ADIF(AdifPage):
                 #cherrypy.session['FileManager'] = corba.getObject('fred', 'FileManager', 'FileManager')
 
                 raise cherrypy.HTTPRedirect(form.cleaned_data.get('next'))
+            except ldap.INVALID_CREDENTIALS, e:
+                form.non_field_errors().append(_('Invalid username and/or password!'))
+                if config.debug:
+                    form.non_field_errors().append('(%s)' % str(e))
             except omniORB.CORBA.BAD_PARAM, e:
                 form.non_field_errors().append(_('Bad corba call! ') + '(%s)' % (str(e)))
                 if config.debug:
