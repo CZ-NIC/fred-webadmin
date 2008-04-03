@@ -160,9 +160,9 @@ class FilterForm(Form):
         dictionary.
         '''
         self.fields = SortedDict()
+
+        fields_for_sort = []  
         if self.is_bound:
-            fields_for_sort = {}
-            
             print "DATA", self.data
             print "DATA.keys()", self.data.keys()
             print "SELF>data_cleaned", self.data_cleaned
@@ -175,20 +175,11 @@ class FilterForm(Form):
                         if isinstance(field, CompoundFilterField):
                             field.parent_form = self
                         field.name = '%s|%s' % ('filter', filter_name)
-                        print 'fpos:', field.order, 'fname:', field.name
-                        #print "Fieldu %s jsem nasetil %s" % (field.name, field.value_from_datadict(self.data))
                         field.value = field.value_from_datadict(self.data)
                         
                         negation = (self.data.get('%s|%s' % ('negation', filter_name)) is not None)
                         field.negation = negation
-                        
-#                        position_in_fields_sequence = self.data[name_str] # position is value of presention field
-#                        print 'position_in_fields_sequence = %s' % position_in_fields_sequence
-                        fields_for_sort[field.order] = field
-                print "SORTED %s" % fields_for_sort.items()
-                for pos, field in sorted(fields_for_sort.items()):  # adding fields in order according to presention field value
-                    self.fields[field.name] = field
-                print "VYSLEDNY FIELDS PO SORTED %s" % self.fields.items()
+                        fields_for_sort.append(field)
             else: # data passed to form in constructor are cleaned_data (e.g. from itertable.get_filter)
                 print "data:", self.data
                 for name_str, [neg, value] in self.data.items():
@@ -200,12 +191,17 @@ class FilterForm(Form):
                     field.name = name_str
                     field.set_from_clean(value)
                     field.negation = neg
-                    self.fields[field.name] = field
+                    fields_for_sort.append(field)
         else:
             for field_name in self.default_fields_names:
                 field = deepcopy(self.base_fields.get(field_name))
                 field.name = '%s|%s' % ('filter', field_name)
-                self.fields[field.name] = field
+                fields_for_sort.append(field)
+        
+        # adding fields in order according to field.order
+        for pos, field in sorted([[field.order, field] for field in fields_for_sort]):  
+            self.fields[field.name] = field
+        print "VYSLEDNY FIELDS PO SORTED %s" % self.fields.items()
     
     def clean_field(self, name, field):
         try:
