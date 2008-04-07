@@ -504,13 +504,16 @@ class HiddenField(CharField):
 class ChoiceField(Field):
     #widget = Select
     tattr_list = select.tattr_list
-    def __init__(self, name='', value='', choices=(), required=True, label=None, initial=None, help_text=None, *arg, **kwargs):
+    def __init__(self, name='', value='', choices=None, required=True, label=None, initial=None, help_text=None, *arg, **kwargs):
 #        self._choices = None
 #        self._value = None
         super(ChoiceField, self).__init__(name, value, required, label, initial, help_text, *arg, **kwargs)
         self.tag = 'select'
 
-        self.choices = choices
+        if choices is None:
+            self.choices = []
+        else:
+            self.choices = choices
         self.value = value
 
     def make_content(self):
@@ -575,7 +578,7 @@ class NullBooleanField(ChoiceField):
 
 
 class MultipleChoiceField(ChoiceField):
-    def __init__(self, name='', value='', choices=(), required=True, label=None, initial=None, help_text=None, *args, **kwargs):
+    def __init__(self, name='', value='', choices=None, required=True, label=None, initial=None, help_text=None, *args, **kwargs):
         super(MultipleChoiceField, self).__init__(name, value, choices, required, label, initial, help_text, *args, **kwargs)
         if self.tag == u'select':
             self.add(attr(multiple=u"multiple"))

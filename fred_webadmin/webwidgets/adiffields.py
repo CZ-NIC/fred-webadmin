@@ -66,9 +66,28 @@ class CorbaEnumChoiceField(ChoiceField):
         choices = [(unicode(item._v), _(item._n)) for item in corba_enum._items]
         self.corba_enum = corba_enum
         super(CorbaEnumChoiceField, self).__init__(name, value, choices, required, label, initial, help_text, *arg, **kwargs)
+        self.empty_choice = ['', '']
+        
+        
     def clean(self):
         cleaned_data = super(CorbaEnumChoiceField, self).clean()
-        return int(cleaned_data)
+        if cleaned_data != u'':
+            return int(cleaned_data)
+    
+    def make_content(self):
+        if self.required and self.choices and self.choices[0] == self.empty_choice: # remove empty choice:
+            self.choices.pop(0)
+        elif not self.required and (not self.choices or (self.choices and self.choices[0] != self.empty_choice)): # add empty choice:
+            self.choices.insert(0, self.empty_choice)
+        super(CorbaEnumChoiceField, self).make_content()
+    
+    def is_emptry(self):
+        if self.value == self.empty_choice[0]:
+            return True
+        else:
+            return False
+            
+            
 
 class DateIntervalField(MultiValueField):
     def __init__(self, name='', value='', *args, **kwargs):
