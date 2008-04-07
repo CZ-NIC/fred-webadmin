@@ -584,7 +584,7 @@ class ADIF(AdifPage):
             try:
                 ior=config.iors[corba_server]
                 corba.connect(ior)
-                admin = corba.getObject('fred', 'Admin', 'Admin')
+                admin = corba.getObject(config.context, 'Admin', 'Admin')
                 
                 if config.auth_method == 'LDAP':
                     LDAPBackend().authenticate(login, password) # throws ldap.INVALID_CREDENTIALS if user is not valid
@@ -600,8 +600,8 @@ class ADIF(AdifPage):
                 corbaSession = self._get_corba_session()
                 cherrypy.session['user'] = User(corbaSession.getUser())
                 
-                #cherrypy.session['Mailer'] = corba.getObject('fred', 'Mailer', 'Mailer')
-                #cherrypy.session['FileManager'] = corba.getObject('fred', 'FileManager', 'FileManager')
+                #cherrypy.session['Mailer'] = corba.getObject(config.context, 'Mailer', 'Mailer')
+                #cherrypy.session['FileManager'] = corba.getObject(config.context, 'FileManager', 'FileManager')
 
                 raise cherrypy.HTTPRedirect(form.cleaned_data.get('next'))
             except ldap.INVALID_CREDENTIALS, e:

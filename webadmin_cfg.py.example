@@ -8,9 +8,13 @@ log_dir = '/var/log/'
 
 idl = '/usr/share/idl/fred/ccReg.idl'
 iors = ('corbaname::pokuston', 'corbaname::curlew')
+context = 'fred'
 
-title = 'SUMO2 / CherryPy'
 tablesize = 25
+
+auth_method = 'CORBA' # 'LDAP', 'CORBA'
+LDAP_server = 'ldap.office.nic.cz'
+LDAP_scope = 'uid=%s,ou=People,dc=nic,dc=cz'
 
 # gettext
 gettext_domain = 'adif'
@@ -18,6 +22,7 @@ localepath = locale_dir
 lang = 'cs_CZ'
 #lang = 'en_US'
 
+js_calendar_date_format = 'D.M.YYYY'
 
 cherrycfg = {
     'global': {

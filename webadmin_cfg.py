@@ -1,5 +1,5 @@
 debug = True
-caching_filter_form_javascript = True # if this settings is on, then when doing changes to filter form, you should erase all sessions, because old filter forms are still in session
+caching_filter_form_javascript = False # if this settings is on, then when doing changes to filter form, you should erase all sessions, because old filter forms are still in session
 
 
 def curdir(f = ''):
@@ -19,8 +19,9 @@ iors = (#'corbaname::jarahp',
         'corbaname::jsadek', 
         'corbaname::pokuston', 
         'corbaname::curlew')
+context = 'fred'
 
-auth_method = 'LDAP' # 'LDAP', 'CORBA'
+auth_method = 'CORBA' # 'LDAP', 'CORBA'
 LDAP_server = 'ldap.office.nic.cz'
 LDAP_scope = 'uid=%s,ou=People,dc=nic,dc=cz'
 
