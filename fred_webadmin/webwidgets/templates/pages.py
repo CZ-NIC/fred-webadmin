@@ -119,6 +119,7 @@ class FilterPage(BaseSiteMenu):
                      
         if context.get('form') and (config.debug or not c.get('itertable')):
             self.main.add(c.form)
+            
             #print "VKLADAM JS FORMU"
             #import cProfile
             #cProfile.runctx('forms_js = get_filter_forms_javascript()', globals(), locals(), 'prof2')
@@ -130,6 +131,7 @@ class FilterPage(BaseSiteMenu):
             self.main.add(p(c['result']))
         
         if c.get('itertable'):
+            
             itertable = c.itertable
             self.main.add(div(attr(id='div_for_itertable', cssc='extjs', 
                                    media_files=['/css/ext/css/ext-all.css', 
@@ -138,28 +140,30 @@ class FilterPage(BaseSiteMenu):
                                                 '/js/ext/ext-base.js', 
                                                 '/js/ext/ext-all.js', 
                                                 '/js/itertable.js'])))
-
-            self.main.add(br(), br())
-            header = tr(attr(cssc="header"))
-            for htext in itertable.header:
-                header.add(td(htext))
-
-            rows = [header]
-            for irow in itertable:
-                row = tr()
-                for col in irow:
-                    if col.get('icon'):
-                        val = img(attr(src='/img/contenttypes/' + col['icon']))
-                    else:
-                        val = col['value']
-                    
-                    if col.get('url'):
-                        val = a(attr(href=col['url']), val)
-                    
-                    row.add(td(attr(cssc=col.get('cssc')), val))
-                rows.append(row)
-
+            self.main.add(p(_('Table_as'), a(attr(href='?txt=1'), 'TXT'), ',', a(attr(href='?csv=1'), 'CSV')))
+            
             if config.debug:
+                self.main.add(br(), br())
+                header = tr(attr(cssc="header"))
+                for htext in itertable.header:
+                    header.add(td(htext))
+                
+                rows = [header]
+                for irow in itertable:
+                    row = tr()
+                    for col in irow:
+                        if col.get('icon'):
+                            val = img(attr(src='/img/contenttypes/' + col['icon']))
+                        else:
+                            val = col['value']
+                        
+                        if col.get('url'):
+                            val = a(attr(href=col['url']), val)
+                        
+                        row.add(td(attr(cssc=col.get('cssc')), val))
+                    rows.append(row)
+
+
                 self.main.add(table(attr(id='objectlist', media_files='/css/objectlist.css'), rows))
                 
                 # Numbers of entries 

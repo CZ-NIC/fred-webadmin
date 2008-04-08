@@ -293,6 +293,8 @@ class ListTableMixin(object):
         
         if kwd.get('cf') or kwd.get('page') or kwd.get('load') or kwd.get('list_all') or kwd.get('filter_id'): # clear filter - whole list of objects without using filter form
             context = self._get_list(context, **kwd)
+        elif kwd.get('txt') or kwd.get('csv'):
+            return self._get_list(context, **kwd)
         else:
             form_class = self._get_form_class()
             # bound form with data
@@ -589,8 +591,8 @@ class ADIF(AdifPage):
                 if config.auth_method == 'LDAP':
                     LDAPBackend().authenticate(login, password) # throws ldap.INVALID_CREDENTIALS if user is not valid
                 else:
-                    pass # admin.AuthenticateUser(u2c(login), u2c('superuser')) 
-                corbaSessionString = admin.login(u2c(login), u2c('superuser'))
+                    admin.authenticateUser(u2c(login), u2c(password)) 
+                corbaSessionString = admin.createSession(u2c(login))
                 cherrypy.session['corbaSessionString'] = corbaSessionString
                 
                 cherrypy.session['corba_server_name'] = form.fields['corba_server'].choices[corba_server][1]
