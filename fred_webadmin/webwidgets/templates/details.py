@@ -52,11 +52,18 @@ class ContactDetailDiv(DetailDiv):
                   tr(th(attr(style='width: 180px'), _('Create_date')), 
                      td(span(result.createDate)), 
                      th(attr(style='width: 120px'), _('by_registrar:')), 
-                     td(attr(style='width: 280px'), a(attr(href=f_urls['registrars'] + 'detail/?handle=' + result.createRegistrarHandle), result.registrarHandle))),
-                  tr(th(_('Last_update_date:')), 
+                     td(attr(style='width: 280px'), a(attr(href=f_urls['registrars'] + 'detail/?handle=' + result.createRegistrarHandle), result.createRegistrarHandle))),
+                  ['',
+                   tr(th(attr(style='width: 180px'), _('Transfer_date')), 
+                      td(span(result.transferDate)), 
+                      th(attr(style='width: 120px'), _('to_registrar:')), 
+                      td(attr(style='width: 280px'), a(attr(href=f_urls['registrars'] + 'detail/?handle=' + result.registrarHandle), result.registrarHandle)))
+                  ][bool(result.transferDate)],
+                  ['', tr(th(_('Last_update_date:')), 
                      td(span(result.updateDate)), 
                      th(_('by_registrar:')), 
                      td(a(attr(href=f_urls['registrars'] + 'detail/?handle=' + result.updateRegistrarHandle), result.updateRegistrarHandle))),
+                  ][bool(result.updateDate)],
 #                  tr(th(attr(style='width: 180px'), _('Cancel_date:')), 
 #                     td(attr(colspan='3'), span(result.cancelDate)))
                  ),
@@ -187,7 +194,7 @@ class DomainDetailDiv(DetailDiv):
                          th(_('from'))), 
                       tr(td(result.registrar.name), 
                          td(a(attr(href=f_urls['registrars'] + 'detail/?handle=' + result.registrarHandle), result.registrarHandle)), 
-                         td(result.updateDate)))
+                         td(result.transferDate or result.createDate)))
             )
         if result.createRegistrar:
             self.add(
