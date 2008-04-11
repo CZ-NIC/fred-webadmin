@@ -245,7 +245,7 @@ class ListTableMixin(object):
         return context
 
    
-    @login_required
+    @check_onperm('read')
     def _filter_json_header(self):
         itertable = self._get_itertable()
         return json_response({
@@ -255,7 +255,7 @@ class ListTableMixin(object):
             'object_name': itertable.request_object,
         })
     
-    @login_required
+    @check_onperm('read')
     def _filter_json_rows(self, **kwd):
         print "A json rows delam s kwd: %s" % kwd
         itertable = self._get_itertable()

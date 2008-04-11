@@ -10,7 +10,7 @@ idl = '/usr/share/idl/fred/ccReg.idl'
 iors = ('corbaname::pokuston', 'corbaname::curlew')
 context = 'fred'
 
-tablesize = 25
+tablesize = 45
 
 auth_method = 'CORBA' # 'LDAP', 'CORBA'
 LDAP_server = 'ldap.office.nic.cz'

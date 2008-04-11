@@ -97,7 +97,7 @@ var IterTableUI = function() {
                     header: colHeader,
                     dataIndex: colHeader
                 }
-                
+                colSpec['width'] = 130;
                 if (colHeaderType.substr(colHeaderType.length - '_ID'.length) == '_ID') {// endsWith('_ID')
                     colSpec['sortable'] = false;
                     colSpec['width'] = 30;
@@ -173,8 +173,10 @@ var IterTableUI = function() {
         grid = new Ext.grid.GridPanel({
 	        el:'div_for_itertable',
 	        //width:700,
-	        //height:500,
-            autoHeight: true,
+	        height:700,
+            //autoExpandColumn:'common',
+            //autoHeight: true,
+            //autoScroll: true,
 	        //title:'',
 	        store: store,
 	        cm: cm,
