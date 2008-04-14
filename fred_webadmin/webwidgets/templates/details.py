@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import datetime
+
 from fred_webadmin.webwidgets.gpyweb.gpyweb import attr, div, span, h1, table, tbody, tr, th, td, p, strong, b, small, a, form, input, select, option, textarea, script, pre, br, acronym
 from fred_webadmin.webwidgets.adifwidgets import FilterPanel
 from fred_webadmin.translation import _
@@ -98,6 +100,9 @@ class DomainDetailDiv(DetailDiv):
         super(DomainDetailDiv, self).__init__(context)
         c = context
         result = c['result']
+        expiration_date = datetime.date(*reversed([int(v) for v in result.expirationDate.split('.')]))
+        outzone_date = (expiration_date + datetime.timedelta(30)).strftime('%d.%m.%Y')
+        delete_date = (expiration_date + datetime.timedelta(45)).strftime('%d.%m.%Y')
         self.add(
             h1(_('Domain_information')),
             table(attr(border='1', style='width: 96%'), 
@@ -109,6 +114,10 @@ class DomainDetailDiv(DetailDiv):
                      td(attr(rowspan='7', valign='top', style='width: 90px'), form(select(attr(size='8', cssc='disabled', disabled='disabled'), option('inactive'), option('clientDeleteProhibited'), option('serverDeleteProhibited'), option('clientHold'), option('serverHold'), option('clientRenewProhibited'), option('serverRenewProhibited'), option('clientTransferProhibited'), option('serverTransferProhibited'), option('clientUpdateProhibited'), option('serverUpdateProhibited'))))), 
                   tr(th(_('Expiry_date')), 
                      td(span(result.expirationDate))), 
+                  tr(th(_('Outzone_date')), 
+                     td(span(outzone_date))), 
+                  tr(th(_('Delete_date')), 
+                     td(span(delete_date))), 
 #                  tr(th(_('Deleted_date')), 
 #                     td(span(''))), 
 #                  tr(th(_('Cancel_date')), 
