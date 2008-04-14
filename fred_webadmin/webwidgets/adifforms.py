@@ -292,6 +292,7 @@ class ContactsFilterForm(ObjectsFilterForm):
     default_fields_names = ObjectsFilterForm.default_fields_names + ['Name']
     
     Email = EmailField(label=_('Email'))
+    NotifyEmail = EmailField(label=_('Notify email'))
 #    contact_type = MultipleChoiceField(label=_('Contact type'), choices=(('owner', _('Owner')), ('admin', _('Admin')), ('techadmin', _('techadmin')), ('temporary', _('Temporary'))))
     Name = CharField(label=_('Name'))
     Organization = CharField(label=_('Organization'))
@@ -299,9 +300,16 @@ class ContactsFilterForm(ObjectsFilterForm):
     Vat = CharField(label=_('VAT'))
     
 class NSSetsFilterForm(ObjectsFilterForm):
-#    ipAddr = CharField(label=_('IP address'))
-    Admin = CompoundFilterField(label=_('Technical contact'), form_class=ContactsFilterForm)
-#    nsName = CharField(label=_('Nameserver name'))
+    AdminContact = CompoundFilterField(label=_('Technical contact'), form_class=ContactsFilterForm)
+    HostIP = CharField(label=_('IP address'))
+    HostFQDN = CharField(label=_('Nameserver name'))
+    #HostFQDN1 = CharField(label=_('Nameserver name 1'))
+    #HostFQDN2 = CharField(label=_('Nameserver name 2'))
+    
+    def clean(self):
+        cleaned_data = super(NSSetsFilterForm, self).clean()
+        return cleaned_data
+        
     
 class DomainsFilterForm(ObjectsFilterForm):
     default_fields_names = ['Handle']
