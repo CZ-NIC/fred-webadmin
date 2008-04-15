@@ -249,7 +249,7 @@ class FilterTableFormLayout(TableFormLayout):
 
         
     def get_javascript_gener_field(self):
-        # --- function createRow ---
+        # --- function createRow and variable allFieldsDict---
         
         output = u'function createRow%s(fieldName, fieldLabel) {\n' % self.form.get_object_name()
         output += u'var row = "";\n'

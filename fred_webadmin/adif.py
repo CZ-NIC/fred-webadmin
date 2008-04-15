@@ -56,7 +56,7 @@ from translation import _
 
 
 from webwidgets.templates.pages import (
-    BaseSite, BaseSiteMenu, LoginPage, DisconnectedPage, AllFiltersPage, FilterPage, ErrorPage, DigPage, 
+    BaseSite, BaseSiteMenu, LoginPage, DisconnectedPage, NotFound404Page, AllFiltersPage, FilterPage, ErrorPage, DigPage, 
     DomainsDetail, ContactsDetail, NSSetsDetail, RegistrarsDetail, ActionsDetail, AuthInfosDetail, MailsDetail, InvoicesDetail
 )
 from webwidgets.gpyweb.gpyweb import WebWidget
@@ -408,6 +408,9 @@ class AdifPage(Page):
             return AllFiltersPage
         elif action == 'disconnected':
             return DisconnectedPage
+        elif action == '404_not_found':
+            cherrypy.response.status = 404
+            return NotFound404Page
         elif action == 'error':
             return ErrorPage
         elif action == 'dig':
@@ -522,7 +525,10 @@ class AdifPage(Page):
 
     def default(self, *params, **kwd):
         #raise cherrypy.HTTPRedirect('/%s' % (self.classname))
-        return "%s<br />%s" % (str(params), str(kwd))
+        if config.debug:
+            return '%s<br />%s' % (str(params), str(kwd))
+        else:
+            return self._render('404_not_found')
 
     def _disconnected(self):
         cherrypy.session['user'] = False
@@ -565,7 +571,7 @@ class ADIF(AdifPage):
                 cherrypy.response.headers['Last-Modified'] = http.HTTPDate(time.time())
             return get_filter_forms_javascript()
         else:
-            super(ADIF, self).default(*args, **kwd)
+            return super(ADIF, self).default(*args, **kwd)
         
         
     def login(self, *args, **kwd):
@@ -650,7 +656,7 @@ class Summary(AdifPage):
         if action == 'summary':
             return BaseSiteMenu
         else:
-            return BaseSiteMenu
+            return super(Summary, self)._template(action)
         
     @login_required
     def index(self):
@@ -658,7 +664,7 @@ class Summary(AdifPage):
         context.main = ul(
             li(a(attr(href='/naky_url/'), u'ňáká nabídka')),
         )
-        return self._render(ctx=context)
+        return self._render('summary', ctx=context)
     
 class Logs(AdifPage):
     def _template(self, action=''):

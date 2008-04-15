@@ -365,6 +365,7 @@ class FilterLoader(object):
         
     @classmethod
     def get_filter_data(cls, itertable):
+        #import pdb; pdb.set_trace()
         filter_data = []
         for compound_filter in CorbaFilterIterator(itertable._table):
             filter_data.append(cls._get_one_compound_filter_data(compound_filter))
@@ -375,12 +376,12 @@ class FilterLoader(object):
         filter_data = {}
         for sub_filter in CorbaFilterIterator(compound_filter):
             name = sub_filter._get_name()
+            print 'NAME=', name, type(name)
             neg = sub_filter._get_neg()
             if isinstance(sub_filter, ccReg.Filters._objref_Compound):#Compound):
                 value = cls._get_one_compound_filter_data(sub_filter)
             else:
                 val = sub_filter._get_value()
-                print 'NAME=', name, type(name)
                 if isinstance(sub_filter, ccReg.Filters._objref_Date):
                     value = cls.corba_to_date_time_interval(val, cls.corba_to_date)
                 elif isinstance(sub_filter, ccReg.Filters._objref_DateTime):

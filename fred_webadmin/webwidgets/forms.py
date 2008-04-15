@@ -79,10 +79,14 @@ class BaseForm(form):
         # alter self.fields, we create self.fields here by copying base_fields.
         # Instances should always modify self.fields; they should not modify
         # self.base_fields.
-        self.fields = self.base_fields.copy()
+        self.fields = None
+        self.build_fields()
+        
         self.set_fields_values()
-    
-    
+        
+    def build_fields(self):
+        self.fields = self.base_fields.copy()
+        
     def set_fields_values(self):
         if not self.is_bound:
             for i, field in enumerate(self.fields.values()): 

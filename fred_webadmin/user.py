@@ -21,7 +21,11 @@ class User(object):
         #self.nperms = ['domain.read', 'contact.read', 'nsset.read']
         #self.nperms = ['domain.read', 'domain.filter.owner', 'domain.filter.email']
         #self.nperms = ['registrar.read']
-        self.nperms = []
+        if self.login == 'helpdesk':
+            self.nperms = ['domain.filter', 'domain.filter.AuthInfo']
+        else:
+            self.nperms = ['domain.filter.AdminContact']
+        #self.nperms = []
         print 'vytvoren user s nperms = ', str(self.nperms)
         
     def has_nperm(self, nperm):

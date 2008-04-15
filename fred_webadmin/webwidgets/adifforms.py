@@ -120,6 +120,7 @@ class FilterForm(Form):
                  initial=None, error_class=ErrorList, label_suffix=':', layout=FilterTableFormLayout,
                  is_nested = False,
                  *content, **kwd):
+        
         for field in self.base_fields.values():
             field.required = False
             field.negation = False
@@ -127,9 +128,8 @@ class FilterForm(Form):
         self.is_nested = is_nested
         self.data_cleaned = data_cleaned
         self.layout = layout
-        super(FilterForm, self).__init__(data, files, auto_id, prefix, initial, error_class, label_suffix, layout, *content, **kwd)
         self.filter_base_fields()
-        self.build_fields()
+        super(FilterForm, self).__init__(data, files, auto_id, prefix, initial, error_class, label_suffix, layout, *content, **kwd)
         self.tag = None
     
     @classmethod
@@ -142,8 +142,8 @@ class FilterForm(Form):
     def filter_base_fields(self):
         "Filters base fields against user negative permissions, so if user has nperm on field we delete it from base_fields (only in istance of FilterForm class)"
         user = cherrypy.session.get('user', None)
-        
-        object_name = self.__class__.__name__.lower().rsplit('filterform', 1)[0]
+        #import pdb; pdb.set_trace()
+        object_name = self.get_object_name()
         self.base_fields = SortedDict([(name, field) for name, field in self.base_fields.items() 
                                        if not user.has_nperm('%s.%s.%s' % (object_name, 'filter', field.name))
                                       ])
@@ -159,6 +159,7 @@ class FilterForm(Form):
         value is value of that field. If field is compound filter, then value is again
         dictionary.
         '''
+        base_fields = self.base_fields # self.fields are deepcopied from self.base_fields (in BaseForm) 
         self.fields = SortedDict()
 
         fields_for_sort = []  
@@ -171,7 +172,7 @@ class FilterForm(Form):
                     name = name_str.split('|')
                     if len(name) >= 2 and name[0] == 'presention':
                         filter_name = name[1]
-                        field = deepcopy(self.base_fields[filter_name])
+                        field = deepcopy(base_fields[filter_name])
                         if isinstance(field, CompoundFilterField):
                             field.parent_form = self
                         field.name = '%s|%s' % ('filter', filter_name)
@@ -185,7 +186,7 @@ class FilterForm(Form):
                 for name_str, [neg, value] in self.data.items():
                     filter_name = name_str.split('|')[1]
                     print 'fieldu %s nastavuji value %s' % (filter_name, value)
-                    field = deepcopy(self.base_fields[filter_name])
+                    field = deepcopy(base_fields[filter_name])
                     if isinstance(field, CompoundFilterField):
                         field.parent_form = self
                     field.name = name_str
@@ -194,7 +195,7 @@ class FilterForm(Form):
                     fields_for_sort.append(field)
         else:
             for field_name in self.default_fields_names:
-                field = deepcopy(self.base_fields.get(field_name))
+                field = deepcopy(base_fields[field_name])
                 field.name = '%s|%s' % ('filter', field_name)
                 fields_for_sort.append(field)
         
@@ -300,7 +301,7 @@ class ContactsFilterForm(ObjectsFilterForm):
     Vat = CharField(label=_('VAT'))
     
 class NSSetsFilterForm(ObjectsFilterForm):
-    AdminContact = CompoundFilterField(label=_('Technical contact'), form_class=ContactsFilterForm)
+    TechContact = CompoundFilterField(label=_('Technical contact'), form_class=ContactsFilterForm)
     HostIP = CharField(label=_('IP address'))
     HostFQDN = CharField(label=_('Nameserver name'))
     #HostFQDN1 = CharField(label=_('Nameserver name 1'))
@@ -336,12 +337,6 @@ class ActionsFilterForm(FilterForm):
     SvTRID = CharField(label=_('SvTRID'))
     clTRID = CharField(label=_('ClTRID'))
     
-form_classes = (DomainsFilterForm, 
-                NSSetsFilterForm, 
-                ObjectsFilterForm, 
-                ContactsFilterForm, 
-                RegistrarsFilterForm, 
-                ActionsFilterForm)
 
 class FiltersFilterForm(FilterForm):
     default_fields_names = ['Name']
@@ -349,6 +344,14 @@ class FiltersFilterForm(FilterForm):
     userName = CharField(label=_('User name'))
     groupName = CharField(label=_('Group name'))
     type = ChoiceField(label=_('Result'), choices=((1, u'Poraněn'), (2, u'Preživší'), (3, u'Mrtev'), (4, u'Nemrtvý')))
+    
+
+form_classes = (DomainsFilterForm, 
+                NSSetsFilterForm, 
+                ObjectsFilterForm, 
+                ContactsFilterForm, 
+                RegistrarsFilterForm, 
+                ActionsFilterForm)
 
 def get_filter_forms_javascript():
     'Javascript is cached in user session (must be there, bucause each user can have other forms, because of different permissions'
