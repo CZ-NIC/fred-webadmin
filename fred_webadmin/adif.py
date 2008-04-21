@@ -13,7 +13,7 @@ import types
 
 from cgi import escape
 import omniORB
-
+from omniORB.any import from_any
 # DNS lib imports
 import dns.message
 import dns.resolver
@@ -348,6 +348,15 @@ class ListTableMixin(object):
     def index(self):
         raise cherrypy.HTTPRedirect('/%s/allfilters/' % (self.classname))
 
+    def _get_detail(self, name, obj_id):
+        corba_session = self._get_corba_session()
+        any = corba_session.getDetail(f_name_enum[name], u2c(obj_id))
+        corba_obj = from_any(any, True)
+        result = c2u(corba_obj)
+        return result
+        
+        
+
 
 class Page(object):
 
@@ -590,9 +599,10 @@ class ADIF(AdifPage):
             password = form.cleaned_data.get('password', '')
             corba_server = int(form.cleaned_data.get('corba_server', 0))
             try:
-                ior=config.iors[corba_server]
-                corba.connect(ior)
-                admin = corba.getObject(config.context, 'Admin', 'Admin')
+                ior = config.iors[corba_server][1]
+                nscontext = config.iors[corba_server][2]
+                corba.connect(ior, nscontext)
+                admin = corba.getObject('Admin', 'Admin')
                 
                 if config.auth_method == 'LDAP':
                     LDAPBackend().authenticate(login, password) # throws ldap.INVALID_CREDENTIALS if user is not valid
@@ -608,8 +618,8 @@ class ADIF(AdifPage):
                 corbaSession = self._get_corba_session()
                 cherrypy.session['user'] = User(corbaSession.getUser())
                 
-                #cherrypy.session['Mailer'] = corba.getObject(config.context, 'Mailer', 'Mailer')
-                #cherrypy.session['FileManager'] = corba.getObject(config.context, 'FileManager', 'FileManager')
+                #cherrypy.session['Mailer'] = corba.getObject('Mailer', 'Mailer')
+                #cherrypy.session['FileManager'] = corba.getObject('FileManager', 'FileManager')
 
                 raise cherrypy.HTTPRedirect(form.cleaned_data.get('next'))
             except ldap.INVALID_CREDENTIALS, e:
@@ -821,24 +831,28 @@ class Domains(AdifPage, ListTableMixin):
     def detail(self, **kwd):
         context = {}
         create = kwd.get('new')
-
+        
         if create:
             result = corba.module.Domain(0, *['']*14) # empty Domain
         else:
             admin = cherrypy.session.get('Admin')
-            handle = kwd.get('handle', None)
+            handle = kwd.get('handle')
             func = admin.getDomainByFQDN
-            if not handle:
+            obj_id = kwd.get('id')
+            if not handle and obj_id:
                 try:
-                    handle = int(kwd.get('id', None))
+                    obj_id = int(obj_id)
                 except (TypeError, ValueError):
                     context['main'] = _("Non_numeric_ID")
                     return self._render('detail', context)
-                func = admin.getDomainById
+                
 #            if not handle:
 #                raise cherrypy.HTTPRedirect('/%s/list' % (self.classname))
             try:
-                result = c2u(func(u2c(handle)))
+                if handle:
+                    result = c2u(func(u2c(handle)))
+                else:
+                    result = self._get_detail('domains', obj_id)
             except (corba.module.Admin.ObjectNotFound,):
                 context['main'] = _("Object_not_found")
                 return self._render('detail', context)

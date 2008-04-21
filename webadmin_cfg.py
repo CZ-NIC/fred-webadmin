@@ -1,5 +1,7 @@
-debug = False
-caching_filter_form_javascript = False # if this settings is on, then when doing changes to filter form, you should erase all sessions, because old filter forms are still in session
+# -*- coding: utf-8 -*-
+
+debug = True
+caching_filter_form_javascript = True # if this settings is on, then when doing changes to filter form, you should erase all sessions, because old filter forms are still in session
 
 
 def curdir(f = ''):
@@ -14,12 +16,13 @@ log_dir = base_dir
 
 #idl = '/home/glin/programming/svn_enum_checkout/enum/idl/trunk/ccReg.idl'
 idl = '/home/glin/programming/nic/webadmin/servers/idl_devel/idl/ccReg.idl'
-iors = (#'corbaname::jarahp',
-        'corbaname::localhost',
-        'corbaname::jsadek', 
-        'corbaname::pokuston', 
-        'corbaname::curlew')
-context = 'fred'
+
+iors = (#(label, nshost, nscontext),
+        (u'localní', 'localhost', 'fred'),
+        (u'maňásek', 'jsadek', 'fred'),
+        (u'hokuston', 'pokuston', 'fred2'), 
+        (u'koliha', 'curlew', 'fred'),
+       ) 
 
 auth_method = 'LDAP' # 'LDAP', 'CORBA'
 LDAP_server = 'ldap.office.nic.cz'

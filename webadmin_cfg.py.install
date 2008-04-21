@@ -1,14 +1,15 @@
 debug = True
 caching_filter_form_javascript = False # if this settings is on, then when doing changes to filter form, you should erase all sessions, because old filter forms are still in session
 
-www_dir = '/usr/share/fred_webadmin/www/'
-locale_dir = '/usr/share/fred_webadmin/locale/'
-sessions_dir = '/var/lib/fred_webadmin/sessions/'
-log_dir = '/var/log/'
+www_dir = 'DU_PREFIX/share/fred_webadmin/www/'
+locale_dir = 'DU_PREFIX/share/fred_webadmin/locale/'
+sessions_dir = 'DU_ROOT/var/lib/fred_webadmin/sessions/'
+log_dir = 'DU_ROOT/var/log/'
 
-idl = '/usr/share/idl/fred/ccReg.idl'
-iors = ('corbaname::pokuston', 'corbaname::curlew')
-context = 'fred'
+idl = 'DU_IDL_DIR/ccReg.idl' #'/usr/share/idl/fred/ccReg.idl'
+iors = (#(label, nshost, nscontext),
+		('Test', 'DU_NS_HOST', 'DU_NS_CONTEXT'),
+	   )
 
 tablesize = 45
 
@@ -26,7 +27,7 @@ js_calendar_date_format = 'D.M.YYYY'
 
 cherrycfg = {
     'global': {
-        'server.socket_port': 18456,
+        'server.socket_port': DU_WEBADMIN_PORT,
         'server.socket_host': "",
         'server.thread_pool': 10,
         'server.environment': 'production',

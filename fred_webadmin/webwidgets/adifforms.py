@@ -25,7 +25,7 @@ class FilterFormEmptyValue(object):
     pass
 
 class LoginForm(Form):
-    corba_server = ChoiceField(choices=[(str(i), ior.split('::')[1]) for i, ior in enumerate(config.iors)], label=_("Server"))
+    corba_server = ChoiceField(choices=[(str(i), ior[0]) for i, ior in enumerate(config.iors)], label=_("Server"))
     login = CharField(max_length=30, label=_('Username'))#, initial=_(u'ohíňěček ťůříšekňú'))
     password = PasswordField(max_length=30)
     next = HiddenField(initial='/')

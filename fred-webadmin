@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import sys
-sys.path.append('/etc/fred/')
+sys.path.insert(0, '/etc/fred/')
 #import psyco
 #psyco.full()
 

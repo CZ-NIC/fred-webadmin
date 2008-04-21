@@ -20,7 +20,7 @@ class TestFilterLoader:
         corba = Corba()
         corba.connect(ior)
         
-        self.admin = corba.getObject(config.context, 'Admin', 'Admin')
+        self.admin = corba.getObject('Admin', 'Admin')
         self.corbaSession = self.admin.login(u2c(login), u2c(password))
         print "Setting admin to session, ktery je:", self.admin
         cherrypy.session = {'Admin': self.admin}

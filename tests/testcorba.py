@@ -9,7 +9,7 @@ recoder = CorbaRecode('utf-8')
 c2u = recoder.decode # recode from corba string to unicode
 u2c = recoder.encode # recode from unicode to strings
 
-admin = corba.getObject(config.context, 'Admin', 'Admin')
+admin = corba.getObject('Admin', 'Admin')
 corbaSessionKey = admin.login('superuser', 'superuser123')
 
 corbaSession = admin.getSession(corbaSessionKey)

@@ -68,19 +68,22 @@ invoices = [
 ccReg.Invoicing.Invoices = invoices # XXX - future lang switching
 
 class Corba(object):
-    def __init__(self):
+    def __init__(self, nscontext=None):
         object.__init__(self)
         self.module = sys.modules[module_name] #sys.modules[
             #importIDL(idl or os.path.join(os.path.dirname(os.path.abspath(__file__)), IDL_FILE))[0]
             #]
         self.context = None
         
-    def connect(self, ior = 'corbaname::localhost'):
-        obj = orb.string_to_object(ior)
+    def connect(self, ior = 'localhost', context_name = 'fred'):
+        obj = orb.string_to_object('corbaname::' + ior)
         self.context = obj._narrow(CosNaming.NamingContext)
+        self.context_name = context_name
 
-    def getObject(self, component, name, idltype):
+    def getObjectUsingContext(self, component, name, idltype):
         cosname = [CosNaming.NameComponent(component, "context"), CosNaming.NameComponent(name, "Object")]
         obj = self.context.resolve(cosname)
         return obj._narrow(getattr(self.module, idltype))
 
+    def getObject(self, name, idltype):
+        return self.getObjectUsingContext(self.context_name, name, idltype)
