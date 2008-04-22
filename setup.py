@@ -366,7 +366,7 @@ class FredWebAdminInstallData(install_data):
 
  
 def remove_last_slash(path):
-    if path[-1] == os.path.sep:
+    if path and path[-1] == os.path.sep:
         path = path[:-1]
     return path
 
