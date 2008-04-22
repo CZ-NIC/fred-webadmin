@@ -23,6 +23,7 @@ SHARE_LOCALE = os.path.join(SHARE_PACKAGE, 'locale')
 SESSION_DIR = 'var/lib/fred_webadmin/sessions'
 
 CONFIG_DIR = 'etc/fred/'
+INIT_DIR = 'etc/init.d/'
 BIN_DIR = 'sbin/'
 
 EXCLUDE_FILES = ['.svn']
@@ -35,63 +36,69 @@ DEFAULT_WEBADMINPORT = '18456'
 g_srcdir = '.'
 
 
-class FredWebAdminBuild(build, object):
-    user_options = []
-    user_options.extend(install.user_options)
-    user_options.extend([
-        ('nodepcheck',  None, 'Install script will not check for dependencies.'),
-    ])
-    
-    def __init__(self, *attrs):
-        super(FredWebAdminBuild, self).__init__(*attrs)
-
-        self.nodepcheck = None
-        
-    def check_simplejson(self):
-        try:
-            import simplejson
-        except ImportError, msg:
-            sys.stderr.write('ImportError: %s\n fred-webadmin needs simplejson module.\n'%msg)
-            sys.exit(1)
-    
-    def check_CORBA(self):
-        try:
-            from omniORB import CORBA
-        except ImportError, msg:
-            sys.stderr.write('ImportError: %s\n fred-webadmin needs omniORB module.\n'%msg)
-            sys.exit(1)
-            
-    def check_dns(self):
-        try:
-            import dns
-        except ImportError, msg:
-            sys.stderr.write('ImportError: %s\n fred-webadmin needs dnspython module.\n'%msg)
-            sys.exit(1)
-
-    def check_cherrypy(self):
-        try:
-            import cherrypy
-        except ImportError, msg:
-            sys.stderr.write('ImportError: %s\n fred-webadmin needs cherrypy version 3.x module.\n'%msg)
-            sys.exit(1)
-        
-        cherrypy_version =  StrictVersion(cherrypy.__version__)
-        if cherrypy_version < '3.0.0' or cherrypy_version >= '4.0.0':
-            sys.stderr.write('ImportError: \n fred-webadmin needs cherrypy version 3.x module.\n')
-            sys.exit(1)
-
-    def check_dependencies(self):
-        'Check all dependencies'
-        self.check_simplejson()
-        self.check_CORBA()
-        self.check_dns()
-        self.check_cherrypy()
-
-    def run(self):
-        if not self.nodepcheck:        
-            self.check_dependencies()
-        build.run(self)
-        
+#class FredWebAdminBuild(build, object):
+#    user_options = []
+#    user_options.extend(install.user_options)
+#    user_options.extend([
+#        ('nodepcheck',  None, 'Install script will not check for dependencies.'),
+#    ])
+#    
+#    def __init__(self, *attrs):
+#        super(FredWebAdminBuild, self).__init__(*attrs)
+#
+#        self.nodepcheck = None
+#    
+#    def finalize_options(self):
+#        super(FredWebAdminBuild, self).finalize_options()
+#        
+#        
+#        
+#    def check_simplejson(self):
+#        try:
+#            import simplejson
+#        except ImportError, msg:
+#            sys.stderr.write('ImportError: %s\n fred-webadmin needs simplejson module.\n'%msg)
+#            sys.exit(1)
+#    
+#    def check_CORBA(self):
+#        try:
+#            from omniORB import CORBA
+#        except ImportError, msg:
+#            sys.stderr.write('ImportError: %s\n fred-webadmin needs omniORB module.\n'%msg)
+#            sys.exit(1)
+#            
+#    def check_dns(self):
+#        try:
+#            import dns
+#        except ImportError, msg:
+#            sys.stderr.write('ImportError: %s\n fred-webadmin needs dnspython module.\n'%msg)
+#            sys.exit(1)
+#
+#    def check_cherrypy(self):
+#        try:
+#            import cherrypy
+#        except ImportError, msg:
+#            sys.stderr.write('ImportError: %s\n fred-webadmin needs cherrypy version 3.x module.\n'%msg)
+#            sys.exit(1)
+#        
+#        cherrypy_version =  StrictVersion(cherrypy.__version__)
+#        if cherrypy_version < '3.0.0' or cherrypy_version >= '4.0.0':
+#            sys.stderr.write('ImportError: \n fred-webadmin needs cherrypy version 3.x module.\n')
+#            sys.exit(1)
+#
+#    def check_dependencies(self):
+#        'Check all dependencies'
+#        self.check_simplejson()
+#        self.check_CORBA()
+#        self.check_dns()
+#        self.check_cherrypy()
+#
+#    def run(self):
+#        if not self.nodepcheck:
+#            print 'Checking dependencies.'
+#            self.check_dependencies()
+#        build.run(self)
+#        
 class FredWebAdminBuildPy(build_py, object):
     """
     Standart distutils build_py does not support scrdir option. So Build_py class
@@ -140,6 +147,7 @@ class FredWebAdminBuildPy(build_py, object):
                     return os.path.join(self.srcdir, apply(os.path.join, tail))
                 else:
                     return self.srcdir
+
     #get_package_dir()
 
     def check_package(self, package, package_dir):
@@ -157,6 +165,7 @@ class FredWebAdminInstall(install, object):
         ('nshost=', None, 'CORBA nameservice host [localhost]'),
         ('nsport=', None, 'Port where CORBA nameservice listen [2809]'),
         ('webadminport=', None, 'Port of fred-webadmin  [18456]'),
+        ('nodepcheck',  None, 'Install script will not check for dependencies.'), # for build
     ])
     
     def __init__(self, *attrs):
@@ -171,6 +180,8 @@ class FredWebAdminInstall(install, object):
         self.nsport = DEFAULT_NSPORT
         self.webadminport = DEFAULT_WEBADMINPORT
         
+        self.nodepcheck = None
+        
         for dist in attrs:
             for name in dist.commands:
                 if re.match('bdist', name): #'bdist' or 'bdist_rpm'
@@ -182,20 +193,23 @@ class FredWebAdminInstall(install, object):
     def finalize_options(self):
         super(FredWebAdminInstall, self).finalize_options()
         if not self.idldir:
-            self.idldir = remove_last_slash(os.path.join(self.get_actual_root(), self.prefix, 'share', 'idl', 'fred'))
+            self.idldir = os.path.join(self.get_actual_root(), self.prefix, 'share', 'idl', 'fred')
+        self.idldir = remove_last_slash(self.idldir)
         
     def update_config_and_run_file(self):
         root = remove_last_slash(self.get_actual_root())
         root_and_prefix = remove_last_slash(os.path.join(root, self.prefix))
             
         config_dir =  os.path.join(root, CONFIG_DIR)
+        init_dir = os.path.join(root, INIT_DIR)
         bin_dir = os.path.join(root, BIN_DIR)
         python_packages_dir = os.path.join(root, self.install_lib)
         
         config_file = os.path.join(config_dir, 'webadmin_cfg.py')
         bin_file = os.path.join(bin_dir, 'fred-webadmin')
-
-
+        init_file = os.path.join(init_dir, 'fred-webadmin-server')
+        
+        # webadmin_cfg.py (config file)
         body = open(curdir('webadmin_cfg.py.install')).read()
         body = body.replace('DU_IDL_DIR', self.idldir)
         body = body.replace('DU_PREFIX', root_and_prefix)
@@ -207,10 +221,17 @@ class FredWebAdminInstall(install, object):
         mkpath(config_dir)
         open(config_file, 'w').write(body)
         
+        # fred-webadmin (run script)
         body = open(curdir('fred-webadmin.install')).read()
         body = body.replace('DU_PYTHON_PATHS', "'%s', '%s'" % (config_dir, python_packages_dir))
         mkpath(bin_dir)
         open(bin_file, 'w').write(body)
+        
+        #fred-webadmin-server (init script) 
+        body = open(curdir('fred-webadmin-server')).read()
+        body = body.replace('DU_ROOT', root)
+        mkpath(init_dir)
+        open(init_file, 'w').write(body)
         
     def get_actual_root(self):
         '''
@@ -218,11 +239,58 @@ class FredWebAdminInstall(install, object):
         '''
         return ((self.is_bdist_mode or self.preservepath) and [''] or 
                 [type(self.root) is not None and self.root or ''])[0]
+
+    def check_simplejson(self):
+        try:
+            import simplejson
+        except ImportError, msg:
+            sys.stderr.write('ImportError: %s\n fred-webadmin needs simplejson module.\n'%msg)
+            sys.exit(1)
+    
+    def check_CORBA(self):
+        try:
+            from omniORB import CORBA
+        except ImportError, msg:
+            sys.stderr.write('ImportError: %s\n fred-webadmin needs omniORB module.\n'%msg)
+            sys.exit(1)
+            
+    def check_dns(self):
+        try:
+            import dns
+        except ImportError, msg:
+            sys.stderr.write('ImportError: %s\n fred-webadmin needs dnspython module.\n'%msg)
+            sys.exit(1)
+
+    def check_cherrypy(self):
+        try:
+            import cherrypy
+        except ImportError, msg:
+            sys.stderr.write('ImportError: %s\n fred-webadmin needs cherrypy version 3.x module.\n'%msg)
+            sys.exit(1)
         
+        cherrypy_version =  StrictVersion(cherrypy.__version__)
+        if cherrypy_version < '3.0.0' or cherrypy_version >= '4.0.0':
+            sys.stderr.write('ImportError: \n fred-webadmin needs cherrypy version 3.x module.\n')
+            sys.exit(1)
+
+    def check_dependencies(self):
+        'Check all dependencies'
+        self.check_simplejson()
+        self.check_CORBA()
+        self.check_dns()
+        self.check_cherrypy()
+
     def run(self):
+        if not self.nodepcheck:
+            print 'Checking dependencies.'
+            self.check_dependencies()
+
         super(FredWebAdminInstall, self).run()
+        
         self.update_config_and_run_file()
         mkpath(os.path.join(self.get_actual_root(), SESSION_DIR))
+        
+
 #        config_file_example = config_file = ''
 #        if not self.data_files:
 #            return
@@ -332,16 +400,13 @@ def all_subpackages_in(package):
     subpackages = []
     
     for filename in os.listdir(curdir(package)):
-        print 'FN: ', filename
         if filename in EXCLUDE_FILES:
             continue
         full_path = os.path.join(package, filename)
-        print 'isdir(%s, %s)' % (full_path, os.path.isdir(curdir(full_path)))
         if os.path.isdir(curdir(full_path)):
-            print 'PAC: ', filename
             subpackages.append(full_path.replace('/', '.'))
             subpackages.extend(all_subpackages_in(full_path))
-    print "SUBPACKAGES: ", subpackages
+
     return subpackages
             
              
@@ -365,7 +430,7 @@ def main():
                        ] +
                        all_files_in(SHARE_WWW, 'www') +
                        all_files_in(SHARE_LOCALE, 'locale'),
-          cmdclass = {'build': FredWebAdminBuild,
+          cmdclass = {#'build': FredWebAdminBuild,
                       'build_py': FredWebAdminBuildPy,
                       'install': FredWebAdminInstall,
                       'install_data': FredWebAdminInstallData

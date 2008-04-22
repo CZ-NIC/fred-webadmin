@@ -1,0 +1,42 @@
+#!/bin/sh
+
+. /lib/lsb/init-functions
+
+
+MSG_START="Starting FRED webadmin HTTP server..."
+MSG_STOP="Stopping FRED webadmin HTTP server..."
+
+WEBADMIN_EXEC="DU_ROOT/sbin/fred-webadmin"
+
+fred_start() {
+	/sbin/start-stop-daemon --start --quiet --exec ${WEBADMIN_EXEC}
+    if [ $? != 0 ]; then
+        log_failure_msg ${MSG_START}
+    else
+        log_success_msg ${MSG_START}
+    fi
+}
+
+fred_stop() {
+    start-stop-daemon --stop --quiet --exec ${HDDTEMP_EXEC}
+    log_success_msg ${MSG_STOP}
+}
+
+case "$1" in
+start)
+        fred_start
+  ;;
+restart)
+        fred_stop
+        fred_start
+  ;;
+stop)
+        fred_stop
+  ;;
+*)
+  echo "Usage: /etc/init.d/fred-webadmin-server {start|stop|restart}"
+  exit 1
+esac
+
+exit 0
+
