@@ -6,7 +6,7 @@
 MSG_START="Starting FRED webadmin HTTP server..."
 MSG_STOP="Stopping FRED webadmin HTTP server..."
 
-WEBADMIN_EXEC="DU_ROOT/sbin/fred-webadmin"
+WEBADMIN_EXEC="DU_PREFIX/sbin/fred-webadmin"
 
 fred_start() {
 	/sbin/start-stop-daemon --start --quiet --exec ${WEBADMIN_EXEC}

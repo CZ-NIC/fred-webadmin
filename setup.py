@@ -1,4 +1,5 @@
 from distutils.core import setup
+from distutils import core
 from distutils.command.build import build
 from distutils.command.build_py import build_py
 from distutils.command.install import install
@@ -7,23 +8,28 @@ from distutils.version import StrictVersion
 from distutils.dir_util import mkpath
 from distutils import util
 from distutils import log
+from distutils.file_util import copy_file
 
 import os
 import sys
 import re
 import types
 
+def njoin(*args):
+    return os.path.normpath('/'.join(args))
+
+
 PACKAGE_NAME = 'fred_webadmin'
 PACKAGE_VERSION = '1.0'
 
-SHARE_DOC = os.path.join('share', 'doc', PACKAGE_NAME)
-SHARE_PACKAGE = os.path.join('share', PACKAGE_NAME)
-SHARE_WWW = os.path.join(SHARE_PACKAGE, 'www')
-SHARE_LOCALE = os.path.join(SHARE_PACKAGE, 'locale')
-SESSION_DIR = 'var/lib/fred_webadmin/sessions'
+SHARE_DOC = njoin('share', 'doc', PACKAGE_NAME)
+SHARE_PACKAGE = njoin('share', PACKAGE_NAME)
+SHARE_WWW = njoin(SHARE_PACKAGE, 'www')
+SHARE_LOCALE = njoin(SHARE_PACKAGE, 'locale')
+SESSION_DIR = 'lib/fred_webadmin/sessions'
 
-CONFIG_DIR = 'etc/fred/'
-INIT_DIR = 'etc/init.d/'
+CONFIG_DIR = 'fred/'
+INIT_DIR = 'init.d/'
 BIN_DIR = 'sbin/'
 
 EXCLUDE_FILES = ['.svn']
@@ -36,69 +42,8 @@ DEFAULT_WEBADMINPORT = '18456'
 g_srcdir = '.'
 
 
-#class FredWebAdminBuild(build, object):
-#    user_options = []
-#    user_options.extend(install.user_options)
-#    user_options.extend([
-#        ('nodepcheck',  None, 'Install script will not check for dependencies.'),
-#    ])
-#    
-#    def __init__(self, *attrs):
-#        super(FredWebAdminBuild, self).__init__(*attrs)
-#
-#        self.nodepcheck = None
-#    
-#    def finalize_options(self):
-#        super(FredWebAdminBuild, self).finalize_options()
-#        
-#        
-#        
-#    def check_simplejson(self):
-#        try:
-#            import simplejson
-#        except ImportError, msg:
-#            sys.stderr.write('ImportError: %s\n fred-webadmin needs simplejson module.\n'%msg)
-#            sys.exit(1)
-#    
-#    def check_CORBA(self):
-#        try:
-#            from omniORB import CORBA
-#        except ImportError, msg:
-#            sys.stderr.write('ImportError: %s\n fred-webadmin needs omniORB module.\n'%msg)
-#            sys.exit(1)
-#            
-#    def check_dns(self):
-#        try:
-#            import dns
-#        except ImportError, msg:
-#            sys.stderr.write('ImportError: %s\n fred-webadmin needs dnspython module.\n'%msg)
-#            sys.exit(1)
-#
-#    def check_cherrypy(self):
-#        try:
-#            import cherrypy
-#        except ImportError, msg:
-#            sys.stderr.write('ImportError: %s\n fred-webadmin needs cherrypy version 3.x module.\n'%msg)
-#            sys.exit(1)
-#        
-#        cherrypy_version =  StrictVersion(cherrypy.__version__)
-#        if cherrypy_version < '3.0.0' or cherrypy_version >= '4.0.0':
-#            sys.stderr.write('ImportError: \n fred-webadmin needs cherrypy version 3.x module.\n')
-#            sys.exit(1)
-#
-#    def check_dependencies(self):
-#        'Check all dependencies'
-#        self.check_simplejson()
-#        self.check_CORBA()
-#        self.check_dns()
-#        self.check_cherrypy()
-#
-#    def run(self):
-#        if not self.nodepcheck:
-#            print 'Checking dependencies.'
-#            self.check_dependencies()
-#        build.run(self)
-#        
+
+        
 class FredWebAdminBuildPy(build_py, object):
     """
     Standart distutils build_py does not support scrdir option. So Build_py class
@@ -159,6 +104,8 @@ class FredWebAdminInstall(install, object):
     user_options = []
     user_options.extend(install.user_options)
     user_options.extend([
+        ('sysconfdir=', None, 'System configuration directory [PREFIX/etc]'),
+        ('localstatedir=', None, 'Modifiable single machine data [PREFIX/var]'),
         ('idldir=',  'd', 'directory where IDL files reside [PREFIX/share/idl/fred/]'),
         ('preservepath', None, 'Preserve path in configuration file.'),
         ('nscontext=', None, 'CORBA nameservice context name [fred]'),
@@ -174,6 +121,8 @@ class FredWebAdminInstall(install, object):
         self.preservepath = None
         self.is_bdist_mode = None
         self.idldir = None
+        self.sysconfdir = None
+        self.localstatedir = None
         
         self.nscontext = DEFAULT_NSCONTEXT
         self.nshost = DEFAULT_NSHOST
@@ -191,29 +140,47 @@ class FredWebAdminInstall(install, object):
                 break
             
     def finalize_options(self):
-        super(FredWebAdminInstall, self).finalize_options()
+        if not self.prefix:
+            self.prefix = "/usr/local/"
         if not self.idldir:
-            self.idldir = os.path.join(self.get_actual_root(), self.prefix, 'share', 'idl', 'fred')
-        self.idldir = remove_last_slash(self.idldir)
+            self.idldir = njoin(self.prefix, 'share', 'idl', 'fred')
+        if not self.localstatedir:
+            self.localstatedir = njoin(self.prefix, 'var')
+        if not self.sysconfdir:
+            self.sysconfdir = njoin(self.prefix, "etc")
+
+        self.idldir = self.idldir.rstrip('/') # remove trailing slash
         
+        super(FredWebAdminInstall, self).finalize_options()
+        
+        if self.root is None:
+            self.root = ''
+    
+    def get_actual_dirs(self, directory):
+        ''' Returns directory couple with root - first using self.root, second using self.get_actual_root()
+            In second direcotory is stripped last slash.
+        '''
+        return njoin(self.root, directory), njoin(self.get_actual_root(), directory).rstrip('/')
+    
     def update_config_and_run_file(self):
-        root = remove_last_slash(self.get_actual_root())
-        root_and_prefix = remove_last_slash(os.path.join(root, self.prefix))
-            
-        config_dir =  os.path.join(root, CONFIG_DIR)
-        init_dir = os.path.join(root, INIT_DIR)
-        bin_dir = os.path.join(root, BIN_DIR)
-        python_packages_dir = os.path.join(root, self.install_lib)
+        config_dir =  njoin(self.sysconfdir, CONFIG_DIR)
+        init_dir = njoin(self.sysconfdir, INIT_DIR)
+        bin_dir = njoin(self.prefix, BIN_DIR)
+        python_packages_dir = self.install_lib
         
-        config_file = os.path.join(config_dir, 'webadmin_cfg.py')
-        bin_file = os.path.join(bin_dir, 'fred-webadmin')
-        init_file = os.path.join(init_dir, 'fred-webadmin-server')
+        root_and_prefix, a_root_and_prefix = self.get_actual_dirs(self.prefix)
+        config_dir, a_config_dir = self.get_actual_dirs(config_dir)
+        init_dir = njoin(self.root, init_dir) 
+        bin_dir = njoin(self.root, bin_dir) 
+        
+        config_file = njoin(config_dir, 'webadmin_cfg.py')
+        bin_file = njoin(bin_dir, 'fred-webadmin')
+        init_file = njoin(init_dir, 'fred-webadmin-server')
         
         # webadmin_cfg.py (config file)
         body = open(curdir('webadmin_cfg.py.install')).read()
         body = body.replace('DU_IDL_DIR', self.idldir)
-        body = body.replace('DU_PREFIX', root_and_prefix)
-        body = body.replace('DU_ROOT', root)
+        body = body.replace('DU_PREFIX', a_root_and_prefix)
         body = body.replace('DU_NS_HOST', self.nshost + ':' + self.nsport)
         body = body.replace('DU_NS_CONTEXT', self.nscontext)
         body = body.replace('DU_WEBADMIN_PORT', self.webadminport)
@@ -222,15 +189,17 @@ class FredWebAdminInstall(install, object):
         open(config_file, 'w').write(body)
         
         # fred-webadmin (run script)
-        body = open(curdir('fred-webadmin.install')).read()
-        body = body.replace('DU_PYTHON_PATHS', "'%s', '%s'" % (config_dir, python_packages_dir))
         mkpath(bin_dir)
+        copy_file(curdir('fred-webadmin.install'), bin_file)
+        body = open(bin_file).read()
+        body = body.replace('DU_PYTHON_PATHS', "'%s', '%s'" % (a_config_dir, python_packages_dir))
         open(bin_file, 'w').write(body)
         
-        #fred-webadmin-server (init script) 
-        body = open(curdir('fred-webadmin-server')).read()
-        body = body.replace('DU_ROOT', root)
+        #fred-webadmin-server (init script)
         mkpath(init_dir)
+        copy_file(curdir('fred-webadmin-server'), init_file)
+        body = open(init_file).read()
+        body = body.replace('DU_PREFIX', a_root_and_prefix)
         open(init_file, 'w').write(body)
         
     def get_actual_root(self):
@@ -238,7 +207,7 @@ class FredWebAdminInstall(install, object):
         Return actual root only in case if the process is not in creation of the package
         '''
         return ((self.is_bdist_mode or self.preservepath) and [''] or 
-                [type(self.root) is not None and self.root or ''])[0]
+                [self.root or ''])[0]
 
     def check_simplejson(self):
         try:
@@ -288,29 +257,8 @@ class FredWebAdminInstall(install, object):
         super(FredWebAdminInstall, self).run()
         
         self.update_config_and_run_file()
-        mkpath(os.path.join(self.get_actual_root(), SESSION_DIR))
+        mkpath(njoin(self.root, self.localstatedir, SESSION_DIR))
         
-
-#        config_file_example = config_file = ''
-#        if not self.data_files:
-#            return
-#        for path, files in self.data_files:
-#            if files[0] == 'webadmin_cfg.py.example':
-#                config_file_example = files[0]
-#                config_file = files[0].rsplit('.', 1)[0]  # 'webadmin_cfg.py'
-#                break
-        
-#        # copy webadmin_cfg.py.example to webadmin_cfg.py, only if webadmin_cfg.py doesn't exists
-#        if config_file:
-#            print 'Configuring:'
-#            path_config_example =  os.path.join(self.root or '', path, config_file_example) 
-#            path_config = os.path.join(self.root or '', path, config_file)
-#            if not os.path.exists(path_config):
-##                print ' No old %s found, copy new from %s' % (path_config, path_config_example)
-#                print ' copying %s -> %s' % (path_config_example, path_config)
-#                shutil.copyfile(path_config_example, path_config)
-#            else:
-#                print " Leaving old %s, look at %s for new options" % (path_config, path_config_example)
 
 class FredWebAdminInstallData(install_data):
     """
@@ -363,12 +311,7 @@ class FredWebAdminInstallData(install_data):
                         print data
                         (out, _) = self.copy_file(data, dir)
                         self.outfiles.append(out)
-
  
-def remove_last_slash(path):
-    if path and path[-1] == os.path.sep:
-        path = path[:-1]
-    return path
 
 def curdir(path):
     return os.path.join(g_srcdir, path)
@@ -441,6 +384,7 @@ def main():
     
 if __name__ == '__main__':
     g_srcdir = os.path.dirname(sys.argv[0])
+    #core.DEBUG = True
     if not g_srcdir:
         g_srcdir = os.curdir
     if main():

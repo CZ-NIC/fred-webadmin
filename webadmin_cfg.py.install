@@ -3,8 +3,8 @@ caching_filter_form_javascript = False # if this settings is on, then when doing
 
 www_dir = 'DU_PREFIX/share/fred_webadmin/www/'
 locale_dir = 'DU_PREFIX/share/fred_webadmin/locale/'
-sessions_dir = 'DU_ROOT/var/lib/fred_webadmin/sessions/'
-log_dir = 'DU_ROOT/var/log/'
+sessions_dir = 'DU_PREFIX/var/lib/fred_webadmin/sessions/'
+log_dir = 'DU_PREFIX/var/log/'
 
 idl = 'DU_IDL_DIR/ccReg.idl' #'/usr/share/idl/fred/ccReg.idl'
 iors = (#(label, nshost, nscontext),
