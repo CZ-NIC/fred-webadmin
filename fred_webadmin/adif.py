@@ -980,7 +980,6 @@ class NSSets(AdifPage, ListTableMixin):
                 if handle:
                     result = c2u(admin.getNSSetByHandle(u2c(handle)))
                 else:
-                    import pdb; pdb.set_trace()
                     result = self._get_detail('nssets', obj_id)
             except (corba.module.Admin.ObjectNotFound,):
                 context['main'] = _("Object_not_found")

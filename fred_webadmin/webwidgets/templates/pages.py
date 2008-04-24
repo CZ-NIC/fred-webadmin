@@ -205,7 +205,7 @@ class DomainsDetail(BaseSiteMenu):
         if c.get('result'):
             self.main.add(DomainDetailDiv(context))
             if config.debug:
-                self.main.add('DOMAINSDETAIL', unicode(c.result).replace(u', ', u',<br />'))
+                self.main.add('DOMAINSDETAIL', [unicode(c.result).replace(u', ', u',<br />')])
 
 class ContactsDetail(BaseSiteMenu):
     def __init__(self, context = None):
@@ -214,7 +214,7 @@ class ContactsDetail(BaseSiteMenu):
         if c.get('result'):
             self.main.add(ContactDetailDiv(context))
             if config.debug:            
-                self.main.add('ContactDETAIL', unicode(c.result).replace(u', ', u',<br />'))
+                self.main.add('ContactDETAIL', [unicode(c.result).replace(u', ', u',<br />')])
 
 class NSSetsDetail(BaseSiteMenu):
     def __init__(self, context = None):
@@ -223,7 +223,7 @@ class NSSetsDetail(BaseSiteMenu):
         if c.get('result'):
             self.main.add(NSSetDetailDiv(context))
             if config.debug:
-                self.main.add('NSSetDETAIL', unicode(c.result).replace(u', ', u',<br />'))
+                self.main.add('NSSetDETAIL', [unicode(c.result).replace(u', ', u',<br />')])
 
 class ActionsDetail(BaseSiteMenu):
     def __init__(self, context = None):
@@ -232,7 +232,7 @@ class ActionsDetail(BaseSiteMenu):
         if c.get('result'):
             self.main.add(ActionDetailDiv(context))
             if config.debug:
-                self.main.add('ACTIONSDETAIL', unicode(c.result).replace(u', ', u',<br />'))
+                self.main.add('ACTIONSDETAIL', [unicode(c.result).replace(u', ', u',<br />')])
         
     
 class RegistrarsDetail(BaseSiteMenu):
@@ -242,7 +242,7 @@ class RegistrarsDetail(BaseSiteMenu):
         if c.get('result'):
             self.main.add(RegistrarDetailDiv(context))
             if config.debug:
-                self.main.add('RegistrarSDETAIL', unicode(c.result).replace(u', ', u',<br />'))
+                self.main.add('RegistrarSDETAIL', [unicode(c.result).replace(u', ', u',<br />')])
             
 class AuthInfosDetail(BaseSiteMenu):
     def __init__(self, context = None):
@@ -251,7 +251,7 @@ class AuthInfosDetail(BaseSiteMenu):
         if c.get('result'):
             self.main.add(AuthInfoDetailDiv(context))
             if config.debug:
-                self.main.add('AuthInfoSDETAIL', unicode(c.result).replace(u', ', u',<br />'))
+                self.main.add('AuthInfoSDETAIL', [unicode(c.result).replace(u', ', u',<br />')])
   
 class MailsDetail(BaseSiteMenu):
     def __init__(self, context = None):
@@ -260,7 +260,7 @@ class MailsDetail(BaseSiteMenu):
         if c.get('result'):
             self.main.add(MailDetailDiv(context))
             if config.debug:
-                self.main.add('MailDETAIL', unicode(c.result).replace(u', ', u',<br />'))
+                self.main.add('MailDETAIL', [unicode(c.result).replace(u', ', u',<br />')])
 
 class InvoicesDetail(BaseSiteMenu):
     def __init__(self, context = None):
@@ -269,7 +269,7 @@ class InvoicesDetail(BaseSiteMenu):
         if c.get('result'):
             self.main.add(InvoiceDetailDiv(context))
             if config.debug:
-                self.main.add('InvoiceDETAIL', unicode(c.result).replace(u', ', u',<br />'))
+                self.main.add('InvoiceDETAIL', [unicode(c.result).replace(u', ', u',<br />')])
 
 
 class DigPage(BaseSiteMenu):

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys, os, types, time
+from cgi import escape
 
 class GPyWebError(Exception):
     pass
@@ -227,10 +228,11 @@ class WebWidget(object):
         for key, val in self.tattr.items():
             #if val or (val == 0 and type(val) in [type(0), type(0.0)]): #because false == 0
             if val is not None:
+                val = escape(unicode(val))
                 if key in self.attr_translation.keys():
-                    rstr += u' %s="%s"' % (self.attr_translation[key], unicode(val))
+                    rstr += u' %s="%s"' % (self.attr_translation[key], val)
                 else:    
-                    rstr += u' %s="%s"' % (key, unicode(val))
+                    rstr += u' %s="%s"' % (key, val)
         return rstr
             
 
@@ -283,12 +285,12 @@ class WebWidget(object):
             elif isinstance(con, types.StringTypes):
                 if not self.enclose_content:
                     rstr += indent_level * self.indent_char
-                rstr += con
+                rstr += escape(con)
                 if not self.enclose_content:
                     rstr += self.delimiter_char
             elif isinstance(con, (types.ListType, types.TupleType)):
                 for item in con:
-                    rstr += unicode(item)
+                    rstr += unicode(item) # strings in list are not escaped!
             else:
                 con = unicode(con)
                 if not self.enclose_content:
