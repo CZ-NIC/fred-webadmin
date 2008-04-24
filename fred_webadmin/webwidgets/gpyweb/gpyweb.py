@@ -596,7 +596,7 @@ class Media(WebWidget):
     def render(self, indent_level = 0):
         self.indent_level = indent_level
         return GPYWEB_REPLACE_ME_WITH_MEDIA
-        print "RENDERUJU MEDIA %s" % self.media_files
+        #print "RENDERUJU MEDIA %s" % self.media_files
         rstr = ''
         for media_file in self.media_files:
             if media_file.endswith('.css'):

@@ -1,5 +1,6 @@
 import cherrypy
 import datetime
+from logging import debug, error
 
 from corba import ccReg, CorbaServerDisconnectedException
 from adif import u2c
@@ -23,7 +24,7 @@ class IterTable(object):
         data sets without running out of memory.
     """
     def __init__(self, request_object, sessionKey, pagesize=50):
-        print "VYTVARIM iTABLE"
+        debug('Creating IterTable')
         super(IterTable, self).__init__(self)
         self.iterable = True
         self.request_object = request_object
@@ -34,8 +35,8 @@ class IterTable(object):
         self.header = [ _(x) for x in self.rawheader ]
         self.header_type = [x.type._n for x in columnHeaders]
         self.header_type.insert(0, header_id)
-        print 'HEADER=%s' % self.header
-        print 'HEADER_TYPE=%s' % self.header_type
+        debug('HEADER=%s' % self.header)
+        debug('HEADER_TYPE=%s' % self.header_type)
         self._table = table
         self._table._set_pageSize(pagesize)
         
@@ -54,7 +55,7 @@ class IterTable(object):
 #                     'filters': {'func': 'getFilters', 'id': 'CT_FILTER_ID'},
 #                }
         try:
-            print "GETTING ADMIN, ktery je:", cherrypy.session.get('Admin', 'Admin'), 'a sessionkey=', sessionKey
+            debug('GETTING ADMIN, which is: %s a sessionkey=%s' % (cherrypy.session.get('Admin', 'Admin'), sessionKey))
             corbaSession = cherrypy.session.get('Admin').getSession(sessionKey)
         except ccReg.Admin.ObjectNotFound:
             raise CorbaServerDisconnectedException
@@ -62,9 +63,8 @@ class IterTable(object):
         #table = func()
         
         #table = corbaSession.getPageTable(ccReg.FT_ACTION)#f_name_enum[self.request_object])
-        print "REQUEST_OBJECT  = ", self.request_object
         table = corbaSession.getPageTable(f_name_enum[self.request_object])
-        print "VRACENA PageTable:", table
+        debug("Returned PageTable: %s" % table)
         header_id = f_header_ids[self.request_object]#types[self.request_object]['id']
         return table, header_id
     
@@ -96,7 +96,7 @@ class IterTable(object):
         return self
 
     def __len__(self):
-        print "Itertable.LEN = ", self._page_rows
+        debug("Itertable.LEN = %s" % self._page_rows)
         return self._page_rows
 
     def __getitem__(self, index):
@@ -140,14 +140,12 @@ class IterTable(object):
             
         rows = []
         index = start
-        print "limit = min(limit, self.num_rows - start)", limit, ' = min(%s, %s - %s = %s)' % (limit, self.num_rows, start, self.total_rows - start) 
         limit = min(limit, self.num_rows - start)
         if raw_header:
             header = self.rawheader
         else:
             header = self.header
         while index < start + limit:
-            print index, start + limit
             row = {}
             irow = self._get_row(index)
             for i, col in enumerate(irow):
@@ -161,7 +159,7 @@ class IterTable(object):
         return self._table.getRow(index)
 
     def next(self):
-        print "V nextu, row_index:", self._row_index
+        debug("In itertable.next(), row_index: %s" % self._row_index)
         if self._row_index >= (self.page_start + self._page_rows):
             raise StopIteration
         row = self._get_row(self._row_index)
@@ -210,7 +208,7 @@ class IterTable(object):
         try:
             col_num = self.header.index(column_name) - 1 # - 1 because of headers are with ID, but in corba server without ID
         except ValueError:
-            print 'VALUEERROR pri index: (header: %s, index: %s)' % (self.header, column_name)
+            error('VALUEERROR is set sort, index: (header: %s, index: %s)' % (self.header, column_name))
             raise
         self._table.sortByColumn(col_num, bool_dir)
 
@@ -226,10 +224,10 @@ class IterTable(object):
         self._update()
 
     def reload(self):
-        print "FILTER PRED RELOAD"
+        debug('FILTER BEFORE RELOAD')
         #import pdb; pdb.set_trace()
         self._table.reload()
-        print "FILTER PO RELOAD"
+        debug('FILTER AFTER RELOAD')
         self._update()
         
     def load_filter(self, filter_id):
@@ -255,7 +253,7 @@ class IterTable(object):
 
 class CorbaFilterIterator(object):
     def __init__(self, filter_iterable):
-        print "VYTVARIM CORBAFITERATOR"
+        debug("VYTVARIM CORBAFITERATOR")
         self.iter = filter_iterable.getIterator()
         self.iter.reset()
     
@@ -263,10 +261,10 @@ class CorbaFilterIterator(object):
         return self
     
     def next(self):
-        print "ITERUJU NEXT, hasNext=", self.iter.hasNext() 
+        debug("ITERATING NEXT, hasNext=%s" % self.iter.hasNext()) 
         if self.iter.hasNext(): #isDone()
             sub_filter = self.iter.getFilter()
-            print "iterator vraci:", sub_filter
+            debug("iterator getFilter = :%s" % sub_filter)
             self.iter.setNext()
             return sub_filter
         else:
@@ -310,7 +308,6 @@ class FilterLoader(object):
             interval_type = ccReg.DateInterval
         else:
             interval_type = ccReg.DateTimeInterval
-        print 'date_conversion_method', date_conversion_method
         c_from, c_to, c_day = [date_conversion_method(date) for date in val[:3]]
         if int(val[3]) == ccReg.DAY._v: 
             corba_interval = interval_type(c_day, c_to, ccReg.DAY, val[4] or 0) # c_to will be ignored
@@ -336,18 +333,18 @@ class FilterLoader(object):
 
     @classmethod
     def _set_one_compound_filter(cls, compound, filter_data):
-        print 'filter_data v set:', filter_data
+        debug('filter_data in set_one_compound_filter: %s' % filter_data)
         for key, [neg, val] in filter_data.items():
             key = key[len(u'filter|'):] # all names starts with 'filter|'  
             #func = getattr(compound, "add%s" % (key[0].capitalize() + key[1:])) # capitalize only first letter
             func = getattr(compound, "add%s" % key)
             sub_filter = func() # add
-            print "SUB_FILTER:", sub_filter
+            debug("SUB_FILTER: %s" % sub_filter)
 #            import pdb; pdb.set_trace()
             if isinstance(sub_filter, ccReg.Filters._objref_Compound): # Compound:
                 cls._set_one_compound_filter(sub_filter, val)
             else:
-                print "VVVAL", val
+                debug("Setting VAL %s" % val)
                 if not isinstance(val, FilterFormEmptyValue): # set only filters, that are active (have value) - 
                     if isinstance(sub_filter, ccReg.Filters._objref_Date):
                         value = cls.date_time_interval_to_corba(val, cls.date_to_corba)
@@ -358,7 +355,7 @@ class FilterLoader(object):
                     else:
                         value = val
     
-                    print "SETTING VALUE TO USBFILTer:", u2c(value)
+                    debug('SETTING VALUE TO USBFILTer: %s' % u2c(value))
                     sub_filter._set_value(u2c(value))
                     sub_filter._set_neg(u2c(neg))
                 
@@ -376,7 +373,7 @@ class FilterLoader(object):
         filter_data = {}
         for sub_filter in CorbaFilterIterator(compound_filter):
             name = sub_filter._get_name()
-            print 'NAME=', name, type(name)
+            debug('NAME=%s %s' % (name, type(name)))
             neg = sub_filter._get_neg()
             if isinstance(sub_filter, ccReg.Filters._objref_Compound):#Compound):
                 value = cls._get_one_compound_filter_data(sub_filter)

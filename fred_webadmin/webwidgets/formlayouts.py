@@ -3,6 +3,7 @@
 
 from copy import deepcopy
 import simplejson
+from logging import debug
 
 from fred_webadmin.webwidgets.utils import SortedDict
 from gpyweb.gpyweb import WebWidget, tagid, attr, notag, div, span, table, tbody, tr, th, td, input, label, select, option, ul, li, script, a, img, strong
@@ -104,7 +105,7 @@ class UnionFilterFormLayout(TableFormLayout):
         self.add(script(attr(type='text/javascript'), 'Ext.onReady(function () {addFieldsButtons()})')) 
 
         self.tbody.add(script(attr(type='text/javascript'), self.union_form_js()))
-        print "za create uionlayout"
+        debug('After create uionlayout')
             
     def union_form_js(self):
         output = u'function buildOrRow() {\n'
@@ -195,14 +196,6 @@ class FilterTableFormLayout(TableFormLayout):
             self.tbody.add(tr(attr(cssc='field_row ' + composed_name), self.build_field_row(field, errors)))
         self.add(script(attr(type='text/javascript'), 'filterObjectName = "%s"' % self.form.get_object_name())) # global javascript variable
         self.tbody.add(self.build_fields_button())
-
-#    def get_field_chooser(self):
-#        print 'KEYS %s' % self.form.fields.keys()
-#        print 'BFS %s' % self.form.base_fields.keys()
-#        fields = [field_name.split('|')[1] for field_name in self.form.fields.keys()]
-#        field_choices = [(name, self.get_label_name(field)) for name, field in self.form.base_fields.items() if name not in fields]
-#        print 'FC %s' % field_choices
-#        return ChoiceField(choices=field_choices)
         
     def build_field_row(self, field, errors = None, for_javascript=False):#, field_chooser_value=None):
         

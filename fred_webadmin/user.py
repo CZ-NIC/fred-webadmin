@@ -1,6 +1,8 @@
 
 import types
 
+from logging import debug
+
 from fred_webadmin.webwidgets.utils import isiterable
 
 class User(object):
@@ -26,7 +28,7 @@ class User(object):
         else:
             self.nperms = ['domain.filter.AdminContact']
         #self.nperms = []
-        print 'vytvoren user s nperms = ', str(self.nperms)
+        debug('Created user with nperms = %s' % str(self.nperms))
         
     def has_nperm(self, nperm):
         return nperm in self.nperms
@@ -53,7 +55,7 @@ class User(object):
 
     def check_nperms(self, nperms, check_type = 'all'):
         'Returns True if user has NOT permmission (has negative permission)'
-        #print 'USER NPERM pri checku: %s, proti %s, check_type %s' % (self.nperms, nperms, check_type),  
+        #debug('USER NPERM pri checku: %s, proti %s, check_type %s' % (self.nperms, nperms, check_type))  
         result = ((isinstance(nperms, types.StringTypes) and self.has_nperm(nperms)) or 
                   (isiterable(nperms) and 
                    (check_type == 'all' and self.has_all_nperms(nperms) or

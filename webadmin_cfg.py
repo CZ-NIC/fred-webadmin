@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import logging
+
 debug = True
 caching_filter_form_javascript = True # if this settings is on, then when doing changes to filter form, you should erase all sessions, because old filter forms are still in session
 
@@ -13,6 +15,7 @@ www_dir = base_dir + "www/"
 sessions_dir = base_dir + 'sessions/'
 locale_dir = base_dir + 'locale/'
 log_dir = base_dir
+log_level = logging.DEBUG
 
 #idl = '/home/glin/programming/svn_enum_checkout/enum/idl/trunk/ccReg.idl'
 idl = '/home/glin/programming/nic/webadmin/servers/idl_devel/idl/ccReg.idl'

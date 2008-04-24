@@ -3,6 +3,7 @@
 
 from copy import deepcopy
 import types
+from logging import debug
 
 from gpyweb.gpyweb import WebWidget, form
 from fields import Field
@@ -39,7 +40,7 @@ class DeclarativeFieldsMetaclass(WebWidget.__metaclass__):
         # If this class is subclassing another Form, add that Form's fields.
         # Note that we loop over the bases in *reverse*. This is necessary in
         # order to preserve the correct order of fields.
-        print cls, '|',  name, '|', bases, '|', attrs
+        debug('%s|%s|%s|%s' % (cls,  name, bases, attrs))
 
         for base in bases[::-1]:
             if hasattr(base, 'base_fields'):
@@ -140,14 +141,14 @@ class BaseForm(form):
         return self.prefix and ('%s-%s' % (self.prefix, field_name)) or field_name
 
     def render(self, indent_level=0):
-        print 'RENDERUJU %s indent_level %s' % (self.__class__.__name__, indent_level)
+        debug('RENDERING of %s indent_level %s' % (self.__class__.__name__, indent_level))
         
                 
         
         self.content = [] # empty previous content (if render would be called moretimes, there would be multiple forms instead one )
-        print 'pridavam layout %s k %s' % (self.layout, self.__class__.__name__)
+        debug('Adding layout %s to %s' % (self.layout, self.__class__.__name__))
         self.add(self.layout(self))
-        print 'po pridani layout %s k %s' % (self.layout, self.__class__.__name__)
+        debug('After adding layout %s to %s' % (self.layout, self.__class__.__name__))
         #self.layout(self).render(indent_level)
         return super(BaseForm, self).render(indent_level)
 

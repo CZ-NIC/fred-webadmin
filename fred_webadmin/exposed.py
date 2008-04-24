@@ -5,6 +5,7 @@ import types
 import traceback
 import sys
 import adif
+from logging import debug, error
 from omniORB import CORBA
 from fred_webadmin.webwidgets.gpyweb.gpyweb import attr, div, p, pre
 from fred_webadmin import config
@@ -20,7 +21,7 @@ def catch_webadmin_exceptions_decorator(view_func):
         except adif.CorbaServerDisconnectedException, e:
             return self._render('disconnected')
         except CORBA.TRANSIENT, e:
-            print "BACKEND NEBEZIIII:", self._get_menu_handle('error')
+            error("BACKEND IS NOT RUNNING")
             #raise e
             context = {'message': div()}
             if config.debug:
@@ -43,7 +44,7 @@ class AdifPageMetaClass(type):
 #                value.exposed = True
            
     def __new__(cls, name, bases, attrs):
-        print cls, '|',  name, '|', bases, '|', attrs
+        debug('%s|%s|%s|%s' % (cls, name, bases, attrs))
         #dict[name] = catch_webadmin_exceptions_decorator(value)
         
         for attr_name, attr in attrs.items():

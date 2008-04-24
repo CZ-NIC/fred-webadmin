@@ -3,6 +3,8 @@
 #
 # Version: 1.5.5
 #
+from fred_webadmin import setuplog
+setuplog.setup_log()
 
 import sys
 
@@ -10,6 +12,8 @@ import time
 import pprint
 import traceback
 import types
+
+from logging import debug, error
 
 from cgi import escape
 import omniORB
@@ -262,7 +266,7 @@ class ListTableMixin(object):
     
     @check_onperm('read')
     def _filter_json_rows(self, **kwd):
-        print "A json rows delam s kwd: %s" % kwd
+        debug("A json rows delam s kwd: %s" % kwd)
         itertable = self._get_itertable()
         if kwd.get('sort') and kwd.get('dir') is not None:
             itertable.set_sort(kwd['sort'], kwd['dir'])
@@ -276,12 +280,12 @@ class ListTableMixin(object):
             'num_rows': itertable.num_rows,
             'num_rows_in_db': itertable.total_rows
         })
-        print "vracim %s" % json_data
+        debug("vracim json_data = %s" % json_data)
         return json_data
     
     @check_onperm('read')
     def filter(self, *args, **kwd):
-        print "ARGS:", args
+        debug('filter ARGS:%s' % unicode(args))
         if args:
             if args[0] == 'jsondata':
                 return self._filter_json_rows(**kwd)
@@ -289,7 +293,7 @@ class ListTableMixin(object):
                 return self._filter_json_header()
 
         if kwd:
-            print 'prisla data %s' % kwd
+            debug('prisla data %s' % kwd)
         context = {'main': div()}
         
         action = 'filter'
@@ -306,7 +310,7 @@ class ListTableMixin(object):
             if kwd.has_key('json_data') or kwd.get('json_linear_filter'):
                 if kwd.get('json_linear_filter'):
                     kwd['json_data'] = simplejson.dumps(convert_linear_filter_to_form_output(simplejson.loads(kwd['json_linear_filter'])))
-                print 'Form inicializuju datama', kwd
+                debug('Form inicializuju datama' % kwd)
                 form = UnionFilterForm(kwd, form_class=form_class)
             else:
                 form = UnionFilterForm(form_class=form_class)
@@ -317,7 +321,7 @@ class ListTableMixin(object):
                 if config.debug:
                     context['main'].add(p(u'Jsem validni'))
                     context['main'].add(u'cleaned_data:' + unicode(form.cleaned_data), br())
-                print u'cleaned_data:' + unicode(form.cleaned_data)
+                debug(u'cleaned_data:' + unicode(form.cleaned_data))
                 context = self._get_list(context, form.cleaned_data, **kwd)
                 return self._render('filter', context)
             else:
@@ -432,10 +436,10 @@ class AdifPage(Page):
         else:
             # returns ClassName + Action (e.g. DomainsDetail) class from module of this class, if there is no such, then it returns BaseSiteMenu: 
             template_name = self.__class__.__name__ + action.capitalize()
-            print 'Snazim se vzit templatu jmenem:', template_name
+            debug('Snazim se vzit templatu jmenem:' + template_name)
             template = getattr(sys.modules[self.__module__], template_name, None)
             if template is None:
-                print "TEMPLATE %s IN MODULE %s NOT FOUND, USING DEFAULT: BaseSiteMenu" % (template_name, sys.modules[self.__module__])
+                error("TEMPLATE %s IN MODULE %s NOT FOUND, USING DEFAULT: BaseSiteMenu" % (template_name, sys.modules[self.__module__]))
                 template = BaseSiteMenu 
             if not issubclass(template, WebWidget):
                 raise RuntimeError('%s is not derived from WebWidget - it cannot be template!' % repr(template))
@@ -481,7 +485,7 @@ class AdifPage(Page):
             context.update(ctx)
         
         temp_class = self._template(action)(context)
-        print u"BERU TEMPLARU:%s" % repr(temp_class)
+        debug(u"BERU TEMPLARU:%s" % repr(temp_class))
         #import pdb; pdb.set_trace()
         result = temp_class.render()
         
@@ -599,7 +603,7 @@ class ADIF(AdifPage):
             form = LoginForm(action='/login/', method='post')
             
         if form.is_valid():
-            print 'form is valid'
+            debug('form is valid')
             login = form.cleaned_data.get('login', '')
             password = form.cleaned_data.get('password', '')
             corba_server = int(form.cleaned_data.get('corba_server', 0))
@@ -716,7 +720,6 @@ class Registrars(AdifPage, ListTableMixin):
             new.append([])
             new.append(0) # hidden 
             result = corba.module.Registrar(*new) # empty registrar
-#            print result
         else:
             handle = kwd.get('handle', None)
             admin = cherrypy.session.get('Admin')
@@ -881,7 +884,6 @@ class Domains(AdifPage, ListTableMixin):
                 result.temps = adm
                 if result.createRegistrarHandle:
                     #import pdb; pdb.set_trace()
-                    print "HANDLE", result.createRegistrarHandle
                     res = admin.getRegistrarByHandle(u2c(result.createRegistrarHandle))
                     result.createRegistrar = c2u(res)
                 else:
@@ -897,7 +899,7 @@ class Domains(AdifPage, ListTableMixin):
         
         context['edit'] = kwd.get('edit')
         
-        print "RESULT", result
+        debug("RESULT" + result)
         context['result'] = result
         return self._render('detail', context)
 
@@ -1237,9 +1239,9 @@ class Development(object):
         return "Devel version<br />%s<br />%s" % (str(params), str(kwd))
 
     def index(self, *params, **kwd):
-        print '---'
-        print dir(cherrypy.request)
-        print '---'
+        debug('---')
+        debug(dir(cherrypy.request))
+        debug('---')
         
         dvals = [
             "request.remote:'%s'" % cherrypy.request.remote,
@@ -1272,6 +1274,7 @@ class Smaz(Page):
 
 def runserver():
     print "-----====### STARTING ADIF ###====-----"
+    
     root = ADIF()
     root.summary = Summary()
     root.logs = Logs()

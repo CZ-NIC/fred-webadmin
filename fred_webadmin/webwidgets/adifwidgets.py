@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import simplejson
+from logging import debug
 
 from gpyweb.gpyweb import WebWidget, attr, save, ul, li, a, table, tr, th, td, b, form, textarea, input
 from fred_webadmin.mappings import f_urls, f_id_name
@@ -14,7 +15,7 @@ class FilterList(ul):
         '''
         super(FilterList, self).__init__(*content, **kwd)
         self.tag = 'ul'
-        print 'VYLISTOVANE FILTERY:', filters
+        debug('LIST OF FILTERS: %s' % filters)
         for filter in filters:
             url_filter = f_urls[f_id_name[int(filter['Type'])]] + 'filter/?filter_id=' + filter['Id']
             url_filter_with_form =  url_filter + '&show_form=1'

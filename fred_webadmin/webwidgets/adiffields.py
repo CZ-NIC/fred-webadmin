@@ -1,3 +1,4 @@
+from logging import debug
 from fields import Field, DecimalField, ChoiceField, MultiValueField, DateField, SplitDateSplitTimeField
 from utils import ValidationError, ErrorList
 from fred_webadmin.translation import _
@@ -22,7 +23,6 @@ class CompoundFilterField(Field):
     def _get_value(self):
         return self._value
     def _set_value(self, value):
-        print "!!!!setting value of compound field!!!!"
         self._value = value
         if self.initialized: # to form not instantiate at time, while form classes are being built
             
@@ -51,7 +51,7 @@ class CompoundFilterField(Field):
             else:
                 self.form = self.form_class(data=self.value, is_nested=True)
             
-        print 'renderuju compund field, neboli jeho form'
+        debug('Rendering compund field, (its form)')
         return self.form.render(indent_level)
 
 
@@ -98,7 +98,6 @@ class DateIntervalField(MultiValueField):
         self.media_files.append('/js/interval_fields.js')
     
     def _set_value(self, value):
-        print "VVVAL",value, type(value)
         if not value:
             value = [None, None, None, 1, 0]
         super(DateIntervalField, self)._set_value(value)
@@ -114,7 +113,6 @@ class DateIntervalField(MultiValueField):
             date_day_display = 'none'
             date_interval_offset_span = 'none'
             
-            print "XXX: self.value[3] =", self.value[3]
             if int(self.value[3]) == ccReg.DAY._v: # day
                 date_day_display = 'inline'
             elif int(self.value[3]) == ccReg.INTERVAL._v: # not normal interval
@@ -146,7 +144,6 @@ class DateIntervalField(MultiValueField):
         
     def clean(self):
         cleaned_data = super(DateIntervalField, self).clean()
-        print "CLEANEDDATA", cleaned_data
         if cleaned_data and int(cleaned_data[3]) == ccReg.INTERVAL._v and cleaned_data[0] and cleaned_data[1]: # if from and to field filled, and not day filled
             if cleaned_data[0] > cleaned_data[1]: # if from > to
                 errors = ErrorList(['"From" must be bigger than "To"'])

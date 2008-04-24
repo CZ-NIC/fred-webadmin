@@ -17,8 +17,8 @@ u2c = recoder.encode # recode from unicode to strings
 class CorbaLazyRequest(object):
     '''
     Because some classes (as forms) are initialized when start of webadmin, this
-    object gets data as late as possible (when needed), so user already connected
-    and thus connection needed.
+    object gets data as late as possible (when needed), so user is already connected
+    and connection needed.
     '''
     def __init__(self, object_name, function_name, *args, **kwargs):
         self.object_name = object_name
@@ -32,7 +32,6 @@ class CorbaLazyRequest(object):
         return c2u(corba_func(*self.c_args, **self.c_kwargs))
 
     def __getattribute__(self, name):
-        print "getting", name
         super(CorbaLazyRequest, self).__getattribute__(name)
 
 #    def __repr__(self):

@@ -14,7 +14,6 @@ class BaseTemplate(HTMLPage):
             context['doctype'] = 'xhtml10strict'
         super(BaseTemplate, self).__init__(context)
         self.add_media_files('/css/base.css')
-        print "pred body template"
         self.body.add(div(attr(id='container'),
                           save(self, 'container'),
                           div(attr(id='header'), save(self, 'header')),
@@ -27,7 +26,6 @@ class BaseTemplate(HTMLPage):
                               #'&copy; CZ.NIC z.s.p.o.'
                              )
                           ))
-        print "za body template"
         
         
 class BaseSite(BaseTemplate):

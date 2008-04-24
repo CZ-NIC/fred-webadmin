@@ -6,6 +6,7 @@ from copy import deepcopy
 #    return a
 import cherrypy
 import simplejson
+from logging import debug
 
 from fred_webadmin import config
 from forms import Form, SortedDictFromList
@@ -39,16 +40,16 @@ class UnionFilterForm(Form):
         Can be initilalize using data parametr data - normal form data, or if data_cleaned=True, then data parametr is considered
         to be cleaned_data (used when loaded from corba backend)
         ''' 
-        print "VYTVARIM UNIONFORM"
+        debug('CREATING UNIONFORM')
         if not form_class:
             raise RuntimeError('You have to specify form_class for UnionFilterForm!')
 
         if data:
-            print 'data:%s' % data
+            debug('data:%s' % data)
             if not data_cleaned and data.has_key('json_data'):
-                print 'data jsou json, takze je transformuju'
+                debug('data are json, so they are going to be transformed')
                 data = simplejson.loads(data['json_data'])
-            else: print 'data nejsou json'
+            else: debug('data aren\'t json')
 
         self.form_class = form_class
         self.forms = []
@@ -72,8 +73,8 @@ class UnionFilterForm(Form):
             self.forms.append(self.form_class())
         else: # else create form for each value in 'data' list
             for form_data in self.data:
-                print 'vytvarim form v unionu s daty: %s' % form_data
-                print 'a ty data jsou data_cleaned=%s' % self.data_cleaned
+                debug('Creating form in unionu with data: %s' % form_data)
+                debug('a that data are data_cleaned=%s' % self.data_cleaned)
                 form = self.form_class(form_data, data_cleaned=self.data_cleaned)
                 self.forms.append(form)
     
@@ -85,14 +86,15 @@ class UnionFilterForm(Form):
         return True
     
     def full_clean(self):
+        debug('FULL CLEAN IN UNIONFROM')
         self._errors = ErrorDict()
         if not self.is_bound: # Stop further processing.
             return
         self.cleaned_data = []
         
         for form in self.forms:
-            print 'FORM %s' % repr(form)
-            print 'FORM.errors %s' % repr(form.errors)
+            debug('SUBFORM %s' % repr(form))
+            debug('SUBFORM.errors %s' % repr(form.errors))
             self._errors.update(form.errors)
             if hasattr(form, 'cleaned_data'):
                 self.cleaned_data.append(form.cleaned_data)
@@ -164,9 +166,8 @@ class FilterForm(Form):
 
         fields_for_sort = []  
         if self.is_bound:
-            print "DATA", self.data
-            print "DATA.keys()", self.data.keys()
-            print "SELF>data_cleaned", self.data_cleaned
+            debug('DATA', self.data)
+            debug("SELF>data_cleaned", self.data_cleaned)
             if not self.data_cleaned:
                 for name_str in self.data.keys():
                     name = name_str.split('|')
@@ -182,10 +183,9 @@ class FilterForm(Form):
                         field.negation = negation
                         fields_for_sort.append(field)
             else: # data passed to form in constructor are cleaned_data (e.g. from itertable.get_filter)
-                print "data:", self.data
                 for name_str, [neg, value] in self.data.items():
                     filter_name = name_str.split('|')[1]
-                    print 'fieldu %s nastavuji value %s' % (filter_name, value)
+                    debug('field %s, setting value %s' % (filter_name, value))
                     field = deepcopy(base_fields[filter_name])
                     if isinstance(field, CompoundFilterField):
                         field.parent_form = self
@@ -202,7 +202,7 @@ class FilterForm(Form):
         # adding fields in order according to field.order
         for pos, field in sorted([[field.order, field] for field in fields_for_sort]):  
             self.fields[field.name] = field
-        print "VYSLEDNY FIELDS PO SORTED %s" % self.fields.items()
+        debug("RESULTED FIELDS %s" % self.fields.items())
     
     def clean_field(self, name, field):
         try:

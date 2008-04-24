@@ -6,6 +6,7 @@ import types
 import time
 import datetime
 from decimal import Decimal, DecimalException
+from logging import debug
 
 from gpyweb.gpyweb import WebWidget, attr, select, option, span, input
 from utils import ValidationError, ErrorList, isiterable
@@ -53,7 +54,7 @@ class Field(WebWidget):
         self.value = value
     
     def value_from_datadict(self, data):
-#        print 'Jsem %s a beru si data %s' % (self.name, data.get(self.name, None))
+#        debug('Jsem %s a beru si data %s' % (self.name, data.get(self.name, None)))
         return data.get(self.name, None)
     
     def is_empty(self):
@@ -556,7 +557,6 @@ class ChoiceField(Field):
             return value
         valid_values = set([unicode(k) for k, v in self.choices])
         
-        print 'value=', value, type(value)
         if value not in valid_values:
             raise ValidationError(_(u'Select a valid choice. That choice is not one of the available choices.'))
         return value
@@ -611,7 +611,7 @@ class MultipleChoiceField(ChoiceField):
         return value
     
     def value_from_datadict(self, data):
-#        print 'Jsem %s a beru si data %s' % (self.name, data.get(self.name, None))
+#        debug('Jsem %s a beru si data %s' % (self.name, data.get(self.name, None)))
         value = data.get(self.name, None)
         if value is None:
             value = []
@@ -717,7 +717,6 @@ class MultiValueField(Field):
         """
         clean_data = []
         errors = ErrorList()
-        print 'VAL:', self.value
 
         for i, field in enumerate(self.fields):
             if self.required and field.is_required and field.is_empty():
@@ -761,7 +760,7 @@ class MultiValueField(Field):
             self.fields[i].set_from_clean(v)
 
     def value_from_datadict(self, data):
-#        print 'beru data z %s k fieldum se jmeny %s' % (str(data), str([f.name for f in self.fields]))
+#        debug('beru data z %s k fieldum se jmeny %s' % (str(data), str([f.name for f in self.fields])))
         return [field.value_from_datadict(data) for field in self.fields]
     
     def is_empty(self):

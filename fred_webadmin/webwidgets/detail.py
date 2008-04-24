@@ -1,3 +1,5 @@
+from logging import debug
+
 class DeclarativeDFieldsMetaclass(WebWidget.__metaclass__):
     """
     Metaclass that converts Field attributes to a dictionary called
@@ -10,7 +12,7 @@ class DeclarativeDFieldsMetaclass(WebWidget.__metaclass__):
         # If this class is subclassing another Form, add that Form's fields.
         # Note that we loop over the bases in *reverse*. This is necessary in
         # order to preserve the correct order of fields.
-        print cls, '|',  name, '|', bases, '|', attrs
+        debug('%s|%s|%s|%s' % (cls, name, bases, attrs))
 
         for base in bases[::-1]:
             if hasattr(base, 'base_fields'):

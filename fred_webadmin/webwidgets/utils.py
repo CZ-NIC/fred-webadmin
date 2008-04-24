@@ -28,7 +28,6 @@ class ErrorList(list, ul):
         
     def render(self, indent_level = 0):
         self.content = []
-        print 'itemscount:', len(self)
         for message in self:
             self.add(li(message))
         return super(ErrorList, self).render(indent_level)
@@ -190,7 +189,6 @@ def convert_linear_filter_to_form_output(or_filters):
     
     result = []
     for or_filter in or_filters:
-        print "ORF", or_filter
         new_or_filter = {}
         for fname, fval in or_filter.items():
             current_filter, last_fname = create_or_get_filter(new_or_filter, fname)
