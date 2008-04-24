@@ -19,9 +19,12 @@ import dns.message
 import dns.resolver
 import dns.query
 
-import ldap
-
 import config
+
+if config.auth_method == 'LDAP':
+    import ldap
+
+
 
 # CherryPy main import
 import cherrypy
