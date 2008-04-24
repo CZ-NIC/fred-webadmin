@@ -625,10 +625,6 @@ class ADIF(AdifPage):
                 #cherrypy.session['FileManager'] = corba.getObject('FileManager', 'FileManager')
 
                 raise cherrypy.HTTPRedirect(form.cleaned_data.get('next'))
-            except ldap.INVALID_CREDENTIALS, e:
-                form.non_field_errors().append(_('Invalid username and/or password!'))
-                if config.debug:
-                    form.non_field_errors().append('(%s)' % str(e))
             except omniORB.CORBA.BAD_PARAM, e:
                 form.non_field_errors().append(_('Bad corba call! ') + '(%s)' % (str(e)))
                 if config.debug:
@@ -638,6 +634,13 @@ class ADIF(AdifPage):
                 if config.debug:
                     form.non_field_errors().append('(type: %s, exception: %s)' % (escape(unicode(type(e))), unicode(e)))
                     form.non_field_errors().append(escape(unicode(traceback.format_exc())).replace('\n', '<br/>'))
+            except Exception, e:
+                if config.auth_method == 'LDAP' and isinstance(e, ldap.INVALID_CREDENTIALS):
+                    form.non_field_errors().append(_('Invalid username and/or password!'))
+                    if config.debug:
+                        form.non_field_errors().append('(%s)' % str(e))
+                else:
+                    raise
 
         form.action = '/login/'
         return self._render('login', {'form': form})
