@@ -831,31 +831,28 @@ class Domains(AdifPage, ListTableMixin):
     def detail(self, **kwd):
         context = {}
         create = kwd.get('new')
-        
         if create:
             result = corba.module.Domain(0, *['']*14) # empty Domain
         else:
             admin = cherrypy.session.get('Admin')
             handle = kwd.get('handle')
-            func = admin.getDomainByFQDN
             obj_id = kwd.get('id')
             if not handle and obj_id:
                 try:
                     obj_id = int(obj_id)
                 except (TypeError, ValueError):
                     context['main'] = _("Non_numeric_ID")
-                    return self._render('detail', context)
-                
+                    return self._render('base', context)
 #            if not handle:
 #                raise cherrypy.HTTPRedirect('/%s/list' % (self.classname))
             try:
                 if handle:
-                    result = c2u(func(u2c(handle)))
+                    result = c2u(admin.getDomainByFQDN(u2c(handle)))
                 else:
                     result = self._get_detail('domains', obj_id)
             except (corba.module.Admin.ObjectNotFound,):
                 context['main'] = _("Object_not_found")
-                return self._render('detail', context)
+                return self._render('base', context)
             else:
                 result.registrant = c2u(admin.getContactByHandle(u2c(result.registrantHandle)))
                 nsset = None
@@ -928,22 +925,24 @@ class Contacts(AdifPage, ListTableMixin):
             result = corba.module.Contact(0, *['']*32) # empty Contact
         else:
             admin = cherrypy.session.get('Admin')
-            handle = kwd.get('handle', None)
-            func = admin.getContactByHandle
-            if not handle:
+            handle = kwd.get('handle')
+            obj_id = kwd.get('id')
+            if not handle and obj_id:
                 try:
-                    handle = int(kwd.get('id', None))
+                    obj_id = int(obj_id)
                 except (TypeError, ValueError):
                     context['main'] = _("Required_integer_as_parameter")
                     return self._render('base', ctx=context)
-                func = admin.getContactById
-            if not handle:
-                raise cherrypy.HTTPRedirect('/%s/list' % (self.classname))
+#            if not handle:
+#                raise cherrypy.HTTPRedirect('/%s/list' % (self.classname))
             try:
-                result = c2u(func(u2c(handle)))
+                if handle:
+                    result = c2u(admin.getContactByHandle(u2c(handle)))
+                else:
+                    result = self._get_detail('contacts', obj_id)
             except (corba.module.Admin.ObjectNotFound,):
                 context['main'] = _("Object_not_found")
-                return self._render('base', ctx=context)
+                return self._render('base', context)
             # XXX: HACK
             # convert all disclose* properties to: 0 -> False, 1 -> True
             [ result.__dict__.__setitem__(x, [False, True][result.__dict__[x]]) for x in result.__dict__ if x.startswith('disclose') ]
@@ -968,38 +967,41 @@ class NSSets(AdifPage, ListTableMixin):
         else:
             admin = cherrypy.session.get('Admin')
             handle = kwd.get('handle', None)
-            func = admin.getNSSetByHandle
-            if not handle:
+            obj_id = kwd.get('id')
+            if not handle and obj_id:
                 try:
-                    handle = int(kwd.get('id', None))
+                    obj_id = int(obj_id)
                 except (TypeError, ValueError):
                     context['main'] = _("Required_integer_as_parameter")
-                    return self._render('base', ctx=context)
-                func = admin.getNSSetById
-            if not handle:
-                raise cherrypy.HTTPRedirect('/%s/list' % (self.classname))
+                    return self._render('base', context)
+#            if not handle:
+#                raise cherrypy.HTTPRedirect('/%s/list' % (self.classname))
             try:
-                result = c2u(func(u2c(handle)))
+                if handle:
+                    result = c2u(admin.getNSSetByHandle(u2c(handle)))
+                else:
+                    import pdb; pdb.set_trace()
+                    result = self._get_detail('nssets', obj_id)
             except (corba.module.Admin.ObjectNotFound,):
                 context['main'] = _("Object_not_found")
-                return self._render('base', ctx=context)
+                return self._render('base', context)
+
+            techs = []
+            for tech in result.admins:
+                techs.append(c2u(admin.getContactByHandle(u2c(tech))))
+            result.admins = techs
+            if result.createRegistrarHandle:
+                result.createRegistrar = c2u(admin.getRegistrarByHandle(u2c(result.createRegistrarHandle)))
             else:
-                techs = []
-                for tech in result.admins:
-                    techs.append(c2u(admin.getContactByHandle(u2c(tech))))
-                result.admins = techs
-                if result.createRegistrarHandle:
-                    result.createRegistrar = c2u(admin.getRegistrarByHandle(u2c(result.createRegistrarHandle)))
-                else:
-                    result.createRegistrar = None
-                if result.updateRegistrarHandle:
-                    result.updateRegistrar = c2u(admin.getRegistrarByHandle(u2c(result.updateRegistrarHandle)))
-                else:
-                    result.updateRegistrar = None
-                if result.registrarHandle:
-                    result.registrar = c2u(admin.getRegistrarByHandle(u2c(result.registrarHandle)))
-                else:
-                    result.registrar = None
+                result.createRegistrar = None
+            if result.updateRegistrarHandle:
+                result.updateRegistrar = c2u(admin.getRegistrarByHandle(u2c(result.updateRegistrarHandle)))
+            else:
+                result.updateRegistrar = None
+            if result.registrarHandle:
+                result.registrar = c2u(admin.getRegistrarByHandle(u2c(result.registrarHandle)))
+            else:
+                result.registrar = None
 
         context['edit'] = kwd.get('edit')
         context['result'] = result
