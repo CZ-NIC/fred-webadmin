@@ -63,7 +63,7 @@ from webwidgets.templates.pages import (
     DomainsDetail, ContactsDetail, NSSetsDetail, RegistrarsDetail, ActionsDetail, AuthInfosDetail, MailsDetail, InvoicesDetail
 )
 from webwidgets.gpyweb.gpyweb import WebWidget
-from webwidgets.gpyweb.gpyweb import DictLookup, attr, ul, li, a, div, span, p
+from webwidgets.gpyweb.gpyweb import DictLookup, attr, ul, li, a, div, span, p, br
 from webwidgets.utils import isiterable, convert_linear_filter_to_form_output
 from webwidgets.menu import MenuHoriz
 from webwidgets.adifwidgets import FilterList
@@ -147,7 +147,9 @@ def check_onperm(objects_nperms, check_type='all'):
                     context = {'message': div()}
                     context['message'].add(p(_("You don't have permissions for this page!")))
                     if config.debug:
-                        context['message'].add(p(' usernperm = %s,<br/>nperms=%s,<br/>nperm_type=%s' % (user.nperms, nperms, check_type)))
+                        context['message'].add(p('usernperm = %s,' % user.nperms, br(),
+                                                 'nperms=%s,' % nperms, br(),
+                                                 'nperm_type=%s' % check_type, br()))
                         context['message'].add(p('a tohle to je udelano nejsofistikovanejsim decoratorem'))
                     return self._render('error', context)
                 return view_func(*args, **kwd)
@@ -313,8 +315,8 @@ class ListTableMixin(object):
                 context['main'].add(p(u'kwd:' + unicode(kwd)))
             if form.is_valid():
                 if config.debug:
-                    context['main'].add(u'<br />Jsem validni<br />')
-                    context['main'].add(u'cleaned_data:' + unicode(form.cleaned_data) + '<br />')
+                    context['main'].add(p(u'Jsem validni'))
+                    context['main'].add(u'cleaned_data:' + unicode(form.cleaned_data), br())
                 print u'cleaned_data:' + unicode(form.cleaned_data)
                 context = self._get_list(context, form.cleaned_data, **kwd)
                 return self._render('filter', context)
@@ -538,7 +540,7 @@ class AdifPage(Page):
     def default(self, *params, **kwd):
         #raise cherrypy.HTTPRedirect('/%s' % (self.classname))
         if config.debug:
-            return '%s<br />%s' % (str(params), str(kwd))
+            return '%s<br/>%s' % (str(kwd), str(params))
         else:
             return self._render('404_not_found')
 
@@ -628,12 +630,12 @@ class ADIF(AdifPage):
             except omniORB.CORBA.BAD_PARAM, e:
                 form.non_field_errors().append(_('Bad corba call! ') + '(%s)' % (str(e)))
                 if config.debug:
-                    form.non_field_errors().append(escape(unicode(traceback.format_exc())).replace('\n', '<br/>'))
+                    form.non_field_errors().append([escape(unicode(traceback.format_exc())).replace('\n', '<br/>')])
             except corba.module.Admin.AuthFailed, e:
                 form.non_field_errors().append(_('Login error, please enter correct login and password'))
                 if config.debug:
                     form.non_field_errors().append('(type: %s, exception: %s)' % (escape(unicode(type(e))), unicode(e)))
-                    form.non_field_errors().append(escape(unicode(traceback.format_exc())).replace('\n', '<br/>'))
+                    form.non_field_errors().append([escape(unicode(traceback.format_exc())).replace('\n', '<br/>')])
             except Exception, e:
                 if config.auth_method == 'LDAP' and isinstance(e, ldap.INVALID_CREDENTIALS):
                     form.non_field_errors().append(_('Invalid username and/or password!'))
