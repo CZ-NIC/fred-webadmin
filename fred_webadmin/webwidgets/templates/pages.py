@@ -67,7 +67,7 @@ class LoginPage(BaseSite):
 class DisconnectedPage(BaseSite):
     def __init__(self, context = None):
         super(DisconnectedPage, self).__init__(context)
-        self.main.add(p(_('Server disconnected, please %s again') % a(attr(href='/login/'), _('log in'))))        
+        self.main.add(p(_('Server disconnected, please '), a(attr(href='/login/'), _('log in')), ' again.'))        
 
 class NotFound404Page(BaseSite):
     def __init__(self, context = None):
