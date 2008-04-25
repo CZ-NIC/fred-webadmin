@@ -22,6 +22,9 @@ f_header_ids = dict([(name, 'CT_%s_ID' % (name[:-1].upper())) for name in f_name
 # dict {OT_*, classname}, where OT_* is from _Admin.idl ObjectType 
 f_objectType_name = dict([(item, item._n[3:].lower() + 's') for item in ccReg.AuthInfoRequest.ObjectType._items])
 
+f_name_formname = dict([(item._n[3:].lower() + 's', item._n[3:].lower().capitalize() + 'sFilterForm') for item in ccReg.FilterType._items])
+f_name_formname['nssets'] = 'NSSetsFilterForm' 
+
 if __name__ == '__main__':
     printed_mappings = (
         ('f_name_enum', f_name_enum),
@@ -31,6 +34,7 @@ if __name__ == '__main__':
         ('f_urls', f_urls),
         ('f_header_ids', f_header_ids),
         ('f_objectType_name', f_objectType_name),
+        ('f_name_formname', f_name_formname),
     )
                         
     for printed_mapping in printed_mappings:

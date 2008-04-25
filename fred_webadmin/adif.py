@@ -70,7 +70,7 @@ from webwidgets.gpyweb.gpyweb import WebWidget
 from webwidgets.gpyweb.gpyweb import DictLookup, attr, ul, li, a, div, span, p, br
 from webwidgets.utils import isiterable, convert_linear_filter_to_form_output
 from webwidgets.menu import MenuHoriz
-from webwidgets.adifwidgets import FilterList
+from webwidgets.adifwidgets import FilterList, FilterListUnpacked, FilterListCustomUnpacked
 from menunode import menu_tree
 from webwidgets.adifforms import *
 
@@ -343,7 +343,7 @@ class ListTableMixin(object):
                               'filter|Type': [False, f_name_id[self.classname]]
                              }])
         itertable.reload()
-        context['main'].add(FilterList(itertable.get_rows_dict(raw_header=True), self.classname))
+        context['filters_list'] = FilterListCustomUnpacked(itertable.get_rows_dict(raw_header=True), self.classname)
         return self._render('allfilters', context)
 
     def _get_form_class(self):
@@ -422,7 +422,7 @@ class AdifPage(Page):
             return LoginPage
         elif action in ('filter', 'list'):
             return FilterPage
-        elif action == 'filters':
+        elif action == 'allfilters':
             return AllFiltersPage
         elif action == 'disconnected':
             return DisconnectedPage

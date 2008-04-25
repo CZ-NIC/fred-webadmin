@@ -280,6 +280,8 @@ class WebWidget(object):
         
         for con in self.content:
             #if hasattr(con, '_is_tag_widget'):
+            if con is None:
+                continue
             if isinstance(con, WebWidget):
                 rstr += con.render(indent_level)
             elif isinstance(con, types.StringTypes):
@@ -290,7 +292,8 @@ class WebWidget(object):
                     rstr += self.delimiter_char
             elif isinstance(con, (types.ListType, types.TupleType)):
                 for item in con:
-                    rstr += unicode(item) # strings in list are not escaped!
+                    if item is not None:
+                        rstr += unicode(item) # strings in list are not escaped!
             else:
                 con = unicode(con)
                 if not self.enclose_content:

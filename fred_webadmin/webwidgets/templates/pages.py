@@ -107,6 +107,12 @@ class AllFiltersPage(BaseSiteMenu):
         c = self.context
         if c.has_key('filters_list'):
             self.main.add(c['filters_list'])
+            lang_code = config.lang[0:2]
+            if lang_code == 'cs': # conversion between cs and cz identifier of lagnguage
+                lang_code = 'cz'
+            self.head.add(script(attr(type='text/javascript'), 
+                                 'scwLanguage = "%s"; //sets language of js_calendar' % lang_code,
+                                 'scwDateOutputFormat = "%s"; // set output format for js_calendar' % config.js_calendar_date_format))
         
     
 class FilterPage(BaseSiteMenu):
@@ -123,6 +129,7 @@ class FilterPage(BaseSiteMenu):
                      
         if context.get('form') and (config.debug or not c.get('itertable')):
             self.main.add(c.form)
+            self.main.add(script(attr(type='text/javascript'), 'Ext.onReady(function () {addFieldsButtons()})')) 
             
             #print "VKLADAM JS FORMU"
             #import cProfile
@@ -177,19 +184,19 @@ class FilterPage(BaseSiteMenu):
                     num_rows = itertable.num_rows
                 pageflip = span(
                     '%s: %s,' % (_('Number_of_pages'), itertable.last_page),
-                    '%s: %s,' % (_('entries'), num_rows), 
+                    '%s: ' % _('entries'), num_rows, ',', 
                     '%s: %s' % (_('total'), itertable.total_rows),
                     br())
                 
                 # Pager
                 if itertable.num_pages > 1:
                     pageflip.add(div(
-                        a(attr(cssc='pager-button', href='?page=%s' % itertable.first_page), '&laquo;'),
-                        a(attr(cssc='pager-button', href='?page=%s' % itertable.prev_page), '&lsaquo;'),
+                        a(attr(cssc='pager-button', href='?page=%s' % itertable.first_page), ['&laquo;']),
+                        a(attr(cssc='pager-button', href='?page=%s' % itertable.prev_page), ['&lsaquo;']),
     #                    a(attr(cssc='pager-button', href='?page=%s' % itertable._number), itertable._number),
                         form(attr(style='display: inline;', method='GET'), input(attr(type='text', size='2', name='page', value=itertable.current_page))),
-                        a(attr(cssc='pager-button', href='?page=%s' % itertable.next_page), '&rsaquo;'),
-                        a(attr(cssc='pager-button', href='?page=%s' % itertable.last_page), '&raquo;')
+                        a(attr(cssc='pager-button', href='?page=%s' % itertable.next_page), ['&rsaquo;']),
+                        a(attr(cssc='pager-button', href='?page=%s' % itertable.last_page), ['&raquo;'])
                     ))
                 self.main.add(pageflip)
             

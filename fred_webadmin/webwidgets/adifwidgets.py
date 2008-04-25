@@ -1,12 +1,17 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import sys
 import simplejson
 from logging import debug
+import cherrypy
 
-from gpyweb.gpyweb import WebWidget, attr, save, ul, li, a, table, tr, th, td, b, form, textarea, input
-from fred_webadmin.mappings import f_urls, f_id_name
+from gpyweb.gpyweb import WebWidget, attr, save, ul, li, a, table, tr, th, td, b, form, textarea, input, script
+from fred_webadmin.mappings import f_urls, f_id_name, f_name_formname
 from fred_webadmin.translation import _
+from fred_webadmin.itertable import IterTable
+from fred_webadmin.webwidgets.adifforms import UnionFilterForm
+from fred_webadmin.webwidgets.adifforms import *
 
 class FilterList(ul):
     def __init__(self, filters, filter_name=None, *content, **kwd):
@@ -25,8 +30,79 @@ class FilterList(ul):
                        ))
         if filter_name:
             self.add(li(a(attr(href=f_urls[filter_name] + 'filter/'), _('Custom filter'))))
+    def _get_form_class(self, filter_name):
+        form_name = f_name_formname[filter_name]
+        form_class = getattr(sys.modules[self.__module__], form_name, None)
+        if not form_class:
+            raise RuntimeError('No such formclass in modules "%s"' % form_name)
+        return form_class
+    def get_form(self, filter):
+        key = cherrypy.session.get('corbaSessionString', '')
+        itertable = IterTable(f_id_name[int(filter['Type'])], key)
+        itertable.load_filter(int(filter['Id']))
+        if not itertable.all_fields_filled():
+            filter_data = itertable.get_filter_data()
+            form_class = self._get_form_class(f_id_name[int(filter['Type'])])
+            form = UnionFilterForm(filter_data, data_cleaned=True, form_class=form_class)
+        else:
+            form = ''
+        return form
+                
+class FilterListUnpacked(FilterList):
+    def __init__(self, filters, filter_name=None, *content, **kwd):
+        ''' Filters is list of triplets [id, type, name] 
+            If filter_name is specified, general filter for that object is added (e.g. /domains/filter/)
+        '''
+        ul.__init__(self, *content, **kwd)
+        self.tag = 'ul'
+        debug('LIST OF FILTERS(unpacked): %s' % filters)
+        for filter in filters:
+            url_filter = f_urls[f_id_name[int(filter['Type'])]] + 'filter/?filter_id=' + filter['Id']
+            url_filter_with_form =  url_filter + '&show_form=1'
+            form = self.get_form(filter)
+            self.add(li(
+                        a(attr(href=url_filter), filter['Name']),
+                        ' (', a(attr(href=url_filter_with_form), _('form')),  ')',
+                        form))
+        if filter_name:
+            self.add(li(a(attr(href=f_urls[filter_name] + 'filter/'), _('Custom filter'))))
             
+        self.add(script(attr(type='text/javascript'), 'Ext.onReady(function () {addFieldsButtons()})')) 
 
+class FilterListCustomUnpacked(FilterList):
+    
+    def __init__(self, filters, filter_name=None, *content, **kwd):
+        ''' Filters is list of triplets [id, type, name] 
+            If filter_name is specified, general filter for that object is added (e.g. /domains/filter/)
+        '''
+        ul.__init__(self, *content, **kwd)
+        self.tag = 'ul'
+        debug('LIST OF FILTERS(unpacked): %s' % filters)
+        
+        custom_presented = False
+        for filter in filters:
+            url_filter = f_urls[f_id_name[int(filter['Type'])]] + 'filter/?filter_id=' + filter['Id']
+            url_filter_with_form =  url_filter + '&show_form=1'
+            if filter['Name'].lower() == 'custom':
+                form = self.get_form(filter)
+                custom_presented = True
+            else:
+                form = None
+            self.add(li(
+                        a(attr(href=url_filter), filter['Name']),
+                        ' (', a(attr(href=url_filter_with_form), _('form')),  ')',
+                        form))
+        if not custom_presented and filter_name:
+            self.add(li(a(attr(href=f_urls[filter_name] + 'filter/'), _('Custom filter')),
+                        self.get_default_form(filter_name)
+                       ))
+            
+        self.add(script(attr(type='text/javascript'), 'Ext.onReady(function () {addFieldsButtons()})')) 
+
+    def get_default_form(self, filter_name):
+        return UnionFilterForm(form_class=self._get_form_class(filter_name))
+        
+    
 class FilterPanel(table):
     ''' Used in detail view of objects. It ispanel with buttons to filters related to 
         currently displayed object (lie admins of domain in domain detail view)

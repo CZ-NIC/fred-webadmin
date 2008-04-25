@@ -296,7 +296,7 @@ function sendUnionForm(thisElem, saveName) {
         thisForm = thisElem.form;
     
     var data = [];
-    var ftables = Ext.select('.unionfiltertable > tbody > tr > td > .filtertable');
+    var ftables = Ext.get(thisForm).select('.unionfiltertable > tbody > tr > td > .filtertable');
     for (var i = 0, len = ftables.getCount(); i < len; i++) {
         var ftable = ftables.item(i);
         ftdata = getFTableData(ftable)

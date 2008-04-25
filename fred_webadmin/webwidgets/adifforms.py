@@ -166,8 +166,8 @@ class FilterForm(Form):
 
         fields_for_sort = []  
         if self.is_bound:
-            debug('DATA', self.data)
-            debug("SELF>data_cleaned", self.data_cleaned)
+            debug('DATA %s' % self.data)
+            debug("SELF>data_cleaned %s" % self.data_cleaned)
             if not self.data_cleaned:
                 for name_str in self.data.keys():
                     name = name_str.split('|')
@@ -261,7 +261,7 @@ class FilterForm(Form):
 #    doba_zmrtvychvstani = DateTimeIntervalField(label=_('doba zmrtvychvstani'))
    
 class RegistrarsFilterForm(FilterForm):
-    Default_fields_names = ['Handle']
+    default_fields_names = ['Handle']
     
     Name = CharField(label=_('Name'))
     Handle = CharField(label=_('Handle'))
