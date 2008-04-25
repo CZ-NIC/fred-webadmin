@@ -721,20 +721,22 @@ class Registrars(AdifPage, ListTableMixin):
             new.append(0) # hidden 
             result = corba.module.Registrar(*new) # empty registrar
         else:
-            handle = kwd.get('handle', None)
             admin = cherrypy.session.get('Admin')
-            func = admin.getRegistrarByHandle 
-            if not handle:
+            handle = kwd.get('handle')
+            obj_id = kwd.get('id')
+            if not handle and obj_id:
                 try:
-                    handle = int(kwd.get('id', None))
+                    obj_id = int(obj_id)
                 except (TypeError, ValueError):
                     context['main'] = _("Required_integer_as_parameter")
                     return self._render('base', ctx=context)
-                func = admin.getRegistrarById
-            if not handle:
-                raise cherrypy.HTTPRedirect('/%s/list' % (self.classname))
+#            if not handle:
+#                raise cherrypy.HTTPRedirect('/%s/list' % (self.classname))
             try:
-                result = c2u(func(u2c(handle)))
+                if handle:
+                    result = c2u(admin.getRegistrarByHandle(u2c(handle)))
+                else:
+                    result = self._get_detail('actions', obj_id)
             except (corba.module.Admin.ObjectNotFound,):
                 context['main'] = _("Object_not_found")
                 return self._render('base', ctx=context)
