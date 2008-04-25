@@ -899,7 +899,7 @@ class Domains(AdifPage, ListTableMixin):
         
         context['edit'] = kwd.get('edit')
         
-        debug("RESULT" + result)
+        debug("RESULT %s" % result)
         context['result'] = result
         return self._render('detail', context)
 
@@ -1228,6 +1228,18 @@ class Bankstatements(AdifPage, ListTableMixin):
         AdifPage.__init__(self)
         ListTableMixin.__init__(self)
 
+class Filters(AdifPage, ListTableMixin):
+    def __init__(self):
+        AdifPage.__init__(self)
+        ListTableMixin.__init__(self)
+    
+    def _get_menu_handle(self, action):
+        return 'summary'
+        if action in ('detail', 'filter'):
+            return 'summary'
+        else:
+            return super(Filters, self)._get_menu_handle(action)
+    
 class Development(object):
 
     __metaclass__ = exposed.AdifPageMetaClass
@@ -1287,6 +1299,7 @@ def runserver():
     root.authinfos = AuthInfos()
     root.invoices = Invoices()
     root.bankstatements = Bankstatements()
+    root.filters = Filters()
     root.statistics = Statistics()
     root.devel = Development()
     

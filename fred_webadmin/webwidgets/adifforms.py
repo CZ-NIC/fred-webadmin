@@ -335,15 +335,15 @@ class ActionsFilterForm(FilterForm):
     Response = CorbaEnumChoiceField(label=_('Result'), corba_enum=ccReg.EPPActionsFilter.ResultType)
     Registrar = CompoundFilterField(label=_('Registrar'), form_class=RegistrarsFilterForm)
     SvTRID = CharField(label=_('SvTRID'))
-    clTRID = CharField(label=_('ClTRID'))
+    ClTRID = CharField(label=_('ClTRID'))
     
 
 class FiltersFilterForm(FilterForm):
-    default_fields_names = ['Name']
+    default_fields_names = ['Type']
     
-    userName = CharField(label=_('User name'))
-    groupName = CharField(label=_('Group name'))
-    type = ChoiceField(label=_('Result'), choices=((1, u'Poraněn'), (2, u'Preživší'), (3, u'Mrtev'), (4, u'Nemrtvý')))
+    UserID = CharField(label=_('User name'))
+    GroupID = CharField(label=_('Group name'))
+    Type = ChoiceField(label=_('Result'), choices=((1, u'Poraněn'), (2, u'Preživší'), (3, u'Mrtev'), (4, u'Nemrtvý')))
     
 
 form_classes = (DomainsFilterForm, 
@@ -351,7 +351,8 @@ form_classes = (DomainsFilterForm,
                 ObjectsFilterForm, 
                 ContactsFilterForm, 
                 RegistrarsFilterForm, 
-                ActionsFilterForm)
+                ActionsFilterForm,
+                FiltersFilterForm)
 
 def get_filter_forms_javascript():
     'Javascript is cached in user session (must be there, bucause each user can have other forms, because of different permissions'
