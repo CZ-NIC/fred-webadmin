@@ -297,7 +297,7 @@ class ContactsFilterForm(ObjectsFilterForm):
 #    contact_type = MultipleChoiceField(label=_('Contact type'), choices=(('owner', _('Owner')), ('admin', _('Admin')), ('techadmin', _('techadmin')), ('temporary', _('Temporary'))))
     Name = CharField(label=_('Name'))
     Organization = CharField(label=_('Organization'))
-    Ssn = CharField(label=_('SSN'))
+    Ssn = CharField(label=_('Identification'))
     Vat = CharField(label=_('VAT'))
     
 class NSSetsFilterForm(ObjectsFilterForm):

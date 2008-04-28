@@ -736,7 +736,7 @@ class Registrars(AdifPage, ListTableMixin):
                 if handle:
                     result = c2u(admin.getRegistrarByHandle(u2c(handle)))
                 else:
-                    result = self._get_detail('actions', obj_id)
+                    result = self._get_detail('registrars', obj_id)
             except (corba.module.Admin.ObjectNotFound,):
                 context['main'] = _("Object_not_found")
                 return self._render('base', ctx=context)
