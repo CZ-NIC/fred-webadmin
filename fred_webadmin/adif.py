@@ -582,10 +582,12 @@ class ADIF(AdifPage):
         if args and args[0] == 'filter_forms_javascript.js':
             #import pdb; pdb.set_trace()
             if config.caching_filter_form_javascript:
-                since = cherrypy.request.headers.get('If-Unmodified-Since') 
-                since2 = cherrypy.request.headers.get('If-Modified-Since')
-                if since or since2:
-                    raise cherrypy.HTTPRedirect("", 304)
+                if cherrypy.session['filter_forms_javascript_js_cached']:
+                    since = cherrypy.request.headers.get('If-Unmodified-Since') 
+                    since2 = cherrypy.request.headers.get('If-Modified-Since')
+                    if since or since2:
+                        raise cherrypy.HTTPRedirect("", 304)
+                cherrypy.session['filter_forms_javascript_js_cached'] = True
                 cherrypy.response.headers['Last-Modified'] = http.HTTPDate(time.time())
             return get_filter_forms_javascript()
         else:
@@ -622,6 +624,7 @@ class ADIF(AdifPage):
                 
                 cherrypy.session['corba_server_name'] = form.fields['corba_server'].choices[corba_server][1]
                 cherrypy.session['Admin'] = admin
+                cherrypy.session['filter_forms_javascript_js_cached'] = False
                 
                 
                 corbaSession = self._get_corba_session()
