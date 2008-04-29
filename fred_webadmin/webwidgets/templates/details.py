@@ -391,7 +391,7 @@ class AuthInfoDetailDiv(DetailDiv):
         super(AuthInfoDetailDiv, self).__init__(context)
         c = context
         result = c['result']
-        self.media_files.append('/js/edit.js')
+        #self.media_files.append('/js/edit.js')
         
         self.add(
             h1(_('AuthInfo_detail')),
@@ -419,22 +419,20 @@ class AuthInfoDetailDiv(DetailDiv):
                      td(result.closeTime)))
         )
         if not result.closeTime:
-            self.add(
-                table(attr(style='width: 96%', border='1'), tr(th(attr(colspan='5'), b(_('Options')))), 
-                      tr(td(form(attr(id='processAuthInfo', action=f_urls['authinfo'] + 'resolve/', method='POST'),
-                                 input(attr(type='hidden', name='id', value=result.id)), 
-                                 input(attr(type='button', value=_('Accept_and_send'), onclick='processAuthInfo(this); return false;')))), 
-                         td(form(attr(id='closeAuthInfo', action=f_urls['authinfo'] + 'close/', method='POST'),
-                                 input(attr(type='hidden', name='id', value=result.id)), 
-                                 input(attr(type='button', value=_('Invalidate_and_close'), onclick='closeAuthInfo(this); return false;'))))))
-    
-            )
+#            self.add(
+#                table(attr(style='width: 96%', border='1'), tr(th(attr(colspan='5'), b(_('Options')))), 
+#                      tr(td(form(attr(id='processAuthInfo', action=f_urls['authinfo'] + 'resolve/', method='POST'),
+#                                 input(attr(type='hidden', name='id', value=result.id)), 
+#                                 input(attr(type='button', value=_('Accept_and_send'), onclick='processAuthInfo(this); return false;')))), 
+#                         td(form(attr(id='closeAuthInfo', action=f_urls['authinfo'] + 'close/', method='POST'),
+#                                 input(attr(type='hidden', name='id', value=result.id)), 
+#                                 input(attr(type='button', value=_('Invalidate_and_close'), onclick='closeAuthInfo(this); return false;'))))))
+#    
+#            )
+            self.media_files.append('/js/authinfos.js')
             self.add(FilterPanel([
-                [_('Domains_selected'), 'domains', [{'Registrar.Handle': result.handle}]],
-                [_('Domains_creating'), 'domains', [{'CreateRegistrar.Handle': result.handle}]],
-                [_('Contacts'), 'contacts', [{'Registrar.Handle': result.handle}]],
-                [_('Requests'), 'actions', [{'Registrar.Handle': result.handle}]],
-                [_('Emails'), 'mails', [{'Object.Registrar.Handle': result.handle}]],
+                [_('Accept_and_send'), "javascript:processAuthInfo('%s')" % (f_urls['authinfos'] + 'resolve/?id=%s' % result.id)],
+                [_('Invalidate_and_close'), "javascript:closeAuthInfo('%s')" % (f_urls['authinfos'] + 'close/?id=%s' % result.id)],
             ]))
 
 

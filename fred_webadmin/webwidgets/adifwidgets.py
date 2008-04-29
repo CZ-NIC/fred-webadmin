@@ -104,8 +104,9 @@ class FilterListCustomUnpacked(FilterList):
         
     
 class FilterPanel(table):
-    ''' Used in detail view of objects. It ispanel with buttons to filters related to 
-        currently displayed object (lie admins of domain in domain detail view)
+    ''' Used in detail view of objects. It is panel with buttons to filters related to 
+        currently displayed object (like admins of domain in domain detail view).
+        Button can also be just simple link.
     '''
     def __init__(self, filters, *content, **kwd):
         ''' filters is list of tripplet [button_label, object_name, filters] where filters in linear form. written
@@ -119,17 +120,21 @@ class FilterPanel(table):
         
         
         filter_count = len(filters)
-        self.add(attr(style='width: 96%', border='1'),
+        self.add(attr(cssc='filter_panel', style='width: 96%', border='1'),
                  tr(th(attr(colspan=filter_count), b(_('Options')))),
                  tr(save(self, 'filter_buttons')))
         for button_data in filters:
             if len(button_data) == 2:
                 button_label, url = button_data
                 
+#                self.filter_buttons.add(
+#                    td(form(attr(action = url, method='POST'), 
+#                            input(attr(type='submit', value=_(button_label))))) 
+#                )
                 self.filter_buttons.add(
-                    td(form(attr(action = url, method='POST'), 
-                            input(attr(type='submit', value=_(button_label))))) 
+                    td(a(attr(href = url), _(button_label))) 
                 )
+
 
             elif len(button_data) == 3:
                 button_label, obj_name, filter = button_data

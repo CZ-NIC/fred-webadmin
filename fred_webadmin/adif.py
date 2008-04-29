@@ -1128,6 +1128,7 @@ class AuthInfos(AdifPage, ListTableMixin):
 
     @check_onperm('write')
     def resolve(self, **kwd):
+        '''Accept and send'''
         context = {}
         try:
             id_ai = int(kwd.get('id'))
@@ -1135,10 +1136,11 @@ class AuthInfos(AdifPage, ListTableMixin):
             context['main'] = _("Required_integer_as_parameter")
             return self._render('base', ctx=context)
         cherrypy.session.get('Admin').processAuthInfoRequest(id_ai, False)
-        raise cherrypy.HTTPRedirect('/%s/list/?reload=1' % (self.classname))
+        raise cherrypy.HTTPRedirect('/%s/filter/?load=1' % (self.classname))
 
     @check_onperm('write')
     def close(self, **kwd):
+        '''Close and invalidate'''
         context = {}
         try:
             id_ai = int(kwd.get('id'))
@@ -1146,7 +1148,7 @@ class AuthInfos(AdifPage, ListTableMixin):
             context['main'] = _("Required_integer_as_parameter")
             return self._render('base', ctx=context)
         cherrypy.session.get('Admin').processAuthInfoRequest(id_ai, True)
-        raise cherrypy.HTTPRedirect('/%s/list/?reload=1' % (self.classname))
+        raise cherrypy.HTTPRedirect('/%s/filter/?load=1' % (self.classname))
 
 
 class Invoices(AdifPage, ListTableMixin):
