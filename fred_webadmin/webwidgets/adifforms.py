@@ -16,7 +16,7 @@ from formlayouts import FilterTableFormLayout, UnionFilterFormLayout
 from fred_webadmin import config
 from fred_webadmin.translation import _
 from utils import SortedDict, ErrorDict, escape_js_literal
-from fred_webadmin.corbalazy import CorbaLazyRequest
+from fred_webadmin.corbalazy import CorbaLazyRequest, CorbaLazyRequest1V2L
 from fred_webadmin.corba import ccReg
 
 #__all__ = ['LoginForm', 'FilterForm']
@@ -328,8 +328,8 @@ class DomainsFilterForm(ObjectsFilterForm):
 class ActionsFilterForm(FilterForm):
     default_fields_names = ['SvTRID']
     
-    Type = MultipleChoiceField(label=_('Request type'), choices=((1, u'Poraněn'), (2, u'Přeživší'), (3, u'Mrtev'), (4, u'Nemrtvý')))
-#    requestType = MultipleChoiceField(label=_('Request type'), choices=((action_name, action_name) for action_name in CorbaLazyRequest('Admin', 'getEPPActionTypeList')))
+    #Type = MultipleChoiceField(label=_('Request type'), choices=((1, u'Poraněn'), (2, u'Přeživší'), (3, u'Mrtev'), (4, u'Nemrtvý')))
+    Type = ChoiceField(label=_('Request type'), choices=CorbaLazyRequest1V2L('Admin', 'getEPPActionTypeList'))
     Object = CompoundFilterField(label=_('Object'), form_class=ObjectsFilterForm)
     Time = DateTimeIntervalField(label=_('Received date'))
     Response = CorbaEnumChoiceField(label=_('Result'), corba_enum=ccReg.EPPActionsFilter.ResultType)

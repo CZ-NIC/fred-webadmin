@@ -278,6 +278,8 @@ class FilterLoader(object):
         return date and ccReg.DateType(*reversed(date.timetuple()[:3])) or ccReg.DateType(0, 0, 0)
     @staticmethod
     def corba_to_date(corba_date):
+        if corba_date.year == 0: # empty date is in corba = DateType(0, 0, 0)
+            return None
         return datetime.date(corba_date.year, corba_date.month, corba_date.day)
     
     @staticmethod
