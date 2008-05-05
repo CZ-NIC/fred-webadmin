@@ -1,8 +1,8 @@
 from logging import debug
 from fields import Field, DecimalField, ChoiceField, MultiValueField, DateField, SplitDateSplitTimeField
-from utils import ValidationError, ErrorList
+from fred_webadmin.webwidgets.utils import ValidationError, ErrorList
 from fred_webadmin.translation import _
-from gpyweb.gpyweb import attr, save, span
+from fred_webadmin.webwidgets.gpyweb.gpyweb import attr, save, span
 
 #cobra things:
 from fred_webadmin.corba import ccReg

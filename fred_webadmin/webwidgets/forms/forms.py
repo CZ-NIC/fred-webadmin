@@ -5,14 +5,10 @@ from copy import deepcopy
 import types
 from logging import debug
 
-from gpyweb.gpyweb import WebWidget, form
+from fred_webadmin.webwidgets.gpyweb.gpyweb import WebWidget, form
 from fields import Field
 from formlayouts import TableFormLayout
-from utils import ErrorDict, ErrorList, ValidationError
-
-__all__ = ('BaseForm', 'Form')
-
-from utils import SortedDict
+from fred_webadmin.webwidgets.utils import ErrorDict, ErrorList, ValidationError, SortedDict
 
 NON_FIELD_ERRORS = '__all__'
 

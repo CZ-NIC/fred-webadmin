@@ -10,8 +10,8 @@ from gpyweb.gpyweb import WebWidget, attr, save, ul, li, a, table, tr, th, td, b
 from fred_webadmin.mappings import f_urls, f_id_name, f_name_formname
 from fred_webadmin.translation import _
 from fred_webadmin.itertable import IterTable
-from fred_webadmin.webwidgets.adifforms import UnionFilterForm
-from fred_webadmin.webwidgets.adifforms import *
+from fred_webadmin.webwidgets.forms.filterforms import UnionFilterForm
+from fred_webadmin.webwidgets.forms.filterforms import *
 
 class FilterList(ul):
     def __init__(self, filters, filter_name=None, *content, **kwd):

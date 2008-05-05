@@ -398,7 +398,7 @@ class AuthInfoDetailDiv(DetailDiv):
             
             table(attr(border='1', style='width: 96%'), 
                   tr(th(attr(style='width=180px'), _('Handle')), 
-                     td(attr(), strong(a(attr(href=f_urls[f_objectType_name[result.oType]] + '/detail/?handle=' + result.handle), result.handle)))), 
+                     td(attr(), strong(a(attr(href=f_urls[f_objectType_name[result.oType]] + 'detail/?handle=' + result.handle), result.handle)))), 
                   tr(th(_('Reason')), 
                      td(result.reason)), 
                   tr(th(_('Request_type')), 

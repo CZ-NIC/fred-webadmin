@@ -72,7 +72,9 @@ from webwidgets.utils import isiterable, convert_linear_filter_to_form_output
 from webwidgets.menu import MenuHoriz
 from webwidgets.adifwidgets import FilterList, FilterListUnpacked, FilterListCustomUnpacked
 from menunode import menu_tree
-from webwidgets.adifforms import *
+from fred_webadmin.webwidgets.forms.adifforms import LoginForm
+from fred_webadmin.webwidgets.forms.filterforms import *
+from fred_webadmin.webwidgets.forms.filterforms import get_filter_forms_javascript
 
 from itertable import IterTable, fileGenerator
 from fred_webadmin.utils import json_response
@@ -80,7 +82,7 @@ from fred_webadmin.utils import json_response
 from mappings import f_name_enum, f_name_id
 from user import User
 
-from fred_webadmin.webwidgets.adifforms import get_filter_forms_javascript
+
 
 class AdifError(Exception):
     pass

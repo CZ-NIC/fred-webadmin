@@ -2,35 +2,27 @@
 # -*- coding: utf-8 -*-
 
 from copy import deepcopy
-#def deepcopy(a): 
-#    return a
 import cherrypy
-import simplejson
-from logging import debug
 
+import simplejson
+
+from logging import debug
 from fred_webadmin import config
-from forms import Form, SortedDictFromList
+from forms import Form
 from fields import *
 from adiffields import *
-from formlayouts import FilterTableFormLayout, UnionFilterFormLayout
-from fred_webadmin import config
+from filterformlayouts import FilterTableFormLayout, UnionFilterFormLayout
 from fred_webadmin.translation import _
-from utils import SortedDict, ErrorDict, escape_js_literal
+from fred_webadmin.webwidgets.utils import SortedDict, ErrorDict, escape_js_literal
 from fred_webadmin.corbalazy import CorbaLazyRequest, CorbaLazyRequest1V2L
 from fred_webadmin.corba import ccReg
+from fred_webadmin.mappings import f_urls
 
-#__all__ = ['LoginForm', 'FilterForm']
+__all__ = ['UnionFilterForm', 'RegistrarsFilterForm', 'ObjectsFilterForm', 'ContactsFilterForm', 'NSSetsFilterForm', 'DomainsFilterForm', 'ActionsFilterForm', 'FiltersFilterForm']
 
 class FilterFormEmptyValue(object):
     '''Class used in clean method of Field as empty value (if field.is_emtpy()=True, than clean vill return instance of this object'''
     pass
-
-class LoginForm(Form):
-    corba_server = ChoiceField(choices=[(str(i), ior[0]) for i, ior in enumerate(config.iors)], label=_("Server"))
-    login = CharField(max_length=30, label=_('Username'))#, initial=_(u'ohíňěček ťůříšekňú'))
-    password = PasswordField(max_length=30)
-    next = HiddenField(initial='/')
-    media_files = 'form_files.js'
 
 class UnionFilterForm(Form):
     'Form that contains more Filter Forms, data for this form is list of data for its Filter Forms'
@@ -109,7 +101,7 @@ class UnionFilterForm(Form):
         '''
         class_name = self.form_class.__name__ 
         if class_name.endswith('FilterForm'):
-            return '/%s/filter/' % class_name[:-10].lower()
+            return '%sfilter/' % f_urls[class_name[:-10].lower()]
         else:
             return ''
          

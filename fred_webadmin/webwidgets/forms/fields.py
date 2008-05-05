@@ -8,8 +8,8 @@ import datetime
 from decimal import Decimal, DecimalException
 from logging import debug
 
-from gpyweb.gpyweb import WebWidget, attr, select, option, span, input
-from utils import ValidationError, ErrorList, isiterable
+from fred_webadmin.webwidgets.gpyweb.gpyweb import WebWidget, attr, select, option, span, input
+from fred_webadmin.webwidgets.utils import ValidationError, ErrorList, isiterable
 from fred_webadmin.translation import _
 
 EMPTY_VALUES = (None, '')

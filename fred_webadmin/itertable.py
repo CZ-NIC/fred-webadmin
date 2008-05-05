@@ -5,7 +5,7 @@ from logging import debug, error
 from corba import ccReg, CorbaServerDisconnectedException
 from adif import u2c
 from translation import _
-from fred_webadmin.webwidgets.adifforms import FilterFormEmptyValue
+from fred_webadmin.webwidgets.forms.filterforms import FilterFormEmptyValue
 from fred_webadmin.mappings import f_name_enum, f_header_ids
 
 def fileGenerator(source, separator = '|'):
