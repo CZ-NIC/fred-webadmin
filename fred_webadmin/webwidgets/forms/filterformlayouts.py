@@ -115,17 +115,15 @@ class FilterTableFormLayout(TableFormLayout):
                     for error_name, error in tmp_node.errors.items():
                         if error_name == forms.NON_FIELD_ERRORS:
                             continue
-                        error_filter_name = error_name.split('|')[1]
-                        self.all_errors['-'.join(names + [error_filter_name])] = error
+                        self.all_errors['-'.join(names + [error_name])] = error
             
-                for field in reversed(tmp_node.fields.values()): # 'reversed': because order in stack will be reversed, so to companate it
-                    filter_name = field.name.split('|')[1]
+                for field in reversed(tmp_node.fields.values()): # 'reversed': because order in stack will be reversed, so to companzate it
                     if not isinstance(field,  CompoundFilterField):
                         open_nodes.append([names, labels, field])
                     else:
-                        open_nodes.append([names + [filter_name], labels + [field.label], field.form])
+                        open_nodes.append([names + [field.name], labels + [field.label], field.form])
             else:
-                filter_name = tmp_node.name.split('|')[1]
+                filter_name = tmp_node.name
                 composed_name = '-'.join(names + [filter_name])
                 tmp_node.label = '.'.join(labels + [tmp_node.label])
                 self.all_fields.append([composed_name, tmp_node])
@@ -151,12 +149,12 @@ class FilterTableFormLayout(TableFormLayout):
         else:
             label_str = self.get_label_name(field)
         
-        negation_field = BooleanField(field.name.replace('filter', 'negation'), field.negation)
+        negation_field = BooleanField('negation|' + field.name, field.negation)
         #del_row_td = td(a(attr(cssc='pointer_cursor', onclick=u"delRow(this, '%s', '%s')" % (field_name, label_str)), img(src='/img/icons/purple_minus.gif')))
         if for_javascript:
-            presention_field = HiddenField(field.name.replace('filter', 'presention'), 'on') # needed for detecting presention of fields as checkboxes and multiple selects, because they do not send data if nonchecket or selected no option
+            presention_field = HiddenField('presention|' + field.name, 'on') # needed for detecting presention of fields as checkboxes and multiple selects, because they do not send data if nonchecket or selected no option
         else: 
-            presention_field = HiddenField(field.name.replace('filter', 'presention'), '%03d' % self.field_counter) # needed for detecting presention of fileds as checkboxes and multiple selects, because they do not send data if nonchecket or selected no option 
+            presention_field = HiddenField('presention|' + field.name, '%03d' % self.field_counter) # needed for detecting presention of fileds as checkboxes and multiple selects, because they do not send data if nonchecket or selected no option 
             self.field_counter += 1
 
         if not isinstance(field,  CompoundFilterField):
@@ -198,7 +196,7 @@ class FilterTableFormLayout(TableFormLayout):
         output += u"default:\n" # if not specified, first field is taken
         fields_js_dict = SortedDict()
         for field_num, (name, field) in enumerate(base_fields.items()):
-            field.name = u'filter|' + name
+            field.name = name
             output += u"case '%s':\n" % name
             rendered_field = unicode(self.build_field_row(field, for_javascript=True))
             rendered_field = escape_js_literal(rendered_field)

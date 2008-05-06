@@ -39,7 +39,7 @@ class TestFilterLoader:
         
         
         print 'printing'
-        input_filter_data = [{u'filter|object': [False, {u'filter|handle': [False, u'test.cz']}]}, {u'filter|registrar': [False, {u'filter|handle': [True, u'REG-FRED_A']}]}]
+        input_filter_data = [{u'object': [False, {u'handle': [False, u'test.cz']}]}, {u'registrar': [False, {u'handle': [True, u'REG-FRED_A']}]}]
         
         itable = IterTable('actions', self.corbaSession)
         print "SET FILTERS:"

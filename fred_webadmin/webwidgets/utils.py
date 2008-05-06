@@ -183,8 +183,8 @@ def convert_linear_filter_to_form_output(or_filters):
         for name in splitted_name[:-1]: # last is actual name of filter
             if not tmp_filter.has_key(name):
                 tmp_filter['presention|' + name] = 'on'
-                tmp_filter['filter|' + name] = {}
-            tmp_filter = tmp_filter['filter|' + name]
+                tmp_filter[name] = {}
+            tmp_filter = tmp_filter[name]
         return tmp_filter, splitted_name[-1]
     
     result = []
@@ -202,7 +202,7 @@ def convert_linear_filter_to_form_output(or_filters):
                 negation = False
             
             current_filter['presention|' + last_fname] = 'on'  
-            current_filter['filter|' + last_fname] =  fval
+            current_filter[last_fname] =  fval
             if negation:
                 current_filter['negation|' + last_fname] = 'on'
         result.append(new_or_filter)

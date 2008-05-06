@@ -337,7 +337,6 @@ class FilterLoader(object):
     def _set_one_compound_filter(cls, compound, filter_data):
         debug('filter_data in set_one_compound_filter: %s' % filter_data)
         for key, [neg, val] in filter_data.items():
-            key = key[len(u'filter|'):] # all names starts with 'filter|'  
             #func = getattr(compound, "add%s" % (key[0].capitalize() + key[1:])) # capitalize only first letter
             func = getattr(compound, "add%s" % key)
             sub_filter = func() # add
@@ -388,7 +387,7 @@ class FilterLoader(object):
                 else:
                     value = val
             
-            filter_data['filter|' + name] = [neg, value]
+            filter_data[name] = [neg, value]
         return filter_data
     
     @classmethod

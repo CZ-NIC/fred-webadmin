@@ -33,6 +33,7 @@ if config.auth_method == 'LDAP':
 # CherryPy main import
 import cherrypy
 from cherrypy.lib import http
+import simplejson
 #cherrypy.session = cherrypy.session # to pylint stop abuse :)
 
 # decorator for exposing methods
@@ -342,7 +343,7 @@ class ListTableMixin(object):
         itertable = self._get_itertable('filters')
         #itertable.set_filter({})
         itertable.set_filter([{#'userId': cherrypy.session.get('user').id,
-                              'filter|Type': [False, f_name_id[self.classname]]
+                              'Type': [False, f_name_id[self.classname]]
                              }])
         itertable.reload()
         context['filters_list'] = FilterListCustomUnpacked(itertable.get_rows_dict(raw_header=True), self.classname)

@@ -155,7 +155,7 @@ class FilterForm(Form):
         '''
         base_fields = self.base_fields # self.fields are deepcopied from self.base_fields (in BaseForm) 
         self.fields = SortedDict()
-
+        
         fields_for_sort = []  
         if self.is_bound:
             debug('DATA %s' % self.data)
@@ -168,27 +168,26 @@ class FilterForm(Form):
                         field = deepcopy(base_fields[filter_name])
                         if isinstance(field, CompoundFilterField):
                             field.parent_form = self
-                        field.name = '%s|%s' % ('filter', filter_name)
+                        field.name = filter_name
                         field.value = field.value_from_datadict(self.data)
                         
                         negation = (self.data.get('%s|%s' % ('negation', filter_name)) is not None)
                         field.negation = negation
                         fields_for_sort.append(field)
             else: # data passed to form in constructor are cleaned_data (e.g. from itertable.get_filter)
-                for name_str, [neg, value] in self.data.items():
-                    filter_name = name_str.split('|')[1]
-                    debug('field %s, setting value %s' % (filter_name, value))
-                    field = deepcopy(base_fields[filter_name])
+                for field_name, [neg, value] in self.data.items():
+                    debug('field %s, setting value %s' % (field_name, value))
+                    field = deepcopy(base_fields[field_name])
                     if isinstance(field, CompoundFilterField):
                         field.parent_form = self
-                    field.name = name_str
+                    field.name = field_name
                     field.set_from_clean(value)
                     field.negation = neg
                     fields_for_sort.append(field)
         else:
             for field_name in self.default_fields_names:
                 field = deepcopy(base_fields[field_name])
-                field.name = '%s|%s' % ('filter', field_name)
+                field.name = field_name
                 fields_for_sort.append(field)
         
         # adding fields in order according to field.order

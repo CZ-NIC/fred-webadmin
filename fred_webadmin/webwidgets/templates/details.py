@@ -226,11 +226,12 @@ class DomainDetailDiv(DetailDiv):
                          td(result.updateDate)))
             )
             
-            self.add(FilterPanel([
-                [_('Requests'), 'actions', [{'Object.Handle': result.fqdn}]],
-                [_('Emails'), 'mails', [{'Object.Handle': result.fqdn}]],
-                [_('dig'), f_urls['domains'] + 'dig/?handle=' + result.fqdn]
-            ]))
+        self.add(FilterPanel([
+            [_('Requests'), 'actions', [{'Object.Handle': result.fqdn}]],
+            [_('Emails'), 'mails', [{'Object.Handle': result.fqdn}]],
+            [_('dig'), f_urls['domains'] + 'dig/?handle=' + result.fqdn]
+        ]))
+        
         
 class NSSetDetailDiv(DetailDiv):
     def __init__(self, context):

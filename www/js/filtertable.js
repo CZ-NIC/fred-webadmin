@@ -275,11 +275,11 @@ function getFTableData(ftable, ftData) {
             if (i == names.length - 1) { //this is the last name in composedName
                 Ext.apply(dataRec, rowData);
             } else { //this is not the last name in composedName (it is compound filter)
-                if (!dataRec['filter|' + name]) { // if data object for this subfilter doesn't exist, create one
-                    dataRec['filter|' + name] = {};
+                if (!dataRec[name]) { // if data object for this subfilter doesn't exist, create one
+                    dataRec[name] = {};
                     dataRec['presention|' + name] = 'on';
                 }
-                dataRec = dataRec['filter|' + name];
+                dataRec = dataRec[name];
             }
         }
 	}
