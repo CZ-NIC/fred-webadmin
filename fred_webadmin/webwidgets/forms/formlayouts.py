@@ -39,14 +39,17 @@ class TableFormLayout(FormLayout):
             else:
                 cell_tag = td
             
-            errors = form.errors.get(field.name, None)
+            errors = form.errors.get(field.name_orig, None)
                 
             self.tbody.add(tr(cell_tag(label(label_str)),
                               td(errors, field)
                              )
                           )
         
-        self.tbody.add(self.get_submit_row(hidden_fields))
+        
+        self.add(hidden_fields)
+        if not form.is_nested:
+            self.tbody.add(self.get_submit_row())
 
         
     def get_label_name(self, field):
@@ -57,6 +60,6 @@ class TableFormLayout(FormLayout):
             label_str += self.form.label_suffix
         return label_str
     
-    def get_submit_row(self, hidden_fields=None):
-        return tr(td(attr(colspan=self.columns_count, cssc='center'), hidden_fields, input(attr(type=u'submit', value=u'OK', name=u'submit'))))
+    def get_submit_row(self):
+        return tr(td(attr(colspan=self.columns_count, cssc='center'), input(attr(type=u'submit', value=u'OK', name=u'submit'))))
       

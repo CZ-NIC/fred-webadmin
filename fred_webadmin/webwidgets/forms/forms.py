@@ -3,6 +3,7 @@
 
 from copy import deepcopy
 import types
+import traceback
 from logging import debug
 
 from fred_webadmin.webwidgets.gpyweb.gpyweb import WebWidget, form
@@ -36,7 +37,7 @@ class DeclarativeFieldsMetaclass(WebWidget.__metaclass__):
         # If this class is subclassing another Form, add that Form's fields.
         # Note that we loop over the bases in *reverse*. This is necessary in
         # order to preserve the correct order of fields.
-        debug('%s|%s|%s|%s' % (cls,  name, bases, attrs))
+        debug('%s|%s|%s|%s' % (cls, name, bases, attrs))
 
         for base in bases[::-1]:
             if hasattr(base, 'base_fields'):
@@ -44,7 +45,7 @@ class DeclarativeFieldsMetaclass(WebWidget.__metaclass__):
 
         attrs['base_fields'] = SortedDictFromList(fields)
         for i, (field_name, field) in enumerate(attrs['base_fields'].items()):
-            field.name = field_name
+            field.name_orig = field.name = field_name
             field.order = i
 
         new_class = type.__new__(cls, name, bases, attrs)
@@ -54,12 +55,16 @@ class BaseForm(form):
     # This is the main implementation of all the Form logic. Note that this
     # class is different than Form. See the comments by the Form class for more
     # information. Any improvements to the form API should be made to *this*
-    # class, not to the Form class.
+    # class, not to the Form class 
     def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None,
-                 initial=None, error_class=ErrorList, label_suffix=':', layout=TableFormLayout, *content, **kwd):
+                 initial=None, error_class=ErrorList, label_suffix=':', layout_class=TableFormLayout, 
+                 is_nested = False, empty_permitted=False, *content, **kwd):
         super(BaseForm, self).__init__(*content, **kwd)
-        #self.normal_attrs += ['base_fields', 'fields', 'is_bound', 'data', 'files', 'auto_id', 'prefix', 'initial', 'error_class', 'label_suffix', '_errors', 'layout']
-        self.tag = u'form'
+        #self.normal_attrs += ['base_fields', 'fields', 'is_bound', 'data', 'files', 'auto_id', 'prefix', 'initial', 'error_class', 'label_suffix', '_errors', 'layout_class']
+        if not is_nested:
+            self.tag = u'form'
+        else:
+            self.tag = u''
         self.is_bound = data is not None or files is not None
         self.data = data or {}
         self.files = files or {}
@@ -69,8 +74,10 @@ class BaseForm(form):
         self.error_class = error_class
         self.label_suffix = label_suffix
         self._errors = None # Stores the errors after clean() has been called.
-        self.layout = layout
-
+        self.layout_class = layout_class
+        self.is_nested = is_nested
+        self.empty_permitted = empty_permitted
+        self._changed_data = None
         # The base_fields class attribute is the *class-wide* definition of
         # fields. Because a particular *instance* of the class might want to
         # alter self.fields, we create self.fields here by copying base_fields.
@@ -83,22 +90,41 @@ class BaseForm(form):
         
     def build_fields(self):
         self.fields = self.base_fields.copy()
+        for field in self.fields.values():
+            field.owner_form = self
+            field.name = self.add_prefix(field.name_orig)
         
     def set_fields_values(self):
         if not self.is_bound:
-            for i, field in enumerate(self.fields.values()): 
-                data = self.initial.get(field.name, field.initial)
+            for field in self.fields.values():
+                data = self.initial.get(field.name_orig, field.initial)
                 if callable(data):
                     data = data()
                 if data is not None:
+                    #if field.name == 'access':
+                    #    import pdb; pdb.set_trace()
+                    field.value_is_from_initial = True
                     field.value = data
         else:
 ##            for key, val in self.data.items():
 ##                field = self.fields.get(key)
 ##                if field:
 ##                    field.value = val
+
+
             for field in self.fields.values():
+                if field.name.endswith('DELETE'):
+                    import pdb; pdb.set_trace() 
                 field.value = field.value_from_datadict(self.data)
+                
+        # setting initials is independent on whether form is bound or not:
+        for field in self.fields.values():
+            data = self.initial.get(field.name_orig, field.initial)
+            if callable(data):
+                data = data()
+            if data is not None:
+                field.initial = data
+         
         
         
     def __iter__(self):
@@ -115,9 +141,13 @@ class BaseForm(form):
 
     def _get_errors(self):
         "Returns an ErrorDict for the data provided for the form"
-        if self._errors is None:
-            self.full_clean()
-        return self._errors
+        try:
+            if self._errors is None:
+                self.full_clean()
+            return self._errors
+        except AttributeError:
+            raise RuntimeError('Camouflaged AttributeError from _get_errors, original error: \n %s' % unicode(traceback.format_exc()))
+            
     errors = property(_get_errors)
 
     def is_valid(self):
@@ -142,10 +172,10 @@ class BaseForm(form):
                 
         
         self.content = [] # empty previous content (if render would be called moretimes, there would be multiple forms instead one )
-        debug('Adding layout %s to %s' % (self.layout, self.__class__.__name__))
-        self.add(self.layout(self))
-        debug('After adding layout %s to %s' % (self.layout, self.__class__.__name__))
-        #self.layout(self).render(indent_level)
+        debug('Adding layout %s to %s' % (self.layout_class, self.__class__.__name__))
+        self.add(self.layout_class(self))
+        debug('After adding layout %s to %s' % (self.layout_class, self.__class__.__name__))
+        #self.layout_class(self).render(indent_level)
         return super(BaseForm, self).render(indent_level)
 
     def non_field_errors(self):
@@ -187,6 +217,9 @@ class BaseForm(form):
         if not self.is_bound: # Stop further processing.
             return
         self.cleaned_data = {}
+        if self.empty_permitted and not self.has_changed():
+            self.cleaned_data = None
+            return
         for name, field in self.fields.items():
             self.clean_field(name, field)
         try:
@@ -216,7 +249,34 @@ class BaseForm(form):
         association with the field named '__all__'.
         """
         return self.cleaned_data
+    
+    def has_changed(self):  
+        """
+        Returns True if data differs from initial.
+        """
+        return bool(self.changed_data)
+    
+   
+    
+    def _get_changed_data(self):
+        if self._changed_data is None:
+            self._changed_data = []
+            # XXX: For now we're asking the individual widgets whether or not the
+            # data has changed. It would probably be more efficient to hash the
+            # initial data, store it in a hidden field, and compare a hash of the
+            # submitted data, but we'd need a way to easily get the string value
+            # for a given field. Right now, that logic is embedded in the render
+            # method of each widget.
+            for name, field in self.fields.items():
+                #prefixed_name = self.add_prefix(name)
 
+                data_value = field.value_from_datadict(self.data)#, prefixed_name)
+                initial_value = self.initial.get(name, field.initial)
+                if field._has_changed(initial_value, data_value):
+                    self._changed_data.append(name)
+        return self._changed_data
+    changed_data = property(_get_changed_data)
+    
     def reset(self):
         """Return this form to the state it was in before data was passed to it."""
         self.data = {}

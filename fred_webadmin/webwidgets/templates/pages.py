@@ -6,7 +6,7 @@ from fred_webadmin.webwidgets.forms.filterforms import get_filter_forms_javascri
 from fred_webadmin.translation import _
 from fred_webadmin import config
 
-from details import ContactDetailDiv, DomainDetailDiv, NSSetDetailDiv, ActionDetailDiv, RegistrarDetailDiv, AuthInfoDetailDiv, MailDetailDiv, InvoiceDetailDiv
+from details import ContactDetailDiv, DomainDetailDiv, NSSetDetailDiv, ActionDetailDiv, RegistrarDetailDiv, PublicRequestDetailDiv, MailDetailDiv, InvoiceDetailDiv
 
 class BaseTemplate(HTMLPage):
     def __init__(self, context = None):
@@ -247,17 +247,18 @@ class RegistrarsDetail(BaseSiteMenu):
         c = self.context        
         if c.get('result'):
             self.main.add(RegistrarDetailDiv(context))
+            self.main.add(p(a(attr(href=u'../edit/?id=' + unicode(c.result.id)), _('Edit'))))
             if config.debug:
-                self.main.add('RegistrarSDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
+                self.main.add('RegistrarsDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
             
-class AuthInfosDetail(BaseSiteMenu):
+class PublicRequestsDetail(BaseSiteMenu):
     def __init__(self, context = None):
-        super(AuthInfosDetail, self).__init__(context)
+        super(PublicRequestsDetail, self).__init__(context)
         c = self.context
         if c.get('result'):
-            self.main.add(AuthInfoDetailDiv(context))
+            self.main.add(PublicRequestDetailDiv(context))
             if config.debug:
-                self.main.add('AuthInfoSDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
+                self.main.add('PublicRequestSDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
                 
   
 class MailsDetail(BaseSiteMenu):
@@ -277,6 +278,18 @@ class InvoicesDetail(BaseSiteMenu):
             self.main.add(InvoiceDetailDiv(context))
             if config.debug:
                 self.main.add('InvoiceDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
+                
+                
+class EditPage(BaseSiteMenu):
+    def __init__(self, context = None):
+        super(EditPage, self).__init__(context)
+        c = self.context
+        if c.get('form'):
+            self.main.add(c.form)
+
+class RegistrarsEdit(EditPage):
+    pass
+            
 
 
 class DigPage(BaseSiteMenu):

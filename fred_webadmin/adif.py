@@ -43,6 +43,8 @@ import exposed
 from corba import Corba, CorbaServerDisconnectedException
 corba = Corba()
 
+from corba import ccReg
+
 # recoder of CORBA objects
 from corbarecoder import CorbaRecode
 recoder = CorbaRecode('utf-8')
@@ -65,22 +67,26 @@ from translation import _
 
 from webwidgets.templates.pages import (
     BaseSite, BaseSiteMenu, LoginPage, DisconnectedPage, NotFound404Page, AllFiltersPage, FilterPage, ErrorPage, DigPage, 
-    DomainsDetail, ContactsDetail, NSSetsDetail, RegistrarsDetail, ActionsDetail, AuthInfosDetail, MailsDetail, InvoicesDetail
+    DomainsDetail, ContactsDetail, NSSetsDetail, RegistrarsDetail, ActionsDetail, PublicRequestsDetail, MailsDetail, InvoicesDetail,
+    #DomainsEdit, ContactsEdit, NSSetsEdit, 
+    RegistrarsEdit, 
+    #ActionsEdit, PublicRequestsEdit, MailsEdit, InvoicesEdit
 )
 from webwidgets.gpyweb.gpyweb import WebWidget
-from webwidgets.gpyweb.gpyweb import DictLookup, attr, ul, li, a, div, span, p, br
+from webwidgets.gpyweb.gpyweb import DictLookup, attr, ul, li, a, div, span, p, br, pre
 from webwidgets.utils import isiterable, convert_linear_filter_to_form_output
 from webwidgets.menu import MenuHoriz
 from webwidgets.adifwidgets import FilterList, FilterListUnpacked, FilterListCustomUnpacked
 from menunode import menu_tree
 from fred_webadmin.webwidgets.forms.adifforms import LoginForm
+from fred_webadmin.webwidgets.forms.editforms import RegistrarsEditForm
 from fred_webadmin.webwidgets.forms.filterforms import *
 from fred_webadmin.webwidgets.forms.filterforms import get_filter_forms_javascript
 
 from itertable import IterTable, fileGenerator
-from fred_webadmin.utils import json_response
+from fred_webadmin.utils import json_response, get_current_url
 
-from mappings import f_name_enum, f_name_id
+from mappings import f_name_enum, f_name_id, f_name_get_by_handle, f_name_editformname
 from user import User
 
 
@@ -99,15 +105,16 @@ class MenuDoesNotExistsError(AdifError):
         return 'Menu with handle "%s" does not exists!' % self.menu_handle
     def __unicode__(self):
         return self.__str__()
+class CustomView(Exception):
+    def __init__(self, rendered_view):
+        self.rendered_view = rendered_view
 
 def login_required(view_func):
     ''' decorator for login-required pages '''
     def _wrapper(*args, **kwd):
         if cherrypy.session.get('user', None):
             return view_func(*args, **kwd)
-        redir_addr = '/login/?next=%s' % cherrypy.request.path_info
-        if cherrypy.request.query_string:
-            redir_addr += '?' + cherrypy.request.query_string
+        redir_addr = '/login/?next=%s' % get_current_url(cherrypy.request)
         raise cherrypy.HTTPRedirect(redir_addr)
     #update_wrapper(_wrapper, view_func)
     return _wrapper
@@ -128,9 +135,7 @@ def check_nperm(nperms, nperm_type='all'):
                         context['main'].add(p('nperms=%s, nperm_type=%s' % (nperms, nperm_type)))
                     return BaseSiteMenu(context).render()
 
-            redir_addr = '/login/?next=%s' % cherrypy.request.path_info
-            if cherrypy.request.query_string:
-                redir_addr += '?' + cherrypy.request.query_string
+            redir_addr = '/login/?next=%s' % get_current_url(cherrypy.request)
             raise cherrypy.HTTPRedirect(redir_addr)
         
         return _wrapper
@@ -161,9 +166,7 @@ def check_onperm(objects_nperms, check_type='all'):
                     return self._render('error', context)
                 return view_func(*args, **kwd)
 
-            redir_addr = '/login/?next=%s' % cherrypy.request.path_info
-            if cherrypy.request.query_string:
-                redir_addr += '?' + cherrypy.request.query_string
+            redir_addr = '/login/?next=%s' % get_current_url(cherrypy.request)
             raise cherrypy.HTTPRedirect(redir_addr)
         
         return _wrapper
@@ -216,7 +219,7 @@ class ListTableMixin(object):
                 show_result = False
                 #import pdb;pdb.set_trace()
                 filter_data = table.get_filter_data()
-                form_class = self._get_form_class()
+                form_class = self._get_filterform_class()
                 context['form'] = UnionFilterForm(filter_data, data_cleaned=True, form_class=form_class)
             else:
                 table.reload()
@@ -228,7 +231,7 @@ class ListTableMixin(object):
             table.reload()
         if kwd.get('load'): # load current filter from backend
             cleaned_filter_data = table.get_filter_data()
-            form_class = self._get_form_class()
+            form_class = self._get_filterform_class()
             form = UnionFilterForm(cleaned_filter_data, form_class=form_class, data_cleaned=True)
             context['form'] = form
             context['main'].add('kwd_json_data_loaded:', cleaned_filter_data)
@@ -308,7 +311,7 @@ class ListTableMixin(object):
         elif kwd.get('txt') or kwd.get('csv'):
             return self._get_list(context, **kwd)
         else:
-            form_class = self._get_form_class()
+            form_class = self._get_filterform_class()
             # bound form with data
             if kwd.has_key('json_data') or kwd.get('json_linear_filter'):
                 if kwd.get('json_linear_filter'):
@@ -349,25 +352,52 @@ class ListTableMixin(object):
         context['filters_list'] = FilterListCustomUnpacked(itertable.get_rows_dict(raw_header=True), self.classname)
         return self._render('allfilters', context)
 
-    def _get_form_class(self):
+    def _get_editform_class(self):
+        form_name = f_name_editformname[self.classname]
+        form_class = getattr(sys.modules[self.__module__], form_name, None)
+        if not form_class:
+            raise RuntimeError('No such formclass in modules "%s"' % form_name)
+        return form_class
+    
+    def _get_filterform_class(self):
         form_name = self.__class__.__name__ + 'FilterForm'
         form_class = getattr(sys.modules[self.__module__], form_name, None)
         if not form_class:
             raise RuntimeError('No such formclass in modules "%s"' % form_name)
         return form_class
-
+    
     @login_required
     def index(self):
         raise cherrypy.HTTPRedirect('/%s/allfilters/' % (self.classname))
 
-    def _get_detail(self, name, obj_id):
+    def _get_detail_by_id(self, name, obj_id):
         corba_session = self._get_corba_session()
         any = corba_session.getDetail(f_name_enum[name], u2c(obj_id))
         corba_obj = from_any(any, True)
         result = c2u(corba_obj)
         return result
         
-        
+    @check_onperm('read')
+    def _get_detail(self, obj_id=None, handle=None):
+        context = {}
+        admin = cherrypy.session.get('Admin')
+        if not handle and obj_id:
+            try:
+                obj_id = int(obj_id)
+            except (TypeError, ValueError):
+                context['main'] = _("Required_integer_as_parameter")
+                raise CustomView(self._render('base', ctx=context))
+#            if not handle:
+#                raise cherrypy.HTTPRedirect('/%s/list' % (self.classname))
+        try:
+            if handle:
+                result = c2u(getattr(admin, f_name_get_by_handle[self.classname])(u2c(handle)))
+            else:
+                result = self._get_detail_by_id(self.classname, obj_id)
+            return result
+        except (corba.module.Admin.ObjectNotFound,):
+            context['main'] = _("Object_not_found")
+            raise CustomView(self._render('base', ctx=context))  
 
 
 class Page(object):
@@ -583,16 +613,17 @@ class ADIF(AdifPage):
 
     def default(self, *args, **kwd):
         if args and args[0] == 'filter_forms_javascript.js':
-            #import pdb; pdb.set_trace()
             if config.caching_filter_form_javascript:
-                if cherrypy.session['filter_forms_javascript_js_cached']:
+                if cherrypy.session.get('filter_forms_javascript') is None:
                     since = cherrypy.request.headers.get('If-Unmodified-Since') 
                     since2 = cherrypy.request.headers.get('If-Modified-Since')
                     if since or since2:
                         raise cherrypy.HTTPRedirect("", 304)
-                cherrypy.session['filter_forms_javascript_js_cached'] = True
                 cherrypy.response.headers['Last-Modified'] = http.HTTPDate(time.time())
-            return get_filter_forms_javascript()
+            
+            result = get_filter_forms_javascript()
+            cherrypy.session['filter_forms_javascript'] = result 
+            return result
         else:
             return super(ADIF, self).default(*args, **kwd)
         
@@ -627,7 +658,7 @@ class ADIF(AdifPage):
                 
                 cherrypy.session['corba_server_name'] = form.fields['corba_server'].choices[corba_server][1]
                 cherrypy.session['Admin'] = admin
-                cherrypy.session['filter_forms_javascript_js_cached'] = False
+                cherrypy.session['filter_forms_javascript'] = None
                 
                 
                 corbaSession = self._get_corba_session()
@@ -666,6 +697,7 @@ class ADIF(AdifPage):
         cherrypy.session['Admin'] = None
         cherrypy.session['Mailer'] = None
         cherrypy.session['FileManager'] = None
+        cherrypy.session['filter_forms_javascript'] = None
         raise cherrypy.HTTPRedirect('/')
 
     def disconnected(self):
@@ -714,38 +746,22 @@ class Registrars(AdifPage, ListTableMixin):
         AdifPage.__init__(self)
         ListTableMixin.__init__(self)
     
+    def _get_empty_corba_struct(self):
+        new = []
+        new.append(0) # id
+        new.extend(['']*3)
+        new.append(False) # vat
+        new.extend(['']*14)
+        new.append('') # money
+        new.append([]) # accesses
+        new.append(False) # hidden
+        return ccReg.Registrar(*new) # empty registrar
+        
     @check_onperm('read')
     def detail(self, **kwd):
         context = {}
-        create = kwd.get('new')
-        if create: 
-            new = []
-            new.append(0) # id
-            new.extend(*[['']*14])
-            new.append(0) # money
-            new.append([])
-            new.append(0) # hidden 
-            result = corba.module.Registrar(*new) # empty registrar
-        else:
-            admin = cherrypy.session.get('Admin')
-            handle = kwd.get('handle')
-            obj_id = kwd.get('id')
-            if not handle and obj_id:
-                try:
-                    obj_id = int(obj_id)
-                except (TypeError, ValueError):
-                    context['main'] = _("Required_integer_as_parameter")
-                    return self._render('base', ctx=context)
-#            if not handle:
-#                raise cherrypy.HTTPRedirect('/%s/list' % (self.classname))
-            try:
-                if handle:
-                    result = c2u(admin.getRegistrarByHandle(u2c(handle)))
-                else:
-                    result = self._get_detail('registrars', obj_id)
-            except (corba.module.Admin.ObjectNotFound,):
-                context['main'] = _("Object_not_found")
-                return self._render('base', ctx=context)
+        
+        result = self._get_detail(obj_id=kwd.get('id'), handle=kwd.get('handle'))
         
         context['edit'] = kwd.get('edit', False)
         context['result'] = result
@@ -758,16 +774,54 @@ class Registrars(AdifPage, ListTableMixin):
     @check_onperm('write')
     def edit(self, *params, **kwd):
         kwd['edit'] = True
-        return self.detail(*params, **kwd)
+        context = {'main': div()}
+        create = kwd.get('new')
+        form_class = self._get_editform_class()
+
+        if not create:
+            result = self._get_detail(obj_id=kwd.get('id'))
+            initial=result.__dict__
+        else:
+            initial = self._get_empty_corba_struct()
+        if cherrypy.request.method == 'POST':
+            form = form_class(kwd, initial=initial, method='post')
+            debug("KWD: %s" % kwd)
+            context['main'].add(pre(('KWD: %s' % kwd).replace(',', ',\n')))
+            if form.is_valid():
+                if debug:
+                    context['main'].add(pre(unicode('Cleaned_data:\n%s' % form.cleaned_data).replace(',', ',\n')))
+                obj = self._get_empty_corba_struct()
+                for key, val in form.cleaned_data.items():
+                    if key == 'id':
+                        val = int(val)
+                    if key == 'access':
+                        for i in range(len(val)):
+                            print "ACC[%s]=%s" % (i, val[i])
+                            val[i] = ccReg.EPPAccess(**val[i])
+                    setattr(obj, key, val)
+                debug('Saving registrar: %s' % obj)
+                self._get_corba_session().updateRegistrar(u2c(obj))
+                raise cherrypy.HTTPRedirect(get_current_url(cherrypy.request))
+            else:
+                if debug:
+                    context['main'].add('Form is not valid! Errors: %s' % repr(form.errors))
+        else:
+            if create:
+                form = form_class(method='post', initial=initial) 
+            else:
+                form = form_class(initial=initial, method='post')
+        
+        context['form'] = form
+        return self._render('edit', context)
     
     @check_onperm('write')
     def create(self, *params, **kwd):
-        kwd['edit'] = True
         kwd['new'] = True
-        return self.detail(*params, **kwd)
+        return self.edit(*params, **kwd)
 
     @check_onperm('write')
     def modify(self, **kwd):
+        
         k = ['id', 'handle', 'name', 'organization', 'street1', 'street2', 
             'street3', 'city', 'stateorprovince', 'postalcode', 'country', 
             'telephone', 'fax', 'email', 'url', 'credit']
@@ -854,56 +908,38 @@ class Domains(AdifPage, ListTableMixin):
             result = corba.module.Domain(0, *['']*14) # empty Domain
         else:
             admin = cherrypy.session.get('Admin')
-            handle = kwd.get('handle')
-            obj_id = kwd.get('id')
-            if not handle and obj_id:
-                try:
-                    obj_id = int(obj_id)
-                except (TypeError, ValueError):
-                    context['main'] = _("Non_numeric_ID")
-                    return self._render('base', context)
-#            if not handle:
-#                raise cherrypy.HTTPRedirect('/%s/list' % (self.classname))
-            try:
-                if handle:
-                    result = c2u(admin.getDomainByFQDN(u2c(handle)))
-                else:
-                    result = self._get_detail('domains', obj_id)
-            except (corba.module.Admin.ObjectNotFound,):
-                context['main'] = _("Object_not_found")
-                return self._render('base', context)
+            result = self._get_detail(obj_id=kwd.get('id'), handle=kwd.get('handle'))
+            result.registrant = c2u(admin.getContactByHandle(u2c(result.registrantHandle)))
+            nsset = None
+            if result.nssetHandle:
+                nsset = c2u(admin.getNSSetByHandle(u2c(result.nssetHandle)))
+                techs = []
+                for tech in nsset.admins:
+                    techs.append(c2u(admin.getContactByHandle(u2c(tech))))
+                nsset.admins = techs
+            result.__dict__['nsset'] = nsset
+            adm = []
+            for admin_handle in result.admins:
+                adm.append(c2u(admin.getContactByHandle(u2c(admin_handle))))
+            result.admins = adm
+            adm = []
+            for admin_handle in result.temps:
+                adm.append(c2u(admin.getContactByHandle(u2c(admin_handle))))
+            result.temps = adm
+            if result.createRegistrarHandle:
+                #import pdb; pdb.set_trace()
+                res = admin.getRegistrarByHandle(u2c(result.createRegistrarHandle))
+                result.createRegistrar = c2u(res)
             else:
-                result.registrant = c2u(admin.getContactByHandle(u2c(result.registrantHandle)))
-                nsset = None
-                if result.nssetHandle:
-                    nsset = c2u(admin.getNSSetByHandle(u2c(result.nssetHandle)))
-                    techs = []
-                    for tech in nsset.admins:
-                        techs.append(c2u(admin.getContactByHandle(u2c(tech))))
-                    nsset.admins = techs
-                result.__dict__['nsset'] = nsset
-                adm = []
-                for admin_handle in result.admins:
-                    adm.append(c2u(admin.getContactByHandle(u2c(admin_handle))))
-                result.admins = adm
-                adm = []
-                for admin_handle in result.temps:
-                    adm.append(c2u(admin.getContactByHandle(u2c(admin_handle))))
-                result.temps = adm
-                if result.createRegistrarHandle:
-                    #import pdb; pdb.set_trace()
-                    res = admin.getRegistrarByHandle(u2c(result.createRegistrarHandle))
-                    result.createRegistrar = c2u(res)
-                else:
-                    result.createRegistrar = None
-                if result.updateRegistrarHandle:
-                    result.updateRegistrar = c2u(admin.getRegistrarByHandle(u2c(result.updateRegistrarHandle)))
-                else:
-                    result.updateRegistrar = None
-                if result.registrarHandle:
-                    result.registrar = c2u(admin.getRegistrarByHandle(u2c(result.registrarHandle)))
-                else:
-                    result.registrar = None
+                result.createRegistrar = None
+            if result.updateRegistrarHandle:
+                result.updateRegistrar = c2u(admin.getRegistrarByHandle(u2c(result.updateRegistrarHandle)))
+            else:
+                result.updateRegistrar = None
+            if result.registrarHandle:
+                result.registrar = c2u(admin.getRegistrarByHandle(u2c(result.registrarHandle)))
+            else:
+                result.registrar = None
         
         context['edit'] = kwd.get('edit')
         
@@ -942,25 +978,7 @@ class Contacts(AdifPage, ListTableMixin):
         if create: 
             result = corba.module.Contact(0, *['']*32) # empty Contact
         else:
-            admin = cherrypy.session.get('Admin')
-            handle = kwd.get('handle')
-            obj_id = kwd.get('id')
-            if not handle and obj_id:
-                try:
-                    obj_id = int(obj_id)
-                except (TypeError, ValueError):
-                    context['main'] = _("Required_integer_as_parameter")
-                    return self._render('base', ctx=context)
-#            if not handle:
-#                raise cherrypy.HTTPRedirect('/%s/list' % (self.classname))
-            try:
-                if handle:
-                    result = c2u(admin.getContactByHandle(u2c(handle)))
-                else:
-                    result = self._get_detail('contacts', obj_id)
-            except (corba.module.Admin.ObjectNotFound,):
-                context['main'] = _("Object_not_found")
-                return self._render('base', context)
+            result = self._get_detail(obj_id=kwd.get('id'), handle=kwd.get('handle'))
             # XXX: HACK
             # convert all disclose* properties to: 0 -> False, 1 -> True
             [ result.__dict__.__setitem__(x, [False, True][result.__dict__[x]]) for x in result.__dict__ if x.startswith('disclose') ]
@@ -984,25 +1002,8 @@ class NSSets(AdifPage, ListTableMixin):
             result = corba.module.NSSet(0, *['']*11) # empty NSSet
         else:
             admin = cherrypy.session.get('Admin')
-            handle = kwd.get('handle', None)
-            obj_id = kwd.get('id')
-            if not handle and obj_id:
-                try:
-                    obj_id = int(obj_id)
-                except (TypeError, ValueError):
-                    context['main'] = _("Required_integer_as_parameter")
-                    return self._render('base', context)
-#            if not handle:
-#                raise cherrypy.HTTPRedirect('/%s/list' % (self.classname))
-            try:
-                if handle:
-                    result = c2u(admin.getNSSetByHandle(u2c(handle)))
-                else:
-                    result = self._get_detail('nssets', obj_id)
-            except (corba.module.Admin.ObjectNotFound,):
-                context['main'] = _("Object_not_found")
-                return self._render('base', context)
-
+            result = self._get_detail(obj_id=kwd.get('id'), handle=kwd.get('handle'))
+        
             techs = []
             for tech in result.admins:
                 techs.append(c2u(admin.getContactByHandle(u2c(tech))))
@@ -1102,7 +1103,7 @@ class Mails(AdifPage, ListTableMixin):
             response.body = body
             return response.body
 
-class AuthInfos(AdifPage, ListTableMixin):
+class PublicRequests(AdifPage, ListTableMixin):
 
     def __init__(self):
         AdifPage.__init__(self)
@@ -1264,7 +1265,7 @@ class Development(object):
         debug('---')
         debug(dir(cherrypy.request))
         debug('---')
-        
+        import pdb; pdb.set_trace()
         dvals = [
             "request.remote:'%s'" % cherrypy.request.remote,
             "request.path_info: '%s'" % cherrypy.request.path_info,
@@ -1306,7 +1307,7 @@ def runserver():
     root.contacts = Contacts()
     root.nssets = NSSets()
     root.mails = Mails()
-    root.authinfos = AuthInfos()
+    root.publicrequests = PublicRequests()
     root.invoices = Invoices()
     root.bankstatements = Bankstatements()
     root.filters = Filters()

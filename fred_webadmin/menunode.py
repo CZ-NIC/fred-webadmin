@@ -99,7 +99,7 @@ menu_tree = MenuNode('root', '', '', 'menu-item', '#', [
     ]), 
     MenuNode('logs', _('Logs'), 'body-logs', 'menu-item menu-logs', url='/logs/', submenu=[
         MenuNode('actions', _('Actions'), cssc='menu-item', url=f_urls['actions'] + 'allfilters/', nperm='action.read'),
-        MenuNode('authinfos', _('AuthInfos'), cssc='menu-item', url=f_urls['authinfos'] + 'allfilters/', nperm='authinfo.read'),
+        MenuNode('publicrequests', _('PublicRequests'), cssc='menu-item', url=f_urls['publicrequests'] + 'allfilters/', nperm='publicrequest.read'),
         MenuNode('mails', _('Emails'), cssc='menu-item', url=f_urls['mails'] + 'allfilters/', nperm='email.read'),
         MenuNode('zonegener', _('Zone gener.'), cssc='menu-item', url='/zonegener/', nperm='zonegener.read'),
         MenuNode('techtests', _('Tech. tests'), cssc='menu-item', url='/techtests/', nperm='techtest.read'),

@@ -28,9 +28,12 @@ class Field(WebWidget):
         self.help_text = help_text
         self.needs_multipart_form = False
         self.order = 0 # order in form, set during form creation
+        self.owner_form = None
+        self.value_is_from_initial = False
         
-        self.name = name
+        self.name_orig = self.name = name
         if value == '' and initial is not None:
+            self.value_is_from_initial = True
             self.value = initial
         else:
             self.value = value
@@ -54,12 +57,30 @@ class Field(WebWidget):
         self.value = value
     
     def value_from_datadict(self, data):
-#        debug('Jsem %s a beru si data %s' % (self.name, data.get(self.name, None)))
+        debug('Jsem %s (orig %s) a beru si data %s' % (self.name, self.name_orig, data.get(self.name, None)))
         return data.get(self.name, None)
     
     def is_empty(self):
         return self.value in EMPTY_VALUES
     
+    def _has_changed(self, initial, data):
+        """
+        Return True if data differs from initial.
+        """
+        # For purposes of seeing whether something has changed, None is
+        # the same as an empty string, if the data or inital value we get
+        # is None, replace it w/ u''.
+        if data is None:
+            data_value = u''
+        else:
+            data_value = data
+        if initial is None:
+            initial_value = u''
+        else:
+            initial_value = initial
+        if unicode(initial_value) != unicode(data_value):
+            return True
+        return False
     
 class CharField(Field):
     tattr_list = input.tattr_list
@@ -463,34 +484,35 @@ class BooleanField(Field):
         self.tag = self.tag or u'input'
         if self.tag == u'input':
             self.type = u'checkbox'
-        
-        if (value is not None) and (value != False):
-            self._value = value
-            self.checked = 'checked'
-        else:
-            self._value = 1
-            self.checked = None
- 
+        self._value = 1
+        self.tattr['value'] = 1
+            
     def __setattr__(self, name, value):
         """
         Owerriden __setattr__ because value is field attribute and tag attribute and thus we cannot make it property, 
         because _setattr__ of WebWidget would just store it to tattr and wouldn't call _set_item method
-        """ 
+        """
         if name == 'value':
-            if (value is not None) and (value != False):
-                self._value = value
-                self.checked = 'checked'
-            else:
-                self._value = 1
+            if (value is None) or (value == False):
                 self.checked = None
+            else:
+                self.checked = 'checked'
         else:
             super(BooleanField, self).__setattr__(name, value)
+    def __getattr__(self, name):
+        if name == 'value':
+            return self._value
+        else:
+            return super(BooleanField, self).__getattr__(name)
 
     def clean(self):
         "Returns a Python boolean object."
-        super(BooleanField, self).clean()
-        return bool(self.value)
+        return bool(self.checked)
     
+    def _has_changed(self, initial, data):
+        # Sometimes data or initial could be None or u'' which should be the
+        # same thing as False.
+        return bool(initial) != bool(data)
 
 class HiddenField(CharField):
     is_hidden = True
@@ -498,7 +520,15 @@ class HiddenField(CharField):
         super(HiddenField, self).__init__(name, value, *args, **kwargs)
         if self.tag == u'input':
             self.type = u'hidden'
-            
+
+
+class HiddenDecimalField(DecimalField):
+    is_hidden = True
+    def __init__(self, name='', value='', max_value=None, min_value=None, max_digits=None, decimal_places=None, *args, **kwargs):
+        super(HiddenDecimalField, self).__init__(name, value, max_value, min_value, max_digits, decimal_places, *args, **kwargs)
+        if self.tag == u'input':
+            self.type = u'hidden'
+    
 
 
 
@@ -515,13 +545,12 @@ class ChoiceField(Field):
             self.choices = []
         else:
             self.choices = choices
-        self.value = value
 
     def make_content(self):
         self.content = []
         if self.choices:
             for value, caption in list(self.choices):
-                if unicode(value) == self.value:
+                if unicode(value) == unicode(self.value):
                     self.add(option(attr(value=value, selected='selected'), caption))
                 else:
                     self.add(option(attr(value=value), caption))
@@ -575,7 +604,11 @@ class NullBooleanField(ChoiceField):
         
     def clean(self):
         return {True: True, False: False}.get(self.value, None)
-
+    
+    def _has_changed(self, initial, data):
+        # Sometimes data or initial could be None or u'' which should be the
+        # same thing as False.
+        return bool(initial) != bool(data)
 
 class MultipleChoiceField(ChoiceField):
     def __init__(self, name='', value='', choices=None, required=True, label=None, initial=None, help_text=None, *args, **kwargs):
@@ -618,6 +651,18 @@ class MultipleChoiceField(ChoiceField):
         if not isinstance(value, (list, tuple)):
             value = [value]
         return value
+    
+    def _has_changed(self, initial, data):
+        if initial is None:
+            initial = []
+        if data is None:
+            data = []
+        if len(initial) != len(data):
+            return True
+        for value1, value2 in zip(initial, data):
+            if unicode(value1) != unicode(value2):
+                return True
+        return False
 
 class ComboField(Field):
     """
@@ -769,6 +814,15 @@ class MultiValueField(Field):
                 return False
         return True
             
+    def _has_changed(self, initial, data):
+        if initial is None:
+            initial = [u'' for x in range(0, len(data))]
+        else:
+            initial = self.decompress(initial)
+        for field, initial, data in zip(self.fields, initial, data):
+            if field._has_changed(initial, data):
+                return True
+        return False
 
 class SplitDateTimeField(MultiValueField):
     def __init__(self, name='', value='', *args, **kwargs):

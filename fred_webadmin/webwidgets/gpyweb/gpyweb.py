@@ -77,7 +77,7 @@ class WebWidget(object):
     def __init__(self, *content, **kwd):
 #        self.__dict__['normal_attrs'] = ['normal_attrs', 'tag', '    ', 'parent_widget', 'delimiter_char', 'indent_char', 'tagid', 'enclose_content']    
         self.__dict__['tattr'] = {} # attributes, that will be rendered into tag as attribute (eg. <a href="/">...)
-        self.content = [] # To not pydev(or pylint) complain about assigning to undefined membet 'attr'
+        self.__dict__['content'] = [] # To not pydev(or pylint) complain about assigning to undefined membet 'attr'
         self.parent_widget = None
         
         self.tag = self.__class__.__name__
@@ -141,7 +141,9 @@ class WebWidget(object):
         if self.tattr.has_key(name):
             return self.tattr[name]
         else:
-            for con in self.content:
+            # must be using __dict__ because if descendant of WebWidget overrides __getattr__ method,
+            # there would be maximum recursion depth exceeded error raised
+            for con in self.__dict__['content']: 
                 #if hasattr(con, '_is_tag_widget'):
                 if isinstance(con, WebWidget):
                     try:

@@ -88,7 +88,7 @@ class ContactDetailDiv(DetailDiv):
                 [_('Domains_owner'), 'domains', [{'Registrant.Handle': result.handle}]],
                 [_('Domains_admin'), 'domains', [{'AdminContact.Handle': result.handle}]],
                 [_('Domains_all'), 'domains', [{'Registrant.Handle': result.handle}, {'AdminContact.Handle': result.handle}]],
-                [_('NSSets'), 'nssets', [{'AdminContact.Handle': result.handle}]],
+                [_('NSSets'), 'nssets', [{'TechContact.Handle': result.handle}]],
                 [_('Requests'), 'actions', [{'Object.Handle': result.handle}]],
                 [_('Emails'), 'mails', [{'Object.Handle': result.handle}]],
             ]))
@@ -387,15 +387,15 @@ class RegistrarDetailDiv(DetailDiv):
             [_('Emails'), 'mails', [{'Object.Registrar.Handle': result.handle}]],
         ]))
 
-class AuthInfoDetailDiv(DetailDiv):
+class PublicRequestDetailDiv(DetailDiv):
     def __init__(self, context):
-        super(AuthInfoDetailDiv, self).__init__(context)
+        super(PublicRequestDetailDiv, self).__init__(context)
         c = context
         result = c['result']
         #self.media_files.append('/js/edit.js')
         
         self.add(
-            h1(_('AuthInfo_detail')),
+            h1(_('PublicRequest_detail')),
             
             table(attr(border='1', style='width: 96%'), 
                   tr(th(attr(style='width=180px'), _('Handle')), 
@@ -430,10 +430,10 @@ class AuthInfoDetailDiv(DetailDiv):
 #                                 input(attr(type='button', value=_('Invalidate_and_close'), onclick='closeAuthInfo(this); return false;'))))))
 #    
 #            )
-            self.media_files.append('/js/authinfos.js')
+            self.media_files.append('/js/publicrequests.js')
             self.add(FilterPanel([
-                [_('Accept_and_send'), "javascript:processAuthInfo('%s')" % (f_urls['authinfos'] + 'resolve/?id=%s' % result.id)],
-                [_('Invalidate_and_close'), "javascript:closeAuthInfo('%s')" % (f_urls['authinfos'] + 'close/?id=%s' % result.id)],
+                [_('Accept_and_send'), "javascript:processPublicRequest('%s')" % (f_urls['publicrequests'] + 'resolve/?id=%s' % result.id)],
+                [_('Invalidate_and_close'), "javascript:closePublicRequest('%s')" % (f_urls['publicrequests'] + 'close/?id=%s' % result.id)],
             ]))
 
 

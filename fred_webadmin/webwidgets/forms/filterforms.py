@@ -18,7 +18,7 @@ from fred_webadmin.corbalazy import CorbaLazyRequest, CorbaLazyRequest1V2L
 from fred_webadmin.corba import ccReg
 from fred_webadmin.mappings import f_urls
 
-__all__ = ['UnionFilterForm', 'RegistrarsFilterForm', 'ObjectsFilterForm', 'ContactsFilterForm', 'NSSetsFilterForm', 'DomainsFilterForm', 'ActionsFilterForm', 'FiltersFilterForm']
+__all__ = ['UnionFilterForm', 'RegistrarsFilterForm', 'ObjectsFilterForm', 'ContactsFilterForm', 'NSSetsFilterForm', 'DomainsFilterForm', 'ActionsFilterForm', 'FiltersFilterForm', 'PublicRequestsFilterForm', 'get_filter_forms_javascript']
 
 class FilterFormEmptyValue(object):
     '''Class used in clean method of Field as empty value (if field.is_emtpy()=True, than clean vill return instance of this object'''
@@ -26,7 +26,7 @@ class FilterFormEmptyValue(object):
 
 class UnionFilterForm(Form):
     'Form that contains more Filter Forms, data for this form is list of data for its Filter Forms'
-    def __init__(self, data=None, data_cleaned=False, initial=None, layout=UnionFilterFormLayout, form_class=None, *content, **kwd):
+    def __init__(self, data=None, data_cleaned=False, initial=None, layout_class=UnionFilterFormLayout, form_class=None, *content, **kwd):
         '''
         Form containting CompoundFilterForms (class FilterForms), between them is logical OR.
         Can be initilalize using data parametr data - normal form data, or if data_cleaned=True, then data parametr is considered
@@ -46,7 +46,7 @@ class UnionFilterForm(Form):
         self.form_class = form_class
         self.forms = []
         self.data_cleaned = data_cleaned
-        super(UnionFilterForm, self).__init__(data, initial=initial, layout=layout, *content, **kwd)
+        super(UnionFilterForm, self).__init__(data, initial=initial, layout_class=layout_class, *content, **kwd)
         self.set_tattr(action = kwd.get('action') or self.get_default_url())
         self.media_files = ['/js/filtertable.js', 
                             #'/js/MochiKit/MochiKit.js', 
@@ -111,19 +111,17 @@ class FilterForm(Form):
     tattr_list = []
     default_fields_names = []
     def __init__(self, data=None, data_cleaned=False, files=None, auto_id='id_%s', prefix=None,
-                 initial=None, error_class=ErrorList, label_suffix=':', layout=FilterTableFormLayout,
-                 is_nested = False,
+                 initial=None, error_class=ErrorList, label_suffix=':', layout_class=FilterTableFormLayout,
+                 
                  *content, **kwd):
         
         for field in self.base_fields.values():
             field.required = False
             field.negation = False
         
-        self.is_nested = is_nested
         self.data_cleaned = data_cleaned
-        self.layout = layout
         self.filter_base_fields()
-        super(FilterForm, self).__init__(data, files, auto_id, prefix, initial, error_class, label_suffix, layout, *content, **kwd)
+        super(FilterForm, self).__init__(data, files, auto_id, prefix, initial, error_class, label_suffix, layout_class, *content, **kwd)
         self.tag = None
     
     @classmethod
@@ -136,12 +134,15 @@ class FilterForm(Form):
     def filter_base_fields(self):
         "Filters base fields against user negative permissions, so if user has nperm on field we delete it from base_fields (only in istance of FilterForm class)"
         user = cherrypy.session.get('user', None)
-        #import pdb; pdb.set_trace()
-        object_name = self.get_object_name()
-        self.base_fields = SortedDict([(name, field) for name, field in self.base_fields.items() 
-                                       if not user.has_nperm('%s.%s.%s' % (object_name, 'filter', field.name))
-                                      ])
-        self.default_fields_names = [field_name for field_name in self.default_fields_names if field_name in self.base_fields.keys()]
+        if user is None:
+            self.base_fields = SortedDict({})
+            self.default_fields_names = []
+        else:
+            object_name = self.get_object_name()
+            self.base_fields = SortedDict([(name, field) for name, field in self.base_fields.items() 
+                                           if not user.has_nperm('%s.%s.%s' % (object_name, 'filter', field.name))
+                                          ])
+            self.default_fields_names = [field_name for field_name in self.default_fields_names if field_name in self.base_fields.keys()]
 
                  
     
@@ -193,6 +194,7 @@ class FilterForm(Form):
         # adding fields in order according to field.order
         for pos, field in sorted([[field.order, field] for field in fields_for_sort]):  
             self.fields[field.name] = field
+            field.owner_form = self
         debug("RESULTED FIELDS %s" % self.fields.items())
     
     def clean_field(self, name, field):
@@ -335,7 +337,19 @@ class FiltersFilterForm(FilterForm):
     UserID = CharField(label=_('User name'))
     GroupID = CharField(label=_('Group name'))
     Type = ChoiceField(label=_('Result'), choices=((1, u'Poraněn'), (2, u'Preživší'), (3, u'Mrtev'), (4, u'Nemrtvý')))
+
+class PublicRequestsFilterForm(FilterForm):
+    default_fields_names = ['Type']
     
+    Type = CorbaEnumChoiceField(label=_('Type'), corba_enum=ccReg.PublicRequest.Type)
+    Status = CorbaEnumChoiceField(label=_('Status'), corba_enum=ccReg.PublicRequest.Status)
+    CreateTime = DateTimeIntervalField(label=_('Create time'))
+    ResolveTime = DateTimeIntervalField(label=_('Resolve time'))
+    Reason = CharField(label=_('Reason'))
+    EmailToAnswer = CharField(label=_('Email to answer'))
+    Object = CompoundFilterField(label=_('Object'), form_class=ObjectsFilterForm)
+    EppAction = CompoundFilterField(label=_('Action'), form_class=ActionsFilterForm)
+
 
 form_classes = (DomainsFilterForm, 
                 NSSetsFilterForm, 
@@ -343,28 +357,27 @@ form_classes = (DomainsFilterForm,
                 ContactsFilterForm, 
                 RegistrarsFilterForm, 
                 ActionsFilterForm,
-                FiltersFilterForm)
+                FiltersFilterForm,
+                PublicRequestsFilterForm)
 
 def get_filter_forms_javascript():
     'Javascript is cached in user session (must be there, bucause each user can have other forms, because of different permissions'
-    if not cherrypy.session.has_key('filter_forms_javascript') or not config.caching_filter_form_javascript:
-        output = u''
-        all_fields_dict = {}
-        for form_class in form_classes: 
-            form = form_class()
-            # Function for generating field of form
-            output_part, fields_js_dict = form.layout(form).get_javascript_gener_field()
-            output += output_part
-            
-            all_fields_dict[form.get_object_name()] = fields_js_dict
-            
-            # Function that generates empty form:
-            output += "function getEmpty%s() {\n" % form.__class__.__name__
-            output += "    return '%s'\n" % escape_js_literal(unicode(form))
-            output += "}\n"
-        output += u'allFieldsDict = %s' % (simplejson.dumps(all_fields_dict) + u'\n')
-        cherrypy.session['filter_forms_javascript'] = output
-    return cherrypy.session['filter_forms_javascript']
+    output = u''
+    all_fields_dict = {}
+    for form_class in form_classes: 
+        form = form_class()
+        # Function for generating field of form
+        output_part, fields_js_dict = form.layout_class(form).get_javascript_gener_field()
+        output += output_part
+        
+        all_fields_dict[form.get_object_name()] = fields_js_dict
+        
+        # Function that generates empty form:
+        output += "function getEmpty%s() {\n" % form.__class__.__name__
+        output += "    return '%s'\n" % escape_js_literal(unicode(form))
+        output += "}\n"
+    output += u'allFieldsDict = %s' % (simplejson.dumps(all_fields_dict) + u'\n')
+    return output
    
 
 #def valueToCorbaFilter(field):

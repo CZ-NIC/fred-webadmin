@@ -7,7 +7,7 @@ from logging import debug
 import cherrypy
 
 from gpyweb.gpyweb import WebWidget, attr, save, ul, li, a, table, tr, th, td, b, form, textarea, input, script
-from fred_webadmin.mappings import f_urls, f_id_name, f_name_formname
+from fred_webadmin.mappings import f_urls, f_id_name, f_name_filterformname
 from fred_webadmin.translation import _
 from fred_webadmin.itertable import IterTable
 from fred_webadmin.webwidgets.forms.filterforms import UnionFilterForm
@@ -31,7 +31,7 @@ class FilterList(ul):
         if filter_name:
             self.add(li(a(attr(href=f_urls[filter_name] + 'filter/'), _('Custom filter'))))
     def _get_form_class(self, filter_name):
-        form_name = f_name_formname[filter_name]
+        form_name = f_name_filterformname[filter_name]
         form_class = getattr(sys.modules[self.__module__], form_name, None)
         if not form_class:
             raise RuntimeError('No such formclass in modules "%s"' % form_name)

@@ -1,4 +1,6 @@
 from logging import debug
+from formsets import BaseFormSet
+from formsetlayouts import TableFormSetLayout
 from fields import Field, DecimalField, ChoiceField, MultiValueField, DateField, SplitDateSplitTimeField
 from fred_webadmin.webwidgets.utils import ValidationError, ErrorList
 from fred_webadmin.translation import _
@@ -54,8 +56,70 @@ class CompoundFilterField(Field):
         debug('Rendering compund field, (its form)')
         return self.form.render(indent_level)
 
+class FormSetField(Field):
+    "Field that wraps formset"
+    def __init__(self, name='', value='', formset_class = BaseFormSet, formset_layout=TableFormSetLayout, form_class=None, can_order=False, can_delete=False, *args, **kwargs):
+        self.initialized = False
+        self.form_class = form_class
+        self.formset_class = formset_class
+        self.can_order = can_order
+        self.can_delete = can_delete
+        self._value = ''
+        self._initial = ''
+        super(FormSetField, self).__init__(name, value, *args, **kwargs)
+        self.formset = None
+        self.initialized = True
+#        self.value = value
+    
+    def _get_value(self):
+        return self._value
+    def _set_value(self, value):
+        self._value = value
+        if self.value_is_from_initial:
+            data = ''
+            initial = value
+        else:
+            data = value
+            initial = None
+        if self.initialized: # to formset not instantiate at the time, while form classes are being built
+            if initial:
+                for i in range(len(initial)):
+                    if not isinstance(initial[i], dict):
+                        initial[i] = initial[i].__dict__ # little hack to convert object (like from corba) to dictionary, so it is not nessesary to convert it manually
+            #JE POTREBA ASI SE TADY ZBAVIT TOHO INSTANCIOVANI FORMSETU A NECHAT TO AZ DO self.render, TOTEZ BY SE ASI MELO UDELAT U CompoundFilterField)
+            self.formset = self.formset_class(data=data, initial=initial, form_class=self.form_class, prefix=self.name, is_nested=True, can_order=self.can_order, can_delete=self.can_delete)
+    value = property(_get_value, _set_value)
 
-
+    def _get_initial(self):
+        return self._initial
+    def _set_initial(self, initial):
+        if initial:
+            import pdb; pdb.set_trace()
+            for i in range(len(initial)):
+                if not isinstance(initial[i], dict):
+                    initial[i] = initial[i].__dict__ # little hack to convert object (like from corba) to dictionary, so it is not nessesary to convert it manually
+        self._initial = initial
+    initial = property(_get_initial, _set_initial)
+    
+    def clean(self):
+        if self.formset:
+            if self.formset.is_valid():
+                return self.formset.cleaned_data
+            else:
+                raise ValidationError(_(u'Correct errors below.'))
+        elif self.required and not self.value:
+            raise ValidationError(_(u'This field is required.'))
+    
+    def render(self, indent_level=0):
+        if not self.formset:
+            self.formset = self.formset_class(data=self.value, form_class=self.form_class, prefix=self.name, is_nested=True, can_order=self.can_order, can_delete=self.can_delete)
+            
+        debug('Rendering formsetfield')
+        return self.formset.render(indent_level)
+    def value_from_datadict(self, data):
+        return dict([[key, val] for key, val in data.items() if key.startswith(self.name)])  # take data dict items starting with self.name to fields of formsets can access them
+    
+    
 class CorbaEnumChoiceField(ChoiceField):
     """
     A field crated from corba enum type

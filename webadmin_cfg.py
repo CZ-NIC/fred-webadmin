@@ -23,7 +23,8 @@ idl = '/home/glin/programming/nic/webadmin/servers/idl_devel/idl/ccReg.idl'
 iors = (#(label, nshost, nscontext),
         (u'localní', 'localhost', 'fred'),
         (u'maňásek', 'jsadek', 'fred'),
-        (u'hokuston', 'pokuston', 'fred2'), 
+        (u'hokuston2', 'pokuston', 'fred2'), 
+        (u'hokuston', 'pokuston', 'fred'), 
         (u'koliha', 'curlew', 'fred'),
        ) 
 
@@ -54,7 +55,7 @@ cherrycfg = {
         'tools.sessions.on': True,
         'tools.sessions.storage_type': 'file',
         'tools.sessions.storage_path': sessions_dir,
-        'tools.sessions.timeout': 60, # in minutes
+        'tools.sessions.timeout': 60 * 5, # in minutes
         'server.log_to_screen': False,
         'server.log_file': log_dir + 'fred_webadmin.log',
     },

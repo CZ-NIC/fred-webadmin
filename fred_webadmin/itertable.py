@@ -177,7 +177,7 @@ class IterTable(object):
                         'CT_DOMAIN_ID': {'url': r'%s/domains/detail/?id=%%s' % baseurl,  'icon': 'list.gif', 'cssc': 'tcenter'},
                         'CT_NSSET_ID': {'url': r'%s/nssets/detail/?id=%%s' % baseurl,  'icon': 'list.gif', 'cssc': 'tcenter'},
                         'CT_MAIL_ID': {'url': r'%s/mails/detail/?id=%%s' % baseurl,  'icon': 'list.gif', 'cssc': 'tcenter'},
-                        'CT_AUTHINFO_ID': {'url': r'%s/authinfos/detail/?id=%%s' % baseurl,  'icon': 'list.gif', 'cssc': 'tcenter'},
+                        'CT_PUBLICREQUEST_ID': {'url': r'%s/publicrequests/detail/?id=%%s' % baseurl,  'icon': 'list.gif', 'cssc': 'tcenter'},
                         'CT_ACTION_ID': {'url': r'%s/requests/detail/?id=%%s' % baseurl,  'icon': 'list.gif', 'cssc': 'tcenter'},
                         'CT_INVOICE_ID': {'url': r'%s/invoices/detail/?id=%%s' % baseurl,  'icon': 'list.gif', 'cssc': 'tcenter'},
                         'CT_FILTER_ID': {}, #{'url': r'%s/requests/detail/?id=%%s' % baseurl,  'icon': 'list.gif', 'cssc': 'tcenter'},
@@ -379,13 +379,16 @@ class FilterLoader(object):
             if isinstance(sub_filter, ccReg.Filters._objref_Compound):#Compound):
                 value = cls._get_one_compound_filter_data(sub_filter)
             else:
-                val = sub_filter._get_value()
-                if isinstance(sub_filter, ccReg.Filters._objref_Date):
-                    value = cls.corba_to_date_time_interval(val, cls.corba_to_date)
-                elif isinstance(sub_filter, ccReg.Filters._objref_DateTime):
-                    value = cls.corba_to_date_time_interval(val, cls.corba_to_datetime)
+                if sub_filter.isActive():
+                    val = sub_filter._get_value()
+                    if isinstance(sub_filter, ccReg.Filters._objref_Date):
+                        value = cls.corba_to_date_time_interval(val, cls.corba_to_date)
+                    elif isinstance(sub_filter, ccReg.Filters._objref_DateTime):
+                        value = cls.corba_to_date_time_interval(val, cls.corba_to_datetime)
+                    else:
+                        value = val
                 else:
-                    value = val
+                    value = ''
             
             filter_data[name] = [neg, value]
         return filter_data

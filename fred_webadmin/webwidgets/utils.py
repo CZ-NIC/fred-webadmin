@@ -208,3 +208,24 @@ def convert_linear_filter_to_form_output(or_filters):
         result.append(new_or_filter)
     return result
         
+def convert_corba_obj_to_form_data(corba_obj):
+    data = corba_obj.__dict__
+    for key in dict:
+        val = dict[key]
+        if isinstance(val, [types.StringTypes, types.BooleanType]):
+            pass
+        elif isinstance(val, [types.IntType, types.FloatType]):
+            dict[key] = unicode(val)
+        elif isinstance(val, [types.TupleType, types.ListType]):
+            inner_data = []
+            for inner_corba_obj in val:
+                inner_data.append(convert_corba_obj_to_form_data(inner_corba_obj))
+            dict[key] = unicode(val)
+        else:
+            raise RuntimeError('Unknown corba type, unable to convert it to form data')
+                 
+            
+        
+        
+    
+    return data

@@ -30,6 +30,8 @@ def catch_webadmin_exceptions_decorator(view_func):
                 context['message'].add(p(_('Backend server is not running!')))
             context['message'].add(pre(attr( id='traceback'), traceback.format_exc()))    
             return self._render('error', context)
+        except adif.CustomView, e:
+            return e.rendered_view
          
     #update_wrapper(_wrapper, view_func)
     return _wrapper

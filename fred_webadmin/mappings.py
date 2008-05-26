@@ -20,10 +20,23 @@ f_urls = dict([(name, '/%s/' % (name)) for name in f_name_enum.keys()])
 f_header_ids = dict([(name, 'CT_%s_ID' % (name[:-1].upper())) for name in f_name_enum.keys()])
 
 # dict {OT_*, classname}, where OT_* is from _Admin.idl ObjectType 
-f_objectType_name = dict([(item, item._n[3:].lower() + 's') for item in ccReg.AuthInfoRequest.ObjectType._items])
+f_objectType_name = dict([(item, item._n[3:].lower() + 's') for item in ccReg.PublicRequest.ObjectType._items])
 
-f_name_formname = dict([(item._n[3:].lower() + 's', item._n[3:].lower().capitalize() + 'sFilterForm') for item in ccReg.FilterType._items])
-f_name_formname['nssets'] = 'NSSetsFilterForm' 
+f_name_filterformname = dict([(item._n[3:].lower() + 's', item._n[3:].lower().capitalize() + 'sFilterForm') for item in ccReg.FilterType._items])
+f_name_filterformname['nssets'] = 'NSSetsFilterForm' 
+f_name_filterformname['publicrequests'] = 'PublicRequestsFilterForm' 
+
+f_name_editformname = dict([(item._n[3:].lower() + 's', item._n[3:].lower().capitalize() + 'sEditForm') for item in ccReg.FilterType._items])
+f_name_editformname['nssets'] = 'NSSetsEditForm' 
+f_name_editformname['publicrequests'] = 'PublicRequestsEditForm' 
+
+# This one will be deleted after getByHanle will be obsolete:
+f_name_get_by_handle = {
+    'contacts': 'getContactByHandle',
+    'domains': 'getDomainByFQDN',
+    'nssets': 'getNSSetByHandle',
+    'registrars': 'getRegistrarByHandle'
+}
 
 if __name__ == '__main__':
     printed_mappings = (
