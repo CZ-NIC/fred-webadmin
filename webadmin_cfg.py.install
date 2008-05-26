@@ -2,7 +2,8 @@
 
 import logging
 
-debug = True
+#debug = True
+debug = False
 caching_filter_form_javascript = False # if this settings is on, then when doing changes to filter form, you should erase all sessions, because old filter forms are still in session
 
 www_dir = 'DU_PREFIX/share/fred_webadmin/www/'
