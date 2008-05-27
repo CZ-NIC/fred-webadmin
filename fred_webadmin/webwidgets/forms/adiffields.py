@@ -94,7 +94,6 @@ class FormSetField(Field):
         return self._initial
     def _set_initial(self, initial):
         if initial:
-            import pdb; pdb.set_trace()
             for i in range(len(initial)):
                 if not isinstance(initial[i], dict):
                     initial[i] = initial[i].__dict__ # little hack to convert object (like from corba) to dictionary, so it is not nessesary to convert it manually

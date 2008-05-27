@@ -393,13 +393,20 @@ class PublicRequestDetailDiv(DetailDiv):
         c = context
         result = c['result']
         #self.media_files.append('/js/edit.js')
+        objects = div()
+#        import pdb; pdb.set_trace()
+        for i, obj in enumerate(result.objects):
+            objects.add(a(attr(href=f_urls[f_objectType_name[obj.type]] + 'detail/?id=' + unicode(obj.id)), 
+                          strong(obj.handle))) 
+            if i != len(result.objects) -1: # don't add comma after the last object:
+                objects.add(', ')
         
         self.add(
             h1(_('PublicRequest_detail')),
             
             table(attr(border='1', style='width: 96%'), 
-                  tr(th(attr(style='width=180px'), _('Handle')), 
-                     td(attr(), strong(a(attr(href=f_urls[f_objectType_name[result.oType]] + 'detail/?handle=' + result.handle), result.handle)))), 
+                  tr(th(attr(style='width=180px'), _('Objects')), 
+                     td(attr(), objects)), 
                   tr(th(_('Reason')), 
                      td(result.reason)), 
                   tr(th(_('Request_type')), 
@@ -415,11 +422,11 @@ class PublicRequestDetailDiv(DetailDiv):
                   tr(th(_('Email')),
                      ['', td(a(attr(href=f_urls['mails'] + 'detail/?id=' + str(result.answerEmailId)), result.answerEmailId))][bool(result.answerEmailId)]), 
                   tr(th(_('Create_time')), 
-                     td(result.crTime)), 
+                     td(result.createTime)), 
                   tr(th(_('Close_time')), 
-                     td(result.closeTime)))
+                     td(result.resolveTime)))
         )
-        if not result.closeTime:
+        if not result.resolveTime:
 #            self.add(
 #                table(attr(style='width: 96%', border='1'), tr(th(attr(colspan='5'), b(_('Options')))), 
 #                      tr(td(form(attr(id='processAuthInfo', action=f_urls['authinfo'] + 'resolve/', method='POST'),

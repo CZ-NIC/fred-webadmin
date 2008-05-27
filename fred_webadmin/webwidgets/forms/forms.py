@@ -96,15 +96,16 @@ class BaseForm(form):
         
     def set_fields_values(self):
         if not self.is_bound:
-            for field in self.fields.values():
-                data = self.initial.get(field.name_orig, field.initial)
-                if callable(data):
-                    data = data()
-                if data is not None:
-                    #if field.name == 'access':
-                    #    import pdb; pdb.set_trace()
-                    field.value_is_from_initial = True
-                    field.value = data
+            if self.initial:
+                for field in self.fields.values():
+                    data = self.initial.get(field.name_orig, field.initial)
+                    if callable(data):
+                        data = data()
+                    if data is not None:
+                        #if field.name == 'access':
+                        #    import pdb; pdb.set_trace()
+                        field.value_is_from_initial = True
+                        field.value = data
         else:
 ##            for key, val in self.data.items():
 ##                field = self.fields.get(key)

@@ -47,7 +47,7 @@ if __name__ == '__main__':
         ('f_urls', f_urls),
         ('f_header_ids', f_header_ids),
         ('f_objectType_name', f_objectType_name),
-        ('f_name_formname', f_name_formname),
+        ('f_name_formname', f_name_editformname),
     )
                         
     for printed_mapping in printed_mappings:

@@ -780,9 +780,9 @@ class Registrars(AdifPage, ListTableMixin):
 
         if not create:
             result = self._get_detail(obj_id=kwd.get('id'))
-            initial=result.__dict__
         else:
-            initial = self._get_empty_corba_struct()
+            result = self._get_empty_corba_struct()
+        initial=result.__dict__
         if cherrypy.request.method == 'POST':
             form = form_class(kwd, initial=initial, method='post')
             debug("KWD: %s" % kwd)
@@ -1112,21 +1112,7 @@ class PublicRequests(AdifPage, ListTableMixin):
     @check_onperm('read')
     def detail(self, **kwd):
         context = {}
-        try:
-            handle = int(kwd.get('id', None))
-        except (TypeError, ValueError):
-            context['main'] = _("Required_integer_as_parameter")
-            return self._render('base', ctx=context)
-        func = cherrypy.session.get('Admin').getAuthInfoRequestById
-        if not str(handle):
-            raise cherrypy.HTTPRedirect('/%s/list' % (self.classname))
-        try:
-            result = c2u(func(u2c(handle)))
-        except (corba.module.Admin.ObjectNotFound,):
-            context['main'] = _("Object_not_found")
-            return self._render('base', ctx=context)
-        
-        context['edit'] = kwd.get('edit')
+        result = self._get_detail(obj_id=kwd.get('id'), handle=kwd.get('handle'))
         context['result'] = result
         return self._render('detail', context)
 
@@ -1139,7 +1125,7 @@ class PublicRequests(AdifPage, ListTableMixin):
         except (TypeError, ValueError):
             context['main'] = _("Required_integer_as_parameter")
             return self._render('base', ctx=context)
-        cherrypy.session.get('Admin').processAuthInfoRequest(id_ai, False)
+        cherrypy.session.get('Admin').processPublicRequest(id_ai, False)
         raise cherrypy.HTTPRedirect('/%s/filter/?load=1' % (self.classname))
 
     @check_onperm('write')
@@ -1151,7 +1137,7 @@ class PublicRequests(AdifPage, ListTableMixin):
         except (TypeError, ValueError):
             context['main'] = _("Required_integer_as_parameter")
             return self._render('base', ctx=context)
-        cherrypy.session.get('Admin').processAuthInfoRequest(id_ai, True)
+        cherrypy.session.get('Admin').processPublicRequest(id_ai, True)
         raise cherrypy.HTTPRedirect('/%s/filter/?load=1' % (self.classname))
 
 
