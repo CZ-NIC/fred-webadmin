@@ -1,5 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import sys
+
+sys.path.insert(0, '')
 
 from fred_webadmin.webwidgets.gpyweb.gpyweb import div, span, p, a, b, h2, h3, attr, save, HTMLPage, hr, br, table, tr, th, td, img, form, input, h1, script, pre
 from fred_webadmin.webwidgets.forms.filterforms import get_filter_forms_javascript

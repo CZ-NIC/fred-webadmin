@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import datetime
+import sys
+
+sys.path.insert(0, '')
 
 from fred_webadmin.webwidgets.gpyweb.gpyweb import attr, div, span, h1, table, tbody, tr, th, td, p, strong, b, small, a, form, input, select, option, textarea, script, pre, br, acronym
 from fred_webadmin.webwidgets.adifwidgets import FilterPanel

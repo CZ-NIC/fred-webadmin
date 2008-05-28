@@ -1,6 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import sys
+sys.path.insert(0, '')
+
 from logging import debug
 
 from fred_webadmin.translation import _

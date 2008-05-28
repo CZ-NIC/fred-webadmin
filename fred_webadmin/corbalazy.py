@@ -9,6 +9,9 @@ at least for given version of server (all servers shoud be same version).
 import config
 import cherrypy
 from logging import debug
+import sys
+
+sys.path.insert(0, '')
 
 from corbarecoder import CorbaRecode
 recoder = CorbaRecode('utf-8')

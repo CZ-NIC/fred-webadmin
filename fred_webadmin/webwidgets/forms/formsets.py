@@ -1,3 +1,5 @@
+import sys
+sys.path.insert(0, '')
 from logging import debug
 import traceback
 
