@@ -12,7 +12,6 @@ class sdist(_sdist):
     def finalize_options(self):
         self.srcdir = self.distribution.srcdir
         _sdist.finalize_options(self)
-        self.manifest = os.path.join(self.srcdir, self.manifest)
         self.template = os.path.join(self.srcdir, self.template)
 
     def get_file_list (self):
