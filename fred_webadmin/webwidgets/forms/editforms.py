@@ -25,7 +25,6 @@ class EditForm(Form):
     
     def set_fields_values(self):
         super(EditForm, self).set_fields_values()
-#        import pdb; pdb.set_trace()
         for field in self.fields.values():
             initial_value = self.initial.get(field.name_orig, field.initial)
             if not isinstance(field, FormSetField):
@@ -36,7 +35,7 @@ class EditForm(Form):
                         field.title = 'unchecked'
                 else: # usual field
                     field.title = initial_value
-                    
+                
 
 class AccessEditForm(EditForm):
     password = CharField(label=_('Password'))

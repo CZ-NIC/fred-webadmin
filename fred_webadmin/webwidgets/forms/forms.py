@@ -88,7 +88,6 @@ class BaseForm(form):
         # self.base_fields.
         self.fields = None
         self.build_fields()
-        
         self.set_fields_values()
         
     def build_fields(self):
@@ -98,36 +97,36 @@ class BaseForm(form):
             field.name = self.add_prefix(field.name_orig)
         
     def set_fields_values(self):
-        if not self.is_bound:
-            if self.initial:
-                for field in self.fields.values():
-                    data = self.initial.get(field.name_orig, field.initial)
-                    if callable(data):
-                        data = data()
-                    if data is not None:
-                        #if field.name == 'access':
-                        #    import pdb; pdb.set_trace()
-                        field.value_is_from_initial = True
-                        field.value = data
-        else:
-##            for key, val in self.data.items():
-##                field = self.fields.get(key)
-##                if field:
-##                    field.value = val
-
-
-            for field in self.fields.values():
-                if field.name.endswith('DELETE'):
-                    import pdb; pdb.set_trace() 
-                field.value = field.value_from_datadict(self.data)
-                
         # setting initials is independent on whether form is bound or not:
         for field in self.fields.values():
+#            if field.name == 'access':
+#                import pdb; pdb.set_trace()
             data = self.initial.get(field.name_orig, field.initial)
             if callable(data):
                 data = data()
             if data is not None:
                 field.initial = data
+
+        if not self.is_bound:
+            if self.initial:
+                for field in self.fields.values():
+                    if field.initial is not None:
+                        #if field.name == 'access':
+                        #    import pdb; pdb.set_trace()
+                        field.value_is_from_initial = True
+                        field.value = field.initial
+        else:
+##            for key, val in self.data.items():
+##                field = self.fields.get(key)
+##                if field:
+##                    field.value = val
+            print "self:",repr(self)
+            print "DATA:",self.data
+            for field in self.fields.values():
+#                if field.name.endswith('DELETE'):
+#                    import pdb; pdb.set_trace() 
+                field.value = field.value_from_datadict(self.data)
+                
          
         
         

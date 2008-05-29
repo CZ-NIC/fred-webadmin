@@ -8,6 +8,7 @@ from fred_webadmin.webwidgets.gpyweb.gpyweb import div, span, p, a, b, h2, h3, a
 from fred_webadmin.webwidgets.forms.filterforms import get_filter_forms_javascript
 from fred_webadmin.translation import _
 from fred_webadmin import config
+from fred_webadmin.utils import get_current_url
 
 from details import ContactDetailDiv, DomainDetailDiv, NSSetDetailDiv, ActionDetailDiv, RegistrarDetailDiv, PublicRequestDetailDiv, MailDetailDiv, InvoiceDetailDiv
 
@@ -68,7 +69,9 @@ class LoginPage(BaseSite):
 class DisconnectedPage(BaseSite):
     def __init__(self, context = None):
         super(DisconnectedPage, self).__init__(context)
-        self.main.add(p(_('Server disconnected, please '), a(attr(href='/login/'), _('log in')), ' again.'))        
+        self.main.add(p(_('Server disconnected, please '), 
+                        a(attr(href='/login/?next=%s' % get_current_url()), 
+                          _('log in')), ' again.'))
 
 class NotFound404Page(BaseSite):
     def __init__(self, context = None):

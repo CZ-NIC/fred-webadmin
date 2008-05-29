@@ -100,6 +100,7 @@ class BaseFormSet(WebWidget):
             kwargs['empty_permitted'] = True
         form = self.form_class(**kwargs)
         self.add_fields(form, i)
+        form.set_fields_values() # to set values of deleted fields
         return form
 
     def _get_initial_forms(self):
@@ -121,12 +122,12 @@ class BaseFormSet(WebWidget):
             if not self.is_valid():
                 raise AttributeError("'%s' object has no attribute 'cleaned_data'" % self.__class__.__name__)
             cleaned_data_list = []
-            #import pdb; pdb.set_trace()
             for form in self.forms:
                 if form.cleaned_data is not None and not form.cleaned_data.get(DELETION_FIELD_NAME):
+#                    Problem: DELETION FIELD je furt False!!! 
                     data = dict(form.cleaned_data)
                     if data.has_key(DELETION_FIELD_NAME):
-                        if not data[DELETION_FIELD_NAME]: # deletion wasn't checked, just get rid of deletion field in actual data
+                        if not data[DELETION_FIELD_NAME]: # deletion checkbox wasn't checked, just get rid of deletion field in actual data
                             data.pop(DELETION_FIELD_NAME)
                             cleaned_data_list.append(data)
                         else:
@@ -266,7 +267,7 @@ class BaseFormSet(WebWidget):
             else:
                 form.fields[ORDERING_FIELD_NAME] = DecimalField(ORDERING_FIELD_NAME, label='Order', required=False)
         if self.can_delete:
-            form.fields[DELETION_FIELD_NAME] = BooleanField(form.add_prefix(DELETION_FIELD_NAME), label='Delete', required=False)
+            form.fields[DELETION_FIELD_NAME] = BooleanField(form.add_prefix(DELETION_FIELD_NAME), label='Delete', required=False, title='unchecked')
 
     def add_prefix(self, index):
         return '%s-%s' % (self.prefix, index)

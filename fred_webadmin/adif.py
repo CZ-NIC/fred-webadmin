@@ -751,7 +751,10 @@ class Registrars(AdifPage, ListTableMixin):
         new.append(0) # id
         new.extend(['']*3)
         new.append(False) # vat
-        new.extend(['']*14)
+        new.extend(['']*9)
+        admin = cherrypy.session.get('Admin') 
+        new.extend([admin.getDefaultCountry()])
+        new.extend(['']*4)
         new.append('') # money
         new.append([]) # accesses
         new.append(False) # hidden
@@ -778,10 +781,10 @@ class Registrars(AdifPage, ListTableMixin):
         create = kwd.get('new')
         form_class = self._get_editform_class()
 
-        if not create:
-            result = self._get_detail(obj_id=kwd.get('id'))
-        else:
+        if create:
             result = self._get_empty_corba_struct()
+        else:
+            result = self._get_detail(obj_id=kwd.get('id'))
         initial=result.__dict__
         if cherrypy.request.method == 'POST':
             form = form_class(kwd, initial=initial, method='post')
@@ -1126,7 +1129,7 @@ class PublicRequests(AdifPage, ListTableMixin):
             context['main'] = _("Required_integer_as_parameter")
             return self._render('base', ctx=context)
         cherrypy.session.get('Admin').processPublicRequest(id_ai, False)
-        raise cherrypy.HTTPRedirect('/%s/filter/?load=1' % (self.classname))
+        raise cherrypy.HTTPRedirect('/%s/filter/?reload=1&load=1' % (self.classname))
 
     @check_onperm('write')
     def close(self, **kwd):
@@ -1138,7 +1141,7 @@ class PublicRequests(AdifPage, ListTableMixin):
             context['main'] = _("Required_integer_as_parameter")
             return self._render('base', ctx=context)
         cherrypy.session.get('Admin').processPublicRequest(id_ai, True)
-        raise cherrypy.HTTPRedirect('/%s/filter/?load=1' % (self.classname))
+        raise cherrypy.HTTPRedirect('/%s/filter/?reload=1&load=1' % (self.classname))
 
 
 class Invoices(AdifPage, ListTableMixin):

@@ -487,6 +487,7 @@ class BooleanField(Field):
         if self.tag == u'input':
             self.type = u'checkbox'
         self._value = 1
+        self.checked = None
         self.tattr['value'] = 1
             
     def __setattr__(self, name, value):

@@ -73,23 +73,27 @@ class FormSetField(Field):
         self.initialized = True
 #        self.value = value
     
+    def create_formset_once(self):
+        ''' If formset han't yet been created, this function will create it. '''
+        if not self.formset:
+            self.formset = self.formset_class(data=self.value, initial=self.initial, form_class=self.form_class, prefix=self.name, is_nested=True, can_order=self.can_order, can_delete=self.can_delete)
+    
     def _get_value(self):
         return self._value
     def _set_value(self, value):
-        self._value = value
+        #self._value = value
         if self.value_is_from_initial:
-            data = ''
-            initial = value
+            self._value = ''
         else:
-            data = value
-            initial = None
-        if self.initialized: # to formset not instantiate at the time, while form classes are being built
-            if initial:
-                for i in range(len(initial)):
-                    if not isinstance(initial[i], dict):
-                        initial[i] = initial[i].__dict__ # little hack to convert object (like from corba) to dictionary, so it is not nessesary to convert it manually
+            self._value = value
+        #if self.initialized: # to formset not instantiate at the time, while form classes are being built
+#            if initial:
+#                for i in range(len(initial)):
+#                    if not isinstance(initial[i], dict):
+#                        initial[i] = initial[i].__dict__ # little hack to convert object (like from corba) to dictionary, so it is not nessesary to convert it manually
+            #self.initial = initial
             #JE POTREBA ASI SE TADY ZBAVIT TOHO INSTANCIOVANI FORMSETU A NECHAT TO AZ DO self.render, TOTEZ BY SE ASI MELO UDELAT U CompoundFilterField)
-            self.formset = self.formset_class(data=data, initial=initial, form_class=self.form_class, prefix=self.name, is_nested=True, can_order=self.can_order, can_delete=self.can_delete)
+            #self.formset = self.formset_class(data=data, initial=initial, form_class=self.form_class, prefix=self.name, is_nested=True, can_order=self.can_order, can_delete=self.can_delete)
     value = property(_get_value, _set_value)
 
     def _get_initial(self):
@@ -103,6 +107,7 @@ class FormSetField(Field):
     initial = property(_get_initial, _set_initial)
     
     def clean(self):
+        self.create_formset_once()
         if self.formset:
             if self.formset.is_valid():
                 return self.formset.cleaned_data
@@ -112,8 +117,7 @@ class FormSetField(Field):
             raise ValidationError(_(u'This field is required.'))
     
     def render(self, indent_level=0):
-        if not self.formset:
-            self.formset = self.formset_class(data=self.value, form_class=self.form_class, prefix=self.name, is_nested=True, can_order=self.can_order, can_delete=self.can_delete)
+        self.create_formset_once()
             
         debug('Rendering formsetfield')
         return self.formset.render(indent_level)
