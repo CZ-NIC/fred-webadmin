@@ -26,6 +26,7 @@ iors = (#(label, nshost, nscontext),
         (u'hokuston2', 'pokuston', 'fred2'), 
         (u'hokuston', 'pokuston', 'fred'), 
         (u'koliha', 'curlew', 'fred'),
+        (u'jarahp', 'jarahp:22346', 'fred'),
        ) 
 
 auth_method = 'LDAP' # 'LDAP', 'CORBA'

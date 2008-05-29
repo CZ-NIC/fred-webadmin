@@ -1124,11 +1124,19 @@ class PublicRequests(AdifPage, ListTableMixin):
         '''Accept and send'''
         context = {}
         try:
-            id_ai = int(kwd.get('id'))
+            id_pr = int(kwd.get('id'))
         except (TypeError, ValueError):
             context['main'] = _("Required_integer_as_parameter")
             return self._render('base', ctx=context)
-        cherrypy.session.get('Admin').processPublicRequest(id_ai, False)
+        try:
+            cherrypy.session.get('Admin').processPublicRequest(id_pr, False)
+        except ccReg.Admin.REQUEST_BLOCKED:
+            raise CustomView(self._render('error', {'message':
+                                                        [_(u'This object is blocked, request cannot be accepted. You can return back to '), 
+                                                         a(attr(href='/%s/detail/?id=%s' % (self.classname, id_pr)), _('public request.'))
+                                                        ]
+                                                   }))
+            
         raise cherrypy.HTTPRedirect('/%s/filter/?reload=1&load=1' % (self.classname))
 
     @check_onperm('write')
