@@ -1,0 +1,2 @@
+[bdist_rpm]
+requires=python-simplejson, python-dns, python-cherrypy, libomniORBpy3-devel, omniORB-servers, omniORB-bootscripts
