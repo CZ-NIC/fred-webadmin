@@ -1,8 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import sys
-sys.path.insert(0, '')
-
 import re
 import types
 import time
