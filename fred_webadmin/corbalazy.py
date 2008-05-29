@@ -10,9 +10,6 @@ import config
 import cherrypy
 from logging import debug
 import sys
-
-sys.path.insert(0, '')
-
 from corbarecoder import CorbaRecode
 recoder = CorbaRecode('utf-8')
 c2u = recoder.decode # recode from corba string to unicode

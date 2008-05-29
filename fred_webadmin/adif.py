@@ -4,9 +4,6 @@
 # Version: 1.5.5
 #
 import sys
-
-sys.path.insert(0, '')
-
 from fred_webadmin import setuplog
 setuplog.setup_log()
 

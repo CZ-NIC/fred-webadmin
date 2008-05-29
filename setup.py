@@ -137,22 +137,7 @@ class FredWebAdminInstallLib(install_lib):
                 None, values)
         print "config.py file has been updated."
 
-    def update_file(self, filename):
-        values = [((r'(sys\.path\.insert\(0, )\'[\/\w\ \.]*\'\)',
-            r"\1'%s')" % self.getDir('purelibdir')))]
-        self.replace_pattern(os.path.join(self.build_dir, PACKAGE_NAME, filename),
-                None, values)
-        print "%s file has been updated." % filename
-
-
     def run(self):
-        files = ['adif.py', 'corbalazy.py', 'itertable.py', 'mappings.py',
-                'menunode.py', 'setuplog.py', 'user.py', 'corba.py',
-                'webwidgets/adifwidgets.py', 'webwidgets/menu.py',]
-        files = files + all_files_in_2('build/lib/fred_webadmin/webwidgets/forms', cutSlashes=3)
-        files = files + all_files_in_2('build/lib/fred_webadmin/webwidgets/templates', cutSlashes=3)
-        for file in files:
-            self.update_file(file)
         self.update_config_py()
         install_lib.run(self)
         

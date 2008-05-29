@@ -1,7 +1,4 @@
 import sys
-
-sys.path.insert(0, '')
-
 from corba import ccReg
 from pprint import pprint
 

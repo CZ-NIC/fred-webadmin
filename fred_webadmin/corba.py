@@ -3,9 +3,6 @@
 
 # system imports
 import sys
-
-sys.path.insert(0, '')
-
 # extension imports
 import omniORB
 import omniORB.codesets

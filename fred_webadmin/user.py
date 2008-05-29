@@ -1,7 +1,4 @@
 import sys
-
-sys.path.insert(0, '')
-
 import types
 
 from logging import debug

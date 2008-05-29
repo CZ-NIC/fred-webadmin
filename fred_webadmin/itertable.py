@@ -1,7 +1,4 @@
 import sys
-
-sys.path.insert(0, '')
-
 import cherrypy
 import datetime
 from logging import debug, error

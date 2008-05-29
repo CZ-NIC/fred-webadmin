@@ -1,9 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import sys
-
-sys.path.insert(0, '')
-
 from translation import _
 from mappings import f_urls
 
