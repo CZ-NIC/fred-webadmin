@@ -222,6 +222,7 @@ def main():
               package_dir = {PACKAGE_NAME: PACKAGE_NAME},
               data_files = [
                   ('SBINDIR', ['build/fred-webadmin']),
+                  ('SYSCONFDIR/init.d', ['build/fred-webadmin-server']),
                   ('SYSCONFDIR/fred', ['build/webadmin_cfg.py']),
                   ]
               + all_files_in(os.path.join('DATAROOTDIR', PACKAGE_NAME, 'www'), 'www')

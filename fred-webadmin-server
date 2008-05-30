@@ -1,6 +1,14 @@
 #!/bin/sh
 
-. /lib/lsb/init-functions
+if [ -d /lib/lsb/ ]; then
+	uselsb=1
+else
+	uselsb=0
+fi
+
+if [ $uselsb -eq 1 ]; then
+    . /lib/lsb/init-functions
+fi
 
 
 MSG_START="Starting FRED webadmin HTTP server..."
@@ -13,9 +21,17 @@ PATH=$PATH:/sbin
 fred_start() {
     ${WEBADMIN_EXEC} &
     if [ $? != 0 ]; then
-        log_failure_msg ${MSG_START}
+        if [ $uselsb -eq 1]; then
+            log_failure_msg ${MSG_START}
+        else
+            echo "ERROR: ${MSG_START}"
+        fi
     else
-        log_success_msg ${MSG_START}
+        if [ $uselsb -eq 1]; then
+            log_success_msg ${MSG_START}
+        else
+            echo "SUCCESS: ${MSG_START}"
+        fi
         PID=$(pidof -o $$ -o $PPID -o %PPID -x "$WEBADMIN_EXEC" || \
                 pidof -o $$ -o $PPID -o %PPID -x "${WEBADMIN_EXEC##*/}")
         echo "$PID" > $PIDFILE
@@ -26,10 +42,18 @@ fred_stop() {
     if [ -f $PIDFILE ]
     then
         kill $(cat $PIDFILE)
-        log_success_msg ${MSG_STOP}
+        if [ $uselsb -eq 1]; then
+            log_success_msg ${MSG_STOP}
+        else
+            echo "ERROR: ${MSG_STOP}"
+        fi
         rm $PIDFILE
     else
-        log_failure_msg ${MSG_STOP}
+        if [ $uselsb -eq 1]; then
+            log_failure_msg ${MSG_STOP}
+        else
+            echo "SUCCESS: ${MSG_STOP}"
+        fi
     fi
 }
 
@@ -50,4 +74,5 @@ stop)
 esac
 
 exit 0
+
 
