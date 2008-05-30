@@ -179,7 +179,7 @@ class FredWebAdminInstallData(install_data):
         values.append(('DU_WEBADMIN_PORT', self.webadminport))
 
         self.replace_pattern(
-                'webadmin_cfg.py.install',
+                os.path.join(self.srcdir, 'webadmin_cfg.py.install'),
                 os.path.join('build', 'webadmin_cfg.py'), values)
         print "webadmin_cfg.py files has been updated"
 
@@ -190,7 +190,7 @@ class FredWebAdminInstallData(install_data):
                 self.getDir('purelibdir'))))
 
         self.replace_pattern(
-                'fred-webadmin.install',
+                os.path.join(self.srcdir, 'fred-webadmin.install'),
                 os.path.join('build', 'fred-webadmin'), values)
         print "fred-webadmin script has been updated"
 
@@ -198,12 +198,13 @@ class FredWebAdminInstallData(install_data):
         values = []
         values.append(('DU_PREFIX', self.getDir('prefix')))
         self.replace_pattern(
-                'fred-webadmin-server.install',
+                os.path.join(self.srcdir, 'fred-webadmin-server.install'),
                 os.path.join('build', 'fred-webadmin-server'),
                 values)
         print "fred-webadmin-server script has been udpated"
 
     def run(self):
+        print "Ahoj"
         self.update_webadmin_cfg()
         self.update_fred_webadmin()
         self.update_webadmin_server()
