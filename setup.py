@@ -26,8 +26,9 @@ def njoin(*args):
     return os.path.normpath('/'.join(args))
 
 
+PROJECT_NAME = 'fred-webadmin'
 PACKAGE_NAME = 'fred_webadmin'
-PACKAGE_VERSION = '1.0'
+PACKAGE_VERSION = '2.0.0'
 
 SHARE_DOC = njoin('share', 'doc', PACKAGE_NAME)
 SHARE_PACKAGE = njoin('share', PACKAGE_NAME)
@@ -212,7 +213,7 @@ class FredWebAdminInstallData(install_data):
 
 def main():
     try:
-        setup(name = PACKAGE_NAME,
+        setup(name = PROJECT_NAME,
               description = 'Admin Interface for FRED (Fast Registry for Enum and Domains)',
               author = 'David Pospisilik, Tomas Divis, CZ.NIC',
               author_email = 'tdivis@nic.cz',
