@@ -21,13 +21,13 @@ PATH=$PATH:/sbin
 fred_start() {
     ${WEBADMIN_EXEC} &
     if [ $? != 0 ]; then
-        if [ $uselsb -eq 1]; then
+        if [ $uselsb -eq 1 ]; then
             log_failure_msg ${MSG_START}
         else
             echo "ERROR: ${MSG_START}"
         fi
     else
-        if [ $uselsb -eq 1]; then
+        if [ $uselsb -eq 1 ]; then
             log_success_msg ${MSG_START}
         else
             echo "SUCCESS: ${MSG_START}"
@@ -42,14 +42,14 @@ fred_stop() {
     if [ -f $PIDFILE ]
     then
         kill $(cat $PIDFILE)
-        if [ $uselsb -eq 1]; then
+        if [ $uselsb -eq 1 ]; then
             log_success_msg ${MSG_STOP}
         else
             echo "ERROR: ${MSG_STOP}"
         fi
         rm $PIDFILE
     else
-        if [ $uselsb -eq 1]; then
+        if [ $uselsb -eq 1 ]; then
             log_failure_msg ${MSG_STOP}
         else
             echo "SUCCESS: ${MSG_STOP}"
