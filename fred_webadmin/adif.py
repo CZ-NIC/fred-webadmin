@@ -192,6 +192,8 @@ class ListTableMixin(object):
             request_object = self.classname
         key = cherrypy.session.get('corbaSessionString', '')
         size = config.tablesize
+        if cherrypy.session.get('user') and cherrypy.session.get('user').table_page_size:
+            size = cherrypy.session.get('user').table_page_size
         itertable = IterTable(request_object, key, size)
 
         return itertable

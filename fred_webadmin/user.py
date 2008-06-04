@@ -3,6 +3,7 @@ import types
 
 from logging import debug
 
+import config
 from fred_webadmin.webwidgets.utils import isiterable
 
 class User(object):
@@ -13,6 +14,7 @@ class User(object):
         self.login = user._get_username()
         self.firstname = user._get_firstname()
         self.surname = user._get_surname()
+        self.table_page_size = config.tablesize
         
         # negative permissions or forbiddance 
 #        self.nperms = ['domain.read', 'domain.create', 'domain.change', 'domain.delete',
