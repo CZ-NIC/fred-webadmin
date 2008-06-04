@@ -55,13 +55,13 @@ class FredWebAdminInstall(install):
         ('nshost=', None, 'CORBA nameservice host [localhost]'),
         ('nsport=', None, 'Port where CORBA nameservice listen [2809]'),
         ('webadminport=', None, 'Port of fred-webadmin  [18456]'),
-        ('nodepcheck',  None, 'Install script will not check for dependencies.'), 
+        #('nodepcheck',  None, 'Install script will not check for dependencies.'), 
     ])
     user_options.append(("idldir=",  "d", 
         "directory where IDL files reside [PREFIX/share/idl/fred/]"))
 
-    boolean_options = install.boolean_options
-    boolean_options.append('nodepcheck')
+    # boolean_options = install.boolean_options
+    # boolean_options.append('nodepcheck')
     
     def initialize_options(self):
         install.initialize_options(self)
@@ -71,7 +71,7 @@ class FredWebAdminInstall(install):
         self.nshost = DEFAULT_NSHOST
         self.nsport = DEFAULT_NSPORT
         self.webadminport = DEFAULT_WEBADMINPORT
-        self.nodepcheck = None
+        #self.nodepcheck = None
         
     def finalize_options(self):
         install.finalize_options(self)
@@ -121,7 +121,8 @@ class FredWebAdminInstall(install):
         self.check_cherrypy()
 
     def run(self):
-        if not self.nodepcheck:
+        #if not self.nodepcheck:
+        if not self.no_check_deps:
             print 'Checking dependencies.'
             self.check_dependencies()
 
@@ -205,7 +206,6 @@ class FredWebAdminInstallData(install_data):
         print "fred-webadmin-server script has been udpated"
 
     def run(self):
-        print "Ahoj"
         self.update_webadmin_cfg()
         self.update_fred_webadmin()
         self.update_webadmin_server()
