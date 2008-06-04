@@ -1,9 +1,3 @@
-# from distutils.core import setup
-# from distutils import core
-# from distutils.command.build import build
-# from distutils.command.build_py import build_py
-# from distutils.command.install import install
-# from distutils.command.install_data import install_data
 from distutils.version import StrictVersion
 from distutils.dir_util import mkpath
 from distutils import util
@@ -30,8 +24,8 @@ PROJECT_NAME = 'fred-webadmin'
 PACKAGE_NAME = 'fred_webadmin'
 PACKAGE_VERSION = '2.0.0'
 
-SHARE_DOC = njoin('share', 'doc', PACKAGE_NAME)
-SHARE_PACKAGE = njoin('share', PACKAGE_NAME)
+SHARE_DOC = njoin('share', 'doc', PROJECT_NAME)
+SHARE_PACKAGE = njoin('share', PROJECT_NAME)
 SHARE_WWW = njoin(SHARE_PACKAGE, 'www')
 SHARE_LOCALE = njoin(SHARE_PACKAGE, 'locale')
 SESSION_DIR = 'lib/fred_webadmin/sessions'
@@ -226,8 +220,8 @@ def main():
                   ('SYSCONFDIR/init.d', ['build/fred-webadmin-server']),
                   ('SYSCONFDIR/fred', ['build/webadmin_cfg.py']),
                   ]
-              + all_files_in(os.path.join('DATAROOTDIR', PACKAGE_NAME, 'www'), 'www')
-              + all_files_in(os.path.join('DATAROOTDIR', PACKAGE_NAME, 'locale'), 'locale'),
+              + all_files_in(os.path.join('DATAROOTDIR', PROJECT_NAME, 'www'), 'www')
+              + all_files_in(os.path.join('DATAROOTDIR', PROJECT_NAME, 'locale'), 'locale'),
               cmdclass = {
                           'install': FredWebAdminInstall,
                           'install_data': FredWebAdminInstallData,
