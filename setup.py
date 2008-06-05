@@ -216,6 +216,7 @@ def main():
               packages = [PACKAGE_NAME] + all_subpackages_in(PACKAGE_NAME),
               package_dir = {PACKAGE_NAME: PACKAGE_NAME},
               data_files = [
+                  ('LOCALSTATEDIR/log',),
                   ('SBINDIR', ['build/fred-webadmin']),
                   ('SYSCONFDIR/init.d', ['build/fred-webadmin-server']),
                   ('SYSCONFDIR/fred', ['build/webadmin_cfg.py']),

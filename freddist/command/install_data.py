@@ -109,7 +109,7 @@ class install_data(_install_data, install_parent):
         Valid patterns are emplaced in self.`dir_patts' variable.
         """
         for str in self.dir_patts:
-            s = re.search(str, dir)
+            s = re.search("^"+str, dir)
             if s:
                 dir = self.__dict__[str.lower()] + dir[s.end():]
         return dir
