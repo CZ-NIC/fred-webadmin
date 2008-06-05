@@ -204,7 +204,7 @@ class install_data(_install_data, install_parent):
                                     os.path.join(self.srcdir, data))
                         (out, _) = self.copy_file(data, dir)
                         self.outfiles.append(out)
-                        if 'bin' in out.split(os.path.sep) or 'sbin' in out.split(os.path.sep):
+                        if 'bin' in out.split(os.path.sep) or 'sbin' in out.split(os.path.sep) or 'init.d' in out.split(os.path.sep):
                             os.chmod(out, 0755)
 
                         if out.endswith('.py') and not self.dont_create_pycpyo:
