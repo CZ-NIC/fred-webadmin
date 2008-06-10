@@ -189,6 +189,11 @@ class DecimalField(Field):
     def set_from_clean(self, value):
         self.value = unicode(value)
         
+class IntegerField(DecimalField):
+    def __init__(self, name='', value='', max_value=None, min_value=None, *args, **kwargs):
+        super(IntegerField, self).__init__(name='', value='', max_value=max_value, min_value=min_value, decimal_places=0, *args, **kwargs)
+    def clean(self):
+        return int(super(IntegerField, self).clean())
 
 DEFAULT_DATE_INPUT_FORMATS = (
     u'%d.%m.%Y',                          # '25.10.2006'

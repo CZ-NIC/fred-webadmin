@@ -132,7 +132,7 @@ class FilterTableFormLayout(TableFormLayout):
             self.tbody.add(tr(td(attr(colspan=self.columns_count), 'Errors:', form.non_field_errors())))
         
         self.tbody.add(tr(attr(cssc='filtertable_header'), 
-                          th(attr(colspan='2'), _(self.form.__class__.__name__[:-len('FilterForm')])), 
+                          th(attr(colspan='2'), _(self.form.__class__.__name__[:-len('FilterForm')] + 's')), 
                           th(div(attr(cssc='for_fields_button extjs')))))
 
         for composed_name, field in self.all_fields:
