@@ -193,6 +193,8 @@ class IntegerField(DecimalField):
     def __init__(self, name='', value='', max_value=None, min_value=None, *args, **kwargs):
         super(IntegerField, self).__init__(name='', value='', max_value=max_value, min_value=min_value, decimal_places=0, *args, **kwargs)
     def clean(self):
+        if self.is_empty():
+            return None
         return int(super(IntegerField, self).clean())
 
 DEFAULT_DATE_INPUT_FORMATS = (
