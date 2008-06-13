@@ -23,7 +23,7 @@ def fit_pattern(filename, excludePattern):
     return False
 
 def all_files_in(dst_directory, directory, excludePattern=None,
-        includePattern=None, recursive=True):
+        includePattern=None, recursive=True, cutSlashes_dst=0, cutSlashes_dir=0):
     """
     Returns couples (directory, directory/file) to all files in directory.
     Files (as well as directories must not fit `excludePattern' mask.
@@ -40,13 +40,15 @@ def all_files_in(dst_directory, directory, excludePattern=None,
             includePattern = ['*']
     paths = [] # list of couples (directory, directory/file) for all files
 
-    for filename in os.listdir(curdir(directory)):
+    #for filename in os.listdir(curdir(directory)):
+    for filename in os.listdir(directory):
         if fit_pattern(filename, excludePattern):
             continue
         if not fit_pattern(filename, includePattern):
             continue
         full_path = os.path.join(directory, filename)
-        if os.path.isfile(curdir(full_path)):
+        #if os.path.isfile(curdir(full_path)):
+        if os.path.isfile(full_path):
             # exclude first directory in path from dst path (this include
             # really only what is IN directory, not (directory AND files))
             splitted_directory = directory.split(os.path.sep, 1)
@@ -54,11 +56,17 @@ def all_files_in(dst_directory, directory, excludePattern=None,
                 dst_subdirectory = splitted_directory[1]
             else: # directory is only one directory yet
                 dst_subdirectory = ''
-            paths.append((os.path.join(dst_directory, dst_subdirectory),
-                [full_path]))
-        elif os.path.isdir(curdir(full_path)) and recursive:
+            if cutSlashes_dst > 0 or cutSlashes_dir > 0:
+                paths.append((os.path.join(
+                    dst_directory,
+                    dst_subdirectory.split(os.path.sep, cutSlashes_dst)[-1]),
+                    [full_path.split(os.path.sep, cutSlashes_dir)[-1]]))
+            else:
+                paths.append((os.path.join(dst_directory, dst_subdirectory), [full_path]))
+        #elif os.path.isdir(curdir(full_path)) and recursive:
+        elif os.path.isdir(full_path) and recursive:
             paths.extend(all_files_in(dst_directory, full_path, excludePattern,
-                includePattern))   
+                includePattern, recursive, cutSlashes_dst, cutSlashes_dir))   
            
     return paths
 
@@ -89,13 +97,15 @@ def all_files_in_2(directory, excludePattern=None, includePattern=None,
             includePattern = ['*']
 
     paths = []
-    for filename in os.listdir(curdir(directory)):
+    #for filename in os.listdir(curdir(directory)):
+    for filename in os.listdir(directory):
         if fit_pattern(filename, excludePattern):
             continue
         if not fit_pattern(filename, includePattern):
             continue
         full_path = os.path.join(directory, filename)
-        if os.path.isfile(curdir(full_path)):
+        #if os.path.isfile(curdir(full_path)):
+        if os.path.isfile(full_path):
             if onlyFilenames:
                 paths.append(filename)
             else:
@@ -103,9 +113,11 @@ def all_files_in_2(directory, excludePattern=None, includePattern=None,
                     paths.append(full_path.split(os.path.sep, cutSlashes)[-1])
                 else:
                     paths.append(full_path)
-        if os.path.isdir(curdir(full_path)) and recursive:
+
+        #if os.path.isdir(curdir(full_path)) and recursive:
+        if os.path.isdir(full_path) and recursive:
             paths.extend(all_files_in_2(full_path, excludePattern,
-                includePattern, onlyFilenames, recursive, cutSlashes))
+                includePattern, recursive, onlyFilenames, cutSlashes))
     return paths
 
 def all_subpackages_in(package, excludePattern=None, includePattern=None):

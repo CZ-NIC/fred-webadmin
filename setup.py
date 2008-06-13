@@ -206,7 +206,7 @@ class FredWebAdminInstallData(install_data):
         self.update_webadmin_server()
         install_data.run(self)
 
-def main():
+def main(directory):
     try:
         setup(name = PROJECT_NAME,
               description = 'Admin Interface for FRED (Fast Registry for Enum and Domains)',
@@ -223,8 +223,8 @@ def main():
                   ('SYSCONFDIR/init.d', ['build/fred-webadmin-server']),
                   ('SYSCONFDIR/fred', ['build/webadmin_cfg.py']),
                   ]
-              + all_files_in(os.path.join('DATAROOTDIR', PROJECT_NAME, 'www'), 'www')
-              + all_files_in(os.path.join('DATAROOTDIR', PROJECT_NAME, 'locale'), 'locale'),
+              + all_files_in(os.path.join('DATAROOTDIR', PROJECT_NAME, 'www'), os.path.join(directory, 'www'))
+              + all_files_in(os.path.join('DATAROOTDIR', PROJECT_NAME, 'locale'), os.path.join(directory, 'locale')),
               cmdclass = {
                           'install': FredWebAdminInstall,
                           'install_data': FredWebAdminInstallData,
@@ -237,5 +237,11 @@ def main():
         return False
     
 if __name__ == '__main__':
-    if main():
+    dir = ''
+    if 'bdist' in sys.argv:
+        dir = ''
+    else:
+        dir = os.path.dirname(sys.argv[0])
+    print dir
+    if main(dir):
         print "All done!"
