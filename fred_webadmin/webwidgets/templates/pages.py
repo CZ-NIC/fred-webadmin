@@ -1,7 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from fred_webadmin.webwidgets.gpyweb.gpyweb import div, span, p, a, b, h2, h3, attr, save, HTMLPage, hr, br, table, tr, th, td, img, form, input, h1, script, pre
+from fred_webadmin.webwidgets.gpyweb.gpyweb import div, span, p, a, b, h2, h3, noesc, attr, save, HTMLPage, hr, br, table, tr, th, td, img, form, input, h1, script, pre
 from fred_webadmin.webwidgets.forms.filterforms import get_filter_forms_javascript
+from fred_webadmin.webwidgets.table import WIterTable
 from fred_webadmin.translation import _
 from fred_webadmin import config
 from fred_webadmin.utils import get_current_url
@@ -166,7 +167,7 @@ class FilterPage(BaseSiteMenu):
                     row = tr()
                     for col in irow:
                         if col.get('icon'):
-                            val = img(attr(src='/img/contenttypes/' + col['icon']))
+                            val = img(attr(src=col['icon']))
                         else:
                             val = col['value']
                         
@@ -193,69 +194,70 @@ class FilterPage(BaseSiteMenu):
                 # Pager
                 if itertable.num_pages > 1:
                     pageflip.add(div(
-                        a(attr(cssc='pager-button', href='?page=%s' % itertable.first_page), ['&laquo;']),
-                        a(attr(cssc='pager-button', href='?page=%s' % itertable.prev_page), ['&lsaquo;']),
+                        a(attr(cssc='pager-button', href='?page=%s' % itertable.first_page), noesc('&laquo;')),
+                        a(attr(cssc='pager-button', href='?page=%s' % itertable.prev_page), noesc('&lsaquo;')),
     #                    a(attr(cssc='pager-button', href='?page=%s' % itertable._number), itertable._number),
                         form(attr(style='display: inline;', method='GET'), input(attr(type='text', size='2', name='page', value=itertable.current_page))),
-                        a(attr(cssc='pager-button', href='?page=%s' % itertable.next_page), ['&rsaquo;']),
-                        a(attr(cssc='pager-button', href='?page=%s' % itertable.last_page), ['&raquo;'])
+                        a(attr(cssc='pager-button', href='?page=%s' % itertable.next_page), noesc('&rsaquo;')),
+                        a(attr(cssc='pager-button', href='?page=%s' % itertable.last_page), noesc('&raquo;'))
                     ))
                 self.main.add(pageflip)
             
+            #self.main.add(WIterTable(itertable))
 
 
 
-class DomainsDetail(BaseSiteMenu):
+class DomainDetail(BaseSiteMenu):
     def __init__(self, context = None):
-        super(DomainsDetail, self).__init__(context)
+        super(DomainDetail, self).__init__(context)
         c = self.context
         if c.get('result'):
             self.main.add(DomainDetailDiv(context))
             if config.debug:
-                self.main.add('DOMAINSDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
+                self.main.add('DOMAINDETAIL:', div(attr(style='width: 1024; overflow: auto;'), pre(unicode(c.result).replace(u', ', u',\n'))))
                 
                 
-class ContactsDetail(BaseSiteMenu):
+class ContactDetail(BaseSiteMenu):
     def __init__(self, context = None):
-        super(ContactsDetail, self).__init__(context)
+        super(ContactDetail, self).__init__(context)
         c = self.context
         if c.get('result'):
             self.main.add(ContactDetailDiv(context))
             if config.debug:            
                 self.main.add('ContactDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
 
-class NSSetsDetail(BaseSiteMenu):
+class NSSetDetail(BaseSiteMenu):
     def __init__(self, context = None):
-        super(NSSetsDetail, self).__init__(context)
+        super(NSSetDetail, self).__init__(context)
         c = self.context
         if c.get('result'):
             self.main.add(NSSetDetailDiv(context))
             if config.debug:
                 self.main.add('NSSetDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
 
-class ActionsDetail(BaseSiteMenu):
+class ActionDetail(BaseSiteMenu):
     def __init__(self, context = None):
-        super(ActionsDetail, self).__init__(context)
+        super(ActionDetail, self).__init__(context)
         c = self.context
         if c.get('result'):
             self.main.add(ActionDetailDiv(context))
             if config.debug:
-                self.main.add('ACTIONSDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
+                self.main.add('ACTIONDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
         
     
-class RegistrarsDetail(BaseSiteMenu):
+class RegistrarDetail(BaseSiteMenu):
     def __init__(self, context = None):
-        super(RegistrarsDetail, self).__init__(context)
+        super(RegistrarDetail, self).__init__(context)
         c = self.context        
         if c.get('result'):
             self.main.add(RegistrarDetailDiv(context))
             self.main.add(p(a(attr(href=u'../edit/?id=' + unicode(c.result.id)), _('Edit'))))
             if config.debug:
-                self.main.add('RegistrarsDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
+                self.main.add('RegistrarDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
             
-class PublicRequestsDetail(BaseSiteMenu):
+class PublicRequestDetail(BaseSiteMenu):
     def __init__(self, context = None):
-        super(PublicRequestsDetail, self).__init__(context)
+        super(PublicRequestDetail, self).__init__(context)
         c = self.context
         if c.get('result'):
             self.main.add(PublicRequestDetailDiv(context))
@@ -263,18 +265,18 @@ class PublicRequestsDetail(BaseSiteMenu):
                 self.main.add('PublicRequestSDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
                 
   
-class MailsDetail(BaseSiteMenu):
+class MailDetail(BaseSiteMenu):
     def __init__(self, context = None):
-        super(MailsDetail, self).__init__(context)
+        super(MailDetail, self).__init__(context)
         c = self.context
         if c.get('result'):
             self.main.add(MailDetailDiv(context))
             if config.debug:
-                self.main.add('MailDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
+                self.main.add('MailDETAIL:', div(attr(style='width: 1024px; overflow: auto;'), pre(unicode(c.result).replace(u', ', u',\n'))))
 
-class InvoicesDetail(BaseSiteMenu):
+class InvoiceDetail(BaseSiteMenu):
     def __init__(self, context = None):
-        super(InvoicesDetail, self).__init__(context)
+        super(InvoiceDetail, self).__init__(context)
         c = self.context
         if c.get('result'):
             self.main.add(InvoiceDetailDiv(context))
@@ -289,7 +291,7 @@ class EditPage(BaseSiteMenu):
         if c.get('form'):
             self.main.add(c.form)
 
-class RegistrarsEdit(EditPage):
+class RegistrarEdit(EditPage):
     pass
             
 

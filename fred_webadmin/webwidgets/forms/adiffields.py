@@ -125,7 +125,7 @@ class FormSetField(Field):
     
 class CorbaEnumChoiceField(ChoiceField):
     """
-    A field crated from corba enum type
+    A field created from corba enum type
     """
     def __init__(self, name='', value='', corba_enum=None, required=True, label=None, initial=None, help_text=None, *arg, **kwargs):
         if corba_enum is None:
@@ -133,7 +133,6 @@ class CorbaEnumChoiceField(ChoiceField):
         choices = [(unicode(item._v), _(item._n)) for item in corba_enum._items]
         self.corba_enum = corba_enum
         super(CorbaEnumChoiceField, self).__init__(name, value, choices, required, label, initial, help_text, *arg, **kwargs)
-        self.empty_choice = ['', '']
         
         
     def clean(self):
@@ -141,12 +140,9 @@ class CorbaEnumChoiceField(ChoiceField):
         if cleaned_data != u'':
             return int(cleaned_data)
     
-    def make_content(self):
-        if self.required and self.choices and self.choices[0] == self.empty_choice: # remove empty choice:
-            self.choices.pop(0)
-        elif not self.required and (not self.choices or (self.choices and self.choices[0] != self.empty_choice)): # add empty choice:
-            self.choices.insert(0, self.empty_choice)
-        super(CorbaEnumChoiceField, self).make_content()
+#    def make_content(self):
+        
+#        super(CorbaEnumChoiceField, self).make_content()
     
     def is_emptry(self):
         if self.value == self.empty_choice[0]:
@@ -162,6 +158,7 @@ class DateIntervalField(MultiValueField):
                   ChoiceField(content=[attr(onchange='onChangeDateIntervalType(this)')], choices=INTERVAL_CHOICES), 
                   DecimalField(initial=1, size=5, min_value=-32768, max_value=32767)) #first of INTERVAL_CHOICES is HOUR, which has no 
         super(DateIntervalField, self).__init__(name, value, fields, *args, **kwargs)
+        fields[3].required = True # intertnal type is required
         self.media_files.append('/js/interval_fields.js')
     
     def _set_value(self, value):
@@ -175,7 +172,7 @@ class DateIntervalField(MultiValueField):
         self.set_iterval_date_display()
             
     def set_iterval_date_display(self):
-        if hasattr(self, 'date_interval_span'): # when initializing value, build_content method is not yet called, so this checks if it already was
+        if hasattr(self, 'date_interval_span'): # when initializing value, make_content method is not yet called, so this checks if it already was
             date_interval_display = 'none'
             date_day_display = 'none'
             date_interval_offset_span = 'none'
@@ -192,7 +189,7 @@ class DateIntervalField(MultiValueField):
             self.date_day_span.style = 'display: %s' % date_day_display
             self.date_interval_offset_span.style = 'display: %s' % date_interval_offset_span
     
-    def build_content(self):
+    def make_content(self):
         self.add(self.fields[3],
                  span(attr(cssc='date_interval'),
                       save(self, 'date_interval_span'),
@@ -241,5 +238,6 @@ class DateTimeIntervalField(DateIntervalField):
                   DecimalField(initial=1, size=5, min_value=-32768, max_value=32767))
         # Here is called really parent of parent of this class, to avoid self.fields initialization from parent:
         super(DateIntervalField, self).__init__(name, value, fields, *args, **kwargs)
+        fields[3].required = True # intertnal type is required
         self.media_files.append('/js/interval_fields.js')
     

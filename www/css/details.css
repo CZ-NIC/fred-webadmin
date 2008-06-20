@@ -3,3 +3,10 @@
 
 .object_detail > table { margin: 0.5em 0em; }
 .object_detail table th { text-align: left; }
+
+table.detail_table table { width: 70em }    
+.detail_table table { border: 1px outset black; }
+.detail_table table caption { font-weight: bold; }
+.detail_table table td, .detail_table table th { border: 1px inset black; }
+.detail_table .left_label { width: 14em; font-weight: bold; }
+.detail_table caption { text-align: left; }

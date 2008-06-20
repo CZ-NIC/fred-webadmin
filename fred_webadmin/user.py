@@ -26,14 +26,15 @@ class User(object):
         #self.nperms = ['domain.read', 'domain.filter.owner', 'domain.filter.email']
         #self.nperms = ['registrar.read']
         if self.login == 'helpdesk':
-            self.nperms = ['domain.filter', 'domain.filter.AuthInfo']
+            self.nperms = ['domain.filter', 'domain.filter.authinfo', 
+                           'registrar.detail.city', 'registrar.change.street2', 'registrar.filter.city']
         else:
             self.nperms = ['domain.filter.AdminContact']
         #self.nperms = []
         debug('Created user with nperms = %s' % str(self.nperms))
         
     def has_nperm(self, nperm):
-        return nperm in self.nperms
+        return nperm.lower() in self.nperms
         #return self._user.hasNPermission(nperm)
     
     def has_all_nperms(self, nperms):

@@ -86,23 +86,23 @@ class MenuNode(object):
     
 menu_tree = MenuNode('root', '', '', 'menu-item', '#', [
     MenuNode('summary', _('Summary'), 'body-summary', 'menu-item menu-summary', url='/summary/'), 
-    MenuNode('objects', _('Objects'), 'body-objects', 'menu-item menu-objects', url=f_urls['domains'] + 'allfilters/', nperm=['domain.read', 'contact.read', 'nsset.read'], submenu=[
-        MenuNode('domains', _('Search domains'), cssc='menu-item', url=f_urls['domains'] + 'allfilters/', nperm='domain.read'),
-        MenuNode('contacts', _('Search contacts'), cssc='menu-item', url=f_urls['contacts'] + 'allfilters/', nperm='contact.read'),
-        MenuNode('nssets', _('Search nssets'), cssc='menu-item', url=f_urls['nssets'] + 'allfilters/', nperm='nsset.read'),
+    MenuNode('object', _('Objects'), 'body-objects', 'menu-item menu-objects', url=f_urls['domain'] + 'allfilters/', nperm=['domain.read', 'contact.read', 'nsset.read'], submenu=[
+        MenuNode('domain', _('Search domains'), cssc='menu-item', url=f_urls['domain'] + 'allfilters/', nperm='domain.read'),
+        MenuNode('contact', _('Search contacts'), cssc='menu-item', url=f_urls['contact'] + 'allfilters/', nperm='contact.read'),
+        MenuNode('nsset', _('Search nssets'), cssc='menu-item', url=f_urls['nsset'] + 'allfilters/', nperm='nsset.read'),
     ]), 
-    MenuNode('registrars', _('Registrars'), 'body-registrars', 'menu-item menu-registrars', url=f_urls['registrars'] + 'filter/?cf=1', nperm='registrar.read', submenu=[
-        MenuNode('registrarslist', _('List'), cssc='menu-item', url=f_urls['registrars'] + 'filter/?list_all=1', nperm='registrar.read'),
-        MenuNode('registrarsfilter', _('Search'), cssc='menu-item', url=f_urls['registrars'] + 'allfilters/', nperm='registrar.read'),
-        MenuNode('registrarscreate', _('Create new'), cssc='menu-item', url=f_urls['registrars'] + 'create/', nperm='registrar.create'),
-        MenuNode('invoices', _('Invoices'), cssc='menu-item', url=f_urls['invoices'] + 'allfilters/', nperm='invoice.read'),
+    MenuNode('registrar', _('Registrars'), 'body-registrars', 'menu-item menu-registrars', url=f_urls['registrar'] + 'filter/?cf=1', nperm='registrar.read', submenu=[
+        MenuNode('registrarlist', _('List'), cssc='menu-item', url=f_urls['registrar'] + 'filter/?list_all=1', nperm='registrar.read'),
+        MenuNode('registrarfilter', _('Search'), cssc='menu-item', url=f_urls['registrar'] + 'allfilters/', nperm='registrar.read'),
+        MenuNode('registrarcreate', _('Create new'), cssc='menu-item', url=f_urls['registrar'] + 'create/', nperm='registrar.create'),
+        MenuNode('invoice', _('Invoices'), cssc='menu-item', url=f_urls['invoice'] + 'allfilters/', nperm='invoice.read'),
     ]), 
     MenuNode('logs', _('Logs'), 'body-logs', 'menu-item menu-logs', url='/logs/', submenu=[
-        MenuNode('actions', _('Actions'), cssc='menu-item', url=f_urls['actions'] + 'allfilters/', nperm='action.read'),
-        MenuNode('publicrequests', _('PublicRequests'), cssc='menu-item', url=f_urls['publicrequests'] + 'allfilters/', nperm='publicrequest.read'),
-        MenuNode('mails', _('Emails'), cssc='menu-item', url=f_urls['mails'] + 'allfilters/', nperm='email.read'),
+        MenuNode('action', _('Actions'), cssc='menu-item', url=f_urls['action'] + 'allfilters/', nperm='action.read'),
+        MenuNode('publicrequest', _('PublicRequests'), cssc='menu-item', url=f_urls['publicrequest'] + 'allfilters/', nperm='publicrequest.read'),
+        MenuNode('mail', _('Emails'), cssc='menu-item', url=f_urls['mail'] + 'allfilters/', nperm='email.read'),
         MenuNode('zonegener', _('Zone gener.'), cssc='menu-item', url='/zonegener/', nperm='zonegener.read'),
-        MenuNode('techtests', _('Tech. tests'), cssc='menu-item', url='/techtests/', nperm='techtest.read'),
+        MenuNode('techtest', _('Tech. tests'), cssc='menu-item', url='/techtests/', nperm='techtest.read'),
     ]), 
     MenuNode('statistics', _('Statistics'), 'body-statistics', 'menu-item menu-statistics', url='/statistics/')
 ])

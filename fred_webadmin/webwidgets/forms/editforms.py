@@ -16,9 +16,21 @@ from editformlayouts import EditFormLayout
 
 class EditForm(Form):
     "Base class for all forms used for editing objects"
+    nperm_name = 'change'
+    # XXX: Tak tohle se bude muset predelat, protoze pro editform nelze
+    # XXX: jednoduse spustit filter_base_fields(), protoze pak se odesila
+    # XXX: cely objekt a field, ktery neni pritomen by se nastavil na PRAZDNY RETEZEC!!!
+    # XXX: Takze bud bude nutne to tam nejak dodelat, aby se ty schovany kopirovaly z initial, nebo tak ne.
+    # XXX: Dale je take mozna problem v pridanych fieldech
+    name_postfix = 'EditForm'
+    
     def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None,
                  initial=None, error_class=ErrorList, label_suffix=':', layout_class=EditFormLayout, *content, **kwd):
         super(EditForm, self).__init__(data, files, auto_id, prefix, initial, error_class, label_suffix, layout_class=EditFormLayout, *content, **kwd)
+        
+    
+    def filter_base_fields(self):
+        pass # viz. XXX: poznamky nahore
     
     def set_fields_values(self):
         super(EditForm, self).set_fields_values()
@@ -38,7 +50,7 @@ class AccessEditForm(EditForm):
     password = CharField(label=_('Password'))
     md5Cert = CharField(label=_('MD5 of cert.'))
 
-class RegistrarsEditForm(EditForm):
+class RegistrarEditForm(EditForm):
     id = HiddenDecimalField()
     handle = CharField(label=_('Handle')) # registrar identification
     name = CharField(label=_('Name'), required=False) # registrar name

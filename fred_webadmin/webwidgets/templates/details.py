@@ -2,10 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import datetime
-from fred_webadmin.webwidgets.gpyweb.gpyweb import attr, div, span, h1, table, tbody, tr, th, td, p, strong, b, small, a, form, input, select, option, textarea, script, pre, br, acronym
+from fred_webadmin.webwidgets.gpyweb.gpyweb import attr, div, span, h1, table, tbody, tr, th, td, p, strong, b, small, a, form, input, select, option, textarea, script, pre, br, acronym, hr
 from fred_webadmin.webwidgets.adifwidgets import FilterPanel
 from fred_webadmin.translation import _
 from fred_webadmin.mappings import f_urls, f_objectType_name
+from fred_webadmin.webwidgets.details.adifdetails import RegistrarDetail, DomainDetail
 
 class DetailDiv(div):
     def __init__(self, context):
@@ -53,17 +54,17 @@ class ContactDetailDiv(DetailDiv):
                   tr(th(attr(style='width: 180px'), _('Create_date')), 
                      td(span(result.createDate)), 
                      th(attr(style='width: 120px'), _('by_registrar:')), 
-                     td(attr(style='width: 280px'), a(attr(href=f_urls['registrars'] + 'detail/?handle=' + result.createRegistrarHandle), result.createRegistrarHandle))),
+                     td(attr(style='width: 280px'), a(attr(href=f_urls['registrar'] + 'detail/?handle=' + result.createRegistrarHandle), result.createRegistrarHandle))),
                   ['',
                    tr(th(attr(style='width: 180px'), _('Transfer_date')), 
                       td(span(result.transferDate)), 
                       th(attr(style='width: 120px'), _('to_registrar:')), 
-                      td(attr(style='width: 280px'), a(attr(href=f_urls['registrars'] + 'detail/?handle=' + result.registrarHandle), result.registrarHandle)))
+                      td(attr(style='width: 280px'), a(attr(href=f_urls['registrar'] + 'detail/?handle=' + result.registrarHandle), result.registrarHandle)))
                   ][bool(result.transferDate)],
                   ['', tr(th(_('Last_update_date:')), 
                      td(span(result.updateDate)), 
                      th(_('by_registrar:')), 
-                     td(a(attr(href=f_urls['registrars'] + 'detail/?handle=' + result.updateRegistrarHandle), result.updateRegistrarHandle))),
+                     td(a(attr(href=f_urls['registrar'] + 'detail/?handle=' + result.updateRegistrarHandle), result.updateRegistrarHandle))),
                   ][bool(result.updateDate)],
 #                  tr(th(attr(style='width: 180px'), _('Cancel_date:')), 
 #                     td(attr(colspan='3'), span(result.cancelDate)))
@@ -84,12 +85,12 @@ class ContactDetailDiv(DetailDiv):
             self.add(p(input(attr(type='submit', value=':Save:')), input(attr(type='reset', value=':Renew:'))))
         else:
             self.add(FilterPanel([
-                [_('Domains_owner'), 'domains', [{'Registrant.Handle': result.handle}]],
-                [_('Domains_admin'), 'domains', [{'AdminContact.Handle': result.handle}]],
-                [_('Domains_all'), 'domains', [{'Registrant.Handle': result.handle}, {'AdminContact.Handle': result.handle}]],
-                [_('NSSets'), 'nssets', [{'TechContact.Handle': result.handle}]],
-                [_('Requests'), 'actions', [{'Object.Handle': result.handle}]],
-                [_('Emails'), 'mails', [{'Object.Handle': result.handle}]],
+                [_('Domains_owner'), 'domain', [{'Registrant.Handle': result.handle}]],
+                [_('Domains_admin'), 'domain', [{'AdminContact.Handle': result.handle}]],
+                [_('Domains_all'), 'domain', [{'Registrant.Handle': result.handle}, {'AdminContact.Handle': result.handle}]],
+                [_('NSSets'), 'nsset', [{'TechContact.Handle': result.handle}]],
+                [_('Requests'), 'action', [{'Object.Handle': result.handle}]],
+                [_('Emails'), 'mail', [{'Object.Handle': result.handle}]],
             ]))
             
         
@@ -131,7 +132,7 @@ class DomainDetailDiv(DetailDiv):
             table(attr(border='1', style='width: 96%'), 
                   tr(th(attr(colspan='2'), _('Owner'))), 
                   tr(th(attr(style='width: 180px'), _('Handle')), 
-                     td(a(attr(href=f_urls['contacts'] + 'detail/?handle=' + result.registrant.handle), result.registrant.handle))), 
+                     td(a(attr(href=f_urls['contact'] + 'detail/?handle=' + result.registrant.handle), result.registrant.handle))), 
                   tr(th(_('Name')),
                      td(span(result.registrant.name))), 
                   tr(th(_('Address')), 
@@ -145,7 +146,7 @@ class DomainDetailDiv(DetailDiv):
         for admin in result.admins:
             admins_table.add(
                   tr(th(attr(style='width: 180px'), _('Handle')), 
-                     td(a(attr(href=f_urls['contacts'] + 'detail/?handle=' + admin.handle), admin.handle)), 
+                     td(a(attr(href=f_urls['contact'] + 'detail/?handle=' + admin.handle), admin.handle)), 
                      th(_('Email')), 
                      td(a(attr(href='mailto:' + admin.email), admin.email)))
             )
@@ -158,7 +159,7 @@ class DomainDetailDiv(DetailDiv):
         for admin in result.temps:
             temps_table.add(
                   tr(th(attr(style='width: 180px'), _('Handle')), 
-                     td(a(attr(href=f_urls['contacts'] + 'detail/?handle=' + admin.handle), admin.handle)), 
+                     td(a(attr(href=f_urls['contact'] + 'detail/?handle=' + admin.handle), admin.handle)), 
                      th(_('Email')), 
                      td(a(attr(href='mailto:' + admin.email), admin.email)))
             )
@@ -169,15 +170,15 @@ class DomainDetailDiv(DetailDiv):
             nssets_table = table(attr(border='1', style=('width: 96%')), 
                                 tr(th(attr(colspan='4'), _('NSSet'))), 
                                 tr(th(attr(style='180px'), _('Handle')), 
-                                   td(attr(colspan='3'), a(attr(href=f_urls['nssets'] + 'detail/?handle=' + result.nssetHandle), result.nssetHandle))), 
+                                   td(attr(colspan='3'), a(attr(href=f_urls['nsset'] + 'detail/?handle=' + result.nssetHandle), result.nssetHandle))), 
                                 tr(th(_('Registrar')), 
-                                   td(attr(colspan='3'), a(attr(href=f_urls['registrars'] + 'detail/?handle=' + result.nsset.registrarHandle), result.nsset.registrarHandle)))
+                                   td(attr(colspan='3'), a(attr(href=f_urls['registrar'] + 'detail/?handle=' + result.nsset.registrarHandle), result.nsset.registrarHandle)))
                                 )
             #  nsset-admins (tech-contacts)
             for i, admin in enumerate(result.nsset.admins):
                 nssets_table.add(
                       tr(th(attr(style='width: 180px'), 'Tech-ID/' + str(i + 1)), 
-                         td(a(attr(href=f_urls['contacts'] + 'detail/?handle=' + admin.handle), admin.handle, 'TECH-ID')), 
+                         td(a(attr(href=f_urls['contact'] + 'detail/?handle=' + admin.handle), admin.handle)), 
                          th(_('Email')), 
                          td(a(attr(href='mailto:' + admin.email), admin.email)))
                 )
@@ -201,7 +202,7 @@ class DomainDetailDiv(DetailDiv):
                          th(attr(style='width: 250px'), _('Handle')), 
                          th(_('from'))), 
                       tr(td(result.registrar.name), 
-                         td(a(attr(href=f_urls['registrars'] + 'detail/?handle=' + result.registrarHandle), result.registrarHandle)), 
+                         td(a(attr(href=f_urls['registrar'] + 'detail/?handle=' + result.registrarHandle), result.registrarHandle)), 
                          td(result.transferDate or result.createDate)))
             )
         if result.createRegistrar:
@@ -211,7 +212,7 @@ class DomainDetailDiv(DetailDiv):
                          th(attr(style='width: 250px'), _('handle')), 
                          th(_('from'))), 
                       tr(td(result.createRegistrar.name), 
-                         td(a(attr(href=f_urls['registrars'] + 'detail/?handle=' + result.createRegistrarHandle), result.createRegistrarHandle), 
+                         td(a(attr(href=f_urls['registrar'] + 'detail/?handle=' + result.createRegistrarHandle), result.createRegistrarHandle), 
                          td(result.createDate))))
             )
         if result.updateRegistrar:
@@ -221,14 +222,18 @@ class DomainDetailDiv(DetailDiv):
                          th(attr(style='width: 250px'), _('handle')), 
                          th(_('Date'))), 
                       tr(td(result.updateRegistrar.name), 
-                         td(a(attr(href=f_urls['registrars'] + 'detail/?handle=' + result.updateRegistrarHandle), result.updateRegistrarHandle)), 
+                         td(a(attr(href=f_urls['registrar'] + 'detail/?handle=' + result.updateRegistrarHandle), result.updateRegistrarHandle)), 
                          td(result.updateDate)))
             )
-            
+        
+#        self.add(hr())
+#        self.add(DomainDetail(result))
+#        self.add(hr())
+        
         self.add(FilterPanel([
-            [_('Requests'), 'actions', [{'Object.Handle': result.fqdn}]],
-            [_('Emails'), 'mails', [{'Object.Handle': result.fqdn}]],
-            [_('dig'), f_urls['domains'] + 'dig/?handle=' + result.fqdn]
+            [_('Requests'), 'action', [{'Object.Handle': result.fqdn}]],
+            [_('Emails'), 'mail', [{'Object.Handle': result.fqdn}]],
+            [_('dig'), f_urls['domain'] + 'dig/?handle=' + result.fqdn]
         ]))
         
         
@@ -243,7 +248,7 @@ class NSSetDetailDiv(DetailDiv):
             tr(th(attr(style='width: 180px'), _('Handle')), 
                td(attr(colspan='3'), strong(span(result.handle)), span(attr(cssc='epp'), small('(EPP id:', span(result.roid, 'epp id'), ')')))),
             tr(th(_('Registrar')), 
-               td(attr(colspan='3'), a(attr(href=f_urls['registrars'] + 'detail/?handle=' + result.registrar.handle), result.registrar.handle))),
+               td(attr(colspan='3'), a(attr(href=f_urls['registrar'] + 'detail/?handle=' + result.registrar.handle), result.registrar.handle))),
             tr(th(_('Auth_info')), 
                td(attr(colspan='3'), span(result.authInfo)))
         )
@@ -251,7 +256,7 @@ class NSSetDetailDiv(DetailDiv):
         for i, admin in enumerate(result.admins): 
             nsset_table.add(
                 tr(th(attr(style='width: 180px'), 'Tech-ID/' + str(i+1)), 
-                   td(a(attr(href=f_urls['contacts'] + 'detail/?handle=' + admin.handle), admin.handle)), 
+                   td(a(attr(href=f_urls['contact'] + 'detail/?handle=' + admin.handle), admin.handle)), 
                    th(_('Email')), 
                    td(a(attr(href='mailto:' + admin.email), admin.email)))
             )
@@ -270,19 +275,19 @@ class NSSetDetailDiv(DetailDiv):
                   tbody(tr(th(attr(style='width: 180px'), _('Create_date')), 
                            td(attr(colspan='3'), span(result.createDate)), 
                            th(attr(style='width: 120px'), _('by_registrar:')), 
-                           td(attr(style='width: 280px'), a(attr(href=f_urls['registrars'] + 'detail/?handle=' + result.createRegistrarHandle), result.registrarHandle))),
+                           td(attr(style='width: 280px'), a(attr(href=f_urls['registrar'] + 'detail/?handle=' + result.createRegistrarHandle), result.registrarHandle))),
                         tr(th(_('Last_update_date')), 
                            td(attr(colspan='3'), span(result.updateDate)), 
                            th(_('by_registrar:')), 
-                           td(a(attr(href=f_urls['registrars'] + 'detail/?handle=' + result.updateRegistrarHandle), result.updateRegistrarHandle))),
+                           td(a(attr(href=f_urls['registrar'] + 'detail/?handle=' + result.updateRegistrarHandle), result.updateRegistrarHandle))),
                         tr(th(_('Last_transfer_date:')), 
                            td(attr(colspan='5'), span(result.transferDate))))),
             
         )
         self.add(FilterPanel([
-            [_('Domains'), 'domains', [{'NSSet.Handle': result.handle}]],
-            [_('Requests'), 'actions', [{'Object.Handle': result.handle}]],
-            [_('Emails'), 'mails', [{'Object.Handle': result.handle}]],
+            [_('Domains'), 'domain', [{'NSSet.Handle': result.handle}]],
+            [_('Requests'), 'action', [{'Object.Handle': result.handle}]],
+            [_('Emails'), 'mail', [{'Object.Handle': result.handle}]],
         ]))
 
 class ActionDetailDiv(DetailDiv):
@@ -297,7 +302,7 @@ class ActionDetailDiv(DetailDiv):
                   tr(th(attr(style='width: 180px'), _('Received_date')), 
                      td(strong(span(result.time)))), 
                   tr(th(_('Registrar')), 
-                     td(a(attr(href=f_urls['registrars'] + 'detail/?handle=' + result.registrar.handle), result.registrar.handle))), 
+                     td(a(attr(href=f_urls['registrar'] + 'detail/?handle=' + result.registrar.handle), result.registrar.handle))), 
                   tr(th(_('objectHandle')), 
                      td(span(result.objectHandle))), 
                   tr(th(_('Type')), 
@@ -326,7 +331,7 @@ class RegistrarDetailDiv(DetailDiv):
         self.add(h1(_('Detail_of_registrar')))
         
         self.add(table(attr(style='width: 96%', border='1'), 
-            tr(th(attr(style='width: 180px'), _('Type')), 
+            tr(th(attr(style='width: 180px'), _('Handle')), 
                  td(span(result.handle))), 
             tr(th(_('Name')), 
                td(span(result.name))), 
@@ -377,13 +382,19 @@ class RegistrarDetailDiv(DetailDiv):
                   )))
             )
         self.add(auth_table)
-
+        
+        self.add(hr())
+        self.add(RegistrarDetail(result, display_only=['handle', 'street1'], sections=[['pokus', ['handle', 'street1']]]))
+        self.add(hr())
+        self.add(RegistrarDetail(result))
+        self.add(hr())
+        
         self.add(FilterPanel([
-            [_('Domains_selected'), 'domains', [{'Registrar.Handle': result.handle}]],
-            [_('Domains_creating'), 'domains', [{'CreateRegistrar.Handle': result.handle}]],
-            [_('Contacts'), 'contacts', [{'Registrar.Handle': result.handle}]],
-            [_('Requests'), 'actions', [{'Registrar.Handle': result.handle}]],
-            [_('Emails'), 'mails', [{'Object.Registrar.Handle': result.handle}]],
+            [_('Domains_selected'), 'domain', [{'Registrar.Handle': result.handle}]],
+            [_('Domains_creating'), 'domain', [{'CreateRegistrar.Handle': result.handle}]],
+            [_('Contacts'), 'contact', [{'Registrar.Handle': result.handle}]],
+            [_('Requests'), 'action', [{'Registrar.Handle': result.handle}]],
+            [_('Emails'), 'mail', [{'Object.Registrar.Handle': result.handle}]],
         ]))
 
 class PublicRequestDetailDiv(DetailDiv):
@@ -395,7 +406,7 @@ class PublicRequestDetailDiv(DetailDiv):
         objects = div()
 #        import pdb; pdb.set_trace()
         for i, obj in enumerate(result.objects):
-            objects.add(a(attr(href=f_urls[f_objectType_name[obj.type]] + 'detail/?id=' + unicode(obj.id)), 
+            objects.add(a(attr(href=f_urls[f_objectType_name[obj.type]] + 'detail/?id=%s' % unicode(obj.id)), 
                           strong(obj.handle))) 
             if i != len(result.objects) -1: # don't add comma after the last object:
                 objects.add(', ')
@@ -413,13 +424,13 @@ class PublicRequestDetailDiv(DetailDiv):
                   tr(th(_('Status')), 
                      td(result.status)), 
                   tr(th(_('Registrar')), 
-                     td(a(attr(href=f_urls['registrars'] + 'detail/?handle=' + result.registrar), result.registrar))), 
+                     td(a(attr(href=f_urls['registrar'] + 'detail/?handle=' + result.registrar), result.registrar))), 
                   tr(th(_('svTRID')), 
-                     td(a(attr(href=f_urls['actions'] + 'detail/?svTRID=' + result.svTRID), result.svTRID))), 
+                     td(a(attr(href=f_urls['action'] + 'detail/?svTRID=' + result.svTRID), result.svTRID))), 
                   tr(th(_('Reply_Email')), 
                      td(a(attr(href='mailto:' + result.email), result.email))), 
                   tr(th(_('Email')),
-                     ['', td(a(attr(href=f_urls['mails'] + 'detail/?id=' + str(result.answerEmailId)), result.answerEmailId))][bool(result.answerEmailId)]), 
+                     ['', td(a(attr(href=f_urls['mail'] + 'detail/?id=' + str(result.answerEmailId)), result.answerEmailId))][bool(result.answerEmailId)]), 
                   tr(th(_('Create_time')), 
                      td(result.createTime)), 
                   tr(th(_('Close_time')), 
@@ -438,8 +449,8 @@ class PublicRequestDetailDiv(DetailDiv):
 #            )
             self.media_files.append('/js/publicrequests.js')
             self.add(FilterPanel([
-                [_('Accept_and_send'), "javascript:processPublicRequest('%s')" % (f_urls['publicrequests'] + 'resolve/?id=%s' % result.id)],
-                [_('Invalidate_and_close'), "javascript:closePublicRequest('%s')" % (f_urls['publicrequests'] + 'close/?id=%s' % result.id)],
+                [_('Accept_and_send'), "javascript:processPublicRequest('%s')" % (f_urls['publicrequest'] + 'resolve/?id=%s' % result.id)],
+                [_('Invalidate_and_close'), "javascript:closePublicRequest('%s')" % (f_urls['publicrequest'] + 'close/?id=%s' % result.id)],
             ]))
 
 
@@ -449,21 +460,21 @@ class MailDetailDiv(DetailDiv):
         c = context
         result = c['result']
         handles = td()
-        for handle in result.handle:
-            if handle.type:
-                div(a(attr(href=f_urls[handle.type] + 'detail/?handle=' + handle.handle), handle.handle), br())
+        for handle in result.handles:
+            if handle.get('type'):
+                handles.add(div(a(attr(href=f_urls[handle['type']] + 'detail/?handle=' + handle['handle']), handle['handle']), br()))
             else:
-                div(handle.handle, br())
+                handles.add(div(handle.get('handle'), br()))
         attachments = td()
-        for attachment in result.attachmens:
+        for attachment in result.attachments:
             if attachment.id:
-                div(a(attr(attachment.name, attr(href=f_urls['attachment'] + '?id=' + attachment.id))))
+                attachments.add(div(a(attr(href=f_urls['file'] + 'detail/?id=%s' % attachment.id), attachment.name)))
             else:
-                div(attachment.name)
+                attachments.add(div(attachment.name))
         self.add(
             h1(_('Detail_of_email')),
-            table(attr(border='1', width='96%'), 
-                  tr(th(attr(width='180'), _('Handles')),
+            table(attr(border='1', style='width: 96%'), 
+                  tr(th(attr(style='width: 180px'), _('Handles')),
                      handles),
                   tr(th(_('Status')), td(result.status)),
                   tr(th(_('Type')), td(result.type)), 
@@ -472,7 +483,7 @@ class MailDetailDiv(DetailDiv):
                   tr(th(_('Attachments')), attachments)
             ), 
                   
-            table(attr(border='1', width='96%'), 
+            table(attr(border='1', style='width: 96%'), 
                   tr(th(_('Email'))), 
                   tr(td(pre(attr(cssc='email'), result.content))))
         )
@@ -486,10 +497,10 @@ class InvoiceDetailDiv(DetailDiv):
         self.add(
             h1(_('Invoice_detail')),
             table(attr(border='1', width='96%'), 
-                  tr(th(attr(width='180'), _('Number')), 
+                  tr(th(attr(style='width: 180px'), _('Number')), 
                      td(result.number)), 
                   tr(th(_('Registrar')), 
-                     td(a(attr(href=f_urls['registrars'] + 'detail/?handle=' + result.registrarHandle), result.registrarHandle))), 
+                     td(a(attr(href=f_urls['registrar'] + 'detail/?handle=' + result.registrarHandle), result.registrarHandle))), 
                   tr(th(_('Credit')), 
                      td(result.credit)), 
                   tr(th(_('Create_date')), 
@@ -503,57 +514,69 @@ class InvoiceDetailDiv(DetailDiv):
                   tr(th(_('Type')), 
                      td(result.type)), 
                   tr(th(_('Price')), 
-                     td(strong(result.price), small('string: (${here/result/total} + ${here/result/totalVAT} :of: ${here/result/vatRate}% :VAT:')))), 
+                     td(strong(result.price), small(_(u'(%s + %s of %s%% VAT)') % (result.total, result.totalVAT, result.vatRate)))), 
                   tr(th(_('Variable_Symbol')), 
                      td(result.varSymbol)), 
                   
-                  [tr(th(_('PDF')), 
-                      td(a(attr(href=f_urls['attachments'] + '?id=${result.filePDF'), result.filePDFinfo.name), 
-                         ', ' + _('size'), span(result.filePDFinfo.size), _('bytes, created'), span(result.filePDFinfo.crdate))), 
+                  (
+                   result.filePDF 
+                   and
                    tr(th(_('PDF')), 
-                      td('N/A')),
-                  ][bool(result.filePDF)], 
+                      td(a(attr(href=f_urls['file'] + 'detail/?id=%s' % result.filePDF), result.filePDFinfo.name), 
+                         ', ' + _('size'), span(result.filePDFinfo.size), _('bytes, created'), span(result.filePDFinfo.crdate)))  
+                   or
+                   tr(th(_('PDF')), 
+                      td('N/A'))
+                  ),
 
-                  [tr(th(_('XML')), 
-                      td(a(attr(href='attachment/?id='+result.fileXML), _('size'), 
-                           span(attr(result.fileXMLinfo.size)), _('bytes:, :created'), span(result.fileXMLinfo.crdate)))), 
+
+                  (result.fileXML 
+                   and
                    tr(th(_('XML')), 
-                      td('N/A'))][bool(result.fileXML)],
-
+                      td(a(attr(href=f_urls['file'] + 'detail/?id=%s' % unicode(result.fileXML)), result.fileXMLinfo.name),
+                         ', ' + _('size'), span(result.fileXMLinfo.size), _('bytes, created'), span(result.fileXMLinfo.crdate)))
+                   or  
+                   tr(th(_('XML')), 
+                      td('N/A'))
+                  ),
+            ),
             table(attr(border='1', width='96%'), 
                   tr(th(attr(colspan='3'), b(_('Payments')))), 
                   ['',
-                   tr(th('Number'), 
-                      th('Price'), 
-                      th('Balance')), 
-                   [tr(td(a(attr(href=f_urls['invoices'] + 'detail/?id=' + item.id), item.number)), 
-                       td(item.price), 
-                       td(item.balance)) 
-                    for item in result.payments
-                   ]
+                   (tr(th('Number'), 
+                       th('Price'), 
+                       th('Balance')), 
+                    [tr(td(a(attr(href=f_urls['invoice'] + 'detail/?id=%s' % item.id), item.number)), 
+                        td(item.price), 
+                        td(item.balance)) 
+                     for item in result.payments
+                    ]
+                   )
                   ][bool(result.payments)]
             ),
 
             table(attr(border='1', width='96%'), tr(th(attr(colspan='7'), b(_('Actions')))), 
                   ['',
-                   tr(
-                     th('Object Name'), 
-                     th('Action Time'), 
-                     th('exDate'), 
-                     th('Type'), 
-                     th('Count'), 
-                     th(acronym(attr(title=':Price_Per_Unit:'), _('PPU'))), 
-                     th('Price')), 
-                  [tr(
-                     td(a(attr(TAL_attributes='href string: ${runtime/approot}domains/detail/?handle=${item/objectName}', TAL_content='item/objectName'))), 
-                     td('item/actionTime'), 
-                     td('item/exDate'), 
-                     td('item/actionType'), 
-                     td('item/unitsCount'), 
-                     td('item/pricePerUnit'), 
-                     td('item/price')) for item in result.actions
-                  ]
-                 ][not bool(result.actions)]
+                   (
+                    tr(
+                      th('Object Name'), 
+                      th('Action Time'), 
+                      th('exDate'), 
+                      th('Type'), 
+                      th('Count'), 
+                      th(acronym(attr(title=':Price_Per_Unit:'), _('PPU'))), 
+                      th('Price')), 
+                    [tr(
+                       td(a(attr(href=f_urls['domain'] + '/detail/?handle=%s' % item.objectName), item.objectName)), 
+                       td(item.actionTime),
+                       td(item.exDate),
+                       td(item.actionType),
+                       td(item.unitsCount),
+                       td(item.pricePerUnit),
+                       td(item.price)) for item in result.actions
+                    ]
+                  )
+                 ][bool(result.actions)]
             )
         )
 

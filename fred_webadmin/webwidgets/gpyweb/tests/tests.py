@@ -286,5 +286,17 @@ def test_root_tag():
     
     assert mv.my_p.root_widget == d
     
-        
+def test_escape():
+    p1 = p('first<br />second')
+    assert str(p1) == '''<p>
+\tfirst&lt;br /&gt;second
+</p>
+'''
+    
+    p2 = p(noesc('first<br />second'))
+    print str(p2)
+    assert str(p2) == '''<p>
+\tfirst<br />second
+</p>
+'''
         

@@ -16,8 +16,11 @@ import types
 from logging import debug, error
 
 from cgi import escape
+
 import omniORB
+from omniORB import CORBA
 from omniORB.any import from_any
+
 # DNS lib imports
 import dns.message
 import dns.resolver
@@ -45,11 +48,7 @@ corba = Corba()
 
 from corba import ccReg
 
-# recoder of CORBA objects
-from corbarecoder import CorbaRecode
-recoder = CorbaRecode('utf-8')
-c2u = recoder.decode # recode from corba string to unicode
-u2c = recoder.encode # recode from unicode to strings
+from utils import u2c, c2u, get_corba_session, get_detail
 
 # XML formatter / BeautifulSoup
 try:
@@ -67,19 +66,19 @@ from translation import _
 
 from webwidgets.templates.pages import (
     BaseSite, BaseSiteMenu, LoginPage, DisconnectedPage, NotFound404Page, AllFiltersPage, FilterPage, ErrorPage, DigPage, 
-    DomainsDetail, ContactsDetail, NSSetsDetail, RegistrarsDetail, ActionsDetail, PublicRequestsDetail, MailsDetail, InvoicesDetail,
-    #DomainsEdit, ContactsEdit, NSSetsEdit, 
-    RegistrarsEdit, 
-    #ActionsEdit, PublicRequestsEdit, MailsEdit, InvoicesEdit
+    DomainDetail, ContactDetail, NSSetDetail, RegistrarDetail, ActionDetail, PublicRequestDetail, MailDetail, InvoiceDetail,
+    #DomainEdit, ContactEdit, NSSetEdit, 
+    RegistrarEdit,
+    #ActionEdit, PublicRequestEdit, MailEdit, InvoiceEdit
 )
 from webwidgets.gpyweb.gpyweb import WebWidget
-from webwidgets.gpyweb.gpyweb import DictLookup, attr, ul, li, a, div, span, p, br, pre
+from webwidgets.gpyweb.gpyweb import DictLookup, noesc, attr, ul, li, a, div, span, p, br, pre
 from webwidgets.utils import isiterable, convert_linear_filter_to_form_output
 from webwidgets.menu import MenuHoriz
-from webwidgets.adifwidgets import FilterList, FilterListUnpacked, FilterListCustomUnpacked
+from webwidgets.adifwidgets import FilterList, FilterListUnpacked, FilterListCustomUnpacked, FilterPanel
 from menunode import menu_tree
 from fred_webadmin.webwidgets.forms.adifforms import LoginForm
-from fred_webadmin.webwidgets.forms.editforms import RegistrarsEditForm
+from fred_webadmin.webwidgets.forms.editforms import RegistrarEditForm
 from fred_webadmin.webwidgets.forms.filterforms import *
 from fred_webadmin.webwidgets.forms.filterforms import get_filter_forms_javascript
 
@@ -154,7 +153,7 @@ def check_onperm(objects_nperms, check_type='all'):
                 else:
                     onperms = objects_nperms
                 for objects_nperm in onperms:
-                    nperms.append('%s.%s' % (self.classname[:-1], objects_nperm))
+                    nperms.append('%s.%s' % (self.classname, objects_nperm))
                 if user.check_nperms(nperms, check_type):
                     context = {'message': div()}
                     context['message'].add(p(_("You don't have permissions for this page!")))
@@ -276,7 +275,7 @@ class ListTableMixin(object):
     def _filter_json_rows(self, **kwd):
         debug("A json rows delam s kwd: %s" % kwd)
         itertable = self._get_itertable()
-        if kwd.get('sort') and kwd.get('dir') is not None:
+        if kwd.get('sort') is not None and kwd.get('dir') is not None:
             itertable.set_sort(kwd['sort'], kwd['dir'])
         
         rows = itertable.get_rows_dict(kwd.get('start'), kwd.get('limit'))
@@ -286,7 +285,7 @@ class ListTableMixin(object):
         json_data = json_response({
             'rows': rows,
             'num_rows': itertable.num_rows,
-            'num_rows_in_db': itertable.total_rows
+            'num_rows_in_db': itertable.total_rows,
         })
         debug("vracim json_data = %s" % json_data)
         return json_data
@@ -345,7 +344,7 @@ class ListTableMixin(object):
     def allfilters(self, *args, **kwd):
         context = {'main': div()}
         
-        itertable = self._get_itertable('filters')
+        itertable = self._get_itertable('filter')
         #itertable.set_filter({})
         itertable.set_filter([{#'userId': cherrypy.session.get('user').id,
                               'Type': [False, f_name_id[self.classname]]
@@ -372,12 +371,12 @@ class ListTableMixin(object):
     def index(self):
         raise cherrypy.HTTPRedirect('/%s/allfilters/' % (self.classname))
 
-    def _get_detail_by_id(self, name, obj_id):
-        corba_session = self._get_corba_session()
-        any = corba_session.getDetail(f_name_enum[name], u2c(obj_id))
-        corba_obj = from_any(any, True)
-        result = c2u(corba_obj)
-        return result
+#    def _get_detail_by_id(self, name, obj_id):
+#        corba_session = get_corba_session()
+#        any = corba_session.getDetail(f_name_enum[name], u2c(obj_id))
+#        corba_obj = from_any(any, True)
+#        result = c2u(corba_obj)
+#        return result
         
     @check_onperm('read')
     def _get_detail(self, obj_id=None, handle=None):
@@ -395,11 +394,11 @@ class ListTableMixin(object):
             if handle:
                 result = c2u(getattr(admin, f_name_get_by_handle[self.classname])(u2c(handle)))
             else:
-                result = self._get_detail_by_id(self.classname, obj_id)
+                result = get_detail(self.classname, obj_id)
             return result
         except (corba.module.Admin.ObjectNotFound,):
             context['main'] = _("Object_not_found")
-            raise CustomView(self._render('base', ctx=context))  
+            raise CustomView(self._render('base', ctx=context))
 
 
 class Page(object):
@@ -434,13 +433,6 @@ class AdifPage(Page):
 
         self.__defaults__()
     
-    def _get_corba_session(self):
-        try:
-            corbaSessionString = cherrypy.session.get('corbaSessionString')
-            return cherrypy.session.get('Admin').getSession(corbaSessionString)
-        except ccReg.Admin.ObjectNotFound:
-            raise CorbaServerDisconnectedException
-    
     def __defaults__(self):
         pass
         #self.here = {}
@@ -469,7 +461,7 @@ class AdifPage(Page):
         elif action == 'dig':
             return DigPage
         else:
-            # returns ClassName + Action (e.g. DomainsDetail) class from module of this class, if there is no such, then it returns BaseSiteMenu: 
+            # returns ClassName + Action (e.g. DomainDetail) class from module of this class, if there is no such, then it returns BaseSiteMenu: 
             template_name = self.__class__.__name__ + action.capitalize()
             debug('Snazim se vzit templatu jmenem:' + template_name)
             template = getattr(sys.modules[self.__module__], template_name, None)
@@ -487,11 +479,13 @@ class AdifPage(Page):
         return MenuHoriz(self.menu_tree, self._get_menu_handle(action), cherrypy.session['user'])
     
     def _get_menu_handle(self, action):
-        if self.classname in ('registrars'):
+        if self.classname in ('registrar'):
             if action in ('allfilters', 'filter'):
                 return self.classname + 'filter'
             elif action in ('create', 'list'): 
                 return self.classname + action
+        if self.classname == 'file':
+            return 'summary'
             
         return self.classname
 
@@ -520,7 +514,7 @@ class AdifPage(Page):
             context.update(ctx)
         
         temp_class = self._template(action)(context)
-        debug(u"BERU TEMPLARU:%s" % repr(temp_class))
+        debug(u"TAKING TEMPLATE:%s" % repr(temp_class))
         #import pdb; pdb.set_trace()
         result = temp_class.render()
         
@@ -616,7 +610,7 @@ class ADIF(AdifPage):
     def default(self, *args, **kwd):
         if args and args[0] == 'filter_forms_javascript.js':
             if config.caching_filter_form_javascript:
-                if cherrypy.session.get('filter_forms_javascript') is None:
+                if cherrypy.session.get('filter_forms_javascript') is not None:
                     since = cherrypy.request.headers.get('If-Unmodified-Since') 
                     since2 = cherrypy.request.headers.get('If-Modified-Since')
                     if since or since2:
@@ -663,22 +657,22 @@ class ADIF(AdifPage):
                 cherrypy.session['filter_forms_javascript'] = None
                 
                 
-                corbaSession = self._get_corba_session()
+                corbaSession = get_corba_session()
                 cherrypy.session['user'] = User(corbaSession.getUser())
                 
-                #cherrypy.session['Mailer'] = corba.getObject('Mailer', 'Mailer')
-                #cherrypy.session['FileManager'] = corba.getObject('FileManager', 'FileManager')
+                cherrypy.session['Mailer'] = corba.getObject('Mailer', 'Mailer')
+                cherrypy.session['FileManager'] = corba.getObject('FileManager', 'FileManager')
 
                 raise cherrypy.HTTPRedirect(form.cleaned_data.get('next'))
             except omniORB.CORBA.BAD_PARAM, e:
                 form.non_field_errors().append(_('Bad corba call! ') + '(%s)' % (str(e)))
                 if config.debug:
-                    form.non_field_errors().append([escape(unicode(traceback.format_exc())).replace('\n', '<br/>')])
+                    form.non_field_errors().append(noesc(escape(unicode(traceback.format_exc())).replace('\n', '<br/>')))
             except corba.module.Admin.AuthFailed, e:
                 form.non_field_errors().append(_('Login error, please enter correct login and password'))
                 if config.debug:
                     form.non_field_errors().append('(type: %s, exception: %s)' % (escape(unicode(type(e))), unicode(e)))
-                    form.non_field_errors().append([escape(unicode(traceback.format_exc())).replace('\n', '<br/>')])
+                    form.non_field_errors().append(noesc(escape(unicode(traceback.format_exc())).replace('\n', '<br/>')))
             except Exception, e:
                 if config.auth_method == 'LDAP' and isinstance(e, ldap.INVALID_CREDENTIALS):
                     form.non_field_errors().append(_('Invalid username and/or password!'))
@@ -693,6 +687,11 @@ class ADIF(AdifPage):
         
         
     def logout(self):
+        if cherrypy.session.get('Admin'):
+            try:
+                cherrypy.session['Admin'].destroySession(u2c(cherrypy.session['corbaSessionString']))
+            except CORBA.TRANSIENT, e:
+                debug('Admin.destroySession call failed, backend server is not running.\n%s' % e)
         cherrypy.session['user'] = False
         cherrypy.session['corbaSession'] = None
         cherrypy.session['corba_server_name'] = None
@@ -700,6 +699,7 @@ class ADIF(AdifPage):
         cherrypy.session['Mailer'] = None
         cherrypy.session['FileManager'] = None
         cherrypy.session['filter_forms_javascript'] = None
+        
         raise cherrypy.HTTPRedirect('/')
 
     def disconnected(self):
@@ -723,9 +723,12 @@ class Summary(AdifPage):
     @login_required
     def index(self):
         context = DictLookup()
-        context.main = ul(
-            li(a(attr(href='/naky_url/'), u'ňáká nabídka')),
-        )
+#        context.main = ul(
+#            li(a(attr(href='/naky_url/'), u'Dopisy')),
+#        )
+        #context.main = FilterPanel([[_('Mails'), 'file', [{'Type': '5'}]]])
+        #context.main = ul(li(a(attr(href='''/file/filter/?json_data=[{\'presention|Type\':\'000\',\'Type\':\'5\'}]'}'''), _('Mails'))))
+        context.main = ul(li(a(attr(href="/file/filter/?json_linear_filter=[{%22Type%22:%225%22}]"), _('Mails'))))
         return self._render('summary', ctx=context)
     
 class Logs(AdifPage):
@@ -742,7 +745,7 @@ class Statistics(AdifPage):
     def _template(self, action=''):
         return BaseSiteMenu
 
-class Registrars(AdifPage, ListTableMixin):
+class Registrar(AdifPage, ListTableMixin):
 
     def __init__(self):
         AdifPage.__init__(self)
@@ -770,9 +773,6 @@ class Registrars(AdifPage, ListTableMixin):
         
         context['edit'] = kwd.get('edit', False)
         context['result'] = result
-        context['utils'] = {}
-        context['utils']['countries'] = self._countries()
-        context['utils']['certCount'] = len(result.access)
         return self._render('detail', context)
 
     
@@ -805,7 +805,7 @@ class Registrars(AdifPage, ListTableMixin):
                             val[i] = ccReg.EPPAccess(**val[i])
                     setattr(obj, key, val)
                 debug('Saving registrar: %s' % obj)
-                self._get_corba_session().updateRegistrar(u2c(obj))
+                get_corba_session().updateRegistrar(u2c(obj))
                 raise cherrypy.HTTPRedirect(get_current_url(cherrypy.request))
             else:
                 if debug:
@@ -857,7 +857,7 @@ class Registrars(AdifPage, ListTableMixin):
             return self._render('modify', context)
         raise cherrypy.HTTPRedirect('/%s/list/?reload=1' % (self.classname))
 
-class Actions(AdifPage, ListTableMixin):
+class Action(AdifPage, ListTableMixin):
 
     def __init__(self):
         AdifPage.__init__(self)
@@ -867,7 +867,7 @@ class Actions(AdifPage, ListTableMixin):
         if action == 'detail':
             return 'logs'
         else:
-            return super(Actions, self)._get_menu_handle(action)
+            return super(Action, self)._get_menu_handle(action)
     
     @check_onperm('read')    
     def detail(self, **kwd):
@@ -899,7 +899,7 @@ class Actions(AdifPage, ListTableMixin):
         return self._render('detail', context)
             
 
-class Domains(AdifPage, ListTableMixin):
+class Domain(AdifPage, ListTableMixin):
 
     def __init__(self):
         AdifPage.__init__(self)
@@ -970,7 +970,7 @@ class Domains(AdifPage, ListTableMixin):
         return self._render('dig', context)
         
 
-class Contacts(AdifPage, ListTableMixin):
+class Contact(AdifPage, ListTableMixin):
 
     def __init__(self):
         AdifPage.__init__(self)
@@ -993,7 +993,7 @@ class Contacts(AdifPage, ListTableMixin):
         return self._render('detail', context)
 
 
-class NSSets(AdifPage, ListTableMixin):
+class NSSet(AdifPage, ListTableMixin):
 
     def __init__(self):
         AdifPage.__init__(self)
@@ -1031,17 +1031,17 @@ class NSSets(AdifPage, ListTableMixin):
 
         return self._render('detail', context)
 
-class Mails(AdifPage, ListTableMixin):
+class Mail(AdifPage, ListTableMixin):
 
     def __init__(self):
         AdifPage.__init__(self)
         ListTableMixin.__init__(self)
 
     def _rehashHandles(self, handles):
-        hmap = {'HT_DOMAIN': 'domains',
-                'HT_CONTACT': 'contacts',
-                'HT_NSSET': 'nssets',
-                'HT_REGISTRAR': 'registrars'}
+        hmap = {'HT_DOMAIN': 'domain',
+                'HT_CONTACT': 'contact',
+                'HT_NSSET': 'nsset',
+                'HT_REGISTRAR': 'registrar'}
         handles = [ {'type': hmap.get(cherrypy.session.get('Admin').checkHandle(u2c(handle))[0].hType._n), 'handle': handle} for handle in handles ]
         return handles
 
@@ -1057,20 +1057,10 @@ class Mails(AdifPage, ListTableMixin):
     @check_onperm('read')
     def detail(self, **kwd):
         context = {}
+        
         create = kwd.get('create')
         if not create:
-            admin = cherrypy.session.get('Admin')
-            try:
-                handle = int(kwd.get('id', None))
-            except (TypeError, ValueError):
-                context['main'] = _("Required_integer_as_parameter")
-                return self._render('base', ctx=context)
-            func = admin.getEmailById
-            try:
-                result = c2u(func(u2c(handle)))
-            except (corba.module.Admin.ObjectNotFound,):
-                context['main'] = _("Object_not_found")
-                return self._render('base', ctx=context)
+            result = self._get_detail(obj_id=kwd.get('id'), handle=kwd.get('handle'))
         mtype = [ x.name for x in self._mailTypes() if x.id == result.type ]
         if len(mtype) == 1:
             result.type = mtype[0]
@@ -1107,8 +1097,42 @@ class Mails(AdifPage, ListTableMixin):
                     break
             response.body = body
             return response.body
+        
 
-class PublicRequests(AdifPage, ListTableMixin):
+class File(AdifPage, ListTableMixin):
+    @check_onperm('read')
+    def detail(self, **kwd):
+        context = {}
+        try:
+            handle = int(kwd.get('id', None))
+        except (TypeError, ValueError):
+            context['main'] = _("Required_integer_as_parameter")
+            return self._render('base', ctx=context)
+        if handle:
+            response = cherrypy.response
+            filemanager = cherrypy.session.get('FileManager')
+            info = filemanager.info(u2c(handle))
+            try:
+                f = filemanager.load(u2c(handle))
+                body = ""
+                while 1:
+                    part = f.download(102400) # 100kBytes
+                    if part:
+                        body = "%s%s" % (body, part)
+                    else:
+                        break
+                response.body = body
+                response.headers['Content-Type'] = info.mimetype
+                cd = "%s; filename=%s" % ('attachment', info.name)
+                response.headers["Content-Disposition"] = cd
+                response.headers['Content-Length'] = info.size
+            except ccReg.FileManager.FileNotFound, e:
+                context['main'] = _("Object_not_found")
+                return self._render('file', ctx=context)
+
+            return response.body
+        
+class PublicRequest(AdifPage, ListTableMixin):
 
     def __init__(self):
         AdifPage.__init__(self)
@@ -1154,35 +1178,23 @@ class PublicRequests(AdifPage, ListTableMixin):
         raise cherrypy.HTTPRedirect('/%s/filter/?reload=1&load=1' % (self.classname))
 
 
-class Invoices(AdifPage, ListTableMixin):
+class Invoice(AdifPage, ListTableMixin):
 
     def __init__(self):
         AdifPage.__init__(self)
         ListTableMixin.__init__(self)
 
-    @check_onperm('read')
-    def filter(self, **kwd):
-        context = {}
-        context['result'] = {}
-        context['result']['typelist'] = self._invoiceTypeList()
-        return self._render('filter', ctx=context)
+#    @check_onperm('read')
+#    def filter(self, **kwd):
+#        context = {}
+#        context['result'] = {}
+#        context['result']['typelist'] = self._invoiceTypeList()
+#        return self._render('filter', ctx=context)
 
     @check_onperm('read')
     def detail(self, **kwd):
         context = {}
-        try:
-            handle = int(kwd.get('id', None))
-        except (TypeError, ValueError):
-            context['main'] = _("Required_integer_as_parameter")
-            return self._render('base', ctx=context)
-        func = cherrypy.session.get('Admin').getInvoiceById
-        if not str(handle):
-            raise cherrypy.HTTPRedirect('/%s/list/' % (self.classname))
-        try:
-            result = c2u(func(u2c(handle)))
-        except (corba.module.Admin.ObjectNotFound,):
-            context = _("Object_not_found")
-            return self._render('base', ctx=context)
+        result = self._get_detail(obj_id=kwd.get('id'), handle=kwd.get('handle'))
         context['edit'] = kwd.get('edit')
 
         # hack hack hack - omniorb python mapping maps structs to class with dict objects inside, 
@@ -1198,9 +1210,9 @@ class Invoices(AdifPage, ListTableMixin):
             result.fileXMLinfo = None
         # hack, these need remapping to other values.
         if result.actions:
-            [ x.__dict__.__setitem__('actionType', 'RREG') for x in result.actions if x.actionType == 0 ]
-            [ x.__dict__.__setitem__('actionType', 'RUDR') for x in result.actions if x.actionType == 1 ]
-        result.type = [ x['type'] for x in corba.module.Invoicing.Invoices if x['obj']._n == result.type ][0]
+            [ x.__dict__.__setitem__('actionType', _('Rstration fee')) for x in result.actions if x.actionType == 0 ]
+            [ x.__dict__.__setitem__('actionType', _('Renew fee')) for x in result.actions if x.actionType == 1 ]
+        #result.type = [ x['type'] for x in corba.module.Invoicing.Invoices if x['obj']._n == result.type ][0]
         context['result'] = result
         return self._render('detail', context)
 
@@ -1232,13 +1244,13 @@ class Invoices(AdifPage, ListTableMixin):
             return response.body
 
 
-class Bankstatements(AdifPage, ListTableMixin):
+class Bankstatement(AdifPage, ListTableMixin):
 
     def __init__(self):
         AdifPage.__init__(self)
         ListTableMixin.__init__(self)
 
-class Filters(AdifPage, ListTableMixin):
+class Filter(AdifPage, ListTableMixin):
     def __init__(self):
         AdifPage.__init__(self)
         ListTableMixin.__init__(self)
@@ -1248,7 +1260,7 @@ class Filters(AdifPage, ListTableMixin):
         if action in ('detail', 'filter'):
             return 'summary'
         else:
-            return super(Filters, self)._get_menu_handle(action)
+            return super(Filter, self)._get_menu_handle(action)
     
 class Development(object):
 
@@ -1300,25 +1312,22 @@ def runserver():
     root = ADIF()
     root.summary = Summary()
     root.logs = Logs()
-    root.registrars = Registrars()
-    root.actions = Actions()
-    root.domains = Domains()
-    root.contacts = Contacts()
-    root.nssets = NSSets()
-    root.mails = Mails()
-    root.publicrequests = PublicRequests()
-    root.invoices = Invoices()
-    root.bankstatements = Bankstatements()
-    root.filters = Filters()
-    root.statistics = Statistics()
+    root.registrar = Registrar()
+    root.action = Action()
+    root.domain = Domain()
+    root.contact = Contact()
+    root.nsset = NSSet()
+    root.mail = Mail()
+    root.file = File()
+    root.publicrequest = PublicRequest()
+    root.invoice = Invoice()
+    root.bankstatement = Bankstatement()
+    root.filter = Filter()
+    root.statistic = Statistics()
     root.devel = Development()
     
     cherrypy.quickstart(root, '/', config=config.cherrycfg)
     
 
 if __name__ == '__main__':
-#    from menunode import menu_tree
-#    print menu_tree.mprint()
-#    from webwidgets.menu import Menu
-#    print unicode(Menu(menu_tree, 'sdomains'))
     runserver()

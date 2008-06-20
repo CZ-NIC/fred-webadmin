@@ -11,7 +11,22 @@ Ext.ItertablesPagingToolbar = Ext.extend(Ext.PagingToolbar, {
                 );
             this.displayEl.update(msg);
         }
-    }
+    }/*,
+    getPageData : function(){
+        var total = this.store.getTotalCount();
+        var ap  =   Math.ceil((this.cursor+this.pageSize)/this.pageSize);
+        if (this.store.reader.jsonData.start ) {
+            // go to the specified page
+            ap  =   Math.ceil((this.store.reader.jsonData.start + this.pageSize)/this.pageSize);
+            // also set the cursor so that 'prev' and 'next' buttons behave correctly
+            this.cursor =   this.store.reader.jsonData.start;
+        }
+        return {
+            total : total,
+            activePage : ap,
+            pages :  total < this.pageSize ? 1 : Math.ceil(total/this.pageSize)
+        };
+    }*/
 });
     
 
@@ -23,6 +38,7 @@ var IterTableUI = function() {
     var header = 'nenastaveno'; //json header informations
     var headerType = 'nenast'; //json header type informations
     var pageSize;
+    var pageIndex;
     var objectName;
     var totalInDB;
     
@@ -35,6 +51,7 @@ var IterTableUI = function() {
 	        }),
 	
 	        reader: new Ext.data.JsonReader({
+                //start: 'start', // have to be 'start', because of ItertablesPagingToolbar.getPageData count on that
 	            totalProperty: 'num_rows',
 	            totalInDB: 'num_rows_in_db',
 	            root: 'rows',
@@ -71,12 +88,16 @@ var IterTableUI = function() {
     }
     function renderIDFunc(objectName) {
         return function(value) {
-            return '<a href="/' + objectName + 's/detail/?id=' + value + '"><img src="/img/icons/open.png" /></a>';
+            if (value && value != '0') {
+                return '<a href="/' + objectName + '/detail/?id=' + value + '"><img src="/img/icons/open.png" /></a>';
+            } else {
+                return 'N/A';
+            }
         };
     }
     function renderHandleFunc(objectName) {
         return function(value) {
-            return '<a href="/' + objectName + 's/detail/?handle=' + value + '">' + value + '</a>';
+            return '<a href="/' + objectName + '/detail/?handle=' + value + '">' + value + '</a>';
         };
     }
 

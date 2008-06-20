@@ -493,6 +493,7 @@ class BooleanField(Field):
         self._value = 1
         self.checked = None
         self.tattr['value'] = 1
+        self.__setattr__('value', value) # because it is not called from Parent class
             
     def __setattr__(self, name, value):
         """
@@ -547,7 +548,7 @@ class ChoiceField(Field):
 #        self._value = None
         super(ChoiceField, self).__init__(name, value, required, label, initial, help_text, *arg, **kwargs)
         self.tag = 'select'
-
+        self.empty_choice = ['', '']
         if choices is None:
             self.choices = []
         else:
@@ -555,6 +556,13 @@ class ChoiceField(Field):
 
     def make_content(self):
         self.content = []
+        
+        # add/remove emtpy choice according 
+        if self.required and self.choices and self.choices[0] == self.empty_choice: # remove empty choice:
+            self.choices.pop(0)
+        elif not self.required and (not self.choices or (self.choices and self.choices[0] != self.empty_choice)): # add empty choice:
+            self.choices.insert(0, self.empty_choice)
+            
         if self.choices:
             for value, caption in list(self.choices):
                 if unicode(value) == unicode(self.value):
@@ -723,8 +731,6 @@ class MultiValueField(Field):
         self._name = '' 
         super(MultiValueField, self).__init__(name, value, *args, **kwargs)
         self.tag = 'span'
-        self.build_content()
-
 
     def _set_name(self, value):
         self._name = value
@@ -751,14 +757,17 @@ class MultiValueField(Field):
     value = property(fget=lambda self: self._get_value(), fset=lambda self, value: self._set_value(value)) # late binding property
 
         
-    def build_content(self):
-        
+    def make_content(self):
         for field in self.fields:
             label_str = field.label or ''
             if label_str:
                 label_str += ':'
             self.add(label_str, field)
-
+            
+    def render(self, indent_level=0):
+        self.make_content()
+        return super(MultiValueField, self).render(indent_level)
+    
     def clean(self):
         """
         Validates every value of self.fields.
@@ -870,6 +879,8 @@ class SplitTimeField(MultiValueField):
         fields = (ChoiceField(choices=[[u'%d' % c, u'%02d' % c] for c in range(24)]), 
                   ChoiceField(choices=[[u'%d' % c, u'%02d' % c] for c in range(0, 60, 5)]))
         super(SplitTimeField, self).__init__(name, value, fields, *args, **kwargs)
+        for field in self.fields:
+            field.required = True
 
     def compress(self, data_list):
         if data_list:

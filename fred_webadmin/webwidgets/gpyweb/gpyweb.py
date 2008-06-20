@@ -32,6 +32,11 @@ class save(object):
             self.name = name
         else:
             raise Exception
+        
+class noesc(object):
+    '''String inside this objec will not be escaped'''
+    def __init__(self, value):
+        self.value = value
 
 class SubscriptableType(type):
     '''Metaclass, which allows create webwidget using call like div['content'] instead and will wordks as constructor (e.g. div('content'))'''
@@ -194,6 +199,9 @@ class WebWidget(object):
             #elif hasattr(con, '_is_tag_tagid'):
             elif isinstance(con, tagid):
                 self.__setattr__('tagid', con.name)
+            elif isiterable(con):
+                for inner_con in con:
+                    self.add(inner_con)
             #elif hasattr(con, '_is_tag_attr'):
             elif isinstance(con, attr):
                 for key, val in con.kwd.items():
@@ -296,6 +304,12 @@ class WebWidget(object):
                 for item in con:
                     if item is not None:
                         rstr += unicode(item) # strings in list are not escaped!
+            elif isinstance(con, noesc):
+                if not self.enclose_content:
+                    rstr += indent_level * self.indent_char
+                rstr += con.value # value will not be escaped!
+                if not self.enclose_content:
+                    rstr += self.delimiter_char
             else:
                 con = unicode(con)
                 if not self.enclose_content:

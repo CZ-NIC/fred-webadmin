@@ -64,9 +64,21 @@ class CorbaLazyRequestIter(CorbaLazyRequest):
         if self.index < self.data_len:
             return self.data[self.index]
         else:
-            self.index = 0
+            self.index = -1
             raise StopIteration
+        
+    def insert(self, index, obj):
+        self._get_data()
+        self.data.insert(index, obj)
+    
+    def pop(self, index):
+        self._get_data()
+        return self.data.pop(index)
 
+    
+    def __getitem__(self, index):
+        self._get_data()
+        return self.data[index]
 
     def __len__(self):
         self._get_data()

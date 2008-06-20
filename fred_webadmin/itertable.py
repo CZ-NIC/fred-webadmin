@@ -7,7 +7,7 @@ from corba import ccReg, CorbaServerDisconnectedException
 from adif import u2c
 from translation import _
 from fred_webadmin.webwidgets.forms.filterforms import FilterFormEmptyValue
-from fred_webadmin.mappings import f_name_enum, f_header_ids
+from fred_webadmin.mappings import f_name_enum, f_header_ids, f_urls, f_name_default_sort
 
 def fileGenerator(source, separator = '|'):
     "Generates CVS stream from IterTable object"
@@ -45,16 +45,6 @@ class IterTable(object):
         self._update()
 
     def _map_request(self, sessionKey):
-#        types = {'actions': {'func': 'getEPPActions', 'id': 'CT_REQUEST_ID'},
-#                     'registrars': {'func': 'getRegistrars', 'id': 'CT_REGISTRAR_ID'},
-#                     'domains': {'func': 'getDomains', 'id': 'CT_DOMAIN_ID'},
-#                     'nssets': {'func': 'getNSSets', 'id': 'CT_NSSET_ID'},
-#                     'mails': {'func': 'getMails', 'id': 'CT_MAIL_ID'},
-#                     'contacts': {'func': 'getContacts', 'id': 'CT_CONTACT_ID'},
-#                     'authinfos': {'func': 'getAuthInfoRequests', 'id': 'CT_AUTHINFO_ID'},
-#                     'invoices': {'func': 'getInvoices', 'id': 'CT_INVOICE_ID'},
-#                     'filters': {'func': 'getFilters', 'id': 'CT_FILTER_ID'},
-#                }
         try:
             debug('GETTING ADMIN, which is: %s a sessionkey=%s' % (cherrypy.session.get('Admin', 'Admin'), sessionKey))
             corbaSession = cherrypy.session.get('Admin').getSession(sessionKey)
@@ -162,38 +152,44 @@ class IterTable(object):
     def next(self):
         debug("In itertable.next(), row_index: %s" % self._row_index)
         if self._row_index >= (self.page_start + self._page_rows):
+            self._row_index = self.page_start
             raise StopIteration
         row = self._get_row(self._row_index)
         self._row_index += 1
         return row
 
     def _rewrite_cell(self, cell):
-        baseurl = '' #cherrypy.request.headers.get(cfg.get('html', 'header'), '')
-        rewrite_rules = {'CT_CONTACT_HANDLE': {'url': r'%s/contacts/detail/?handle=%%s' % baseurl},
-                        'CT_REGISTRAR_HANDLE': {'url': r'%s/registrars/detail/?handle=%%s' % baseurl},
-                        'CT_DOMAIN_HANDLE': {'url': r'%s/domains/detail/?handle=%%s' % baseurl},
-                        'CT_NSSET_HANDLE': {'url': r'%s/nssets/detail/?handle=%%s' % baseurl},
-                        'CT_CONTACT_ID': {'url': r'%s/contacts/detail/?id=%%s' % baseurl,  'icon': 'list.gif', 'cssc': 'tcenter'},
-                        'CT_REGISTRAR_ID': {'url': r'%s/registrars/detail/?id=%%s' % baseurl,  'icon': 'list.gif', 'cssc': 'tcenter'},
-                        'CT_DOMAIN_ID': {'url': r'%s/domains/detail/?id=%%s' % baseurl,  'icon': 'list.gif', 'cssc': 'tcenter'},
-                        'CT_NSSET_ID': {'url': r'%s/nssets/detail/?id=%%s' % baseurl,  'icon': 'list.gif', 'cssc': 'tcenter'},
-                        'CT_MAIL_ID': {'url': r'%s/mails/detail/?id=%%s' % baseurl,  'icon': 'list.gif', 'cssc': 'tcenter'},
-                        'CT_PUBLICREQUEST_ID': {'url': r'%s/publicrequests/detail/?id=%%s' % baseurl,  'icon': 'list.gif', 'cssc': 'tcenter'},
-                        'CT_ACTION_ID': {'url': r'%s/requests/detail/?id=%%s' % baseurl,  'icon': 'list.gif', 'cssc': 'tcenter'},
-                        'CT_INVOICE_ID': {'url': r'%s/invoices/detail/?id=%%s' % baseurl,  'icon': 'list.gif', 'cssc': 'tcenter'},
-                        'CT_FILTER_ID': {}, #{'url': r'%s/requests/detail/?id=%%s' % baseurl,  'icon': 'list.gif', 'cssc': 'tcenter'},
+        get_url_id_content = lambda filter_name: {'url': f_urls[filter_name] + 'detail/?id=%s',  'icon': '/img/icons/open.png', 'cssc': 'tcenter'}
+        get_url_handle_content = lambda filter_name: {'url': f_urls[filter_name] + 'detail/?handle=%s'}
+        rewrite_rules = {'CT_CONTACT_HANDLE': get_url_handle_content('contact'),
+                        'CT_REGISTRAR_HANDLE': get_url_handle_content('registrar'),
+                        #'CT_DOMAIN_HANDLE': {'url': f_urls['domain'] + 'detail/?handle=%s'},
+                        'CT_DOMAIN_HANDLE': get_url_handle_content('domain'),
+                        'CT_NSSET_HANDLE': get_url_handle_content('nsset'),
+                        'CT_CONTACT_ID': get_url_id_content('contact'),
+                        'CT_REGISTRAR_ID': get_url_id_content('registrar'),
+                        'CT_DOMAIN_ID': get_url_id_content('domain'),
+                        'CT_NSSET_ID': get_url_id_content('nsset'),
+                        'CT_MAIL_ID': get_url_id_content('mail'),
+                        'CT_PUBLICREQUEST_ID': get_url_id_content('publicrequest'),
+                        'CT_ACTION_ID': get_url_id_content('action'),
+                        'CT_INVOICE_ID': get_url_id_content('invoice'),
+                        #'CT_FILE_ID': {'url': f_urls['file'] + 'detail/?id=%s',  'icon': 'list.gif', 'cssc': 'tcenter'},
+                        'CT_FILE_ID': get_url_id_content('file'),
+                        'CT_FILTER_ID': {}, #{'url': f_urls['request'] + 'detail/?id=%s',  'icon': 'list.gif', 'cssc': 'tcenter'},
                         'CT_OTHER': {}
                        }
         contentType = self.header_type[cell['index']]
         for key in rewrite_rules[contentType]:
-            if key == 'url':
-                cell[key] = rewrite_rules[contentType][key] % (cell['value'],)
             if key == 'value':
                 cell[key] = rewrite_rules[contentType][key]
             if key == 'icon':
                 cell[key] = rewrite_rules[contentType][key]
             if key == 'cssc':
                 cell[key] = rewrite_rules[contentType][key]
+            if key == 'url':
+                cell[key] = rewrite_rules[contentType][key] % (cell['value'],)
+
 
 
       
@@ -203,15 +199,20 @@ class IterTable(object):
         
     def save_filter(self, name):
         self._table.saveFilter(u2c(name))
-
+        
     def set_sort(self, column_name, direction):
         bool_dir = {u'ASC': True, u'DESC': False}[direction]
         try:
-            col_num = self.header.index(column_name) - 1 # - 1 because of headers are with ID, but in corba server without ID
+            col_num = self.rawheader.index(column_name) - 1 # - 1 because of headers are with ID, but in corba server without ID
         except ValueError:
             error('VALUEERROR is set sort, index: (header: %s, index: %s)' % (self.header, column_name))
             raise
         self._table.sortByColumn(col_num, bool_dir)
+        
+    def set_default_sort(self):
+        if f_name_default_sort.get(self.request_object):
+            for column_name, direction in reversed(f_name_default_sort[self.request_object]):
+                self.set_sort(column_name, direction)
 
     def get_filter_data(self):
         return FilterLoader.get_filter_data(self)
@@ -228,6 +229,7 @@ class IterTable(object):
         debug('FILTER BEFORE RELOAD')
         #import pdb; pdb.set_trace()
         self._table.reload()
+        self.set_default_sort()
         debug('FILTER AFTER RELOAD')
         self._update()
         
@@ -357,7 +359,7 @@ class FilterLoader(object):
                     else:
                         value = val
     
-                    debug('SETTING VALUE TO USBFILTer: %s' % u2c(value))
+                    debug('SETTING VALUE TO SUBFILTer: %s' % u2c(value))
                     sub_filter._set_value(u2c(value))
                     sub_filter._set_neg(u2c(neg))
                 

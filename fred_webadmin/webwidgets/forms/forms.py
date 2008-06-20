@@ -4,6 +4,7 @@ from copy import deepcopy
 import types
 import traceback
 from logging import debug
+import cherrypy
 
 from fred_webadmin.webwidgets.gpyweb.gpyweb import WebWidget, form
 from fields import Field
@@ -54,12 +55,15 @@ class BaseForm(form):
     # This is the main implementation of all the Form logic. Note that this
     # class is different than Form. See the comments by the Form class for more
     # information. Any improvements to the form API should be made to *this*
-    # class, not to the Form class 
+    # class, not to the Form class
+    nperm_name = None
+    name_postfix = ''
     def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None,
                  initial=None, error_class=ErrorList, label_suffix=':', layout_class=TableFormLayout, 
                  is_nested = False, empty_permitted=False, *content, **kwd):
         super(BaseForm, self).__init__(*content, **kwd)
         #self.normal_attrs += ['base_fields', 'fields', 'is_bound', 'data', 'files', 'auto_id', 'prefix', 'initial', 'error_class', 'label_suffix', '_errors', 'layout_class']
+        
         if not is_nested:
             self.tag = u'form'
         else:
@@ -83,9 +87,26 @@ class BaseForm(form):
         # Instances should always modify self.fields; they should not modify
         # self.base_fields.
         self.fields = None
+        self.filter_base_fields()
         self.build_fields()
         self.set_fields_values()
-        
+    
+    def filter_base_fields(self):
+        "Filters base fields against user negative permissions, so if user has nperm on field we delete it from base_fields"
+        if self.nperm_name:
+            user = cherrypy.session.get('user', None)
+            if user is None:
+                self.base_fields = SortedDict({})
+            else:
+                object_name = self.get_object_name()
+                self.base_fields = SortedDict([(name, field) for name, field in self.base_fields.items() 
+                                               if not user.has_nperm('%s.%s.%s' % (object_name, self.nperm_name, field.name))
+                                              ])
+    
+    @classmethod
+    def get_object_name(cls):
+        return cls.__name__[:-len(cls.name_postfix)].lower()
+    
     def build_fields(self):
         self.fields = self.base_fields.copy()
         for field in self.fields.values():

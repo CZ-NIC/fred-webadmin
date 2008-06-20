@@ -9,7 +9,7 @@ from fred_webadmin.translation import _
 import forms
 import filterforms
 from adiffields import CompoundFilterField
-from fred_webadmin.webwidgets.gpyweb.gpyweb import WebWidget, tagid, attr, notag, div, span, table, tbody, tr, th, td, input, label, select, option, ul, li, script, a, img, strong
+from fred_webadmin.webwidgets.gpyweb.gpyweb import WebWidget, noesc, tagid, attr, notag, div, span, table, tbody, tr, th, td, input, label, select, option, ul, li, script, a, img, strong
 from fields import ChoiceField, BooleanField, HiddenField
 from fred_webadmin.webwidgets.utils import SortedDict
 from fred_webadmin.webwidgets.utils import escape_js_literal
@@ -50,7 +50,7 @@ class UnionFilterFormLayout(TableFormLayout):
         self.tbody.add(self.get_submit_row())
         #self.add(script(attr(type='text/javascript'), 'Ext.onReady(function () {addFieldsButtons()})')) 
 
-        self.tbody.add(script(attr(type='text/javascript'), [self.union_form_js()]))
+        self.tbody.add(script(attr(type='text/javascript'), noesc(self.union_form_js())))
         debug('After create uionlayout')
             
     def union_form_js(self):
