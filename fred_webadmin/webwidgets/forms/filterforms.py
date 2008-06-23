@@ -310,6 +310,9 @@ class DomainFilterForm(ObjectFilterForm):
     NSSet = CompoundFilterField(label=_('Nameserver set'), form_class=NSSetFilterForm)
     
     ExpirationDate = DateIntervalField(label=_('Expiry date'))
+    OutZoneDate = DateIntervalField(label=_('OutZone date'))
+    CancelDate = DateIntervalField(label=_('Cancel date'))
+
     ValidationExpirationDate = DateIntervalField(label=_('Validation date'))
 
 
