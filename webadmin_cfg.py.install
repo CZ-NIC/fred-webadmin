@@ -4,7 +4,7 @@ import logging
 
 #debug = True
 debug = False
-caching_filter_form_javascript = False # if this settings is on, then when doing changes to filter form, you should erase all sessions, because old filter forms are still in session
+caching_filter_form_javascript = True # if this settings is on, then when doing changes to filter form, you should erase all sessions, because old filter forms are still in session
 
 www_dir = 'DU_DATAROOTDIR/fred-webadmin/www/'
 locale_dir = 'DU_DATAROOTDIR/fred-webadmin/locale/'
