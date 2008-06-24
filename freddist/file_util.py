@@ -22,6 +22,74 @@ def fit_pattern(filename, excludePattern):
             return True
     return False
 
+def all_files_in_3(dst_directory, directory, excludePattern=None,
+        includePattern=None, recursive=True):
+    if not excludePattern:
+        try:
+            excludePattern = EXCLUDE_PATTERN
+        except NameError:
+            excludePattern = ['.*']
+    if not includePattern:
+        try:
+            includePattern = INCLUDE_PATTERN
+        except NameError:
+            includePattern = ['*']
+    paths = [] # list of couples (directory, directory/file) for all files
+    dirr = os.listdir(directory)
+
+    for filename in dirr:
+        if fit_pattern(filename, excludePattern):
+            continue
+        if not fit_pattern(filename, includePattern):
+            continue
+        full_path = os.path.join(directory, filename)
+
+        newpart = full_path[full_path.find(directory)+len(directory):].strip(os.path.sep)
+
+        if os.path.isfile(full_path):
+            paths.append((os.path.join(dst_directory, newpart), [full_path]))
+
+        elif os.path.isdir(full_path) and recursive:
+            paths.extend(
+                    all_files_in_3(
+                        os.path.join(dst_directory, newpart),
+                        full_path,
+                        excludePattern, includePattern, recursive))
+    return paths
+
+def all_files_in_4(dst_directory, directory, excludePattern=None,
+        includePattern=None, recursive=True, prefix=''):
+    if not excludePattern:
+        try:
+            excludePattern = EXCLUDE_PATTERN
+        except NameError:
+            excludePattern = ['']
+    if not includePattern:
+        try:
+            includePattern = INCLUDE_PATTERN
+        except NameError:
+            includePattern = ['*']
+    paths = [] # list of couples (directory, directory/file) for all files
+    for filename in os.listdir(directory):
+        if fit_pattern(filename, excludePattern):
+            continue
+        if not fit_pattern(filename, includePattern):
+            continue
+        full_path = os.path.join(directory, filename)
+        prefixx = full_path[full_path.find(directory)+len(directory)+1:]
+
+
+        if os.path.isfile(full_path):
+            paths.append((
+                os.path.join(dst_directory, prefix),
+                [full_path]))
+        elif os.path.isdir(full_path):
+            paths.extend(
+                    all_files_in_4(dst_directory, full_path, excludePattern,
+                        includePattern, recursive, os.path.join(prefix, prefixx)))
+    return paths
+
+
 def all_files_in(dst_directory, directory, excludePattern=None,
         includePattern=None, recursive=True, cutSlashes_dst=0, cutSlashes_dir=0):
     """

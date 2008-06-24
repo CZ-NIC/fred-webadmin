@@ -207,6 +207,10 @@ class FredWebAdminInstallData(install_data):
         install_data.run(self)
 
 def main(directory):
+    if len(directory) == 0:
+        cut = 0
+    else:
+        cut = directory.count(os.path.sep) + 1
     try:
         setup(name = PROJECT_NAME,
               description = 'Admin Interface for FRED (Fast Registry for Enum and Domains)',
@@ -223,8 +227,22 @@ def main(directory):
                   ('SYSCONFDIR/init.d', ['build/fred-webadmin-server']),
                   ('SYSCONFDIR/fred', ['build/webadmin_cfg.py']),
                   ]
-              + all_files_in(os.path.join('DATAROOTDIR', PROJECT_NAME, 'www'), os.path.join(directory, 'www'))
-              + all_files_in(os.path.join('DATAROOTDIR', PROJECT_NAME, 'locale'), os.path.join(directory, 'locale')),
+              # + all_files_in(
+                  # os.path.join('DATAROOTDIR', PROJECT_NAME, 'www'),
+                  # os.path.join(directory, 'www'),
+                  # cutSlashes_dst=cut
+                  # )
+              # + all_files_in(
+                  # os.path.join('DATAROOTDIR', PROJECT_NAME, 'locale'),
+                  # os.path.join(directory, 'locale'),
+                  # cutSlashes_dst=cut
+                  # ),
+                  + all_files_in_4(
+                      os.path.join('DATAROOTDIR', PROJECT_NAME, 'locale'),
+                      os.path.join(directory, 'locale'))
+                  + all_files_in_4(
+                      os.path.join('DATAROOTDIR', PROJECT_NAME, 'www'),
+                      os.path.join(directory, 'www')),
               cmdclass = {
                           'install': FredWebAdminInstall,
                           'install_data': FredWebAdminInstallData,
@@ -242,6 +260,5 @@ if __name__ == '__main__':
         dir = ''
     else:
         dir = os.path.dirname(sys.argv[0])
-    print dir
     if main(dir):
         print "All done!"
