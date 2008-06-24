@@ -1,3 +1,22 @@
+2008-06-24 Jaromir Talir (version 2.1.0)
+	
+    * release
+
+2008-06-24 Ales Dolezal
+
+    * few bugfixes in installation process
+
+2008-06-20 Tomas Divis
+
+    * added filtr for ID into public requests
+
+    * added lists for mails, invoices and files
+
+    * added filtr for outzone date end cancel date into domains
+
+    * lot's of internal refactoring 
+	
+
 2008-06-05 Ales Dolezal
 
     * small build system fixes
