@@ -53,6 +53,7 @@ f_name_default_sort = {
     'invoice': [['Create Date', 'DESC']],
     'publicrequest': [['Create Time', 'DESC']],
     'mail': [['Create Time', 'DESC']],    
+    'file': [['Create Time', 'DESC']],    
 }
 
 if __name__ == '__main__':
