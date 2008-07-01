@@ -90,7 +90,7 @@ class ContactDetailDiv(DetailDiv):
                 [_('Domains_all'), 'domain', [{'Registrant.Handle': result.handle}, {'AdminContact.Handle': result.handle}]],
                 [_('NSSets'), 'nsset', [{'TechContact.Handle': result.handle}]],
                 [_('Requests'), 'action', [{'Object.Handle': result.handle}]],
-                [_('Emails'), 'mail', [{'Object.Handle': result.handle}]],
+                [_('Emails'), 'mail', [{'Handle': result.handle}]],
             ]))
             
         
@@ -232,7 +232,7 @@ class DomainDetailDiv(DetailDiv):
         
         self.add(FilterPanel([
             [_('Requests'), 'action', [{'Object.Handle': result.fqdn}]],
-            [_('Emails'), 'mail', [{'Object.Handle': result.fqdn}]],
+            [_('Emails'), 'mail', [{'Handle': result.fqdn}]],
             [_('dig'), f_urls['domain'] + 'dig/?handle=' + result.fqdn]
         ]))
         
@@ -287,7 +287,7 @@ class NSSetDetailDiv(DetailDiv):
         self.add(FilterPanel([
             [_('Domains'), 'domain', [{'NSSet.Handle': result.handle}]],
             [_('Requests'), 'action', [{'Object.Handle': result.handle}]],
-            [_('Emails'), 'mail', [{'Object.Handle': result.handle}]],
+            [_('Emails'), 'mail', [{'Handle': result.handle}]],
         ]))
 
 class ActionDetailDiv(DetailDiv):
