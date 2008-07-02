@@ -26,6 +26,16 @@ def get_current_url(request = None):
         addr += '?' + request.query_string
     return addr
 
+def append_getpar_to_url(url, getpar_string):
+    ''' Appends HTTP GET parameters to url'''
+    if url.find('?') != -1:
+        url += '&'
+    else:
+        url += '?'
+    url += getpar_string
+    return url
+    
+
 def get_corba_session():
     try:
         corbaSessionString = cherrypy.session.get('corbaSessionString')

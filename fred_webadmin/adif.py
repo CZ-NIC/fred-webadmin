@@ -200,10 +200,22 @@ class ListTableMixin(object):
     def _get_list(self, context, cleaned_filters=None, **kwd):
         table = self._get_itertable()
         show_result = True
+        
         try:
             page = int(kwd.get('page', 1))
-        except ValueError:
+        except (ValueError, TypeError):
             page = 1
+        try:
+            sort_col = kwd.get('sort_col')
+            if sort_col is not None:
+                sort_col = int(kwd.get('sort_col'))
+        except (ValueError, TypeError):
+            sort_col = 1
+        try:
+            sort_dir = bool(int(kwd.get('sort_dir', 1)))
+        except (ValueError, TypeError):
+            sort_dir = True
+        
         
         #[ filters.__setitem__(x[7:], kwd[x]) for x in kwd if x.startswith('filter_') ]
         if cleaned_filters is not None:
@@ -240,6 +252,8 @@ class ListTableMixin(object):
             table.clear_filter()
             table._table.add()
             table.reload()
+        if sort_col is not None:
+            table.set_sort(sort_col, sort_dir)
 
         if show_result:
             if table.num_rows == 0:
@@ -276,7 +290,7 @@ class ListTableMixin(object):
         debug("A json rows delam s kwd: %s" % kwd)
         itertable = self._get_itertable()
         if kwd.get('sort') is not None and kwd.get('dir') is not None:
-            itertable.set_sort(kwd['sort'], kwd['dir'])
+            itertable.set_sort_by_name(kwd['sort'], kwd['dir'])
         
         rows = itertable.get_rows_dict(kwd.get('start'), kwd.get('limit'))
 
@@ -307,7 +321,7 @@ class ListTableMixin(object):
         if kwd.get('list_all'):
             action = 'list'
         
-        if kwd.get('cf') or kwd.get('page') or kwd.get('load') or kwd.get('list_all') or kwd.get('filter_id'): # clear filter - whole list of objects without using filter form
+        if kwd.get('cf') or kwd.get('page') or kwd.get('load') or kwd.get('list_all') or kwd.get('filter_id') or kwd.get('sort_col'): # clear filter - whole list of objects without using filter form
             context = self._get_list(context, **kwd)
         elif kwd.get('txt') or kwd.get('csv'):
             return self._get_list(context, **kwd)
@@ -729,7 +743,7 @@ class Summary(AdifPage):
         #context.main = FilterPanel([[_('Mails'), 'file', [{'Type': '5'}]]])
         #context.main = ul(li(a(attr(href='''/file/filter/?json_data=[{\'presention|Type\':\'000\',\'Type\':\'5\'}]'}'''), _('Mails'))))
         #context.main = ul(li(a(attr(href="/file/filter/?json_linear_filter=[{%22Type%22:%225%22}]"), _('Mails'))))
-        context.main = ul(li(a(attr(href='''/file/filter/?json_data=[{%22presention|CreateTime%22:%22on%22,%22CreateTime/3%22:%2210%22,%22CreateTime/0/0%22:%22%22,%22CreateTime/0/1/0%22:%220%22,%22CreateTime/0/1/1%22:%220%22,%22CreateTime/1/0%22:%22%22,%22CreateTime/1/1/0%22:%220%22,%22CreateTime/1/1/1%22:%220%22,%22CreateTime/4%22:%22-2%22,%22CreateTime/2%22:%22%22,%22presention|Type%22:%22000%22,%22Type%22:%225%22}]'''), _('Mails'))))
+        context.main = ul(li(a(attr(href='''/file/filter/?json_data=[{%22presention|CreateTime%22:%22on%22,%22CreateTime/3%22:%2210%22,%22CreateTime/0/0%22:%22%22,%22CreateTime/0/1/0%22:%220%22,%22CreateTime/0/1/1%22:%220%22,%22CreateTime/1/0%22:%22%22,%22CreateTime/1/1/0%22:%220%22,%22CreateTime/1/1/1%22:%220%22,%22CreateTime/4%22:%22-2%22,%22CreateTime/2%22:%22%22,%22presention|Type%22:%22000%22,%22Type%22:%225%22}]'''), _('Domain expiration letters'))))
         return self._render('summary', ctx=context)
     
 class Logs(AdifPage):
@@ -873,23 +887,7 @@ class Action(AdifPage, ListTableMixin):
     @check_onperm('read')    
     def detail(self, **kwd):
         context = {}
-        admin = cherrypy.session.get('Admin') 
-        handle = kwd.get('svTRID', None)
-        func = admin.getEPPActionBySvTRID
-        if not handle:
-            try:
-                handle = int(kwd.get('id', None))
-            except (TypeError, ValueError):
-                context['main'] = _("Required_integer_as_parameter")
-                return self._render('base', ctx=context)
-            func = admin.getEPPActionById
-        if not handle:
-            raise cherrypy.HTTPRedirect('/%s/list/' % (self.classname))
-        try:
-            result = c2u(func(u2c(handle)))
-        except (corba.module.Admin.ObjectNotFound,):
-            context['main'] = _("Object_not_found")
-            return self._render('base', ctx=context)
+        result = self._get_detail(obj_id=kwd.get('id'))
 
         if result.registrarHandle:
             result.registrar = c2u(cherrypy.session.get('Admin').getRegistrarByHandle(u2c(result.registrarHandle)))

@@ -66,8 +66,8 @@ class IterTable(object):
         self.num_rows = self._table._get_numRows() # number of rows in table
         self.total_rows = self._table._get_resultSize() # number of rows in database
         self.num_pages = self._table._get_numPages()
-        page_end = min(self.page_start + self.page_size, self.num_rows)
-        self._page_rows = page_end - self.page_start 
+#        page_end = min(self.page_start + self.page_size, self.num_rows)
+        self.page_rows = self._table._get_numPageRows()
 #        if page_end > self.num_rows:
 #            self._page_rows = self.page_size - (page_end - self.num_rows)
 #        else:
@@ -87,8 +87,8 @@ class IterTable(object):
         return self
 
     def __len__(self):
-        debug("Itertable.LEN = %s" % self._page_rows)
-        return self._page_rows
+        debug("Itertable.LEN = %s" % self.page_rows)
+        return self.page_rows
 
     def __getitem__(self, index):
         return self._get_row(index)
@@ -151,7 +151,7 @@ class IterTable(object):
 
     def next(self):
         debug("In itertable.next(), row_index: %s" % self._row_index)
-        if self._row_index >= (self.page_start + self._page_rows):
+        if self._row_index >= (self.page_start + self.page_rows):
             self._row_index = self.page_start
             raise StopIteration
         row = self._get_row(self._row_index)
@@ -199,20 +199,31 @@ class IterTable(object):
         
     def save_filter(self, name):
         self._table.saveFilter(u2c(name))
-        
-    def set_sort(self, column_name, direction):
+    
+    def get_sort(self):
+        col_num, direction = self._table.getSortedBy()
+        print "SORT GETTING %s, %s" % (col_num, direction)
+        return col_num, direction
+    
+    def set_sort(self, col_num, bool_dir):
+        ''' col_num == 0 is first column AFTER ID (column ID is ignored)'''
+        print "SORT SETTING %s, %s" % (col_num, bool_dir)
+        self._table.sortByColumn(col_num, bool_dir)
+
+    def set_sort_by_name(self, column_name, direction):
         bool_dir = {u'ASC': True, u'DESC': False}[direction]
         try:
-            col_num = self.rawheader.index(column_name) - 1 # - 1 because of headers are with ID, but in corba server without ID
+            col_num = self.rawheader.index(column_name) - 1
         except ValueError:
             error('VALUEERROR is set sort, index: (header: %s, index: %s)' % (self.header, column_name))
             raise
-        self._table.sortByColumn(col_num, bool_dir)
+        self.set_sort(col_num, bool_dir)
+    
         
     def set_default_sort(self):
         if f_name_default_sort.get(self.request_object):
             for column_name, direction in reversed(f_name_default_sort[self.request_object]):
-                self.set_sort(column_name, direction)
+                self.set_sort_by_name(column_name, direction)
 
     def get_filter_data(self):
         return FilterLoader.get_filter_data(self)

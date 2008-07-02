@@ -145,15 +145,15 @@ class FilterPage(BaseSiteMenu):
             self.main.add(p(c['result']))
         
         if c.get('itertable'):
-            
             itertable = c.itertable
-            self.main.add(div(attr(id='div_for_itertable', cssc='extjs', 
-                                   media_files=['/css/ext/css/ext-all.css', 
-#                                                '/js/MochiKit/MochiKit.js',
-                                                '/js/logging.js', 
-                                                '/js/ext/ext-base.js', 
-                                                '/js/ext/ext-all.js', 
-                                                '/js/itertable.js'])))
+            self.main.add(WIterTable(itertable))
+#            self.main.add(div(attr(id='div_for_itertable', cssc='extjs', 
+#                                   media_files=['/css/ext/css/ext-all.css', 
+##                                                '/js/MochiKit/MochiKit.js',
+#                                                '/js/logging.js', 
+#                                                '/js/ext/ext-base.js', 
+#                                                '/js/ext/ext-all.js', 
+#                                                '/js/itertable.js'])))
             self.main.add(p(_('Table_as'), a(attr(href='?txt=1'), 'TXT'), ',', a(attr(href='?csv=1'), 'CSV')))
             
             if config.debug:
@@ -203,7 +203,7 @@ class FilterPage(BaseSiteMenu):
                     ))
                 self.main.add(pageflip)
             
-            #self.main.add(WIterTable(itertable))
+            
 
 
 
