@@ -1,15 +1,13 @@
 #!/bin/sh
 
-if [ -d /lib/lsb/ ]; then
-	uselsb=1
-else
-	uselsb=0
-fi
-
-if [ $uselsb -eq 1 ]; then
+if [ -x /lib/lsb/init-functions ]; then
     . /lib/lsb/init-functions
+else
+    log_failure_msg() { echo "ERROR: $1"; }
+    log_success_msg() { echo "SUCCESS: $1"; }
 fi
 
+PATH=$PATH:/sbin # to find pidof on redhat
 
 MSG_START="Starting FRED webadmin HTTP server..."
 MSG_STOP="Stopping FRED webadmin HTTP server..."
@@ -18,60 +16,65 @@ WEBADMIN_EXEC="DU_PREFIX/sbin/fred-webadmin"
 PIDFILE="DU_PREFIX/var/run/fred-webadmin"
 
 PATH=$PATH:/sbin
+
+check_pidfile() {
+    ps -p $(cat $1 2>/dev/null) >/dev/null 2>&1
+}
+
 fred_start() {
-    ${WEBADMIN_EXEC} &
-    if [ $? != 0 ]; then
-        if [ $uselsb -eq 1 ]; then
-            log_failure_msg ${MSG_START}
-        else
-            echo "ERROR: ${MSG_START}"
-        fi
+    if check_pidfile $PIDFILE; then
+        log_failure_msg ${MSG_START}
     else
-        if [ $uselsb -eq 1 ]; then
+        ${WEBADMIN_EXEC} >/dev/null 2>&1 &
+        if [ $? -eq 0 ]; then
+            PID=$(pidof -o $$ -o $PPID -o %PPID -x "$WEBADMIN_EXEC" || \
+                pidof -o $$ -o $PPID -o %PPID -x "${WEBADMIN_EXEC##*/}")
+            echo "$PID" > $PIDFILE
             log_success_msg ${MSG_START}
         else
-            echo "SUCCESS: ${MSG_START}"
+            log_failure_msg ${MSG_START}
         fi
-        PID=$(pidof -o $$ -o $PPID -o %PPID -x "$WEBADMIN_EXEC" || \
-                pidof -o $$ -o $PPID -o %PPID -x "${WEBADMIN_EXEC##*/}")
-        echo "$PID" > $PIDFILE
+    fi
+}
+
+fred_status() {
+    echo -n "fred-webadmin is ";
+    if check_pidfile $PIDFILE
+    then
+        echo "running"
+    else
+        echo "stopped"
     fi
 }
 
 fred_stop() {
-    if [ -f $PIDFILE ]
-    then
-        kill $(cat $PIDFILE)
-        if [ $uselsb -eq 1 ]; then
-            log_success_msg ${MSG_STOP}
-        else
-            echo "ERROR: ${MSG_STOP}"
-        fi
-        rm $PIDFILE
+    kill $(cat $PIDFILE 2>/dev/null) >/dev/null 2>&1
+    if [ $? -eq 0 ]; then
+        log_success_msg ${MSG_STOP}
+        rm $PIDFILE >/dev/null 2>&1
     else
-        if [ $uselsb -eq 1 ]; then
-            log_failure_msg ${MSG_STOP}
-        else
-            echo "SUCCESS: ${MSG_STOP}"
-        fi
+        log_failure_msg ${MSG_STOP}
     fi
 }
 
 case "$1" in
-start)
+    start)
         fred_start
-  ;;
-restart)
+        ;;
+    restart)
         fred_stop
         fred_start
-  ;;
-stop)
+        ;;
+    stop)
         fred_stop
-  ;;
-*)
-  echo "Usage: /etc/init.d/fred-webadmin-server {start|stop|restart}"
-  exit 1
+        ;;
+    status)
+        fred_status
+        ;;
+    *)
+        echo -n "Usage: /etc/init.d/fred-webadmin-server "
+        echo "{start|stop|restart|status}"
+        exit 1
 esac
 
 exit 0
-
