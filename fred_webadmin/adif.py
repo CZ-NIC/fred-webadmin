@@ -894,6 +894,7 @@ class Action(AdifPage, ListTableMixin):
         else:
             result.registrar = None
         result.xml = prettify(result.xml)
+        result.xml_out = prettify(result.xml_out)
         context['result'] = result
         return self._render('detail', context)
             
