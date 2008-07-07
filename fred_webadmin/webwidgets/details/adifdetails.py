@@ -26,7 +26,7 @@ class RegistrarDetail(Detail):
     fax = CharDField(label=_('Fax')) # fax number
     email = EmailDField(label=_('Email')) # contact email
     url = CharDField(label=_('URL')) # URL
-    hidden = CharDField(label=_('Hidden in PIF')) # hidden in PIF
+    hidden = CharDField(label=_('System registrar')) # hidden in PIF
     #access = ListObjectDField(label=_('Authentication'), form_class=AccessEditForm, can_delete=True)
     
     sections = (

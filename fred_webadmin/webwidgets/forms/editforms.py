@@ -73,7 +73,7 @@ class RegistrarEditForm(EditForm):
     fax = CharField(label=_('Fax'), required=False) # fax number
     email = CharField(label=_('Email'), required=False) # contact email
     url = CharField(label=_('URL'), required=False) # URL
-    hidden = BooleanField(label=_('Hidden in PIF'), required=False) # hidden in PIF
+    #hidden = BooleanField(label=_('System registrar'), required=False) # System registrar
     #access = EPPAccessSeq # list of epp access data
     access = FormSetField(label=_('Authentication'), form_class=AccessEditForm, can_delete=True)
     

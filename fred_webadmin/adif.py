@@ -1209,7 +1209,7 @@ class Invoice(AdifPage, ListTableMixin):
             result.fileXMLinfo = None
         # hack, these need remapping to other values.
         if result.actions:
-            [ x.__dict__.__setitem__('actionType', _('Rstration fee')) for x in result.actions if x.actionType == 0 ]
+            [ x.__dict__.__setitem__('actionType', _('Registration fee')) for x in result.actions if x.actionType == 0 ]
             [ x.__dict__.__setitem__('actionType', _('Renew fee')) for x in result.actions if x.actionType == 1 ]
         #result.type = [ x['type'] for x in corba.module.Invoicing.Invoices if x['obj']._n == result.type ][0]
         context['result'] = result
