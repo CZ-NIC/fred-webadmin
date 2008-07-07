@@ -8,6 +8,8 @@ table.itertable {
 	/*border: 1px solid #CCC;*/
 	padding: 2px 5px;
 	vertical-align:top;
+	font-family:arial,tahoma,helvetica,sans-serif;
+	font-size:11px;
 }
 
 .itertable thead th, .itertable thead td {
