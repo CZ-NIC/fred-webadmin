@@ -573,7 +573,7 @@ class AdifPage(Page):
         return countries
 
     def _eppActionList(self):
-        actionlist = c2u(cherrypy.session.get('Admin').getEPPActionTypeList())
+        actionlist = [ {'id': action.id, 'name': action.name } for action in c2u(cherrypy.session.get('Admin').getEPPActionTypeList()) ]
         return actionlist
 
     def _invoiceTypeList(self):

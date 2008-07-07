@@ -320,7 +320,7 @@ class ActionFilterForm(FilterForm):
     default_fields_names = ['SvTRID']
     
     #Type = MultipleChoiceField(label=_('Request type'), choices=((1, u'Poraněn'), (2, u'Přeživší'), (3, u'Mrtev'), (4, u'Nemrtvý')))
-    Type = ChoiceField(label=_('Request type'), choices=CorbaLazyRequest1V2L('Admin', 'getEPPActionTypeList'))
+    Type = ChoiceField(label=_('Request type'), choices=CorbaLazyRequestIterStruct('Admin', 'getEPPActionTypeList', ['id', 'name']))
     Object = CompoundFilterField(label=_('Object'), form_class=ObjectFilterForm)
     Time = DateTimeIntervalField(label=_('Received date'))
     Response = CorbaEnumChoiceField(label=_('Result'), corba_enum=ccReg.EPPActionsFilter.ResultType)
