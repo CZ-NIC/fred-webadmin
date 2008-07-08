@@ -315,8 +315,9 @@ class ActionDetailDiv(DetailDiv):
                      td(span(result.svTRID)))),
 
             table(attr(border='1', style='width: 96%'), 
-                  tr(th(_('XML'))), 
+                  tr(th(_('XML IN'))), 
                   tr(td(textarea(attr(name='code', cssc='xml', rows='40'), result.xml))),
+                  tr(th(_('XML OUT'))), 
                   tr(td(textarea(attr(name='code', cssc='xml', rows='40'), result.xml_out)))),
             script(attr(type='text/javascript'), "dp.SyntaxHighlighter.HighlightAll('code');"),
 
