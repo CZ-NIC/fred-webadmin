@@ -9,6 +9,9 @@ from fred_webadmin.webwidgets.gpyweb.gpyweb import attr, save, span
 #cobra things:
 from fred_webadmin.corba import ccReg
 INTERVAL_CHOICES = [(choice._v, _(choice._n)) for choice in ccReg.DateTimeIntervalType._items[1:]] # first is None (which means that date is not active)
+INTERVAL_CHOICES_DATE_ONLY = [(choice._v, _(choice._n)) for choice in ccReg.DateTimeIntervalType._items[1:]] # first is None (which means that date is not active)
+INTERVAL_CHOICES_DATE_ONLY.pop(ccReg.PAST_HOUR._v + -1)
+INTERVAL_CHOICES_DATE_ONLY.pop(ccReg.LAST_HOUR._v + -1)
 
 class CompoundFilterField(Field):
     "Field that wraps FilterForm inside itself, value of field is data for that form"
@@ -155,8 +158,8 @@ class CorbaEnumChoiceField(ChoiceField):
 class DateIntervalField(MultiValueField):
     def __init__(self, name='', value='', *args, **kwargs):
         fields = (DateField(size=10), DateField(size=10), DateField(size=10), 
-                  ChoiceField(content=[attr(onchange='onChangeDateIntervalType(this)')], choices=INTERVAL_CHOICES), 
-                  DecimalField(initial=1, size=5, min_value=-32768, max_value=32767)) #first of INTERVAL_CHOICES is HOUR, which has no 
+                  ChoiceField(content=[attr(onchange='onChangeDateIntervalType(this)')], choices=INTERVAL_CHOICES_DATE_ONLY), 
+                  DecimalField(initial=1, size=5, min_value=-32768, max_value=32767)) 
         super(DateIntervalField, self).__init__(name, value, fields, *args, **kwargs)
         fields[3].required = True # intertnal type is required
         self.media_files.append('/js/interval_fields.js')
