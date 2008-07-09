@@ -157,6 +157,7 @@ class CorbaEnumChoiceField(ChoiceField):
 
 class DateIntervalField(MultiValueField):
     def __init__(self, name='', value='', *args, **kwargs):
+        # fields = (FROM, TO, DAY, TYPE, OFFSET)
         fields = (DateField(size=10), DateField(size=10), DateField(size=10), 
                   ChoiceField(content=[attr(onchange='onChangeDateIntervalType(this)')], choices=INTERVAL_CHOICES_DATE_ONLY), 
                   DecimalField(initial=1, size=5, min_value=-32768, max_value=32767)) 
@@ -226,16 +227,17 @@ class DateIntervalField(MultiValueField):
     def decompress(self, value):
         return value
     
-    def is_emptry(self):
-        return ((self.value[3] == ccReg.DAY._v and self.fields[0].is_empty()) or 
-                (self.value[3] == ccReg.INTERVAL._v and self.fields[1].is_empty() and self.fields[2].is_empty()) or
-                (self.value[3] == ccReg.INTERVAL._v and self.fields[4].is_empty())
+    def is_empty(self):
+        return ((int(self.value[3]) == ccReg.DAY._v and self.fields[2].is_empty()) or 
+                (int(self.value[3]) == ccReg.INTERVAL._v and self.fields[0].is_empty() and self.fields[1].is_empty()) or
+                (int(self.value[3]) == ccReg.INTERVAL._v and self.fields[4].is_empty())
                )
     
 
     
 class DateTimeIntervalField(DateIntervalField):
-    def __init__(self, name='', value='', *args, **kwargs): # pylint: disable-msg=E1003 
+    def __init__(self, name='', value='', *args, **kwargs): # pylint: disable-msg=E1003
+        # fields = (FROM, TO, DAY, TYPE, OFFSET) 
         fields = (SplitDateSplitTimeField(), SplitDateSplitTimeField(), DateField(size=10), 
                   ChoiceField(content=attr(onchange='onChangeDateIntervalType(this)'), choices=INTERVAL_CHOICES), 
                   DecimalField(initial=1, size=5, min_value=-32768, max_value=32767))
