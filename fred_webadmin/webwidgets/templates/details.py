@@ -89,7 +89,7 @@ class ContactDetailDiv(DetailDiv):
                 [_('Domains_admin'), 'domain', [{'AdminContact.Handle': result.handle}]],
                 [_('Domains_all'), 'domain', [{'Registrant.Handle': result.handle}, {'AdminContact.Handle': result.handle}]],
                 [_('NSSets'), 'nsset', [{'TechContact.Handle': result.handle}]],
-                [_('Requests'), 'action', [{'Object.Handle': result.handle}]],
+                [_('Actions'), 'action', [{'RequestHandle': result.handle}]],
                 [_('Emails'), 'mail', [{'Handle': result.handle}]],
             ]))
             
@@ -225,13 +225,12 @@ class DomainDetailDiv(DetailDiv):
                          td(a(attr(href=f_urls['registrar'] + 'detail/?handle=' + result.updateRegistrarHandle), result.updateRegistrarHandle)), 
                          td(result.updateDate)))
             )
-        
 #        self.add(hr())
 #        self.add(DomainDetail(result))
 #        self.add(hr())
         
         self.add(FilterPanel([
-            [_('Requests'), 'action', [{'Object.Handle': result.fqdn}]],
+            [_('Actions'), 'action', [{'RequestHandle': result.fqdn}]],
             [_('Emails'), 'mail', [{'Handle': result.fqdn}]],
             [_('dig'), f_urls['domain'] + 'dig/?handle=' + result.fqdn]
         ]))
@@ -286,7 +285,7 @@ class NSSetDetailDiv(DetailDiv):
         )
         self.add(FilterPanel([
             [_('Domains'), 'domain', [{'NSSet.Handle': result.handle}]],
-            [_('Requests'), 'action', [{'Object.Handle': result.handle}]],
+            [_('Actions'), 'action', [{'RequestHandle': result.handle}]],
             [_('Emails'), 'mail', [{'Handle': result.handle}]],
         ]))
 
@@ -396,7 +395,7 @@ class RegistrarDetailDiv(DetailDiv):
             [_('Domains_selected'), 'domain', [{'Registrar.Handle': result.handle}]],
             [_('Domains_creating'), 'domain', [{'CreateRegistrar.Handle': result.handle}]],
             [_('Contacts'), 'contact', [{'Registrar.Handle': result.handle}]],
-            [_('Requests'), 'action', [{'Registrar.Handle': result.handle}]],
+            [_('Actions'), 'action', [{'Registrar.Handle': result.handle}]],
             [_('Emails'), 'mail', [{'Object.Registrar.Handle': result.handle}]],
         ]))
 
