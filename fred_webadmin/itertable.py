@@ -64,7 +64,8 @@ class IterTable(object):
         self.page_size = self._table._get_pageSize()
         self.page_start = self._table._get_start()
         self.num_rows = self._table._get_numRows() # number of rows in table
-        self.total_rows = self._table._get_resultSize() # number of rows in database
+        #self.total_rows = self._table._get_resultSize() # number of rows in database
+        self.num_rows_over_limit = self._table.numRowsOverLimit()
         self.num_pages = self._table._get_numPages()
 #        page_end = min(self.page_start + self.page_size, self.num_rows)
         self.page_rows = self._table._get_numPageRows()
@@ -108,14 +109,6 @@ class IterTable(object):
     def get_row_id(self, index):
         return self._table.getRowId(index)
     
-    def get_rows(self, start, limit):
-        index = start
-        limit = min(limit, self.total_rows)
-        while index < start + limit:
-            yield self.get_row_id(index)
-    def get_rows_dict_raw(self):
-        ''' Get rows, where each rows is dict (key: value), where key is header name (used for extjs grid) '''
-        
     def get_rows_dict(self, start = None, limit = None, raw_header = False):
         ''' Get rows, where each rows is dict (key: value), where key is header name (used for extjs grid and FilterList) '''
         if start is None:

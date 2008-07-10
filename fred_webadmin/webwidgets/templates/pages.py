@@ -181,14 +181,13 @@ class FilterPage(BaseSiteMenu):
                 self.main.add(table(attr(id='objectlist', media_files='/css/objectlist.css'), rows))
                 
                 # Numbers of entries 
-                if itertable.total_rows > itertable.num_rows:
+                if itertable.num_rows_over_limit:
                     num_rows = span(attr(cssc='warning'), itertable.num_rows)
                 else:
                     num_rows = itertable.num_rows
                 pageflip = span(
                     '%s: %s,' % (_('Number_of_pages'), itertable.last_page),
                     '%s: ' % _('entries'), num_rows, ',', 
-                    '%s: %s' % (_('total'), itertable.total_rows),
                     br())
                 
                 # Pager
