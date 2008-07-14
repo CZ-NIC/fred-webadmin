@@ -59,13 +59,14 @@ class WIterTable(table):
         pager = span()
 
         # Numbers of entries 
-        if itertable.total_rows > itertable.num_rows:
+        #if itertable.total_rows > itertable.num_rows:
+        if itertable.num_rows_over_limit:
             num_rows = span(attr(cssc='warning'), itertable.num_rows)
         else:
             num_rows = itertable.num_rows
         
         pager.add(span(attr(cssc='pager_text'),
-            noesc('Displaying results %s - %s of %s (%s)' % (itertable.page_start, itertable.page_start + itertable.page_rows, num_rows, itertable.total_rows))
+            noesc('Displaying results %s - %s of %s' % (itertable.page_start, itertable.page_start + itertable.page_rows, num_rows))
 #            '%s: %s,' % (_('Number_of_pages'), itertable.last_page),
 #            '%s: ' % _('entries'), num_rows, ',', 
 #            '%s: %s' % (_('total'), itertable.total_rows),
