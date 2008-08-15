@@ -18,13 +18,15 @@ log_dir = base_dir
 log_level = logging.DEBUG
 
 #idl = '/home/glin/programming/svn_enum_checkout/enum/idl/trunk/ccReg.idl'
-idl = '/home/glin/programming/nic/webadmin/servers/idl_devel/idl/ccReg.idl'
+#idl = '/home/glin/programming/nic/webadmin/servers/idl_devel/idl/ccReg.idl'
+idl = '/home/glin/programming/nic/webadmin/servers/idl_history/idl/ccReg.idl'
 
 iors = (#(label, nshost, nscontext),
+        (u'maňásek-tom', 'jsadek', 'fred-tom'),
         (u'localní', 'localhost', 'fred'),
         (u'maňásek', 'jsadek', 'fred'),
         (u'hokuston2', 'pokuston', 'fred2'), 
-        (u'hokuston', 'pokuston', 'fred'), 
+        (u'hokuston', 'pokuston:32346', 'fred'), 
         (u'koliha', 'curlew', 'fred'),
         (u'jarahp', 'jarahp:22346', 'fred'),
        ) 
@@ -47,8 +49,8 @@ cherrycfg = {
     'global': {
         'server.socket_port': 18456,
         'server.socket_host': "",
-        'server.thread_pool': 10,
-        'server.environment': 'production',
+        #'server.thread_pool': 10,
+        #'server.environment': 'production',
         'tools.decode.on': True,
         'tools.decode.encoding': 'utf-8',
         'tools.encode.on': True,

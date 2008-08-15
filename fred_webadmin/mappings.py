@@ -25,10 +25,12 @@ f_objectType_name = dict([(item, item._n[3:].lower()) for item in ccReg.PublicRe
 
 f_name_filterformname = dict([(item._n[3:].lower(), item._n[3:].lower().capitalize() + 'FilterForm') for item in ccReg.FilterType._items])
 f_name_filterformname['nsset'] = 'NSSetFilterForm' 
+f_name_filterformname['keyset'] = 'KeySetFilterForm' 
 f_name_filterformname['publicrequest'] = 'PublicRequestFilterForm' 
 
 f_name_editformname = dict([(item._n[3:].lower(), item._n[3:].lower().capitalize() + 'EditForm') for item in ccReg.FilterType._items])
 f_name_editformname['nsset'] = 'NSSetEditForm' 
+f_name_editformname['nsset'] = 'KeySetEditForm' 
 f_name_editformname['publicrequest'] = 'PublicRequestEditForm' 
 
 # This one will be deleted after getByHanle will be obsolete:
@@ -45,6 +47,7 @@ f_name_default_sort = {
     'obj': [],
     'contact': [['Handle', 'ASC'], ['Create date', 'DESC']],
     'nsset': [['Handle', 'ASC'], ['Create date', 'DESC']],
+    'keyset': [['Handle', 'ASC'], ['Create date', 'DESC']],
     #'domain': [['Create date', 'ASC']],
     #'domain': [['Create date', 'DESC']],
     #'domain': [['FQDN', 'ASC'], ['Create date', 'ASC']],

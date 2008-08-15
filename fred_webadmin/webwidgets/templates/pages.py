@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from fred_webadmin.webwidgets.gpyweb.gpyweb import div, span, p, a, b, h2, h3, noesc, attr, save, HTMLPage, hr, br, table, tr, th, td, img, form, input, h1, script, pre
+from fred_webadmin.webwidgets.gpyweb.gpyweb import div, span, p, a, b, h2, h3, noesc, attr, save, HTMLPage, hr, br, table, tr, th, td, img, form, label, input, h1, script, pre
 from fred_webadmin.webwidgets.forms.filterforms import get_filter_forms_javascript
 from fred_webadmin.webwidgets.table import WIterTable
 from fred_webadmin.translation import _
@@ -8,6 +8,7 @@ from fred_webadmin import config
 from fred_webadmin.utils import get_current_url
 
 from details import ContactDetailDiv, DomainDetailDiv, NSSetDetailDiv, ActionDetailDiv, RegistrarDetailDiv, PublicRequestDetailDiv, MailDetailDiv, InvoiceDetailDiv
+from fred_webadmin.webwidgets.details import adifdetails
 
 class BaseTemplate(HTMLPage):
     def __init__(self, context = None):
@@ -37,11 +38,14 @@ class BaseSite(BaseTemplate):
         super(BaseSite, self).__init__(context)
         c = self.context
         self.add_media_files('/css/basesite.css')
-        
         self.header.add(
             div(attr(id='branding'), save(self, 'branding'),
                 div(attr(id='user_tools'), save(self, 'user_tools'))),
-            div(attr(id='menu_container'), save(self, 'menu_container')),
+            div(
+                div(attr(id='menu_container'), save(self, 'menu_container')),
+                div(attr(id='right_menu_container'), save(self, 'right_menu_container'), 
+                )
+            )
         )
         self.branding.add(h1('Daphne'))
         
@@ -87,6 +91,16 @@ class BaseSiteMenu(BaseSite):
             self.body.add(attr(id=c.body_id))
         if c.get('headline'):
             self.main.add(h1(c.headline))
+        self.right_menu_container.add(
+            input(save(self, 'history_checkbox'),
+                  attr(media_files=['/js/history_button.js', '/js/ext/ext-base.js', '/js/ext/ext-all.js'],
+                       id='history_checkbox', 
+                       type='checkbox', onchange='setHistory(this)')), 
+                  label(attr(for_id='history_checkbox'), _('history'))
+        )
+        if c.history:
+            self.history_checkbox.checked = ['', 'checked'][c.history]
+        
 #        self.main.add(div(attr(media_files=['/css/ext/css/ext-all.css', 
 #                                            '/js/ext/ext-base.js', 
 #                                            '/js/ext/ext-all.js', 
@@ -205,79 +219,107 @@ class FilterPage(BaseSiteMenu):
             
 
 
+class DetailPage(BaseSiteMenu):
+    @classmethod
+    def get_object_name(cls):
+        return cls.__name__[:-len('Detail')].lower()
 
-class DomainDetail(BaseSiteMenu):
+class DomainDetail(DetailPage):
     def __init__(self, context = None):
         super(DomainDetail, self).__init__(context)
+        self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
         c = self.context
         if c.get('result'):
-            self.main.add(DomainDetailDiv(context))
+            #self.main.add(DomainDetailDiv(context))
+            self.main.add(adifdetails.DomainDetail(c.result, c.history))
             if config.debug:
                 self.main.add('DOMAINDETAIL:', div(attr(style='width: 1024; overflow: auto;'), pre(unicode(c.result).replace(u', ', u',\n'))))
                 
                 
-class ContactDetail(BaseSiteMenu):
+class ContactDetail(DetailPage):
     def __init__(self, context = None):
         super(ContactDetail, self).__init__(context)
         c = self.context
         if c.get('result'):
-            self.main.add(ContactDetailDiv(context))
-            if config.debug:            
+            self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
+            #self.main.add(ContactDetailDiv(context))
+            self.main.add(adifdetails.ContactDetail(c.result, c.history))
+            if config.debug:
                 self.main.add('ContactDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
 
-class NSSetDetail(BaseSiteMenu):
+class NSSetDetail(DetailPage):
     def __init__(self, context = None):
         super(NSSetDetail, self).__init__(context)
         c = self.context
         if c.get('result'):
-            self.main.add(NSSetDetailDiv(context))
+            self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
+            #self.main.add(NSSetDetailDiv(context))
+            self.main.add(adifdetails.NSSetDetail(c.result, c.history))
             if config.debug:
                 self.main.add('NSSetDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
 
-class ActionDetail(BaseSiteMenu):
+class KeySetDetail(DetailPage):
+    def __init__(self, context = None):
+        super(KeySetDetail, self).__init__(context)
+        c = self.context
+        if c.get('result'):
+            self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
+            #self.main.add(KeySetDetailDiv(context))
+            self.main.add(adifdetails.KeySetDetail(c.result, c.history))
+            if config.debug:
+                self.main.add('KeySetDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
+
+class ActionDetail(DetailPage):
     def __init__(self, context = None):
         super(ActionDetail, self).__init__(context)
         c = self.context
         if c.get('result'):
+            #self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
             self.main.add(ActionDetailDiv(context))
             if config.debug:
                 self.main.add('ACTIONDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
         
     
-class RegistrarDetail(BaseSiteMenu):
+class RegistrarDetail(DetailPage):
     def __init__(self, context = None):
         super(RegistrarDetail, self).__init__(context)
         c = self.context        
         if c.get('result'):
-            self.main.add(RegistrarDetailDiv(context))
-            self.main.add(p(a(attr(href=u'../edit/?id=' + unicode(c.result.id)), _('Edit'))))
+            self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
+            #self.main.add(RegistrarDetailDiv(context))
+            
+            self.main.add(adifdetails.RegistrarDetail(c.result, c.history))
+            #self.main.add(p(a(attr(href=u'../edit/?id=' + unicode(c.result.id)), _('Edit'))))
             if config.debug:
                 self.main.add('RegistrarDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
             
-class PublicRequestDetail(BaseSiteMenu):
+class PublicRequestDetail(DetailPage):
     def __init__(self, context = None):
         super(PublicRequestDetail, self).__init__(context)
         c = self.context
         if c.get('result'):
+            #self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
             self.main.add(PublicRequestDetailDiv(context))
             if config.debug:
                 self.main.add('PublicRequestSDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
                 
   
-class MailDetail(BaseSiteMenu):
+class MailDetail(DetailPage):
     def __init__(self, context = None):
         super(MailDetail, self).__init__(context)
         c = self.context
         if c.get('result'):
+            #self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
             self.main.add(MailDetailDiv(context))
             if config.debug:
                 self.main.add('MailDETAIL:', div(attr(style='width: 1024px; overflow: auto;'), pre(unicode(c.result).replace(u', ', u',\n'))))
 
-class InvoiceDetail(BaseSiteMenu):
+class InvoiceDetail(DetailPage):
     def __init__(self, context = None):
         super(InvoiceDetail, self).__init__(context)
         c = self.context
         if c.get('result'):
+            #self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
             self.main.add(InvoiceDetailDiv(context))
             if config.debug:
                 self.main.add('InvoiceDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))

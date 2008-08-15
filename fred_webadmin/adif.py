@@ -46,7 +46,7 @@ import exposed
 from corba import Corba, CorbaServerDisconnectedException
 corba = Corba()
 
-from corba import ccReg
+from corba import ccReg, Registry
 
 from utils import u2c, c2u, get_corba_session, get_detail
 
@@ -66,7 +66,7 @@ from translation import _
 
 from webwidgets.templates.pages import (
     BaseSite, BaseSiteMenu, LoginPage, DisconnectedPage, NotFound404Page, AllFiltersPage, FilterPage, ErrorPage, DigPage, 
-    DomainDetail, ContactDetail, NSSetDetail, RegistrarDetail, ActionDetail, PublicRequestDetail, MailDetail, InvoiceDetail,
+    DomainDetail, ContactDetail, NSSetDetail, KeySetDetail, RegistrarDetail, ActionDetail, PublicRequestDetail, MailDetail, InvoiceDetail,
     #DomainEdit, ContactEdit, NSSetEdit, 
     RegistrarEdit,
     #ActionEdit, PublicRequestEdit, MailEdit, InvoiceEdit
@@ -77,6 +77,7 @@ from webwidgets.utils import isiterable, convert_linear_filter_to_form_output
 from webwidgets.menu import MenuHoriz
 from webwidgets.adifwidgets import FilterList, FilterListUnpacked, FilterListCustomUnpacked, FilterPanel
 from menunode import menu_tree
+import fred_webadmin
 from fred_webadmin.webwidgets.forms.adifforms import LoginForm
 from fred_webadmin.webwidgets.forms.editforms import RegistrarEditForm
 from fred_webadmin.webwidgets.forms.filterforms import *
@@ -96,14 +97,14 @@ class PermissionDeniedError(AdifError):
     pass
 class IorNotFoundError(AdifError):
     pass
-class MenuDoesNotExistsError(AdifError):
-    def __init__(self, menu_handle):
-        super(MenuDoesNotExistsError, self).__init__()
-        self.menu_handle = menu_handle
-    def __str__(self):
-        return 'Menu with handle "%s" does not exists!' % self.menu_handle
-    def __unicode__(self):
-        return self.__str__()
+#class MenuDoesNotExistsError(AdifError):
+#    def __init__(self, menu_handle):
+#        super(MenuDoesNotExistsError, self).__init__()
+#        self.menu_handle = menu_handle
+#    def __str__(self):
+#        return 'Menu with handle "%s" does not exists!' % self.menu_handle
+#    def __unicode__(self):
+#        return self.__str__()
 class CustomView(Exception):
     def __init__(self, rendered_view):
         self.rendered_view = rendered_view
@@ -147,6 +148,7 @@ def check_onperm(objects_nperms, check_type='all'):
             self = args[0]
             user = cherrypy.session.get('user', None)
             if user:
+                fred_webadmin.utils.details_cache = {} # invalidate details cache
                 nperms = []
                 if isinstance(objects_nperms, types.StringTypes):
                     onperms = [objects_nperms]
@@ -299,7 +301,6 @@ class ListTableMixin(object):
         json_data = json_response({
             'rows': rows,
             'num_rows': itertable.num_rows,
-            'num_rows_in_db': itertable.total_rows,
         })
         debug("vracim json_data = %s" % json_data)
         return json_data
@@ -410,7 +411,7 @@ class ListTableMixin(object):
             else:
                 result = get_detail(self.classname, obj_id)
             return result
-        except (corba.module.Admin.ObjectNotFound,):
+        except (ccReg.Admin.ObjectNotFound,):
             context['main'] = _("Object_not_found")
             raise CustomView(self._render('base', ctx=context))
 
@@ -482,6 +483,8 @@ class AdifPage(Page):
             if template is None:
                 error("TEMPLATE %s IN MODULE %s NOT FOUND, USING DEFAULT: BaseSiteMenu" % (template_name, sys.modules[self.__module__]))
                 template = BaseSiteMenu 
+            else:
+                debug('...OK, template %s taken' % template_name)
             if not issubclass(template, WebWidget):
                 raise RuntimeError('%s is not derived from WebWidget - it cannot be template!' % repr(template))
             return template
@@ -507,7 +510,8 @@ class AdifPage(Page):
         handle = self._get_menu_handle(action)
         menu_node = self.menu_tree.get_menu_by_handle(handle)
         if menu_node is None:
-            raise MenuDoesNotExistsError(handle)
+            return ''
+            #raise MenuDoesNotExistsError(handle)
         return menu_node.body_id
     
     def _render(self, action='', ctx=None):
@@ -517,12 +521,14 @@ class AdifPage(Page):
         context.classroot = "%s%s/" % (context.approot, context.classname)
         context.corba_server = cherrypy.session.get('corba_server_name')
         context.request = cherrypy.request
-        
+        context.history = cherrypy.session.get('history', False)
+
         user = cherrypy.session.get('user', None)
         if user: 
             context.user = user 
             context.menu = self._get_menu(action) or None # Login page has no menu
             context.body_id = self._get_selected_menu_body_id(action)
+            
         
         if ctx:
             context.update(ctx)
@@ -577,7 +583,7 @@ class AdifPage(Page):
         return actionlist
 
     def _invoiceTypeList(self):
-        typelist = [ {'id': x[0], 'type': x[1]['type']} for x in enumerate(corba.module.Invoicing.Invoices) ]
+        typelist = [ {'id': x[0], 'type': x[1]['type']} for x in enumerate(ccReg.Invoicing.Invoices) ]
         return typelist
 
     def _mailTypes(self):
@@ -622,18 +628,25 @@ class ADIF(AdifPage):
             raise cherrypy.HTTPRedirect('/login/')
 
     def default(self, *args, **kwd):
-        if args and args[0] == 'filter_forms_javascript.js':
-            if config.caching_filter_form_javascript:
-                if cherrypy.session.get('filter_forms_javascript') is not None:
-                    since = cherrypy.request.headers.get('If-Unmodified-Since') 
-                    since2 = cherrypy.request.headers.get('If-Modified-Since')
-                    if since or since2:
-                        raise cherrypy.HTTPRedirect("", 304)
-                cherrypy.response.headers['Last-Modified'] = http.HTTPDate(time.time())
-            
-            result = get_filter_forms_javascript()
-            cherrypy.session['filter_forms_javascript'] = result 
-            return result
+        if args:
+            if args[0] == 'filter_forms_javascript.js':
+                if config.caching_filter_form_javascript:
+                    if cherrypy.session.get('filter_forms_javascript') is not None:
+                        since = cherrypy.request.headers.get('If-Unmodified-Since') 
+                        since2 = cherrypy.request.headers.get('If-Modified-Since')
+                        if since or since2:
+                            raise cherrypy.HTTPRedirect("", 304)
+                    cherrypy.response.headers['Last-Modified'] = http.HTTPDate(time.time())
+                
+                result = get_filter_forms_javascript()
+                cherrypy.session['filter_forms_javascript'] = result 
+                return result
+            elif args[0] == 'set_history':
+                new_history = simplejson.loads(kwd.get('history', 'false'))
+                cherrypy.session['history'] = new_history
+                get_corba_session().setHistory(new_history)
+                debug('History set to %s' % new_history)
+                return json_response(new_history)
         else:
             return super(ADIF, self).default(*args, **kwd)
         
@@ -676,13 +689,17 @@ class ADIF(AdifPage):
                 
                 cherrypy.session['Mailer'] = corba.getObject('Mailer', 'Mailer')
                 cherrypy.session['FileManager'] = corba.getObject('FileManager', 'FileManager')
+                
+                cherrypy.session['history'] = False
+                get_corba_session().setHistory(False)
+                
 
                 raise cherrypy.HTTPRedirect(form.cleaned_data.get('next'))
             except omniORB.CORBA.BAD_PARAM, e:
                 form.non_field_errors().append(_('Bad corba call! ') + '(%s)' % (str(e)))
                 if config.debug:
                     form.non_field_errors().append(noesc(escape(unicode(traceback.format_exc())).replace('\n', '<br/>')))
-            except corba.module.Admin.AuthFailed, e:
+            except ccReg.Admin.AuthFailed, e:
                 form.non_field_errors().append(_('Login error, please enter correct login and password'))
                 if config.debug:
                     form.non_field_errors().append('(type: %s, exception: %s)' % (escape(unicode(type(e))), unicode(e)))
@@ -859,14 +876,14 @@ class Registrar(AdifPage, ListTableMixin):
         for i in passwords:
             passwd = kwd['password%s' % i]
             md5cert = kwd['md5Cert%s' % i]
-            account = corba.module.EPPAccess(passwd, md5cert)
+            account = ccReg.EPPAccess(passwd, md5cert)
             certificates.append(account)
         v.append(certificates)
         v.append(0) # XXX hack Registrar.hidden
-        reg = corba.module.Registrar(*v)
+        reg = ccReg.Registrar(*v)
         try:
             cherrypy.session.get('Admin').putRegistrar(reg)
-        except corba.module.Admin.UpdateFailed:
+        except ccReg.Admin.UpdateFailed:
             context = {}
             context['main'] = _("Saving_failed")
             return self._render('modify', context)
@@ -910,41 +927,41 @@ class Domain(AdifPage, ListTableMixin):
         context = {}
         create = kwd.get('new')
         if create:
-            result = corba.module.Domain(0, *['']*14) # empty Domain
+            result = ccReg.Domain(0, *['']*14) # empty Domain
         else:
             admin = cherrypy.session.get('Admin')
             result = self._get_detail(obj_id=kwd.get('id'), handle=kwd.get('handle'))
-            result.registrant = c2u(admin.getContactByHandle(u2c(result.registrantHandle)))
-            nsset = None
-            if result.nssetHandle:
-                nsset = c2u(admin.getNSSetByHandle(u2c(result.nssetHandle)))
-                techs = []
-                for tech in nsset.admins:
-                    techs.append(c2u(admin.getContactByHandle(u2c(tech))))
-                nsset.admins = techs
-            result.__dict__['nsset'] = nsset
-            adm = []
-            for admin_handle in result.admins:
-                adm.append(c2u(admin.getContactByHandle(u2c(admin_handle))))
-            result.admins = adm
-            adm = []
-            for admin_handle in result.temps:
-                adm.append(c2u(admin.getContactByHandle(u2c(admin_handle))))
-            result.temps = adm
-            if result.createRegistrarHandle:
-                #import pdb; pdb.set_trace()
-                res = admin.getRegistrarByHandle(u2c(result.createRegistrarHandle))
-                result.createRegistrar = c2u(res)
-            else:
-                result.createRegistrar = None
-            if result.updateRegistrarHandle:
-                result.updateRegistrar = c2u(admin.getRegistrarByHandle(u2c(result.updateRegistrarHandle)))
-            else:
-                result.updateRegistrar = None
-            if result.registrarHandle:
-                result.registrar = c2u(admin.getRegistrarByHandle(u2c(result.registrarHandle)))
-            else:
-                result.registrar = None
+#            result.registrant = c2u(admin.getContactByHandle(u2c(result.registrantHandle)))
+#            nsset = None
+#            if result.nssetHandle:
+#                nsset = c2u(admin.getNSSetByHandle(u2c(result.nssetHandle)))
+#                techs = []
+#                for tech in nsset.admins:
+#                    techs.append(c2u(admin.getContactByHandle(u2c(tech))))
+#                nsset.admins = techs
+#            result.__dict__['nsset'] = nsset
+#            adm = []
+#            for admin_handle in result.admins:
+#                adm.append(c2u(admin.getContactByHandle(u2c(admin_handle))))
+#            result.admins = adm
+#            adm = []
+#            for admin_handle in result.temps:
+#                adm.append(c2u(admin.getContactByHandle(u2c(admin_handle))))
+#            result.temps = adm
+#            if result.createRegistrarHandle:
+#                #import pdb; pdb.set_trace()
+#                res = admin.getRegistrarByHandle(u2c(result.createRegistrarHandle))
+#                result.createRegistrar = c2u(res)
+#            else:
+#                result.createRegistrar = None
+#            if result.updateRegistrarHandle:
+#                result.updateRegistrar = c2u(admin.getRegistrarByHandle(u2c(result.updateRegistrarHandle)))
+#            else:
+#                result.updateRegistrar = None
+#            if result.registrarHandle:
+#                result.registrar = c2u(admin.getRegistrarByHandle(u2c(result.registrarHandle)))
+#            else:
+#                result.registrar = None
         
         context['edit'] = kwd.get('edit')
         
@@ -981,12 +998,12 @@ class Contact(AdifPage, ListTableMixin):
         context = {}
         create = kwd.get('new')
         if create: 
-            result = corba.module.Contact(0, *['']*32) # empty Contact
+            result = ccReg.Contact(0, *['']*32) # empty Contact
         else:
             result = self._get_detail(obj_id=kwd.get('id'), handle=kwd.get('handle'))
             # XXX: HACK
             # convert all disclose* properties to: 0 -> False, 1 -> True
-            [ result.__dict__.__setitem__(x, [False, True][result.__dict__[x]]) for x in result.__dict__ if x.startswith('disclose') ]
+            #[ result.__dict__.__setitem__(x, [False, True][result.__dict__[x]]) for x in result.__dict__ if x.startswith('disclose') ]
         
         context['edit'] = kwd.get('edit')
         context['result'] = result
@@ -1004,27 +1021,48 @@ class NSSet(AdifPage, ListTableMixin):
         context = {}
         create = kwd.get('new') 
         if create: 
-            result = corba.module.NSSet(0, *['']*11) # empty NSSet
+            result = ccReg.NSSet(0, *['']*11) # empty NSSet
         else:
             admin = cherrypy.session.get('Admin')
             result = self._get_detail(obj_id=kwd.get('id'), handle=kwd.get('handle'))
         
-            techs = []
-            for tech in result.admins:
-                techs.append(c2u(admin.getContactByHandle(u2c(tech))))
-            result.admins = techs
-            if result.createRegistrarHandle:
-                result.createRegistrar = c2u(admin.getRegistrarByHandle(u2c(result.createRegistrarHandle)))
-            else:
-                result.createRegistrar = None
-            if result.updateRegistrarHandle:
-                result.updateRegistrar = c2u(admin.getRegistrarByHandle(u2c(result.updateRegistrarHandle)))
-            else:
-                result.updateRegistrar = None
-            if result.registrarHandle:
-                result.registrar = c2u(admin.getRegistrarByHandle(u2c(result.registrarHandle)))
-            else:
-                result.registrar = None
+#            techs = []
+#            for tech in result.admins:
+#                techs.append(c2u(admin.getContactByHandle(u2c(tech))))
+#            result.admins = techs
+#            if result.createRegistrarHandle:
+#                result.createRegistrar = c2u(admin.getRegistrarByHandle(u2c(result.createRegistrarHandle)))
+#            else:
+#                result.createRegistrar = None
+#            if result.updateRegistrarHandle:
+#                result.updateRegistrar = c2u(admin.getRegistrarByHandle(u2c(result.updateRegistrarHandle)))
+#            else:
+#                result.updateRegistrar = None
+#            if result.registrarHandle:
+#                result.registrar = c2u(admin.getRegistrarByHandle(u2c(result.registrarHandle)))
+#            else:
+#                result.registrar = None
+
+        context['edit'] = kwd.get('edit')
+        context['result'] = result
+
+        return self._render('detail', context)
+    
+class KeySet(AdifPage, ListTableMixin):
+
+    def __init__(self):
+        AdifPage.__init__(self)
+        ListTableMixin.__init__(self)
+
+    @check_onperm('read')
+    def detail(self, **kwd):
+        context = {}
+        create = kwd.get('new')
+        if create: 
+            pass #result = ccReg.NSSet(0, *['']*11) # empty NSSet
+        else:
+            admin = cherrypy.session.get('Admin')
+            result = self._get_detail(obj_id=kwd.get('id'), handle=kwd.get('handle'))
 
         context['edit'] = kwd.get('edit')
         context['result'] = result
@@ -1041,6 +1079,7 @@ class Mail(AdifPage, ListTableMixin):
         hmap = {'HT_DOMAIN': 'domain',
                 'HT_CONTACT': 'contact',
                 'HT_NSSET': 'nsset',
+                'HT_KEYSET': 'keyset',
                 'HT_REGISTRAR': 'registrar'}
         handles = [ {'type': hmap.get(cherrypy.session.get('Admin').checkHandle(u2c(handle))[0].hType._n), 'handle': handle} for handle in handles ]
         return handles
@@ -1050,7 +1089,7 @@ class Mail(AdifPage, ListTableMixin):
         for attId in attachments:
             try:
                 new.append(c2u(cherrypy.session.get('FileManager').info(attId)))
-            except corba.module.FileManager.IdNotFound:
+            except ccReg.FileManager.IdNotFound:
                 new.append({'name': 'ERROR-ATTACHMENT-ID:%s' % attId})
         return new
     
@@ -1212,7 +1251,7 @@ class Invoice(AdifPage, ListTableMixin):
         if result.actions:
             [ x.__dict__.__setitem__('actionType', _('Registration fee')) for x in result.actions if x.actionType == 0 ]
             [ x.__dict__.__setitem__('actionType', _('Renew fee')) for x in result.actions if x.actionType == 1 ]
-        #result.type = [ x['type'] for x in corba.module.Invoicing.Invoices if x['obj']._n == result.type ][0]
+        #result.type = [ x['type'] for x in ccReg.Invoicing.Invoices if x['obj']._n == result.type ][0]
         context['result'] = result
         return self._render('detail', context)
 
@@ -1276,7 +1315,6 @@ class Development(object):
         debug('---')
         debug(dir(cherrypy.request))
         debug('---')
-        import pdb; pdb.set_trace()
         dvals = [
             "request.remote:'%s'" % cherrypy.request.remote,
             "request.path_info: '%s'" % cherrypy.request.path_info,
@@ -1306,10 +1344,22 @@ class Smaz(Page):
         
         return BaseSiteMenu(context).render()
 
+class Detail41(AdifPage):
+    def index(self):
+        #return 'muj index'
+        result = get_detail('domain', 41)
+        from fred_webadmin.webwidgets.details.adifdetails import DomainDetail as NewDomainDetail
+        context = DictLookup({'main': NewDomainDetail(result, cherrypy.session.get('history'))})
+        return self._render('base', ctx=context)
+    def default(self):
+        return 'muj default'
+        
+
 def runserver():
     print "-----====### STARTING ADIF ###====-----"
     
     root = ADIF()
+    root.detail41 = Detail41()
     root.summary = Summary()
     root.logs = Logs()
     root.registrar = Registrar()
@@ -1317,6 +1367,7 @@ def runserver():
     root.domain = Domain()
     root.contact = Contact()
     root.nsset = NSSet()
+    root.keyset = KeySet()
     root.mail = Mail()
     root.file = File()
     root.publicrequest = PublicRequest()
@@ -1325,6 +1376,8 @@ def runserver():
     root.filter = Filter()
     root.statistic = Statistics()
     root.devel = Development()
+    
+    
     
     cherrypy.quickstart(root, '/', config=config.cherrycfg)
     

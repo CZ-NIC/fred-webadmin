@@ -368,7 +368,7 @@ msgid "Domains_admin"
 msgstr "Domény - admin"
 
 msgid "Domains_all"
-msgstr "Domény - všechno"
+msgstr "Domény - vše"
 
 msgid "NSSets"
 msgstr "NSSety"

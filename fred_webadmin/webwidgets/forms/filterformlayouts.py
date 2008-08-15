@@ -51,7 +51,7 @@ class UnionFilterFormLayout(TableFormLayout):
         #self.add(script(attr(type='text/javascript'), 'Ext.onReady(function () {addFieldsButtons()})')) 
 
         self.tbody.add(script(attr(type='text/javascript'), noesc(self.union_form_js())))
-        debug('After create uionlayout')
+        debug('After create unionlayout')
             
     def union_form_js(self):
         output = u'function buildOrRow() {\n'

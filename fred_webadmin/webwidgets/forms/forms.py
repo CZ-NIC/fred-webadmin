@@ -13,17 +13,17 @@ from fred_webadmin.webwidgets.utils import ErrorDict, ErrorList, ValidationError
 
 NON_FIELD_ERRORS = '__all__'
 
-class SortedDictFromList(SortedDict):
-    "A dictionary that keeps its keys in the order in which they're inserted."
-    # This is different than django.utils.datastructures.SortedDict, because
-    # this takes a list/tuple as the argument to __init__().
-    def __init__(self, data=None):
-        if data is None: data = []
-        self.keyOrder = [d[0] for d in data]
-        dict.__init__(self, dict(data))
-
-    def copy(self):
-        return SortedDictFromList([(k, deepcopy(v)) for k, v in self.items()])
+#class SortedDictFromList(SortedDict):
+#    "A dictionary that keeps its keys in the order in which they're inserted."
+#    # This is different than django.utils.datastructures.SortedDict, because
+#    # this takes a list/tuple as the argument to __init__().
+#    def __init__(self, data=None):
+#        if data is None: data = []
+#        self.keyOrder = [d[0] for d in data]
+#        dict.__init__(self, dict(data))
+#
+#    def copy(self):
+#        return SortedDictFromList([(k, deepcopy(v)) for k, v in self.items()])
 
 class DeclarativeFieldsMetaclass(WebWidget.__metaclass__):
     """
@@ -43,7 +43,7 @@ class DeclarativeFieldsMetaclass(WebWidget.__metaclass__):
             if hasattr(base, 'base_fields'):
                 fields = base.base_fields.items() + fields
 
-        attrs['base_fields'] = SortedDictFromList(fields)
+        attrs['base_fields'] = SortedDict(fields)
         for i, (field_name, field) in enumerate(attrs['base_fields'].items()):
             field.name_orig = field.name = field_name
             field.order = i
@@ -108,7 +108,7 @@ class BaseForm(form):
         return cls.__name__[:-len(cls.name_postfix)].lower()
     
     def build_fields(self):
-        self.fields = self.base_fields.copy()
+        self.fields = self.base_fields.deepcopy()
         for field in self.fields.values():
             field.owner_form = self
             field.name = self.add_prefix(field.name_orig)

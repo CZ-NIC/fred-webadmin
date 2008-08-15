@@ -4,6 +4,11 @@
 	padding: 1em;
 }
 
+#right_menu_container {
+	float: right;
+	margin: 0.5em 1em;
+}
+
 #main-menu li {
 
 }

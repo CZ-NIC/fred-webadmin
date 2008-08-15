@@ -2,12 +2,14 @@ import sys
 import cherrypy
 import datetime
 from logging import debug, error
+from omniORB.any import from_any
 
-from corba import ccReg, CorbaServerDisconnectedException
+from corba import ccReg, Registry, CorbaServerDisconnectedException
 from adif import u2c
 from translation import _
 from fred_webadmin.webwidgets.forms.filterforms import FilterFormEmptyValue
-from fred_webadmin.mappings import f_name_enum, f_header_ids, f_urls, f_name_default_sort
+from fred_webadmin.mappings import f_name_enum, f_enum_name, f_header_ids, f_urls, f_name_default_sort
+from fred_webadmin.utils import c2u, date_time_interval_to_corba, corba_to_date_time_interval, date_to_corba, corba_to_date, datetime_to_corba, corba_to_datetime
 
 def fileGenerator(source, separator = '|'):
     "Generates CVS stream from IterTable object"
@@ -56,7 +58,7 @@ class IterTable(object):
         #table = corbaSession.getPageTable(ccReg.FT_ACTION)#f_name_enum[self.request_object])
         table = corbaSession.getPageTable(f_name_enum[self.request_object])
         debug("Returned PageTable: %s" % table)
-        header_id = f_header_ids[self.request_object]#types[self.request_object]['id']
+        header_id = 'CT_OID_ICON' #f_header_ids[self.request_object]#types[self.request_object]['id']
         return table, header_id
     
     def _update(self):
@@ -97,11 +99,16 @@ class IterTable(object):
     def _get_row(self, index):
         row = []
         items = self._table.getRow(index)
-        items.insert(0, str(self._table.getRowId(index)))
-        for item in enumerate(items):
+        row_id = self._table.getRowId(index)
+        row_id_oid = Registry.OID(row_id, str(row_id), f_name_enum[self.request_object])  # create OID from rowId
+        items.insert(0, row_id_oid)
+        for i, item in enumerate(items):
             cell = {}
-            cell['index'] = item[0]
-            cell['value'] = item[1].decode('utf-8')
+            cell['index'] = i
+            if i == 0: # items[0] is id, which is inserted to items (it was obtained from self._table.getRowId(index)
+                cell['value'] = item
+            else: # all other items are corba ANY values
+                cell['value'] = c2u(from_any(item, True))
             self._rewrite_cell(cell)
             row.append(cell)
         return row
@@ -152,36 +159,45 @@ class IterTable(object):
         return row
 
     def _rewrite_cell(self, cell):
-        get_url_id_content = lambda filter_name: {'url': f_urls[filter_name] + 'detail/?id=%s',  'icon': '/img/icons/open.png', 'cssc': 'tcenter'}
-        get_url_handle_content = lambda filter_name: {'url': f_urls[filter_name] + 'detail/?handle=%s'}
-        rewrite_rules = {'CT_CONTACT_HANDLE': get_url_handle_content('contact'),
-                        'CT_REGISTRAR_HANDLE': get_url_handle_content('registrar'),
-                        #'CT_DOMAIN_HANDLE': {'url': f_urls['domain'] + 'detail/?handle=%s'},
-                        'CT_DOMAIN_HANDLE': get_url_handle_content('domain'),
-                        'CT_NSSET_HANDLE': get_url_handle_content('nsset'),
-                        'CT_CONTACT_ID': get_url_id_content('contact'),
-                        'CT_REGISTRAR_ID': get_url_id_content('registrar'),
-                        'CT_DOMAIN_ID': get_url_id_content('domain'),
-                        'CT_NSSET_ID': get_url_id_content('nsset'),
-                        'CT_MAIL_ID': get_url_id_content('mail'),
-                        'CT_PUBLICREQUEST_ID': get_url_id_content('publicrequest'),
-                        'CT_ACTION_ID': get_url_id_content('action'),
-                        'CT_INVOICE_ID': get_url_id_content('invoice'),
-                        #'CT_FILE_ID': {'url': f_urls['file'] + 'detail/?id=%s',  'icon': 'list.gif', 'cssc': 'tcenter'},
-                        'CT_FILE_ID': get_url_id_content('file'),
-                        'CT_FILTER_ID': {}, #{'url': f_urls['request'] + 'detail/?id=%s',  'icon': 'list.gif', 'cssc': 'tcenter'},
+#        get_url_id_content = lambda filter_name: {'url': f_urls[filter_name] + 'detail/?id=%s',  'icon': '/img/icons/open.png', 'cssc': 'tcenter'}
+#        get_url_handle_content = lambda filter_name: {'url': f_urls[filter_name] + 'detail/?handle=%s'}
+        get_url_from_oid = lambda OID: {'url': f_urls[f_enum_name[OID.type]] + 'detail/?id=%s',  'icon': '/img/icons/open.png', 'cssc': 'tcenter'}
+        oid_url_string = '%sdetail/?id=%s'
+        rewrite_rules = {
+#                        'CT_CONTACT_HANDLE': get_url_handle_content('contact'),
+#                        'CT_REGISTRAR_HANDLE': get_url_handle_content('registrar'),
+#                        #'CT_DOMAIN_HANDLE': {'url': f_urls['domain'] + 'detail/?handle=%s'},
+#                        'CT_DOMAIN_HANDLE': get_url_handle_content('domain'),
+#                        'CT_NSSET_HANDLE': get_url_handle_content('nsset'),
+#                        'CT_KEYSET_HANDLE': get_url_handle_content('keyset'),
+#                        'CT_CONTACT_ID': get_url_id_content('contact'),
+#                        'CT_REGISTRAR_ID': get_url_id_content('registrar'),
+#                        'CT_DOMAIN_ID': get_url_id_content('domain'),
+#                        'CT_NSSET_ID': get_url_id_content('nsset'),
+#                        'CT_KEYSET_ID': get_url_id_content('keyset'),
+#                        'CT_MAIL_ID': get_url_id_content('mail'),
+#                        'CT_PUBLICREQUEST_ID': get_url_id_content('publicrequest'),
+#                        'CT_ACTION_ID': get_url_id_content('action'),
+#                        'CT_INVOICE_ID': get_url_id_content('invoice'),
+#                        #'CT_FILE_ID': {'url': f_urls['file'] + 'detail/?id=%s',  'icon': 'list.gif', 'cssc': 'tcenter'},
+                        'CT_OID': {'oid_url': oid_url_string},
+                        'CT_OID_ICON': {'oid_url': oid_url_string, 'icon': '/img/icons/open.png'}, #{'url': f_urls['request'] + 'detail/?id=%s',  'icon': 'list.gif', 'cssc': 'tcenter'},
                         'CT_OTHER': {}
                        }
         contentType = self.header_type[cell['index']]
         for key in rewrite_rules[contentType]:
             if key == 'value':
-                cell[key] = rewrite_rules[contentType][key]
+                cell['value'] = rewrite_rules[contentType]['value']
             if key == 'icon':
-                cell[key] = rewrite_rules[contentType][key]
+                cell['icon'] = rewrite_rules[contentType]['icon']
             if key == 'cssc':
-                cell[key] = rewrite_rules[contentType][key]
+                cell['cssc'] = rewrite_rules[contentType]['cssc']
+            if key == 'oid_url':
+                val = cell['value'] 
+                cell['url'] = rewrite_rules[contentType][key] % (f_urls[f_enum_name[val.type]], val.id)
+                cell['value'] = val.handle
             if key == 'url':
-                cell[key] = rewrite_rules[contentType][key] % (cell['value'],)
+                cell['url'] = rewrite_rules[contentType]['url'] % (cell['value'],)
 
 
 
@@ -278,61 +294,6 @@ class CorbaFilterIterator(object):
             raise StopIteration
 
 class FilterLoader(object):
-    
-    @staticmethod
-    def date_to_corba(date):
-        'parametr date is datetime.date() or None, and is converted to ccReg.DateType. If date is None, then ccReg.DateType(0, 0, 0) is returned' 
-        return date and ccReg.DateType(*reversed(date.timetuple()[:3])) or ccReg.DateType(0, 0, 0)
-    @staticmethod
-    def corba_to_date(corba_date):
-        if corba_date.year == 0: # empty date is in corba = DateType(0, 0, 0)
-            return None
-        return datetime.date(corba_date.year, corba_date.month, corba_date.day)
-    
-    @staticmethod
-    def datetime_to_corba(date_time):
-        if date_time:
-            t_tuple = date_time.timetuple()
-            return ccReg.DateTimeType(ccReg.DateType(*reversed(t_tuple[:3])), *t_tuple[3:6])
-        else:
-            return ccReg.DateTimeType(ccReg.DateType(0, 0, 0), 0, 0, 0)
-    
-    @staticmethod
-    def corba_to_datetime(corba_date_time):
-        corba_date = corba_date_time.date
-        if corba_date.year == 0: # empty date is in corba = DateType(0, 0, 0)
-            return None
-        return datetime.datetime(corba_date.year, corba_date.month, corba_date.day, 
-                                 corba_date_time.hour, corba_date_time.minute, corba_date_time.second)
-    
-        
-    @classmethod
-    def date_time_interval_to_corba(cls, val, date_conversion_method):
-        '''
-        val is list, where first three values are ccReg.DateType or ccReg.DateTimeType, according to that, 
-        it should be called with date_coversion_method cls.date_to_corba or cls.date_time_interval_to_corba,
-        next in list is offset and ccReg.DateTimeIntervalType
-        '''
-        if date_conversion_method == cls.date_to_corba:
-            interval_type = ccReg.DateInterval
-        else:
-            interval_type = ccReg.DateTimeInterval
-        c_from, c_to, c_day = [date_conversion_method(date) for date in val[:3]]
-        if int(val[3]) == ccReg.DAY._v: 
-            corba_interval = interval_type(c_day, c_to, ccReg.DAY, val[4] or 0) # c_to will be ignored
-        else:
-            corba_interval = interval_type(c_from, c_to, ccReg.DateTimeIntervalType._items[val[3]], val[4] or 0)
-        return corba_interval
-
-    @classmethod
-    def corba_to_date_time_interval(cls, val, date_conversion_method):
-        if val.type == ccReg.DAY:
-            return [None, None, date_conversion_method(val._from), val.type._v, 0]
-        elif val.type == ccReg.INTERVAL:
-            return [date_conversion_method(val._from), date_conversion_method(val.to), None, val.type._v, 0]
-        else:
-            return [None, None, None, val.type._v, val.offset]
-                    
     @classmethod
     def set_filter(cls, itertable, union_filter_data):
         #import pdb; pdb.set_trace()
@@ -355,9 +316,9 @@ class FilterLoader(object):
                 debug("Setting VAL %s" % val)
                 if not isinstance(val, FilterFormEmptyValue): # set only filters, that are active (have value) - 
                     if isinstance(sub_filter, ccReg.Filters._objref_Date):
-                        value = cls.date_time_interval_to_corba(val, cls.date_to_corba)
+                        value = date_time_interval_to_corba(val, date_to_corba)
                     elif isinstance(sub_filter, ccReg.Filters._objref_DateTime):
-                        value = cls.date_time_interval_to_corba(val, cls.datetime_to_corba)
+                        value = date_time_interval_to_corba(val, datetime_to_corba)
                     elif isinstance(sub_filter, ccReg.Filters._objref_Int):
                         value = int(val)
                     else:
@@ -389,9 +350,9 @@ class FilterLoader(object):
                 if sub_filter.isActive():
                     val = sub_filter._get_value()
                     if isinstance(sub_filter, ccReg.Filters._objref_Date):
-                        value = cls.corba_to_date_time_interval(val, cls.corba_to_date)
+                        value = corba_to_date_time_interval(val, corba_to_date)
                     elif isinstance(sub_filter, ccReg.Filters._objref_DateTime):
-                        value = cls.corba_to_date_time_interval(val, cls.corba_to_datetime)
+                        value = corba_to_date_time_interval(val, corba_to_datetime)
                     else:
                         value = val
                 else:

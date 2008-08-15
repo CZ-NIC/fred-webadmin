@@ -9,6 +9,7 @@ from logging import debug, error
 from omniORB import CORBA
 from fred_webadmin.webwidgets.gpyweb.gpyweb import attr, div, p, pre
 from fred_webadmin import config
+from fred_webadmin.corba import ccReg, Registry
 from translation import _
 
 def catch_webadmin_exceptions_decorator(view_func):
@@ -27,11 +28,20 @@ def catch_webadmin_exceptions_decorator(view_func):
             if config.debug:
                 context['message'].add(p('''Congratulations! Prave se vam (nebo nekomu pred vami) povedlo schodit backend server, pripiste si plusovy bod!'''))
             else:
-                context['message'].add(p(_('Backend server is not running!')))
+                context['message'].add(p(_('Error: Backend server is not running!')))
             context['message'].add(pre(attr( id='traceback'), traceback.format_exc()))    
             return self._render('error', context)
+        except ccReg.FileManager.IdNotFound, e:
+            error("FILE NOT FOUND %s" % e)
+
+            context = {'message': div()}
+            context['message'].add(p(_('''Error: File not found!''')))
+            context['message'].add(pre(attr(id='traceback'), traceback.format_exc()))
+            return self._render('error', context)
+            
         except adif.CustomView, e:
             return e.rendered_view
+        
          
     #update_wrapper(_wrapper, view_func)
     return _wrapper

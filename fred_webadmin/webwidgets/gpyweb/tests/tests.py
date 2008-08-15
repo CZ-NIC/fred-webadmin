@@ -172,7 +172,7 @@ def test_getitem_nontation3():
     print page2
     assert str(page1) == str(page2)
     
-#def test_benchmakr_getitem_notation():
+#def test_benchmark_getitem_notation():
 #    exp = 4
 #    import time
 #    
@@ -187,7 +187,7 @@ def test_getitem_nontation3():
 #    print time.time() - t
 #    
 #    assert False
-#    # results: both notation have the same speed (about 1.5sec for exp = 4)
+    # results: both notation have the same speed (about 1.5sec for exp = 4)
 
 def test_http_page():
     context = {
@@ -300,3 +300,9 @@ def test_escape():
 </p>
 '''
         
+def test_enclose():
+    p1 = p(attr(enclose_content=True), 'Visit our ', a(attr(href='http://www.example.com'), 'website'), '.') # tag "a" has enclose_content = True by default
+    corect_result = '''<p>Visit our <a href="http://www.example.com">website</a>.</p>
+'''
+    print str(p1)
+    assert str(p1) == corect_result 

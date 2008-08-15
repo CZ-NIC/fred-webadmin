@@ -39,7 +39,9 @@ class noesc(object):
         self.value = value
 
 class SubscriptableType(type):
-    '''Metaclass, which allows create webwidget using call like div['content'] instead and will wordks as constructor (e.g. div('content'))'''
+    ''' Metaclass, which allows create webwidget using call like div['content'] instead 
+        and will work as constructor (e.g. div('content'))
+    '''
     def __getitem__(cls, content):
         new_obj = cls.__new__(cls)
         new_obj.__init__()
@@ -61,7 +63,8 @@ class WebWidget(object):
     attr_translation = {
         u'xmllang': u'xml:lang',
         u'httpequiv': u'http-equiv',
-        u'cssc': u'class'
+        u'cssc': u'class',
+        u'for_id': u'for',
     }
     
     indent_char = u'\t'
@@ -155,7 +158,7 @@ class WebWidget(object):
                         tname = getattr(con, 'tagid')
                         if tname == name:
                             return con
-                    except:
+                    except AttributeError:
                         pass
         #print "NEDOSTAL JSEM %s, JEHO __DICT__:" % name
         #print self.__dict__
@@ -184,6 +187,12 @@ class WebWidget(object):
     
     def __unicode__(self):
         return self.__str__()
+    
+    def on_add(self):
+        ''' This method is called everytime when WebWidget is added to another webwidget 
+            (after parent_widget and root_widget attributes was assignet)
+        '''
+        pass
         
     def add(self, *content, **kwd):
         for con in content:
@@ -191,6 +200,7 @@ class WebWidget(object):
             if isinstance(con, WebWidget):
                 con.parent_widget = self
                 con.root_widget = self.root_widget
+                con.on_add()
                 self.content.append(con)
             #elif hasattr(con, '_is_tag_save'):
             elif isinstance(con, save):
@@ -378,7 +388,7 @@ class dfn(WebWidget):
     tattr_list=['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
 
 class label(WebWidget):
-    tattr_list=['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'for', 'accesskey', 'onfocus', 'onblur']
+    tattr_list=['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'for_id', 'accesskey', 'onfocus', 'onblur']
 
 class select(WebWidget):
     tattr_list=['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'name', 'size', 'multiple', 'disabled', 'tabindex', 'onfocus', 'onblur', 'onchange']

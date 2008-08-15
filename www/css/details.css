@@ -1,12 +1,99 @@
 .discloseTrue { background-color: #8F4; }
 .discloseFalse { background-color: #F88; }
 
-.object_detail > table { margin: 0.5em 0em; }
-.object_detail table th { text-align: left; }
+.detail_table { margin: 0.5em 0em; }
+.detail_table th { text-align: left; }
 
-table.detail_table table { width: 70em }    
-.detail_table table { border: 1px outset black; }
-.detail_table table caption { font-weight: bold; }
-.detail_table table td, .detail_table table th { border: 1px inset black; }
-.detail_table .left_label { width: 14em; font-weight: bold; }
-.detail_table caption { text-align: left; }
+.detail_table th, .detail_table td {
+	vertical-align: top;
+	padding: 0px;
+	border-collapse: collapse;
+	/*min-width: 3em;*/
+}
+
+.section_table, .filter_panel {
+	width: 70em;
+	border: medium double gray;
+	border-collapse: collapse;
+}
+
+.section_table caption, .section_label {
+	padding: 0.3em 0;
+}
+
+.section_table td, .section_table th {
+	padding: 2px;
+}
+
+.nested_section_table {
+	width: 55em;
+}
+
+
+.section_label { 
+	font-weight: bold; 
+	text-align: left; 
+}
+.section_table .left_label { width: 14em; font-weight: bold; }
+
+.filter_panel {
+	table-layout: fixed;
+	margin-left: 2px;
+}
+.section_table > tbody > tr > td, .section_table > tbody > tr > th,
+.section_table > thead > tr > td, .section_table > thead > tr > th, 
+.filter_panel td { 
+	border: thin solid gray; 
+}
+.filter_panel { text-align: center; }
+.filter_panel a { background:white url(../img/admin/nav-bg.gif) bottom repeat-x; padding:4px;  color:black; border:1px solid #bbb; border-color:#ddd #aaa #aaa #ddd; }
+.filter_panel a:active { background-image:url(../img/admin/nav-bg-reverse.gif); background-position:top; }
+
+
+.object_list_detail_table th { text-align: left; }
+
+.history_list_table {
+	border-collapse: collapse;
+} 
+.history_list_table td {
+	border: thin solid gray; 
+}
+.section_table .history_list_table {
+	margin: 0px 0px -1px 0px;
+	width: 100%;
+}
+
+.history_dates_field { /* "from", "to" and "action" fiedl of history row */ 
+	background-color: #EEE;	
+}
+
+.detail_table .history_dates_field {
+	vertical-align: middle;
+}	
+
+.history_list_table tr.history_row {
+	background-color: #FFD;
+}
+
+.history_list_table tr.history_row .history_dates_field {
+	background-color: #EEC;
+	width: 13em;
+}
+
+.history_list_table tr td.history_dates_field:last-child {
+	width: 1.5em;
+}
+
+.section_table .history_division_row td, .section_table .history_division_row th { /* if history list, this is first row of one list, so it should be visualy divided */
+	border-top-width: medium;
+	border-top-style: double;
+}
+
+.field_empty { /* When field is empty it displays span with this css class */
+	width: 4em;
+	height: 1em;	
+}
+
+
+
+

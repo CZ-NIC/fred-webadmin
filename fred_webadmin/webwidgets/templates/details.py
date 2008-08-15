@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import datetime
+import cherrypy
 from fred_webadmin.webwidgets.gpyweb.gpyweb import attr, div, span, h1, table, tbody, tr, th, td, p, strong, b, small, a, form, input, select, option, textarea, script, pre, br, acronym, hr
 from fred_webadmin.webwidgets.adifwidgets import FilterPanel
 from fred_webadmin.translation import _
@@ -124,7 +125,7 @@ class DomainDetailDiv(DetailDiv):
 #                     td(span(''))), 
                   tr(th(_('Validation_date')), 
                      td(span(result.valExDate))), 
-                  tr(th(_('Notify_email')), 
+                  tr(th(_('Notify_email')),
                      td(span('default'))), 
                   tr(th(_('Auth_info')), 
                      td(span(result.authInfo)))),
@@ -301,7 +302,7 @@ class ActionDetailDiv(DetailDiv):
                   tr(th(attr(style='width: 180px'), _('Received_date')), 
                      td(strong(span(result.time)))), 
                   tr(th(_('Registrar')), 
-                     td(a(attr(href=f_urls['registrar'] + 'detail/?handle=' + result.registrar.handle), result.registrar.handle))), 
+                     td(result.registrar and a(attr(href=f_urls['registrar'] + 'detail/?handle=' + result.registrar.handle), result.registrar.handle) or '')), 
                   tr(th(_('objectHandle')), 
                      td(span(result.objectHandle))), 
                   tr(th(_('Type')), 
@@ -385,10 +386,11 @@ class RegistrarDetailDiv(DetailDiv):
             )
         self.add(auth_table)
         
+        history = cherrypy.session.get('history')
         self.add(hr())
-        self.add(RegistrarDetail(result, display_only=['handle', 'street1'], sections=[['pokus', ['handle', 'street1']]]))
+        self.add(RegistrarDetail(result, history, display_only=['handle', 'street1'], sections=[['pokus', ['handle', 'street1']]]))
         self.add(hr())
-        self.add(RegistrarDetail(result))
+        self.add(RegistrarDetail(result, history))
         self.add(hr())
         
         self.add(FilterPanel([

@@ -86,12 +86,13 @@ class MenuNode(object):
     
 menu_tree = MenuNode('root', '', '', 'menu-item', '#', [
     MenuNode('summary', _('Summary'), 'body-summary', 'menu-item menu-summary', url='/summary/'), 
-    MenuNode('object', _('Objects'), 'body-objects', 'menu-item menu-objects', url=f_urls['domain'] + 'allfilters/', nperm=['domain.read', 'contact.read', 'nsset.read'], submenu=[
+    MenuNode('object', _('Objects'), 'body-objects', 'menu-item menu-objects', url=f_urls['domain'] + 'allfilters/', nperm=['domain.read', 'contact.read', 'nsset.read', 'keyset.read'], submenu=[
         MenuNode('domain', _('Search domains'), cssc='menu-item', url=f_urls['domain'] + 'allfilters/', nperm='domain.read'),
         MenuNode('contact', _('Search contacts'), cssc='menu-item', url=f_urls['contact'] + 'allfilters/', nperm='contact.read'),
         MenuNode('nsset', _('Search nssets'), cssc='menu-item', url=f_urls['nsset'] + 'allfilters/', nperm='nsset.read'),
+        MenuNode('keyset', _('Search keysets'), cssc='menu-item', url=f_urls['keyset'] + 'allfilters/', nperm='keyset.read'),        
     ]), 
-    MenuNode('registrar', _('Registrars'), 'body-registrars', 'menu-item menu-registrars', url=f_urls['registrar'] + 'filter/?cf=1', nperm='registrar.read', submenu=[
+    MenuNode('registrar', _('Registrars'), 'body-registrars', 'menu-item menu-registrars', url=f_urls['registrar'] + 'filter/', nperm='registrar.read', submenu=[
         MenuNode('registrarlist', _('List'), cssc='menu-item', url=f_urls['registrar'] + 'filter/?list_all=1', nperm='registrar.read'),
         MenuNode('registrarfilter', _('Search'), cssc='menu-item', url=f_urls['registrar'] + 'allfilters/', nperm='registrar.read'),
         MenuNode('registrarcreate', _('Create new'), cssc='menu-item', url=f_urls['registrar'] + 'create/', nperm='registrar.create'),

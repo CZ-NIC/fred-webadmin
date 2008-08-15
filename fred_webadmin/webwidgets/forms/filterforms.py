@@ -19,7 +19,7 @@ from fred_webadmin.corba import ccReg
 from fred_webadmin.mappings import f_urls
 
 __all__ = ['UnionFilterForm', 'RegistrarFilterForm', 
-           'ObjectFilterForm', 'ContactFilterForm', 'NSSetFilterForm', 'DomainFilterForm', 
+           'ObjectFilterForm', 'ContactFilterForm', 'NSSetFilterForm', 'KeySetFilterForm', 'DomainFilterForm', 
            'ActionFilterForm', 'FilterFilterForm', 'PublicRequestFilterForm', 
            'InvoiceFilterForm', 'MailFilterForm', 'FileFilterForm',
            'get_filter_forms_javascript']
@@ -298,6 +298,17 @@ class NSSetFilterForm(ObjectFilterForm):
     def clean(self):
         cleaned_data = super(NSSetFilterForm, self).clean()
         return cleaned_data
+
+class KeySetFilterForm(ObjectFilterForm):
+    TechContact = CompoundFilterField(label=_('Technical contact'), form_class=ContactFilterForm)
+    #HostIP = CharField(label=_('IP address'))
+    #HostFQDN = CharField(label=_('Nameserver name'))
+    #HostFQDN1 = CharField(label=_('Nameserver name 1'))
+    #HostFQDN2 = CharField(label=_('Nameserver name 2'))
+    
+#    def clean(self):
+#        cleaned_data = super(KeySetFilterForm, self).clean()
+#        return cleaned_data
         
     
 class DomainFilterForm(ObjectFilterForm):
@@ -308,6 +319,7 @@ class DomainFilterForm(ObjectFilterForm):
     AdminContact = CompoundFilterField(label=_('Admin'), form_class=ContactFilterForm)
     TempContact = CompoundFilterField(label=_('Temp'), form_class=ContactFilterForm)
     NSSet = CompoundFilterField(label=_('Nameserver set'), form_class=NSSetFilterForm)
+    KeySet = CompoundFilterField(label=_('Key set'), form_class=KeySetFilterForm)    
     
     ExpirationDate = DateIntervalField(label=_('Expiry date'))
     OutZoneDate = DateIntervalField(label=_('OutZone date'))
@@ -390,6 +402,7 @@ class MailFilterForm(FilterForm):
       
 form_classes = (DomainFilterForm, 
                 NSSetFilterForm, 
+                KeySetFilterForm,                 
                 ObjectFilterForm, 
                 ContactFilterForm, 
                 RegistrarFilterForm, 

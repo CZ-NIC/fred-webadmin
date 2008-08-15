@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import types
-
+from copy import deepcopy
 from gpyweb.gpyweb import ul, li
 
 
@@ -145,6 +145,9 @@ class SortedDict(dict):
         obj = self.__class__(self)
         obj.keyOrder = self.keyOrder
         return obj
+    
+    def deepcopy(self):
+        return SortedDict([(k, deepcopy(v)) for k, v in self.items()])
 
     def __repr__(self):
         """
@@ -224,8 +227,4 @@ def convert_corba_obj_to_form_data(corba_obj):
         else:
             raise RuntimeError('Unknown corba type, unable to convert it to form data')
                  
-            
-        
-        
-    
     return data

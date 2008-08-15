@@ -120,7 +120,7 @@ class FilterPanel(table):
         
         
         filter_count = len(filters)
-        self.add(attr(cssc='filter_panel', style='width: 96%', border='1'),
+        self.add(attr(cssc='filter_panel'),
                  tr(th(attr(colspan=filter_count), b(_('Options')))),
                  tr(save(self, 'filter_buttons')))
 

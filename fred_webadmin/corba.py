@@ -53,23 +53,25 @@ omniORB.installCommFailureExceptionHandler(cookie, commFailure)
 #omniORB.installSystemExceptionHandler(cookie, systemFailure)
 
 import config
-module_name = importIDL(config.idl)[0] # this hase to be here because cherrypy session needs to know ccReg module on start (while loadin session from file)
-ccReg = sys.modules[module_name]
+#module_name = importIDL(config.idl)[0] # this hase to be here because cherrypy session needs to know ccReg module on start (while loadin session from file)
+importIDL(config.idl)
+ccReg = sys.modules['ccReg']
+Registry = sys.modules['Registry']
 orb = CORBA.ORB_init(["-ORBnativeCharCodeSet","UTF-8"], CORBA.ORB_ID)
 #orb = CORBA.ORB_init(["-ORBnativeCharCodeSet","UTF-8", "-ORBtraceLevel", "10"], CORBA.ORB_ID)
 
 # invoice types (used both in IterTabe and ADIF)
 invoices = [
-        {'type': _('All'), 'obj': ccReg.Invoicing.IT_NONE},
-        {'type': _('Advance'), 'obj': ccReg.Invoicing.IT_ADVANCE},
-        {'type': _('Account'), 'obj': ccReg.Invoicing.IT_ACCOUNT},
+        #{'type': _('All'), 'obj': Registry.Invoicing.IT_NONE},
+        {'type': _('Advance'), 'obj': Registry.Invoicing.IT_ADVANCE},
+        {'type': _('Account'), 'obj': Registry.Invoicing.IT_ACCOUNT},
 ]
 ccReg.Invoicing.Invoices = invoices # XXX - future lang switching
 
 class Corba(object):
     def __init__(self, nscontext=None):
         object.__init__(self)
-        self.module = sys.modules[module_name] #sys.modules[
+        #self.module = sys.modules[module_name] #sys.modules[
             #importIDL(idl or os.path.join(os.path.dirname(os.path.abspath(__file__)), IDL_FILE))[0]
             #]
         self.context = None
@@ -82,7 +84,7 @@ class Corba(object):
     def getObjectUsingContext(self, component, name, idltype):
         cosname = [CosNaming.NameComponent(component, "context"), CosNaming.NameComponent(name, "Object")]
         obj = self.context.resolve(cosname)
-        return obj._narrow(getattr(self.module, idltype))
+        return obj._narrow(getattr(ccReg, idltype))
 
     def getObject(self, name, idltype):
         return self.getObjectUsingContext(self.context_name, name, idltype)

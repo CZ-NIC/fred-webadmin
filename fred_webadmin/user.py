@@ -27,9 +27,11 @@ class User(object):
         #self.nperms = ['registrar.read']
         if self.login == 'helpdesk':
             self.nperms = ['domain.filter', 'domain.filter.authinfo', 
-                           'registrar.detail.city', 'registrar.change.street2', 'registrar.filter.city']
+                           'registrar.detail.city', 'registrar.change.street2', 'registrar.filter.city',
+                           'domain.detail.createdate']
+            self.nperms = []
         else:
-            self.nperms = ['domain.filter.AdminContact']
+            self.nperms = ['domain.filter.cdmincontact']
         #self.nperms = []
         debug('Created user with nperms = %s' % str(self.nperms))
         
