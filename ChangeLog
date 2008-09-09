@@ -1,9 +1,3 @@
-2008-08-15 Tomas Divis (version 3.0.0)
-
-    * DNSSEC keyset object support
-	
-    * Support for history in all objects and filters
-	
 2008-06-24 Jaromir Talir (version 2.1.0)
 	
     * release

@@ -19,7 +19,7 @@ log_level = logging.DEBUG
 
 #idl = '/home/glin/programming/svn_enum_checkout/enum/idl/trunk/ccReg.idl'
 #idl = '/home/glin/programming/nic/webadmin/servers/idl_devel/idl/ccReg.idl'
-idl = '/home/glin/programming/nic/webadmin/servers/idl_history/idl/ccReg.idl'
+idl = '/home/glin/programming/nic/webadmin/servers/idl_trunk/idl/ccReg.idl'
 
 iors = (#(label, nshost, nscontext),
         (u'maňásek-tom', 'jsadek', 'fred-tom'),

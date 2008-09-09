@@ -1,3 +1,4 @@
+import types
 from fred_webadmin.webwidgets.gpyweb.gpyweb import WebWidget, tagid, attr, notag, div, span, table, caption, tbody, tr, th, td, input, label, select, option, ul, li, script, a, img, strong
 from fred_webadmin.webwidgets.details.abstractdetaillayout import AbstractDetailLayout
 
@@ -6,6 +7,8 @@ class SectionLayout(AbstractDetailLayout):
         super(SectionLayout, self).__init__(detail, *content, **kwd)
         self.tag = 'table'
         self.tattr_list = table.tattr_list
+        if isinstance(section_spec[1], (types.StringTypes)): # if only one field_name is specified, convert it to string
+            raise RuntimeError('Section spec field names have to be tuple or list, not string ("%s")' % section_spec[1])
         self.section_spec = section_spec
             
         self.create_layout()

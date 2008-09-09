@@ -6,17 +6,20 @@ import cherrypy
 from omniORB.any import from_any
 from omniORB import CORBA
 
-from fred_webadmin.webwidgets.gpyweb.gpyweb import WebWidget, tagid, attr, a, img, strong, div, span, table, thead, tbody, tr, th, td
-from fred_webadmin.mappings import f_urls, f_objectType_name
+from fred_webadmin.webwidgets.gpyweb.gpyweb import WebWidget, tagid, attr, noesc, a, img, strong, div, span, pre, table, thead, tbody, tr, th, td
+from fred_webadmin.mappings import f_urls
 from detaillayouts import SectionDetailLayout, TableRowDetailLayout, TableColumnsDetailLayout
 from fred_webadmin.utils import get_detail_from_oid
 from fred_webadmin.translation import _
 from fred_webadmin.utils import corba_to_datetime, LateBindingProperty
 from fred_webadmin.corba import ccReg, Registry
+from fred_webadmin.webwidgets.xml_prettyprint import xml_prettify_webwidget
+from fred_webadmin.mappings import f_enum_name, f_name_detailname
+import fred_webadmin.webwidgets.details.adifdetails# as details_module
 
 def resolve_object(obj_data):
-    # tady asi bude neco jak if isinstance(data, OID_type), tak tohle, else: a ziskani dat specifikovane nepovinnym parametrem (jmeno funkce nebo ukazaetel na funkci)
-    # navic je tu jeste treti moznost, ze objekt je nejaka struktura, tudis je to primo corba structura - v takovem pripade se musi vzit jen data.__dict__
+    ''' Returns object from data, where data could be OID, OID in CORBA.Any, or just data isself
+    '''
     if isinstance(obj_data, CORBA.Any):
         obj_data = from_any(obj_data, True)
 
@@ -27,6 +30,15 @@ def resolve_object(obj_data):
             return None
     else:
         return obj_data
+    
+#def resolve_detail_class(obj_data):
+#    ''' Detect detail class if object is OID or OID in CORBA.Any'''
+#    if isinstance(obj_data, CORBA.Any):
+#        obj_data = from_any(obj_data, True)
+#    if isinstance(obj_data, Registry.OID):
+#        detail_name = f_name_detailname[f_enum_name[obj_data.type]]
+#        detail_class = getattr(fred_webadmin.webwidgets.details.adifdetails, detail_name, None)
+#        return detail_class
         
 
 class DField(WebWidget):
@@ -85,7 +97,26 @@ class CharDField(DField):
     def resolve_value(self, value):
         if value is not None:
             value = unicode(value)
-        return value    
+        return value
+    
+class PreCharDField(CharDField):
+    ''' Content text is in <pre> html tag. '''
+    def make_content(self):
+        self.content = []
+        if self.value == '':
+            self.add(div(attr(cssc='field_empty')))
+        else:
+            self.add(pre(self._value))
+
+class XMLDField(CharDField):
+    enclose_content = True
+    def __init__(self, name='', label=None, *content, **kwd):
+        super(XMLDField, self).__init__(*content, **kwd)
+        self.media_files.append('/css/pygments.css')
+    def resolve_value(self, value):
+        value = super(XMLDField, self).resolve_value(value)
+        value = xml_prettify_webwidget(value)
+        return value
         
 class EmailDField(CharDField):
     def make_content(self):
@@ -94,12 +125,18 @@ class EmailDField(CharDField):
             self.add(div(attr(cssc='field_empty')))
         if self._value:
             self.add(a(attr(href='mailto:' + self._value), self._value))
-
+            
 class ListCharDField(CharDField):
     def resolve_value(self, value):
         return ', '.join([unicode(sub_val) for sub_val in value])
             
-             
+
+class CorbaEnumDField(CharDField):
+    def resolve_value(self, value):
+        if value is not None:
+            value = _(value._n)
+        value = super(CorbaEnumDField, self).resolve_value(value)
+        return value
         
     
     
@@ -108,8 +145,9 @@ class ObjectHandleDField(DField):
         self.content = []
         oid = self._value
         if oid is not None:
-            self.add(a(attr(href=f_urls[f_objectType_name[oid.type]] + u'detail/?id=' + unicode(oid.id)), 
-                       strong(oid.handle)))
+            self.add(a(attr(href=f_urls[f_enum_name[oid.type]] + u'detail/?id=' + unicode(oid.id)), 
+#                       strong(oid.handle)))
+                       oid.handle))            
         else:
             self.add(div(attr(cssc='field_empty')))
 
@@ -132,22 +170,27 @@ class MultiValueDField(DField):
             
 
 class ObjectHandleURLDField(MultiValueDField):
-    ''' Field that is not from OID - just read its owner_detail name, 
-        try to find out name of object (e.g. 'domain') and creates link from id and handle paramaters.
-        It has its own name and value_from_data method always reads data from fields
-        given in constructor (usualy "id" and "handle").
+    ''' Field that is not from OID. It creates link from id and handle paramaters. 
+        object_type_name (e.g. 'domain') is eigther given as parametr to constructor or just read from fields owner_detail name, 
+        It reads data from fields given in constructor (usualy "id" and "handle").
     '''
     enclose_content = True
-    def __init__(self, name='', label=None, id_name = 'id', handle_name = 'handle', *content, **kwd):
+    def __init__(self, name='', label=None, id_name = 'id', handle_name = 'handle', object_type_name=None, *content, **kwd):
         super(ObjectHandleURLDField, self).__init__(name, label, [id_name, handle_name], *content, **kwd)
         self.id_name = id_name
         self.handle_name = handle_name
-    
+        self.object_type_name = object_type_name
+            
+            
     def make_content(self):
         self.content = []
+
+        if self.object_type_name is None: # this cannot be in constructor, becouse self.owner_detail is not known at construction time
+            self.object_type_name = self.owner_detail.get_object_name() 
+
         if self.value[self.handle_name] == '':
             self.add(div(attr(cssc='field_empty')))
-        self.add(a(attr(href=f_urls[self.owner_detail.get_object_name()] + 'detail/?id=%s' % self.value[self.id_name]), self.value[self.handle_name]))
+        self.add(a(attr(href=f_urls[self.object_type_name] + 'detail/?id=%s' % self.value[self.id_name]), self.value[self.handle_name]))
         
 #    def value_from_data(self, data):
 #        return self.resolve_value([data.get(self.id_name), data.get(self.handle_name)])
@@ -187,6 +230,17 @@ class ObjectHandleEPPIdDField(DField):
         
     def value_from_data(self, data):
         return self.resolve_value([data.get(self.handle_name), data.get(self.eppid_name)])
+
+class PriceDField(DField):
+    def make_content(self):
+        self.content = []
+        if self.value == ['', '', '', '']:
+            self.add(div(attr(cssc='field_empty')))
+        self.add(strong(self.value[0]), span(_(u'(%s + %s of %s%% VAT)') % tuple(self.value[1:])))
+        
+    def value_from_data(self, data):
+        return self.resolve_value([data.get('price'), data.get('total'), data.get('totalVAT'), data.get('vatRate')])
+    
     
 class ObjectDField(DField):
     '''Field with inner object detail'''
@@ -199,6 +253,8 @@ class ObjectDField(DField):
         self.layout_class = layout_class
     
     def resolve_value(self, value):
+        if self.detail_class is None:
+            self.detail_class = resolve_detail_class(value)
         return resolve_object(value)
     
     def create_inner_detail(self):
@@ -266,6 +322,35 @@ class ListObjectDField(DField):
         else:
             self.add(div(attr(cssc='field_empty')))
 
+class ListObjectHandleDField(DField):
+    ''' Data is list of OIDs.
+    '''
+    enclose_content = True
+    def make_content(self):
+        self.content = []
+        if self.value:
+            for i, oid in enumerate(self.value):
+                if oid and oid.id:
+                    if i != 0:
+                        self.add(',')
+                    self.add(a(attr(href=f_urls[f_enum_name[oid.type]] + u'detail/?id=' + unicode(oid.id)), 
+    #                           strong(oid.handle)))
+                               oid.handle))
+                
+class ConvertDField(DField):
+    ''' Converts source value to another value, rendering it to other field. 
+        Parametr 'convert_table' is dict or list or tupple of couples (source_value, convert_to_value)
+    ''' 
+    def __init__(self, name='', label=None, inner_field = None, convert_table = None, *content, **kwd):
+        super(ConvertDField, self).__init__(name, label, *content, **kwd)
+        if convert_table is None:
+            raise RuntimeError('You must specify convert_table in ConvertDField')
+        self.convert_table = convert_table
+        self.inner_field = copy(inner_field)
+        
+    def make_content(self):
+        self.inner_field.value = self.convert_table[self.value]
+        self.add(self.inner_field)
 
 class HistoryDField(DField):   
     ''' Only for history part of NHDfield, so this field is not used directly in detail

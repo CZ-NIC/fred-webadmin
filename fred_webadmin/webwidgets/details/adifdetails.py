@@ -4,9 +4,10 @@ from dfields import *
 from fred_webadmin.translation import _
 from fred_webadmin.webwidgets.details.sectionlayouts import DirectSectionLayout, SectionLayout
 from fred_webadmin.webwidgets.details.adifsections import DatesSectionLayout
-from fred_webadmin.webwidgets.details.detaillayouts import DirectSectionDetailLayout
+from fred_webadmin.webwidgets.details.detaillayouts import DirectSectionDetailLayout, OnlyFieldsDetailLayout
 from fred_webadmin.webwidgets.details.adifdetaillayouts import DomainsNSSetDetailLayout, DomainsKeySetDetailLayout
 from fred_webadmin.webwidgets.adifwidgets import FilterPanel
+from fred_webadmin.corbalazy import CorbaLazyRequestIterStructToDict
 
 class RegistrarDetail(Detail):
     editable = True
@@ -84,6 +85,7 @@ class ContactDetail(ObjectDetail):
     telephone = CharNHDField(label=_('Phone'))
     fax = CharNHDField(label=_('Fax'))
     email = CharNHDField(label=_('Email'))
+    notifyEmail = CharNHDField(label=_('Notify email'))
     
     street1 = CharNHDField(label=_('Street'))
     street2 = CharNHDField(label='')
@@ -94,8 +96,8 @@ class ContactDetail(ObjectDetail):
     country = CharNHDField(label=_('Country'))
     
     sections = (
-        (None, ('handleEPPId', 'organization', 'name', 'ident', 'vat', 'vat', 'telephone', 'fax', 'email', 'authInfo')),
-        (_('Selected registrar'), 'registrar', DirectSectionLayout),
+        (None, ('handleEPPId', 'organization', 'name', 'ident', 'vat', 'vat', 'telephone', 'fax', 'email', 'notifyEmail', 'authInfo')),
+        (_('Selected registrar'), ('registrar', ), DirectSectionLayout),
         (_('Dates'), (), DatesSectionLayout),
         (_('Address'), ('street1', 'street2', 'street3', 'postalcode', 'city', 'country')),
         #('Admins', 'admins', DirectSectionLayout),
@@ -133,9 +135,9 @@ class NSSetDetail(ObjectDetail):
 
     sections = (
         (None, ('handleEPPId', 'authInfo')),
-        (_('Selected registrar'), 'registrar', DirectSectionLayout),
-        (_('Tech. contacts'), 'admins', DirectSectionLayout),
-        (_('Hosts'), 'hosts', DirectSectionLayout),
+        (_('Selected registrar'), ('registrar', ), DirectSectionLayout),
+        (_('Tech. contacts'), ('admins', ), DirectSectionLayout),
+        (_('Hosts'), ('hosts', ), DirectSectionLayout),
         (_('Dates'), ('createRegistrar', 'updateRegistrar'), DatesSectionLayout),
     )
         
@@ -168,9 +170,9 @@ class KeySetDetail(ObjectDetail):
     
     sections = (
         (None, ('handleEPPId', 'authInfo')),
-        (_('Selected registrar'), 'registrar', DirectSectionLayout),
-        (_('Tech. contacts'), 'admins', DirectSectionLayout),
-        (_('DS records'), 'dsrecords', DirectSectionLayout),
+        (_('Selected registrar'), ('registrar', ), DirectSectionLayout),
+        (_('Tech. contacts'), ('admins', ), DirectSectionLayout),
+        (_('DS records'), ('dsrecords', ), DirectSectionLayout),
         (_('Dates'), ('createRegistrar', 'updateRegistrar'), DatesSectionLayout),
     )
     
@@ -211,11 +213,11 @@ class DomainDetail(ObjectDetail):
     sections = (
         (None, ('handleEPPId', 'authInfo')),
         (_('Dates'), ('createRegistrar', 'updateRegistrar'), DatesSectionLayout),
-        (_('Owner'), 'registrant', DirectSectionLayout),
-        (_('Selected registrar'), 'registrar', DirectSectionLayout),
-        (_('Admin contacts'), 'admins', DirectSectionLayout),
-        (_('NSSet'), 'nsset', DirectSectionLayout),
-        (_('KeySet'), 'keyset', DirectSectionLayout),
+        (_('Owner'), ('registrant', ), DirectSectionLayout),
+        (_('Selected registrar'), ('registrar', ), DirectSectionLayout),
+        (_('Admin contacts'), ('admins', ), DirectSectionLayout),
+        (_('NSSet'), ('nsset', ), DirectSectionLayout),
+        (_('KeySet'), ('keyset', ), DirectSectionLayout),
     )
     
     def add_to_bottom(self):
@@ -227,6 +229,86 @@ class DomainDetail(ObjectDetail):
             ]))
         super(DomainDetail, self).add_to_bottom()
         
+
+class ActionDetail(Detail):
+    time = CharDField(label=_('Received_date'))
+    #registrar = ObjectDField(label=('Registrar'), display_only=['handle_url', 'name'], detail_class=RegistrarDetail, layout_class=OnlyFieldsDetailLayout)
+    registrar = ObjectHandleDField(label=_('Registrar'))
+    objectHandle = CharDField(label=_('objectHandle'))
+    type = CharDField(label=_('Type'))
+    result = CharDField(label=_('Result'))
+    clTRID = CharDField(label=_('clTRID'))
+    svTRID = CharDField(label=_('svTRID'))
+    xml_out = XMLDField(label=_('XML out'))
+    xml = XMLDField(label=_('XML in'))
+
+    sections = (
+        (None, ('time', 'registrar', 'objectHandle', 'type', 'result', 'clTRID', 'svTRID')),
+        (_('XML In'), ('xml', ), DirectSectionLayout),
+        (_('XML Out'), ('xml_out', ), DirectSectionLayout),
+    )
+    
+class PublicRequestDetail(Detail):
+    id = CharDField(label=_('ID'))
+    objects = ListObjectHandleDField(label=_('Objects'))
+    type = CorbaEnumDField(label=_('Type'))
+    status = CorbaEnumDField(label=_('Status'))
+    registrar = ObjectHandleDField(label=_('Registrar'))
+    action = ObjectHandleDField(label=_('Action'))
+    email = CharDField(label=_('Email'))
+    answerEmail = ObjectHandleDField(label=_('Answer email'))
+    createTime = CharDField(label=_('Create time'))
+    resolveTime = CharDField(label=_('Close time'))
+    
+class MailDetail(Detail):
+    #objects = ListObjectHandleDField(label=_('Objects'))
+    objects = ListCharDField(label=_('Objects'))
+    type = ConvertDField(label=_('Type'), inner_field=CharDField(), convert_table=CorbaLazyRequestIterStructToDict('Mailer', 'getMailTypes', ['id', 'name']))
+    status = CharDField(label=_('Status'))
+    createTime = CharDField(label=_('Create time'))
+    modifyTime = CharDField(label=_('Modify time'))
+    attachments = ListObjectHandleDField(label=_('Attachments'))
+    content = PreCharDField(label=_('Email content'))
+
+    
+class PaymentDetail(Detail):
+    number = CharDField(label=_('Number'))
+    price = CharDField(label=_('Price'))
+    balance = CharDField(label=_('Balance'))
+    
+class PaymentActionDetail(Detail):
+    paidObject = ObjectHandleDField(label=_('Object'))
+    actionTime = CharDField(label=_('Action time'))
+    expirationDate = CharDField(label=_('Expiration date'))
+    actionType = CharDField(label=_('Action type'))
+    unitsCount = CharDField(label=_('Count'))
+    pricePerUnit = CharDField(label=_('PPU'))
+    price = CharDField(label=_('Price'))
+    
+class InvoiceDetail(Detail):
+    number = CharDField(label=_('Number'))
+    registrar = ObjectHandleDField(label=_('Registrar'))
+    credit = CharDField(label=_('Credit'))
+    createTime = CharDField(label=_('Create date'))
+    taxDate = CharDField(label=_('Tex date'))
+    fromDate = CharDField(label=_('From date'))
+    toDate = CharDField(label=_('To date'))
+    type = CorbaEnumDField(label=_('Type'))
+    price = PriceDField(label=_('Price'))
+    varSymbol = CharDField(label=_('Variable symbol'))
+    filePDF = ObjectHandleDField(label=_('XML'))
+    fileXML = ObjectHandleDField(label=_('PDF'))
+    payments = ListObjectDField(detail_class=PaymentDetail)
+    paymentActions = ListObjectDField(detail_class=PaymentActionDetail)
+    
+    sections = ((None, ('number', 'registrar', 'credit', 'createTime', 'taxDate', 'fromDate', 'toDate', 
+                       'type', 'price', 'varSymbol', 'filePDF', 'fileXML')),
+                (_('Payments'), ('payments', ), DirectSectionLayout),
+                (_('Payment actions'), ('paymentActions', ), DirectSectionLayout),
+               )
+    
+    
+    
     
 #class DomainDetail(Detail):
 #    name = CharDField(label=_('Domain'))

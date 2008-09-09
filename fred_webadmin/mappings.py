@@ -30,8 +30,14 @@ f_name_filterformname['publicrequest'] = 'PublicRequestFilterForm'
 
 f_name_editformname = dict([(item._n[3:].lower(), item._n[3:].lower().capitalize() + 'EditForm') for item in ccReg.FilterType._items])
 f_name_editformname['nsset'] = 'NSSetEditForm' 
-f_name_editformname['nsset'] = 'KeySetEditForm' 
-f_name_editformname['publicrequest'] = 'PublicRequestEditForm' 
+f_name_editformname['keyset'] = 'KeySetEditForm' 
+f_name_editformname['publicrequest'] = 'PublicRequestEditForm'
+
+f_name_detailname = dict([(item._n[3:].lower(), item._n[3:].lower().capitalize() + 'Detail') for item in ccReg.FilterType._items])
+f_name_detailname['nsset'] = 'NSSetDetail' 
+f_name_detailname['keyset'] = 'KeySetDetail' 
+f_name_detailname['publicrequest'] = 'PublicRequestDetail'
+ 
 
 # This one will be deleted after getByHanle will be obsolete:
 f_name_get_by_handle = {

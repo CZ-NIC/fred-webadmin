@@ -227,9 +227,9 @@ class DetailPage(BaseSiteMenu):
 class DomainDetail(DetailPage):
     def __init__(self, context = None):
         super(DomainDetail, self).__init__(context)
-        self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
         c = self.context
         if c.get('result'):
+            self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
             #self.main.add(DomainDetailDiv(context))
             self.main.add(adifdetails.DomainDetail(c.result, c.history))
             if config.debug:
@@ -274,8 +274,9 @@ class ActionDetail(DetailPage):
         super(ActionDetail, self).__init__(context)
         c = self.context
         if c.get('result'):
-            #self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
-            self.main.add(ActionDetailDiv(context))
+            self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
+            self.main.add(adifdetails.ActionDetail(c.result, c.history))
+            #self.main.add(ActionDetailDiv(context))
             if config.debug:
                 self.main.add('ACTIONDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
         
@@ -298,8 +299,9 @@ class PublicRequestDetail(DetailPage):
         super(PublicRequestDetail, self).__init__(context)
         c = self.context
         if c.get('result'):
-            #self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
-            self.main.add(PublicRequestDetailDiv(context))
+            self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
+            #self.main.add(PublicRequestDetailDiv(context))
+            self.main.add(adifdetails.PublicRequestDetail(c.result, c.history))
             if config.debug:
                 self.main.add('PublicRequestSDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
                 
@@ -309,8 +311,9 @@ class MailDetail(DetailPage):
         super(MailDetail, self).__init__(context)
         c = self.context
         if c.get('result'):
-            #self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
-            self.main.add(MailDetailDiv(context))
+            self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
+            #self.main.add(MailDetailDiv(context))
+            self.main.add(adifdetails.MailDetail(c.result, c.history))
             if config.debug:
                 self.main.add('MailDETAIL:', div(attr(style='width: 1024px; overflow: auto;'), pre(unicode(c.result).replace(u', ', u',\n'))))
 
@@ -319,8 +322,9 @@ class InvoiceDetail(DetailPage):
         super(InvoiceDetail, self).__init__(context)
         c = self.context
         if c.get('result'):
-            #self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
-            self.main.add(InvoiceDetailDiv(context))
+            self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
+            #self.main.add(InvoiceDetailDiv(context))
+            self.main.add(adifdetails.InvoiceDetail(c.result, c.history))
             if config.debug:
                 self.main.add('InvoiceDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
                 

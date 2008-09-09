@@ -22,7 +22,7 @@ def njoin(*args):
 
 PROJECT_NAME = 'fred-webadmin'
 PACKAGE_NAME = 'fred_webadmin'
-PACKAGE_VERSION = '3.0.0'
+PACKAGE_VERSION = '2.1.0'
 
 SHARE_DOC = njoin('share', 'doc', PROJECT_NAME)
 SHARE_PACKAGE = njoin('share', PROJECT_NAME)
@@ -194,7 +194,6 @@ class FredWebAdminInstallData(install_data):
     def update_webadmin_server(self):
         values = []
         values.append(('DU_PREFIX', self.getDir('prefix')))
-        values.append(('DU_LOCALSTATEDIR', self.getDir('localstatedir')))
         self.replace_pattern(
                 os.path.join(self.srcdir, 'fred-webadmin-server.install'),
                 os.path.join('build', 'fred-webadmin-server'),

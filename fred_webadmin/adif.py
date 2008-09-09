@@ -50,17 +50,6 @@ from corba import ccReg, Registry
 
 from utils import u2c, c2u, get_corba_session, get_detail
 
-# XML formatter / BeautifulSoup
-try:
-    from BeautifulSoup import BeautifulStoneSoup
-    def prettify(xml):
-        soup = BeautifulStoneSoup(xml)
-        return soup.prettify()
-except ImportError:
-    def uglify(xml):
-        return '\n'.join('\n<'.join('>\n'.join(xml.split('>')).split('<')).split('\n\n'))
-    prettify = uglify # :-)
-
 from translation import _
 
 
@@ -906,12 +895,10 @@ class Action(AdifPage, ListTableMixin):
         context = {}
         result = self._get_detail(obj_id=kwd.get('id'))
 
-        if result.registrarHandle:
-            result.registrar = c2u(cherrypy.session.get('Admin').getRegistrarByHandle(u2c(result.registrarHandle)))
-        else:
-            result.registrar = None
-        result.xml = prettify(result.xml)
-        result.xml_out = prettify(result.xml_out)
+        #if result.registrarHandle:
+        #    result.registrar = c2u(cherrypy.session.get('Admin').getRegistrarByHandle(u2c(result.registrarHandle)))
+        #else:
+        #    result.registrar = None
         context['result'] = result
         return self._render('detail', context)
             
@@ -1100,13 +1087,13 @@ class Mail(AdifPage, ListTableMixin):
         create = kwd.get('create')
         if not create:
             result = self._get_detail(obj_id=kwd.get('id'), handle=kwd.get('handle'))
-        mtype = [ x.name for x in self._mailTypes() if x.id == result.type ]
-        if len(mtype) == 1:
-            result.type = mtype[0]
-        else:
-            result.type = 'unknown'
-        result.handles = self._rehashHandles(result.handles)
-        result.attachments = self._rehashAttachments(result.attachments)
+#        mtype = [ x.name for x in self._mailTypes() if x.id == result.type ]
+#        if len(mtype) == 1:
+#            result.type = mtype[0]
+#        else:
+#            result.type = 'unknown'
+#        result.handles = self._rehashHandles(result.handles)
+#        result.attachments = self._rehashAttachments(result.attachments)
         context['result'] = result
         return self._render('detail', context)
 
@@ -1236,21 +1223,21 @@ class Invoice(AdifPage, ListTableMixin):
         result = self._get_detail(obj_id=kwd.get('id'), handle=kwd.get('handle'))
         context['edit'] = kwd.get('edit')
 
-        # hack hack hack - omniorb python mapping maps structs to class with dict objects inside, 
-        # and setting attribute propagates this change, so this works
-        filemanager = cherrypy.session.get('FileManager')
-        if result.filePDF:
-            result.filePDFinfo = filemanager.info(result.filePDF)
-        else:
-            result.filePDFinfo = None
-        if result.fileXML:
-            result.fileXMLinfo = filemanager.info(result.fileXML)
-        else:
-            result.fileXMLinfo = None
+#        # hack hack hack - omniorb python mapping maps structs to class with dict objects inside, 
+#        # and setting attribute propagates this change, so this works
+#        filemanager = cherrypy.session.get('FileManager')
+#        if result.filePDF:
+#            result.filePDFinfo = filemanager.info(result.filePDF)
+#        else:
+#            result.filePDFinfo = None
+#        if result.fileXML:
+#            result.fileXMLinfo = filemanager.info(result.fileXML)
+#        else:
+#            result.fileXMLinfo = None
         # hack, these need remapping to other values.
-        if result.actions:
-            [ x.__dict__.__setitem__('actionType', _('Registration fee')) for x in result.actions if x.actionType == 0 ]
-            [ x.__dict__.__setitem__('actionType', _('Renew fee')) for x in result.actions if x.actionType == 1 ]
+#        if result.actions:
+#            [ x.__dict__.__setitem__('actionType', _('Registration fee')) for x in result.actions if x.actionType == 0 ]
+#            [ x.__dict__.__setitem__('actionType', _('Renew fee')) for x in result.actions if x.actionType == 1 ]
         #result.type = [ x['type'] for x in ccReg.Invoicing.Invoices if x['obj']._n == result.type ][0]
         context['result'] = result
         return self._render('detail', context)

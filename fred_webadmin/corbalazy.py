@@ -47,7 +47,7 @@ class CorbaLazyRequestIter(CorbaLazyRequest):
     '''
     Because some classes (as forms) are initialized when start of webadmin, this
     object gets data as late as possible (when needed), so user is already connected
-    and connection needed.
+    (connection is needed for this).
     '''
     def __init__(self, object_name, function_name, *args, **kwargs):
         super(CorbaLazyRequestIter, self).__init__(object_name, function_name, *args, **kwargs)
@@ -108,3 +108,9 @@ class CorbaLazyRequestIterStruct(CorbaLazyRequestIter):
                 result_item.append(getattr(item, attr_name))
             result.append(result_item)
         return result
+
+
+class CorbaLazyRequestIterStructToDict(CorbaLazyRequestIterStruct):
+    def _convert_data(self, data):
+        result = super(CorbaLazyRequestIterStructToDict, self)._convert_data(data)
+        return dict(result)

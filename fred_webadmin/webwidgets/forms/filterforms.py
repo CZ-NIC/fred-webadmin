@@ -337,7 +337,6 @@ class ActionFilterForm(FilterForm):
     RequestHandle = CharField(label=_('Requested Handle'))
     Time = DateTimeIntervalField(label=_('Received date'))
     Response = CorbaEnumChoiceField(label=_('Result'), corba_enum=ccReg.EPPActionsFilter.ResultType)
-    EppCodeResponse = IntegerField(label=_('EPP Code Result'))
     Registrar = CompoundFilterField(label=_('Registrar'), form_class=RegistrarFilterForm)
     SvTRID = CharField(label=_('SvTRID'))
     ClTRID = CharField(label=_('ClTRID'))

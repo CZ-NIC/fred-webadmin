@@ -88,4 +88,19 @@ class TableRowDetailLayout(TableColumnsDetailLayout):
         self.tag = u'tr'
 
 
+class OnlyFieldsDetailLayout(DetailLayout):
+    ''' Detail, that renders only fields, directly without anything. Fields are separated by comma.'''
+    def __init__(self, *content, **kwd):
+        super(OnlyFieldsDetailLayout, self).__init__(*content, **kwd)
+        self.tag = u''
+        self.enclose_content = True
+        self.create_layout()
+        
+    def create_layout(self):
+        detail = self.detail
+        for i, field in enumerate(self.detail.fields.values()):
+            if i != 0:
+                self.add(',')
+            self.add(field)
+            
         
