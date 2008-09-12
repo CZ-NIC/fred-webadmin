@@ -95,5 +95,21 @@
 }
 
 
-
-
+.state_table {
+	border-collapse: collapse;
+}
+.state_table td, .state_table th {
+	border: thin solid gray; 
+}
+.state_table td.state_on {
+	background-color: red;
+	color: red;
+	text-align: center;
+}
+.state_table .date_cell {
+	vertical-align: bottom;
+}
+.state_table .state_header_cell {
+	width: 1.5em;
+	text-align: center;
+}

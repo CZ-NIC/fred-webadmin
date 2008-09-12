@@ -5,6 +5,8 @@ from copy import copy
 import cherrypy
 from omniORB.any import from_any
 from omniORB import CORBA
+from datetime import datetime
+import time
 
 from fred_webadmin.webwidgets.gpyweb.gpyweb import WebWidget, tagid, attr, noesc, a, img, strong, div, span, pre, table, thead, tbody, tr, th, td
 from fred_webadmin.mappings import f_urls
@@ -530,22 +532,178 @@ class HistoryListObjectDField(HistoryDField):
                     self.add(row)
         else:
             self.add(div(attr(cssc='field_empty')))    
-         
 
-class NHDField(DField):
-    ''' Normal and History field combined in one. Depending of history flag of detail,
-        one of them is used for render
+class StateDField(ListCharDField):
+    ''' State field displays only comma separated State names (it ignores datums from, to)'''
+    def resolve_value(self, value):
+        state_name_list = []
+        if value:
+            for state in value:
+                state_name_list.append(state.id)
+        
+        return super(StateDField, self).resolve_value(state_name_list)
+    
+class HistoryStateDField(DField):
+    ''' Field that display history of States in time.'''
+    def __init__(self, name='', label=None, *content, **kwd):
+        super(HistoryStateDField, self).__init__(name, label, *content, **kwd)
+        self.state_list = range(21)
+        self.smaz = 0
+    def resolve_value(self, value):
+        new_states = []
+        if value:
+            for state in value:
+                new_state = {}
+                new_state['id'] = state.id
+                new_state['from'] = corba_to_datetime(state._from)
+                new_state['to'] = corba_to_datetime(state.to)
+                new_state['linked'] = state.linked
+                new_states.append(new_state)
+        return new_states
+    
+    def compute_state_data(self):
+        all_dates = {}
+
+        # all dates dict (from AND to), keys are dates, values are lists of [ couples 'from' or 'to' strings and state dicts (references to states in self.value)] 
+        for state in self.value:
+            if state['from']:
+                if all_dates.get(state['from']) is None:
+                    all_dates[state['from']] = [['from', state]]
+                else:
+                    all_dates[state['from']].append(['from', state])
+            if state['to']:
+                if all_dates.get(state['to']) is None:
+                    all_dates[state['to']] = [['to', state]]
+                else:
+                    all_dates[state['to']].append(['to', state])
+            
+        # row is dict containing all states_id as key and value is boolean (state is off, state is on)
+        current_row = dict([(state_id, False) for state_id in self.state_list])
+        current_row['row_date'] = None
+        
+        # state_table is list of rows, each row is copy of current_row for given date
+        state_table = []
+        time_period = all_dates.keys()[0] - all_dates.keys()[-1]
+        
+        max_row_height = 8 # [em]
+        
+        max_time_interval = 0
+        dates = sorted(all_dates.keys()) + [datetime.now()]
+        date_intervals = []
+        for i in range(len(dates) - 1):
+            interval = time.mktime(dates[i + 1].timetuple()) - time.mktime(dates[i].timetuple())
+            date_intervals.append(interval)
+            if interval > max_time_interval:
+                max_time_interval = interval
+        
+        from pprint import pprint
+        print "DATE_INTERVALS:"
+        pprint(date_intervals)
+        
+        date_row_heights = [] 
+        for interval in date_intervals:
+            date_row_heights.append(max_row_height * interval / max_time_interval)
+        
+        
+        for date, from_to_state_list in sorted(all_dates.items()):
+            current_row['row_date'] = date
+            for from_to_state in from_to_state_list:
+                from_to = from_to_state[0]
+                state = from_to_state[1]
+                
+                if from_to == 'from':
+                    current_row[state['id']] = True
+                elif from_to == 'to':
+                    current_row[state['id']] = False
+                else:
+                    raise RuntimeError('Variable from_to must be "from" or "to"!')
+            new_row = dict(current_row) # copy of current row
+            state_table.append(new_row)
+        
+        
+        date_row_heights = list(reversed(date_row_heights))
+        state_table = reversed(state_table)
+        
+        return (state_table, date_row_heights)
+    
+    def make_content(self):
+#        raise AttributeError
+#        self.smaz += 1
+#        if self.smaz > 1:
+#            raise AttributeError
+        state_table, date_row_heights = self.compute_state_data()
+        from pprint import pprint
+        print "STATE_TABLE:"
+        pprint(state_table)
+        print "DATE_ROW_HEIGHTS:"
+        pprint(date_row_heights)
+        self.content = []
+        if state_table:
+            self.tag = 'table'
+            self.tattr_list = table.tattr_list
+            self.cssc = 'state_table'
+            
+            #header
+            self.add(tr(th(_('Date')), [th(attr(cssc='state_header_cell'), state_id) for state_id in self.state_list]))
+            
+            # date rows
+            for i, row in enumerate(state_table):
+                tr_row = tr(th(attr(cssc='date_cell', style="height: %sem" % date_row_heights[i]), row['row_date']))
+                for state_id in self.state_list:
+                    state_on = row[state_id]
+                    if state_on == True:
+                        tr_row.add(td(attr(cssc='state_on'), 'X'))
+                    else:
+                        tr_row.add(td())
+                self.add(tr_row)
+                
+        
+        
+            
+
+class BaseNHDField(DField):
+    ''' Patent class for NHDField. NHDField is based on value HistoryRecordList, but this field only
+        switch between two fields according to history flag.
     '''
     def __init__(self, normal_field, history_field, *content, **kwd):
         self.normal_field = normal_field
         self.history_field = history_field
-        self.delegate_methods = [
-            'on_add', 'make_content', 'make_content_no_access', 'resolve_value', 'value_from_data', 'render'
-        ]
         self._owner_detail = None
         self.displaying_history = False
-        super(NHDField, self).__init__(*content, **kwd)
+        super(BaseNHDField, self).__init__(*content, **kwd)
+
+    def value_from_data(self, data):
+        value = data.get(self.name)
+        if self.owner_detail.history:
+            self.current_field = self.history_field
+        else:
+            self.current_field = self.normal_field
+        return value
+            
+    def _set_value(self, value):
+        self._value = self.current_field.value = self.resolve_value(value)
+    def _get_value(self):
+        return self.current_field._value
     
+    def _set_owner_detail(self, value):
+        self._owner_detail = self.normal_field.owner_detail = self.history_field.owner_detail = value
+    def _get_owner_detail(self):
+        return self._owner_detail
+    owner_detail = LateBindingProperty(_get_owner_detail, _set_owner_detail)
+    
+    def on_add(self):
+        self.current_field.parent_widget = self.parent_widget
+        self.current_field.on_add() 
+        
+
+    def render(self, indent_level=0):
+        return self.current_field.render(indent_level)
+
+
+class NHDField(BaseNHDField):
+    ''' Normal and History field combined in one. Depending of history flag of detail,
+        one of them is used for render.
+    '''
 #    def get_current_field(self):
 #        if self.owner_detail.history and len(self._value) > 1:
 #            return self.history_field
@@ -570,25 +728,6 @@ class NHDField(DField):
             self.current_field = self.normal_field
             
         
-    def _set_value(self, value):
-        self._value = self.current_field.value = self.resolve_value(value)
-        self.current_field.make_content()
-    def _get_value(self):
-        return self.current_field._value
-    
-    def _set_owner_detail(self, value):
-        self._owner_detail = self.normal_field.owner_detail = self.history_field.owner_detail = value
-    def _get_owner_detail(self):
-        return self._owner_detail
-    owner_detail = LateBindingProperty(_get_owner_detail, _set_owner_detail)
-    
-    def on_add(self):
-        self.current_field.parent_widget = self.parent_widget
-        self.current_field.on_add() 
-        
-
-    def render(self, indent_level=0):
-        return self.current_field.render(indent_level)
     
     
 class CharNHDField(NHDField):
@@ -603,9 +742,6 @@ class DiscloseCharNHDField(NHDField):
         value_name = data.get(self.name)
         value_disclose = data.get(self.disclose_name)
         
-        
-        
-        
         if self.owner_detail.history and len(value) > 1 and not self.owner_detail.is_nested:
             self.displaying_history = True
             self.history_field.owner_detail = self.owner_detail
@@ -615,5 +751,4 @@ class DiscloseCharNHDField(NHDField):
             self.normal_field.owner_detail = self.owner_detail
             self.current_field = self.normal_field
             return from_any(value[0].value, True)
-    
     

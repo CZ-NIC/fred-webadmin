@@ -76,6 +76,12 @@ class ObjectDetail(Detail):
     updateRegistrar = ObjectDField(label=('Update_registrar'), detail_class=RegistrarDetail)
     authInfo = CharNHDField(label=_('AuthInfo'))
 
+    states = BaseNHDField(        
+        StateDField(),
+        HistoryStateDField(),
+        label=_('States')
+    )
+
 class ContactDetail(ObjectDetail):
     organization = CharNHDField(label=_('Organization'))
     name = CharNHDField(label=_('Name'))
@@ -96,7 +102,7 @@ class ContactDetail(ObjectDetail):
     country = CharNHDField(label=_('Country'))
     
     sections = (
-        (None, ('handleEPPId', 'organization', 'name', 'ident', 'vat', 'vat', 'telephone', 'fax', 'email', 'notifyEmail', 'authInfo')),
+        (None, ('handleEPPId', 'organization', 'name', 'ident', 'vat', 'vat', 'telephone', 'fax', 'email', 'notifyEmail', 'authInfo', 'states')),
         (_('Selected registrar'), ('registrar', ), DirectSectionLayout),
         (_('Dates'), (), DatesSectionLayout),
         (_('Address'), ('street1', 'street2', 'street3', 'postalcode', 'city', 'country')),
@@ -211,7 +217,7 @@ class DomainDetail(ObjectDetail):
     )
     
     sections = (
-        (None, ('handleEPPId', 'authInfo')),
+        (None, ('handleEPPId', 'authInfo', 'states')),
         (_('Dates'), ('createRegistrar', 'updateRegistrar'), DatesSectionLayout),
         (_('Owner'), ('registrant', ), DirectSectionLayout),
         (_('Selected registrar'), ('registrar', ), DirectSectionLayout),
