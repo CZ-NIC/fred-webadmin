@@ -15,8 +15,8 @@ def fileGenerator(source, separator = '|'):
     "Generates CVS stream from IterTable object"
     data = separator.join(source.rawheader)
     yield "%s\n" % (data)
-    for row in range(source.num_rows):
-        data = "%s%s%s" % (source.get_row_id(row), separator, separator.join(source.get_absolute_row(row)))
+    for row in source:
+        data = separator.join([col['value'] for col in row])
         yield "%s\n" % (data)
         
 
