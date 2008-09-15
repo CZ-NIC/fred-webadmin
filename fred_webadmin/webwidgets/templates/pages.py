@@ -33,10 +33,18 @@ class BaseTemplate(HTMLPage):
 class BaseSite(BaseTemplate):
     def __init__(self, context = None):
         context = context or {}
+        
         if not context.get('title'):
             context['title'] = 'Daphne'
+            if context.get('user') and context.get('corba_server'):
+                context['title'] += ' - %s' % context.get('corba_server')
+
         super(BaseSite, self).__init__(context)
         c = self.context
+
+                
+        
+                
         self.add_media_files('/css/basesite.css')
         self.header.add(
             div(attr(id='branding'), save(self, 'branding'),

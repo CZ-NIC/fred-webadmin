@@ -77,11 +77,6 @@ class ObjectDetail(Detail):
     authInfo = CharNHDField(label=_('AuthInfo'))
     
     states = HistoryStateDField()
-#    states = BaseNHDField(        
-#        StateDField(),
-#        HistoryStateDField(),
-#        label=_('States')
-#    )
 
 class ContactDetail(ObjectDetail):
     organization = CharNHDField(label=_('Organization'))
@@ -103,13 +98,11 @@ class ContactDetail(ObjectDetail):
     country = CharNHDField(label=_('Country'))
     
     sections = (
-        (None, ('handleEPPId', 'organization', 'name', 'ident', 'vat', 'vat', 'telephone', 'fax', 'email', 'notifyEmail', 'authInfo', 'states')),
+        (None, ('handleEPPId', 'organization', 'name', 'ident', 'vat', 'vat', 'telephone', 'fax', 'email', 'notifyEmail', 'authInfo')),
         (_('Selected registrar'), ('registrar', ), DirectSectionLayout),
         (_('Dates'), (), DatesSectionLayout),
         (_('Address'), ('street1', 'street2', 'street3', 'postalcode', 'city', 'country')),
-        #('Admins', 'admins', DirectSectionLayout),
-        #('Temps', 'temps', DirectSectionLayout),
-        #('Admin pets', 'admin_pets', DirectSectionLayout),
+        (_('States'), ('states', ), DirectSectionLayout),
     )
     
     def add_to_bottom(self):
@@ -146,6 +139,7 @@ class NSSetDetail(ObjectDetail):
         (_('Tech. contacts'), ('admins', ), DirectSectionLayout),
         (_('Hosts'), ('hosts', ), DirectSectionLayout),
         (_('Dates'), ('createRegistrar', 'updateRegistrar'), DatesSectionLayout),
+        (_('States'), ('states', ), DirectSectionLayout),                        
     )
         
     def add_to_bottom(self):
@@ -181,6 +175,7 @@ class KeySetDetail(ObjectDetail):
         (_('Tech. contacts'), ('admins', ), DirectSectionLayout),
         (_('DS records'), ('dsrecords', ), DirectSectionLayout),
         (_('Dates'), ('createRegistrar', 'updateRegistrar'), DatesSectionLayout),
+        (_('States'), ('states', ), DirectSectionLayout),                        
     )
     
     def add_to_bottom(self):
