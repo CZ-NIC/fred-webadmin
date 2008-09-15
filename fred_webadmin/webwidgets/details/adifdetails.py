@@ -9,6 +9,10 @@ from fred_webadmin.webwidgets.details.adifdetaillayouts import DomainsNSSetDetai
 from fred_webadmin.webwidgets.adifwidgets import FilterPanel
 from fred_webadmin.corbalazy import CorbaLazyRequestIterStructToDict
 
+class AccessDetail(Detail):
+    password = CharDField(label=_('Password'))
+    md5Cert = CharDField(label=_('MD5')) # registrar name
+
 class RegistrarDetail(Detail):
     editable = True
     
@@ -37,12 +41,14 @@ class RegistrarDetail(Detail):
     email = EmailDField(label=_('Email')) # contact email
     url = CharDField(label=_('URL')) # URL
     hidden = CharDField(label=_('System registrar')) # hidden in PIF
-    #access = ListObjectDField(label=_('Authentication'), form_class=AccessEditForm, can_delete=True)
+    
+    access = ListObjectDField(detail_class=AccessDetail)
     
     sections = (
         (None, ('handle', 'organization', 'name', 'credit')),
         (_('Address'), ('street1', 'street2', 'street3', 'city', 'postalcode', 'stateorprovince', 'country')),
         (_('Other_data'), ('telephone', 'fax', 'email', 'url', 'hidden')),
+        (_('Authentication'), ('access', ), DirectSectionLayout),        
     )
 
     def add_to_bottom(self):
