@@ -75,12 +75,13 @@ class ObjectDetail(Detail):
     createRegistrar = ObjectDField(label=_('Create_registrar'), detail_class=RegistrarDetail)
     updateRegistrar = ObjectDField(label=('Update_registrar'), detail_class=RegistrarDetail)
     authInfo = CharNHDField(label=_('AuthInfo'))
-
-    states = BaseNHDField(        
-        StateDField(),
-        HistoryStateDField(),
-        label=_('States')
-    )
+    
+    states = HistoryStateDField()
+#    states = BaseNHDField(        
+#        StateDField(),
+#        HistoryStateDField(),
+#        label=_('States')
+#    )
 
 class ContactDetail(ObjectDetail):
     organization = CharNHDField(label=_('Organization'))
@@ -217,13 +218,14 @@ class DomainDetail(ObjectDetail):
     )
     
     sections = (
-        (None, ('handleEPPId', 'authInfo', 'states')),
+        (None, ('handleEPPId', 'authInfo')),
         (_('Dates'), ('createRegistrar', 'updateRegistrar'), DatesSectionLayout),
         (_('Owner'), ('registrant', ), DirectSectionLayout),
         (_('Selected registrar'), ('registrar', ), DirectSectionLayout),
         (_('Admin contacts'), ('admins', ), DirectSectionLayout),
         (_('NSSet'), ('nsset', ), DirectSectionLayout),
         (_('KeySet'), ('keyset', ), DirectSectionLayout),
+        (_('States'), ('states', ), DirectSectionLayout),                        
     )
     
     def add_to_bottom(self):
@@ -265,6 +267,15 @@ class PublicRequestDetail(Detail):
     answerEmail = ObjectHandleDField(label=_('Answer email'))
     createTime = CharDField(label=_('Create time'))
     resolveTime = CharDField(label=_('Close time'))
+    
+    def add_to_bottom(self):
+        if self.data:
+            self.media_files.append('/js/publicrequests.js')
+            self.add(FilterPanel([
+                [_('Accept_and_send'), "javascript:processPublicRequest('%s')" % (f_urls['publicrequest'] + 'resolve/?id=%s' % self.data.get('id'))],
+                [_('Invalidate_and_close'), "javascript:closePublicRequest('%s')" % (f_urls['publicrequest'] + 'close/?id=%s' % self.data.get('id'))],
+            ]))
+        super(PublicRequestDetail, self).add_to_bottom()
     
 class MailDetail(Detail):
     #objects = ListObjectHandleDField(label=_('Objects'))

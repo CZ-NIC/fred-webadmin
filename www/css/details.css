@@ -11,9 +11,12 @@
 	/*min-width: 3em;*/
 }
 
-.section_table, .filter_panel {
+.section_table, .section_div, .filter_panel {
 	width: 70em;
 	border: medium double gray;
+}
+
+.section_table, .filter_panel {
 	border-collapse: collapse;
 }
 
@@ -62,6 +65,10 @@
 	margin: 0px 0px -1px 0px;
 	width: 100%;
 }
+.section_div {
+	padding: 0px;
+	margin-left: -2px;
+}
 
 .history_dates_field { /* "from", "to" and "action" fiedl of history row */ 
 	background-color: #EEE;	
@@ -102,14 +109,16 @@
 	border: thin solid gray; 
 }
 .state_table td.state_on {
-	background-color: red;
-	color: red;
+	background-color: lightgray;
+	color: lightgray;
 	text-align: center;
 }
 .state_table .date_cell {
 	vertical-align: bottom;
 }
 .state_table .state_header_cell {
-	width: 1.5em;
+	width: 2em;
 	text-align: center;
 }
+
+

@@ -10,7 +10,7 @@ u2c = recoder.encode # recode from unicode to strings
 
 
 corba = Corba()
-corba.connect('jsadek')
+corba.connect('jsadek', 'fred-tom')
 
 a = corba.getObject('Admin', 'Admin')
 s=a.getSession(a.createSession('helpdesk'))

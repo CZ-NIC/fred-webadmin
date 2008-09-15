@@ -124,7 +124,7 @@ class AllFiltersPage(BaseSiteMenu):
         c = self.context
         if c.has_key('filters_list'):
             self.main.add(c['filters_list'])
-            lang_code = config.lang[0:2]
+            lang_code = config.lang[:2]
             if lang_code == 'cs': # conversion between cs and cz identifier of lagnguage
                 lang_code = 'cz'
             self.head.add(script(attr(type='text/javascript'), 
