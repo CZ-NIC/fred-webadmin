@@ -319,7 +319,7 @@ class FilterLoader(object):
                         value = date_time_interval_to_corba(val, date_to_corba)
                     elif isinstance(sub_filter, ccReg.Filters._objref_DateTime):
                         value = date_time_interval_to_corba(val, datetime_to_corba)
-                    elif isinstance(sub_filter, ccReg.Filters._objref_Int):
+                    elif isinstance(sub_filter, (ccReg.Filters._objref_Int, ccReg.Filters._objref_Id)):
                         value = int(val)
                     else:
                         value = val

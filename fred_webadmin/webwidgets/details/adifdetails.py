@@ -116,7 +116,7 @@ class ContactDetail(ObjectDetail):
             self.add(FilterPanel([
                 [_('Domains_owner'), 'domain', [{'Registrant.Handle': self.data.get('handle')}]],
                 [_('Domains_admin'), 'domain', [{'AdminContact.Handle': self.data.get('handle')}]],
-                [_('Domains_all'), 'domain', [{'Registrant.Handle': self.data.get('handle')}, {'AdminContact.Handle': self.data.get('handle')}]],
+                [_('Domains_all'), 'domain', [{'Registrant.Handle': self.data.get('handle')}, {'AdminContact.Handle': self.data.get('handle')}, {'TempContact.Handle': self.data.get('handle')}]],
                 [_('NSSets'), 'nsset', [{'TechContact.Handle': self.data.get('handle')}]],
                 [_('KeySets'), 'keyset', [{'TechContact.Handle': self.data.get('handle')}]],
                 [_('Actions'), 'action', [{'RequestHandle': self.data.get('handle')}]],

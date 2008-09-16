@@ -641,22 +641,23 @@ class HistoryStateDField(DField):
     
     def make_content(self):
         state_table = self.compute_state_data()
-        if self.owner_detail.history:
+        if self.owner_detail.history and len(state_table): # dont display history if state_table have no row
             self.content = []
+            
+            display_state_list = self.state_list[1:]
+            self.tag = 'table'
+            self.tattr_list = table.tattr_list
+            self.cssc = 'state_table section_table'
+            
+            
+            
+            # header
+            self.add(tr(th(_('Date')), [th(attr(cssc='state_header_cell', 
+                                                title=self.transform_title(_('Status'), self.get_state_title(state_id))), 
+                                           self.states_abbrev[state_id])
+                                           for state_id in display_state_list
+                                       ]))
             if state_table:
-                display_state_list = self.state_list[1:]
-                self.tag = 'table'
-                self.tattr_list = table.tattr_list
-                self.cssc = 'state_table section_table'
-                
-                
-                
-                # header
-                self.add(tr(th(_('Date')), [th(attr(cssc='state_header_cell', 
-                                                    title=self.transform_title(_('Status'), self.get_state_title(state_id))), 
-                                               self.states_abbrev[state_id])
-                                               for state_id in display_state_list
-                                           ]))
                 # date rows
                 for row in state_table:
                     tr_row = tr(th(attr(cssc='date_cell', title=self.transform_title(_('Statuses'), self.get_states_title_for_row(row))), row['row_date']))

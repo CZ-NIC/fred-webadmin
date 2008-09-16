@@ -6,7 +6,10 @@ import traceback
 import sys
 import adif
 from logging import debug, error
+
+import cherrypy
 from omniORB import CORBA
+
 from fred_webadmin.webwidgets.gpyweb.gpyweb import attr, div, p, pre
 from fred_webadmin import config
 from fred_webadmin.corba import ccReg, Registry
@@ -20,7 +23,9 @@ def catch_webadmin_exceptions_decorator(view_func):
         try:
             return view_func(*args, **kwd)
         except adif.CorbaServerDisconnectedException, e:
+            self.remove_session_data()
             return self._render('disconnected')
+            #raise cherrypy.HTTPRedirect('/disconnected/')
         except CORBA.TRANSIENT, e:
             error("BACKEND IS NOT RUNNING")
             #raise e

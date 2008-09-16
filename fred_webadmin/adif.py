@@ -318,7 +318,7 @@ class ListTableMixin(object):
         else:
             form_class = self._get_filterform_class()
             # bound form with data
-            if kwd.has_key('json_data') or kwd.get('json_linear_filter'):
+            if kwd.get('json_data') or kwd.get('json_linear_filter'):
                 if kwd.get('json_linear_filter'):
                     kwd['json_data'] = simplejson.dumps(convert_linear_filter_to_form_output(simplejson.loads(kwd['json_linear_filter'])))
                 debug('Form inicializuju datama' % kwd)
@@ -586,10 +586,21 @@ class AdifPage(Page):
         else:
             return self._render('404_not_found')
 
-    def _disconnected(self):
-        cherrypy.session['user'] = False
+    def remove_session_data(self):
+        cherrypy.session['user'] = None
         cherrypy.session['corbaSession'] = None
-        raise cherrypy.HTTPRedirect('/disconnected')
+        cherrypy.session['corbaSessionString'] = None
+        cherrypy.session['corba_server_name'] = None
+        cherrypy.session['Admin'] = None
+        cherrypy.session['Mailer'] = None
+        cherrypy.session['FileManager'] = None
+        cherrypy.session['filter_forms_javascript'] = None
+        
+
+#    def _disconnected(self):
+#        cherrypy.session['user'] = None
+#        cherrypy.session['corbaSession'] = None
+#        raise cherrypy.HTTPRedirect('/disconnected')
 
 #    @login_required
 #    def index(self):
@@ -641,6 +652,9 @@ class ADIF(AdifPage):
         
         
     def login(self, *args, **kwd):
+        if cherrypy.session.get('corbaSessionString'): # already logged in
+            debug('Already logged in, corbaSessionString = %s' % cherrypy.session.get('corbaSessionString'))
+            raise cherrypy.HTTPRedirect('/summary/')
         if kwd:
             if cherrypy.request.method == 'GET' and kwd.get('next'):
                 form = LoginForm(action='/login/', method='post')
@@ -681,9 +695,10 @@ class ADIF(AdifPage):
                 
                 cherrypy.session['history'] = False
                 get_corba_session().setHistory(False)
-                
 
-                raise cherrypy.HTTPRedirect(form.cleaned_data.get('next'))
+                redir_addr = form.cleaned_data.get('next')
+                raise cherrypy.HTTPRedirect(redir_addr)
+            
             except omniORB.CORBA.BAD_PARAM, e:
                 form.non_field_errors().append(_('Bad corba call! ') + '(%s)' % (str(e)))
                 if config.debug:
@@ -704,32 +719,26 @@ class ADIF(AdifPage):
         form.action = '/login/'
         return self._render('login', {'form': form})
         
-        
-        
     def logout(self):
         if cherrypy.session.get('Admin'):
             try:
                 cherrypy.session['Admin'].destroySession(u2c(cherrypy.session['corbaSessionString']))
             except CORBA.TRANSIENT, e:
                 debug('Admin.destroySession call failed, backend server is not running.\n%s' % e)
-        cherrypy.session['user'] = False
-        cherrypy.session['corbaSession'] = None
-        cherrypy.session['corba_server_name'] = None
-        cherrypy.session['Admin'] = None
-        cherrypy.session['Mailer'] = None
-        cherrypy.session['FileManager'] = None
-        cherrypy.session['filter_forms_javascript'] = None
+        self.remove_session_data()
         
         raise cherrypy.HTTPRedirect('/')
 
-    def disconnected(self):
-        if not cherrypy.session.get('corbaSessionString', None):
-            #html = self._template('disconnected', self.classname)
-            #here = self.here.copy()
-            #here['page']['content'] = html
-            return self._render('disconnected')
-        else:
-            raise cherrypy.HTTPRedirect('/')
+#    def disconnected(self):
+#        self.remove_session_data()
+#        return self._render('disconnected')
+##        if not cherrypy.session.get('corbaSessionString', None):
+##            #html = self._template('disconnected', self.classname)
+##            #here = self.here.copy()
+##            #here['page']['content'] = html
+##            return self._render('disconnected')
+##        else:
+##            raise cherrypy.HTTPRedirect('/')
 
 
 

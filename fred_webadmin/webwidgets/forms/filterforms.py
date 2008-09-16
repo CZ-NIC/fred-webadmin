@@ -18,7 +18,7 @@ from fred_webadmin.corbalazy import CorbaLazyRequest, CorbaLazyRequest1V2L, Corb
 from fred_webadmin.corba import ccReg
 from fred_webadmin.mappings import f_urls
 
-__all__ = ['UnionFilterForm', 'RegistrarFilterForm', 
+__all__ = ['UnionFilterForm', 'RegistrarFilterForm', 'ObjectStateFilterForm', 
            'ObjectFilterForm', 'ContactFilterForm', 'NSSetFilterForm', 'KeySetFilterForm', 'DomainFilterForm', 
            'ActionFilterForm', 'FilterFilterForm', 'PublicRequestFilterForm', 
            'InvoiceFilterForm', 'MailFilterForm', 'FileFilterForm',
@@ -262,6 +262,16 @@ class RegistrarFilterForm(FilterForm):
 #    crDate = DateIntervalField(label=_('Registration date'))
 #    upDate = DateIntervalField(label=_('Update date'))
     
+class ObjectStateFilterForm(FilterForm):
+    default_field_names = ['StateId']
+
+    #StateId = IntegerField(label=_('State Id')) 
+    StateId = ChoiceField(label=_('State Type'), choices=CorbaLazyRequestIterStruct('Admin', 'getObjectStatusDescList', ['id', 'shortName'], config.lang[:2]))
+
+    ValidFrom = DateTimeIntervalField(label=_('Valid from'))
+    ValidTo = DateTimeIntervalField(label=_('Valid to'))
+
+
 class ObjectFilterForm(FilterForm):
     default_fields_names = ['Handle']
     
@@ -276,6 +286,9 @@ class ObjectFilterForm(FilterForm):
     UpdateTime = DateTimeIntervalField(label=_('Update date'))
     TransferTime = DateTimeIntervalField(label=_('Transfer date'))
     DeleteTime = DateTimeIntervalField(label=_('Delete date'))
+
+    ObjectState = CompoundFilterField(label=_('Object state'), form_class=ObjectStateFilterForm)
+
     
 class ContactFilterForm(ObjectFilterForm):
     default_fields_names = ObjectFilterForm.default_fields_names + ['Name']
@@ -412,6 +425,7 @@ form_classes = (DomainFilterForm,
                 FileFilterForm,
                 InvoiceFilterForm,
                 MailFilterForm,
+                ObjectStateFilterForm
                )
 
 def get_filter_forms_javascript():
