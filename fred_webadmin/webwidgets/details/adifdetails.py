@@ -31,15 +31,15 @@ class RegistrarDetail(Detail):
     postalcode = CharDField(label=_('ZIP')) # address part
     country = CharDField(label=_('Country')) # country code
     
-    ico = CharDField(label=_('ICO'))
-    dic = CharDField(label=_('DIC'))
-    varSymb = CharDField(label=_('Var. Symbol'))
-    vat = CharDField(label=_('DPH'))
 
     telephone = CharDField(label=_('Telephone')) # phne number
     fax = CharDField(label=_('Fax')) # fax number
     email = EmailDField(label=_('Email')) # contact email
     url = CharDField(label=_('URL')) # URL
+    ico = CharDField(label=_('ICO'))
+    dic = CharDField(label=_('DIC'))
+    varSymb = CharDField(label=_('Var. Symbol'))
+    vat = CharDField(label=_('DPH'))
     hidden = CharDField(label=_('System registrar')) # hidden in PIF
     
     access = ListObjectDField(detail_class=AccessDetail)
@@ -47,7 +47,7 @@ class RegistrarDetail(Detail):
     sections = (
         (None, ('handle', 'organization', 'name', 'credit')),
         (_('Address'), ('street1', 'street2', 'street3', 'city', 'postalcode', 'stateorprovince', 'country')),
-        (_('Other_data'), ('telephone', 'fax', 'email', 'url', 'hidden')),
+        (_('Other_data'), ('telephone', 'fax', 'email', 'url', 'ico', 'dic', 'varSymb', 'vat', 'hidden')),
         (_('Authentication'), ('access', ), DirectSectionLayout),        
     )
 
