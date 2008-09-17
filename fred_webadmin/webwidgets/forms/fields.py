@@ -10,6 +10,7 @@ from logging import debug
 from fred_webadmin.webwidgets.gpyweb.gpyweb import WebWidget, attr, select, option, span, input
 from fred_webadmin.webwidgets.utils import ValidationError, ErrorList, isiterable
 from fred_webadmin.translation import _
+from fred_webadmin.utils import LateBindingProperty
 
 EMPTY_VALUES = (None, '')
 
@@ -603,6 +604,7 @@ class ChoiceField(Field):
         
         if value not in valid_values:
             raise ValidationError(_(u'Select a valid choice. That choice is not one of the available choices.'))
+            #raise ValidationError(_(u'Select a valid choice. That choice %s is not one of the available choices %s.' % (repr(value), valid_values)))
         return value
     
     def set_from_clean(self, value):
@@ -749,12 +751,13 @@ class MultiValueField(Field):
         else:
             self._value = value
             if not isiterable(value) and len(value) != len(self.fields):
-                raise TypeError(u'value of MultiField must be sequence with same length as number of fields in multifield (was %s)' % unicode(value))
+                raise TypeError(u'value of MultiValueField must be sequence with the same length as a number of fields in multifield (was %s)' % unicode(value))
             for i, val in enumerate(value):
                 self.fields[i].value = val
     def _get_value(self):
         return self._value
-    value = property(fget=lambda self: self._get_value(), fset=lambda self, value: self._set_value(value)) # late binding property
+#    value = property(fget=lambda self: self._get_value(), fset=lambda self, value: self._set_value(value)) # late binding property
+    value = LateBindingProperty(_get_value, _set_value)
 
         
     def make_content(self):
@@ -779,8 +782,8 @@ class MultiValueField(Field):
         clean_data = []
         errors = ErrorList()
 
-        for i, field in enumerate(self.fields):
-            if self.required and field.is_required and field.is_empty():
+        for field in self.fields:
+            if self.required and field.required and field.is_empty():
                 raise ValidationError(_(u'This field is required.'))
             try:
                 clean_data.append(field.clean())
@@ -788,7 +791,7 @@ class MultiValueField(Field):
                 # Collect all validation errors in a single list, which we'll
                 # raise at the end of clean(), rather than raising a single
                 # exception for the first error we encounter.
-                errors.extend(e.messages)
+                errors.extend([self.name] + e.messages)
         if errors:
             raise ValidationError(errors)
         return self.compress(clean_data)
@@ -814,10 +817,13 @@ class MultiValueField(Field):
 
     def set_from_clean(self, value):
         val = self.decompress(value)
-        self._value = val 
-        if not isiterable(val) and len(val) != len(self.fields):
-            raise TypeError(u'value of MultiField must be sequence with same length as number of fields in multifield (was %s)' % unicode(val))
-        for i, v in enumerate(val):
+        if value:
+            self._value = val 
+    #        if not isiterable(val) and len(val) != len(self.fields):
+    #            raise TypeError(u'value of MultiValueField must be sequence with same length as number of fields in multifield (was %s)' % unicode(val))
+        else: # value is empty string (comes from _set_one_compound_filter in FilterLoader)
+            self.value = val
+        for i, v in enumerate(self.value):
             self.fields[i].set_from_clean(v)
 
     def value_from_datadict(self, data):

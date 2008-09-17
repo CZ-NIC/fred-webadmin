@@ -208,7 +208,6 @@ class ListTableMixin(object):
             sort_dir = True
         
         
-        #[ filters.__setitem__(x[7:], kwd[x]) for x in kwd if x.startswith('filter_') ]
         if cleaned_filters is not None:
             table.set_filter(cleaned_filters)
             if kwd.get('save_input'): # save filter
@@ -221,7 +220,6 @@ class ListTableMixin(object):
             table.load_filter(int(kwd.get('filter_id')))
             if kwd.get('show_form') or not table.all_fields_filled():
                 show_result = False
-                #import pdb;pdb.set_trace()
                 filter_data = table.get_filter_data()
                 form_class = self._get_filterform_class()
                 context['form'] = UnionFilterForm(filter_data, data_cleaned=True, form_class=form_class)
@@ -238,7 +236,9 @@ class ListTableMixin(object):
             form_class = self._get_filterform_class()
             form = UnionFilterForm(cleaned_filter_data, form_class=form_class, data_cleaned=True)
             context['form'] = form
-            context['main'].add('kwd_json_data_loaded:', cleaned_filter_data)
+            context['show_form'] = kwd.get('show_form')
+            if config.debug:
+                context['main'].add('kwd_json_data_loaded:', cleaned_filter_data)
         if kwd.get('list_all'):
             table.clear_filter()
             table._table.add()
@@ -304,17 +304,17 @@ class ListTableMixin(object):
                 return self._filter_json_header()
 
         if kwd:
-            debug('prisla data %s' % kwd)
+            debug('Incomming data: %s' % kwd)
         context = {'main': div()}
         
         action = 'filter'
         if kwd.get('list_all'):
             action = 'list'
-        
-        if kwd.get('cf') or kwd.get('page') or kwd.get('load') or kwd.get('list_all') or kwd.get('filter_id') or kwd.get('sort_col'): # clear filter - whole list of objects without using filter form
-            context = self._get_list(context, **kwd)
-        elif kwd.get('txt') or kwd.get('csv'):
+
+        if kwd.get('txt') or kwd.get('csv'):
             return self._get_list(context, **kwd)
+        elif kwd.get('cf') or kwd.get('page') or kwd.get('load') or kwd.get('list_all') or kwd.get('filter_id') or kwd.get('sort_col'): # clear filter - whole list of objects without using filter form
+            context = self._get_list(context, **kwd)
         else:
             form_class = self._get_filterform_class()
             # bound form with data

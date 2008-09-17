@@ -276,7 +276,7 @@ class IterTable(object):
 
 class CorbaFilterIterator(object):
     def __init__(self, filter_iterable):
-        debug("VYTVARIM CORBAFITERATOR")
+        debug("Creating CORBAFITERATOR")
         self.iter = filter_iterable.getIterator()
         self.iter.reset()
     
@@ -314,6 +314,7 @@ class FilterLoader(object):
                 cls._set_one_compound_filter(sub_filter, val)
             else:
                 debug("Setting VAL %s" % val)
+                sub_filter._set_neg(u2c(neg))
                 if not isinstance(val, FilterFormEmptyValue): # set only filters, that are active (have value) - 
                     if isinstance(sub_filter, ccReg.Filters._objref_Date):
                         value = date_time_interval_to_corba(val, date_to_corba)
@@ -326,7 +327,7 @@ class FilterLoader(object):
     
                     debug('SETTING VALUE TO SUBFILTer: %s' % u2c(value))
                     sub_filter._set_value(u2c(value))
-                    sub_filter._set_neg(u2c(neg))
+                    
                 
         
     @classmethod

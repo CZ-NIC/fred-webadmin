@@ -54,9 +54,13 @@ class RegistrarDetail(Detail):
     def add_to_bottom(self):
         if self.data:
             self.add(FilterPanel([
-                [_('Domains_selected'), 'domain', [{'Registrar.Handle': self.data.get('handle')}]],
-                [_('Domains_creating'), 'domain', [{'CreateRegistrar.Handle': self.data.get('handle')}]],
-                [_('Contacts'), 'contact', [{'Registrar.Handle': self.data.get('handle')}]],
+                [_('Domains sel.'), 'domain', [{'Registrar.Handle': self.data.get('handle')}]],
+                [_('Domains cr.'), 'domain', [{'CreateRegistrar.Handle': self.data.get('handle')}]],
+                [_('Contact sel.'), 'contact', [{'Registrar.Handle': self.data.get('handle')}]],
+                [_('Contact cr.'), 'contact', [{'CreateRegistrar.Handle': self.data.get('handle')}]],
+                [_('NSSet sel.'), 'nsset', [{'Registrar.Handle': self.data.get('handle')}]],
+                [_('NSSet cr.'), 'nsset', [{'CreateRegistrar.Handle': self.data.get('handle')}]],
+                #[_('Contacts'), 'contact', [{'Registrar.Handle': self.data.get('handle')}]],
                 [_('Actions'), 'action', [{'Registrar.Handle': self.data.get('handle')}]],
                 #[_('Emails'), 'mail', [{'Object.Registrar.Handle': self.data.get('handle')}]],
                 [_('Emails'), 'mail', [{'Message': self.data.get('name')}]],

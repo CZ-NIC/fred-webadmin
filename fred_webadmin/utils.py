@@ -44,6 +44,10 @@ def get_current_url(request = None):
 
 def append_getpar_to_url(url, getpar_string):
     ''' Appends HTTP GET parameters to url'''
+    # check if get_par_string isn't already in url:
+    if url.find(getpar_string) != -1:
+        return url
+    
     if url.find('?') != -1:
         url += '&'
     else:

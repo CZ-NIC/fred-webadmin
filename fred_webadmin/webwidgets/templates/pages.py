@@ -5,7 +5,7 @@ from fred_webadmin.webwidgets.forms.filterforms import get_filter_forms_javascri
 from fred_webadmin.webwidgets.table import WIterTable
 from fred_webadmin.translation import _
 from fred_webadmin import config
-from fred_webadmin.utils import get_current_url
+from fred_webadmin.utils import get_current_url, append_getpar_to_url
 
 from details import ContactDetailDiv, DomainDetailDiv, NSSetDetailDiv, ActionDetailDiv, RegistrarDetailDiv, PublicRequestDetailDiv, MailDetailDiv, InvoiceDetailDiv
 from fred_webadmin.webwidgets.details import adifdetails
@@ -152,9 +152,11 @@ class FilterPage(BaseSiteMenu):
                              'scwLanguage = "%s"; //sets language of js_calendar' % lang_code,
                              'scwDateOutputFormat = "%s"; // set output format for js_calendar' % config.js_calendar_date_format))
                      
-        if context.get('form') and (config.debug or not c.get('itertable')):
+        if context.get('form') and (config.debug or not c.get('itertable') or c.get('show_form')):
             self.main.add(c.form)
-            self.main.add(script(attr(type='text/javascript'), 'Ext.onReady(function () {addFieldsButtons()})')) 
+            self.main.add(script(attr(type='text/javascript'), 'Ext.onReady(function () {addFieldsButtons()})'))
+        else:
+            self.main.add(a(attr(href=append_getpar_to_url(get_current_url(), 'load=1&show_form=1')), _('Modify filter'))) 
             
             #print "VKLADAM JS FORMU"
             #import cProfile
