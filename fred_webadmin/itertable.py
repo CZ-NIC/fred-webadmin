@@ -27,7 +27,7 @@ class IterTable(object):
         data sets without running out of memory.
     """
     def __init__(self, request_object, sessionKey, pagesize=50):
-        debug('Creating IterTable')
+        debug('Creating IterTable of type %s' % request_object)
         super(IterTable, self).__init__(self)
         self.iterable = True
         self.request_object = request_object

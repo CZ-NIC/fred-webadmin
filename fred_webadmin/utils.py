@@ -1,5 +1,6 @@
 import datetime
 import cherrypy
+from cherrypy.lib import http
 import simplejson
 from omniORB.any import from_any
 from logging import debug
@@ -38,23 +39,35 @@ def get_current_url(request = None):
     if request is None:
         request = cherrypy.request
     addr = request.path_info
+
     if request.query_string:
         addr += '?' + request.query_string
     return addr
 
-def append_getpar_to_url(url, getpar_string):
-    ''' Appends HTTP GET parameters to url'''
-    # check if get_par_string isn't already in url:
-    if url.find(getpar_string) != -1:
-        return url
-    
-    if url.find('?') != -1:
-        url += '&'
+def append_getpar_to_url(url=None, add_par_dict = None, del_par_list = None):
+    ''' Appends HTTP GET parameters to url from add_par_dict
+        and deletes HTTP GET parameters of name given in del_par_list.
+        If url is not specified, current url is taken
+    '''
+    if url == None:
+        url = cherrypy.request.path_info
+        get_pars = dict(http.parse_query_string(cherrypy.request.query_string)) # copy params of current url
     else:
-        url += '?'
-    url += getpar_string
-    return url
+        get_pars = {}
+        raise NotImplementedError('Appending parametr to custom url was not yet added (need to parse url)')
     
+    if add_par_dict:
+        get_pars.update(add_par_dict)
+        
+    if del_par_list:
+        for par_name in del_par_list:
+            if get_pars.has_key(par_name):
+                get_pars.pop(par_name)
+    
+    url += '?' + '&'.join(['%s=%s' % par for par in get_pars.items()])
+    
+    return url
+
 
 def get_corba_session():
     try:

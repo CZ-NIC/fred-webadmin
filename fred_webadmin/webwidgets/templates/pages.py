@@ -156,7 +156,7 @@ class FilterPage(BaseSiteMenu):
             self.main.add(c.form)
             self.main.add(script(attr(type='text/javascript'), 'Ext.onReady(function () {addFieldsButtons()})'))
         else:
-            self.main.add(a(attr(href=append_getpar_to_url(get_current_url(), 'load=1&show_form=1')), _('Modify filter'))) 
+            self.main.add(a(attr(href=append_getpar_to_url(add_par_dict={'load': 1, 'show_form': 1})), _('Modify filter'))) 
             
             #print "VKLADAM JS FORMU"
             #import cProfile

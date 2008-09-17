@@ -19,11 +19,7 @@ class WIterTable(table):
         sort_col_num, sort_direction = itertable.get_sort()
         
         header = tr(attr(cssc="wi_header"))
-        current_url = get_current_url()
-        parsed_url = list(urlparse.urlsplit(current_url))
-        # remove previous sort_ GET parameters from url:
-        parsed_url[3] = ''.join([getpar for getpar in parsed_url[3].split('&') if not getpar.startswith('sort_')])
-        current_url = urlparse.urlunsplit(parsed_url)
+
         for i, htext in enumerate(itertable.header):
             col_num = i - 1
             if col_num == -1: # first column is ID
@@ -32,7 +28,7 @@ class WIterTable(table):
                 sort_dir = 1
                 if col_num == sort_col_num and sort_direction: # rendering column, according which is table sorted, so reverse direction for next click on this column 
                     sort_dir = 0
-                th_cell = th(a(attr(href=append_getpar_to_url(current_url, "sort_col=%d&sort_dir=%d" % (col_num, sort_dir))), htext))
+                th_cell = th(a(attr(href=append_getpar_to_url(add_par_dict={'sort_col': col_num, 'sort_dir': sort_dir}, del_par_list=['load', 'show_form'])), htext))
                 if col_num == sort_col_num:
                     th_cell.cssc = 'sorted ' + ['ascending', 'descending'][sort_direction]
                 header.add(th_cell)
