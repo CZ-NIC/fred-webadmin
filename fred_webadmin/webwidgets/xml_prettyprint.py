@@ -21,18 +21,21 @@ except ImportError:
 
 
 def format_xml(xml_string):
-    doc = xml.dom.minidom.parseString(xml_string)
+    doc = xml.dom.minidom.parseString(xml_string.encode('utf-8')) # minidom works only with byte string
     doc.normalize()
     f = StringIO.StringIO()
     PrettyPrint(doc, f)
     f.seek(0,0)
-    formated_xml = f.read()
+    formated_xml = f.read().decode('utf-8')
     return formated_xml
 
 def xml_highlight(xml_string):
-    formated_xml = format_xml(xml_string)
-    highlight_xml = highlight(formated_xml, XmlLexer(), HtmlFormatter(linenos=True))
-    return highlight_xml
+    if xml_string:
+        formated_xml = format_xml(xml_string)
+        highlight_xml = highlight(formated_xml, XmlLexer(), HtmlFormatter(linenos=True))
+        return highlight_xml
+    else:
+        return ''
     
 def uglify(xml):
     return '\n'.join('\n<'.join('>\n'.join(xml.split('>')).split('<')).split('\n\n'))

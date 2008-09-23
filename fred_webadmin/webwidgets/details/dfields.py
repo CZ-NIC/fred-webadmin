@@ -3,7 +3,7 @@
 
 from copy import copy
 import cherrypy
-from omniORB.any import from_any
+from omniORB.any import from_any, to_any
 from omniORB import CORBA
 from datetime import datetime
 import time
@@ -14,13 +14,12 @@ from fred_webadmin.mappings import f_urls
 from detaillayouts import SectionDetailLayout, TableRowDetailLayout, TableColumnsDetailLayout
 from fred_webadmin.utils import get_detail_from_oid
 from fred_webadmin.translation import _
-from fred_webadmin.utils import corba_to_datetime, LateBindingProperty
+from fred_webadmin.utils import corba_to_datetime, datetime_to_corba, LateBindingProperty
 from fred_webadmin.corba import ccReg, Registry
 from fred_webadmin.webwidgets.xml_prettyprint import xml_prettify_webwidget
 from fred_webadmin.mappings import f_enum_name, f_name_detailname
 import fred_webadmin.webwidgets.details.adifdetails# as details_module
 from fred_webadmin.corbalazy import CorbaLazyRequestIter
-
 
 def resolve_object(obj_data):
     ''' Returns object from data, where data could be OID, OID in CORBA.Any, or just data isself
@@ -200,24 +199,31 @@ class ObjectHandleURLDField(MultiValueDField):
 #    def value_from_data(self, data):
 #        return self.resolve_value([data.get(self.id_name), data.get(self.handle_name)])
 
-class DiscloseCharDField(CharDField):
-    ''' Field which get additional boolean value (usualy dislose + self.name.capitalize(), but can be specified),
+class DiscloseCharDField(DField):
+    ''' Field which get additional boolean value (usualy dislose + self.name[1].upper() + self.name[1:], but can be specified),
         and display main value in span with red or greed background according to dislose value flag).
     '''
-    def __init__(self, name='', label=None, disclose_name = None, *content, **kwd):
-        super(DiscloseCharDField, self).__init__(name, label, *content, **kwd)
-        if disclose_name is None:
-            self.disclose_name = 'disclose' + self.name.capitalize()
-        else:
-            self.disclose_name = disclose_name
+        
         
     def make_content(self):
         self.content = []
-        cssc = 'disclose' + self.value[1] # => 'discloseTrue' or 'discloseFalse'
-        self.add(span(attr(cssc=cssc), self.value[0]))
-        
-    def value_from_data(self, data):
-        return self.resolve_value([data.get(self.name), data.get(self.disclose_name)])
+        cssc = 'disclose' + unicode(self.value[1]) # => 'discloseTrue' or 'discloseFalse'
+        if self.value[0] == '':
+            self.add(div(attr(cssc=cssc + ' field_empty')))
+        else:
+            self.add(span(attr(cssc=cssc), self.value[0]))
+    
+    def on_add(self):
+        super(DiscloseCharDField, self).on_add()
+        if self.parent_widget:
+            cssc = 'disclose' + unicode(self.value[1]) # => 'discloseTrue' or 'discloseFalse'
+            if getattr(self.parent_widget, 'cssc', False):
+                self.parent_widget.cssc += ' ' + cssc
+            else:
+                self.parent_widget.cssc = cssc
+
+#    def value_from_data(self, data):
+#        return self.resolve_value([data.get(self.name), data.get(self.disclose_name)])
     
     
 
@@ -258,8 +264,8 @@ class ObjectDField(DField):
         self.layout_class = layout_class
     
     def resolve_value(self, value):
-        if self.detail_class is None:
-            self.detail_class = resolve_detail_class(value)
+#        if self.detail_class is None:
+#            self.detail_class = resolve_detail_class(value)
         return resolve_object(value)
     
     def create_inner_detail(self):
@@ -398,6 +404,7 @@ class HistoryDField(DField):
 
     
     def on_add(self):
+        super(HistoryDField, self).on_add()
         if self.parent_widget and self.parent_widget.tag == 'td':
             self.parent_widget.style = 'padding: 0px'
 
@@ -717,6 +724,7 @@ class BaseNHDField(DField):
     owner_detail = LateBindingProperty(_get_owner_detail, _set_owner_detail)
     
     def on_add(self):
+        super(BaseNHDField, self).on_add()
         self.current_field.parent_widget = self.parent_widget
         self.current_field.on_add() 
         
@@ -763,20 +771,77 @@ class CharNHDField(NHDField):
         super(CharNHDField, self).__init__(CharDField(), HistoryDField(inner_field = CharDField()), *content, **kwd)
 
 class DiscloseCharNHDField(NHDField):
-    def __init__(self, *content, **kwd):
+    def __init__(self, disclose_name = None, *content, **kwd):
         super(DiscloseCharNHDField, self).__init__(DiscloseCharDField(), HistoryDField(inner_field=DiscloseCharDField()), *content, **kwd)
+        self.disclose_name = disclose_name
+    
+    def merge_histories(self, hist1, hist2):
+        ''' Merge histories of field and his dislose flag, If time is the same, 
+            then histories are sorted/merged according to actionId 
+            (if actionId is the same, then they are merged, otherwise sorted):
+        '''
+        all_dates = {} # key is (date, action_id), value is couple list of couple [hist_number, history record]
+        
+        for hist_num, hist in enumerate([hist1, hist2]):
+            for rec in hist:
+                from_date = corba_to_datetime(rec._from)
+                if from_date: # from/to date can be empty, in that case we ignore it
+                    key = (from_date, rec.actionId)
+                    val = [hist_num, rec]
+                    if all_dates.has_key(key):
+                        all_dates[key].append(val)
+                    else:
+                        all_dates[key] = [val]
+        
+        new_hist = []
+        last_hist_vals = {0: from_any(hist1[0].value, True), 
+                          1: from_any(hist2[0].value, True)}
+        last_hist_tos = {0: None,
+                         1: None}
+        
+        for key, rec_list in sorted(all_dates.items()):
+            for hist_num, rec in rec_list:
+                last_hist_vals[hist_num] = from_any(rec.value, True)
+                last_hist_tos[hist_num] = corba_to_datetime(rec.to)
+            value = to_any([last_hist_vals[0], last_hist_vals[1]])
+            action_id = rec_list[0][1].actionId
+            _from = rec_list[0][1]._from
+            
+            to_dict = dict([(hist_num, corba_to_datetime(rec.to)) for hist_num, rec in rec_list if corba_to_datetime(rec.to)])
+            for hist_num in (0, 1):
+                if not to_dict.has_key(hist_num):
+                    to_dict[hist_num] = last_hist_tos[hist_num]
+                if to_dict[hist_num] is None: # remove None
+                    to_dict.pop(hist_num)
+            if to_dict:
+                to = datetime_to_corba(min(to_dict.values()))
+            else: # all are NULL dates, take one of them
+                to = rec_list[0][1].to
+            new_rec = Registry.HistoryRecord(_from=_from, to=to, value=value, actionId = action_id)
+            new_hist.append(new_rec)
+        
+        return list(reversed(new_hist))
     
     def value_from_data(self, data):
-        value_name = data.get(self.name)
-        value_disclose = data.get(self.disclose_name)
+        # this 'if' cannot be in __init__ becouse name is not known in construction time:
         
-        if self.owner_detail.history and len(value) > 1 and not self.owner_detail.is_nested:
-            self.displaying_history = True
-            self.history_field.owner_detail = self.owner_detail
-            self.current_field = self.history_field
-            return value
-        elif value:
-            self.normal_field.owner_detail = self.owner_detail
-            self.current_field = self.normal_field
-            return from_any(value[0].value, True)
+        if self.disclose_name is None:
+            self.disclose_name = 'disclose' + self.name[0].upper() + self.name[1:]
+
+        value_name = data[self.name]
+        value_disclose = data[self.disclose_name]
+
+        value = self.merge_histories(value_name, value_disclose)
+        return super(DiscloseCharNHDField, self).value_from_data({self.name: value})
+#        
+#        
+#        if self.owner_detail.history and len(value) > 1 and not self.owner_detail.is_nested:
+#            self.displaying_history = True
+#            self.history_field.owner_detail = self.owner_detail
+#            self._assign_current_field(self.history_field)
+#            return value
+#        elif value:
+#            self.normal_field.owner_detail = self.owner_detail
+#            self._assign_current_field(self.normal_field)
+#            return from_any(value[0].value, True)
     

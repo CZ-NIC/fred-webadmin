@@ -23,17 +23,17 @@ f_header_ids = dict([(name, 'CT_%s_ID' % (name.upper())) for name in f_name_enum
 # dict {OT_*, classname}, where OT_* is from _Admin.idl ObjectType 
 f_objectType_name = dict([(item, item._n[3:].lower()) for item in ccReg.PublicRequest.ObjectType._items])
 
-f_name_filterformname = dict([(item._n[3:].lower(), item._n[3:].lower().capitalize() + 'FilterForm') for item in ccReg.FilterType._items])
+f_name_filterformname = dict([(item._n[3:].lower(), item._n[3:].capitalize() + 'FilterForm') for item in ccReg.FilterType._items])
 f_name_filterformname['nsset'] = 'NSSetFilterForm' 
 f_name_filterformname['keyset'] = 'KeySetFilterForm' 
 f_name_filterformname['publicrequest'] = 'PublicRequestFilterForm' 
 
-f_name_editformname = dict([(item._n[3:].lower(), item._n[3:].lower().capitalize() + 'EditForm') for item in ccReg.FilterType._items])
+f_name_editformname = dict([(item._n[3:].lower(), item._n[3:].capitalize() + 'EditForm') for item in ccReg.FilterType._items])
 f_name_editformname['nsset'] = 'NSSetEditForm' 
 f_name_editformname['keyset'] = 'KeySetEditForm' 
 f_name_editformname['publicrequest'] = 'PublicRequestEditForm'
 
-f_name_detailname = dict([(item._n[3:].lower(), item._n[3:].lower().capitalize() + 'Detail') for item in ccReg.FilterType._items])
+f_name_detailname = dict([(item._n[3:].lower(), item._n[3:].capitalize() + 'Detail') for item in ccReg.FilterType._items])
 f_name_detailname['nsset'] = 'NSSetDetail' 
 f_name_detailname['keyset'] = 'KeySetDetail' 
 f_name_detailname['publicrequest'] = 'PublicRequestDetail'

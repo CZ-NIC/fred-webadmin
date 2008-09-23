@@ -25,6 +25,7 @@ iors = (#(label, nshost, nscontext),
         (u'maňásek-tom', 'jsadek', 'fred-tom'),
         (u'localní', 'localhost', 'fred'),
         (u'maňásek', 'jsadek', 'fred'),
+        (u'glin-server-maňásek-name-glin', 'jsadek', 'fred-glin'),
         (u'hokuston2', 'pokuston', 'fred2'), 
         (u'hokuston', 'pokuston:32346', 'fred'), 
         (u'koliha', 'curlew', 'fred'),
@@ -35,7 +36,7 @@ auth_method = 'LDAP' # 'LDAP', 'CORBA'
 LDAP_server = 'ldap.office.nic.cz'
 LDAP_scope = 'uid=%s,ou=People,dc=nic,dc=cz'
 
-tablesize = 45
+tablesize = 50
 
 # gettext
 gettext_domain = 'adif'

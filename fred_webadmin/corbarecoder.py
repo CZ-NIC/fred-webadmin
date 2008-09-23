@@ -110,3 +110,22 @@ class CorbaRecode(object):
                 if type(item) in self.IterTypes:
                     answer.__dict__[name] = [ self.encode(x) for x in item ]
             return answer
+
+#    def decode_to_dict(self, corba_obj):
+#        ''' Takes corba object and return dict created from it, its values are recursively
+#            decoded to dict, too.
+#            CORBA.Any is resolved to object (and than converted to dict as well).
+#        '''
+#        if isinstance(corba_obj, CORBA.Any):
+#            corba_obj = from_any(corba_obj, True)
+#        if type(corba_obj) in types.StringTypes:
+#            return corba_obj.decode(self.coding)
+#        if type(corba_obj) in self.BasicTypes:
+#            return corba_obj
+#        elif type(corba_obj) in self.IterTypes:
+#            return [ self.decode_to_dict(x) for x in corba_obj ]
+#        elif type(corba_obj) == types.InstanceType:
+#            obj_dict = dict(corba_obj.__dict__)
+#            for key, val in obj_dict:
+#                obj_dict[key] = self.decode_to_dict(val)
+#            return obj_dict

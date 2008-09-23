@@ -305,11 +305,10 @@ class FilterLoader(object):
     def _set_one_compound_filter(cls, compound, filter_data):
         debug('filter_data in set_one_compound_filter: %s' % filter_data)
         for key, [neg, val] in filter_data.items():
-            #func = getattr(compound, "add%s" % (key[0].capitalize() + key[1:])) # capitalize only first letter
             func = getattr(compound, "add%s" % key)
             sub_filter = func() # add
             debug("SUB_FILTER: %s" % sub_filter)
-#            import pdb; pdb.set_trace()
+
             if isinstance(sub_filter, ccReg.Filters._objref_Compound): # Compound:
                 cls._set_one_compound_filter(sub_filter, val)
             else:
@@ -342,7 +341,7 @@ class FilterLoader(object):
     def _get_one_compound_filter_data(cls, compound_filter):
         filter_data = {}
         for sub_filter in CorbaFilterIterator(compound_filter):
-            name = sub_filter._get_name()
+            name = c2u(sub_filter._get_name())
             debug('NAME=%s %s' % (name, type(name)))
             neg = sub_filter._get_neg()
             if isinstance(sub_filter, ccReg.Filters._objref_Compound):#Compound):
@@ -355,7 +354,7 @@ class FilterLoader(object):
                     elif isinstance(sub_filter, ccReg.Filters._objref_DateTime):
                         value = corba_to_date_time_interval(val, corba_to_datetime)
                     else:
-                        value = val
+                        value = c2u(val)
                 else:
                     value = ''
             
