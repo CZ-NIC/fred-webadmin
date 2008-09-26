@@ -1,3 +1,21 @@
+2008-09-26 Tomas Divis (version 3.0.1)
+
+    * Filters can be modified
+
+    * Refactoring of display for disclose fields (with history)
+
+    * Displaying status of all types of objects and filter according to status
+
+2008-08-15 Tomas Divis (version 3.0.0)
+
+    * Adding KeySet object searching and details
+
+    * All object details contain history changes
+
+2008-07-10 Tomas Divis (version 2.2.0)
+
+    * release
+
 2008-06-24 Jaromir Talir (version 2.1.0)
 	
     * release
