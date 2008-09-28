@@ -207,7 +207,7 @@ class DiscloseCharDField(DField):
         
     def make_content(self):
         self.content = []
-        cssc = 'disclose' + unicode(self.value[1]) # => 'discloseTrue' or 'discloseFalse'
+        cssc = 'disclose' + unicode(bool(self.value[1])) # => 'discloseTrue' or 'discloseFalse'
         if self.value[0] == '':
             self.add(div(attr(cssc=cssc + ' field_empty')))
         else:
@@ -216,7 +216,7 @@ class DiscloseCharDField(DField):
     def on_add(self):
         super(DiscloseCharDField, self).on_add()
         if self.parent_widget:
-            cssc = 'disclose' + unicode(self.value[1]) # => 'discloseTrue' or 'discloseFalse'
+            cssc = 'disclose' + unicode(bool(self.value[1])) # => 'discloseTrue' or 'discloseFalse'
             if getattr(self.parent_widget, 'cssc', False):
                 self.parent_widget.cssc += ' ' + cssc
             else:
