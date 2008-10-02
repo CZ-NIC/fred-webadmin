@@ -257,7 +257,8 @@ class ListTableMixin(object):
                 cherrypy.response.headers["Content-Disposition"] = "inline; filename=%s_%s.txt" % (self.classname, time.strftime('%Y-%m-%d'))
                 return fileGenerator(table)
             elif kwd.get('csv', None):
-                cherrypy.response.headers["Content-Type"] = "application/vnd.ms-excel"
+                #cherrypy.response.headers["Content-Type"] = "application/vnd.ms-excel"
+                cherrypy.response.headers["Content-Type"] = "text/plain"
                 cherrypy.response.headers["Content-Disposition"] = "attachement; filename=%s_%s.csv" % (self.classname, time.strftime('%Y-%m-%d'))
                 return fileGenerator(table)
             table.set_page(page)
