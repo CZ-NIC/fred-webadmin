@@ -22,7 +22,7 @@ def njoin(*args):
 
 PROJECT_NAME = 'fred-webadmin'
 PACKAGE_NAME = 'fred_webadmin'
-PACKAGE_VERSION = '3.0.2'
+PACKAGE_VERSION = '3.0.3'
 
 SHARE_DOC = njoin('share', 'doc', PROJECT_NAME)
 SHARE_PACKAGE = njoin('share', PROJECT_NAME)
