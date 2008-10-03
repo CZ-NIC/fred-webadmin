@@ -68,11 +68,14 @@ class DomainsKeySetDetailLayout(TableDetailLayout):
         registrar_field = registrar_detail.fields['handle_url']
         admins_field = keyset_detail.fields['admins']
         dsrecords_field = keyset_detail.fields['dsrecords']
+        dnskeys_field = keyset_detail.fields['dnskeys']
         
         handle_label = self.get_label_name(handle_field)
         registrar_label = self.get_label_name(_('Registrar'))
         admins_label = self.get_label_name(_('Tech. contacts'))
         dsrecords_label = self.get_label_name(_('DS records'))
+        dnskeys_label = self.get_label_name(_('DNSKeys'))
+
         
         self.add(tr(td(attr(cssc='left_label'), handle_label), td(handle_field)))
         self.add(tr(td(attr(cssc='left_label'), registrar_label), td(registrar_field)))
@@ -97,9 +100,21 @@ class DomainsKeySetDetailLayout(TableDetailLayout):
             cell = td(attr(enclose_content=True))
             cell.add(dsrecord_detail.fields['keyTag'])
 
-            cell.add(dsrecord_detail.fields['digest'], '(', dsrecord_detail.fields['digestType'],')')
+            cell.add(dsrecord_detail.fields['digest'], ' (', dsrecord_detail.fields['digestType'],')')
+
+            row.add(cell)
+            self.add(row)
+
+        for i, dnskey_detail in enumerate(dnskeys_field.current_field.inner_details):
+            row = tr()
+            if i == 0:
+                row.add(td(attr(cssc='left_label', rowspan=len(dnskeys_field.current_field.inner_details)), 
+                           dnskeys_label))
             
-            
+            cell = td(attr(enclose_content=True))
+            #cell.add(dnskey_detail.fields['flags'])
+            #cell.add(', ')
+            cell.add(dnskey_detail.fields['key'])
 
             row.add(cell)
             self.add(row)

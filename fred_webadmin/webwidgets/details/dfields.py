@@ -102,7 +102,16 @@ class CharDField(DField):
         if value is not None:
             value = unicode(value)
         return value
-    
+
+class LongCharDField(DField):
+    enclose_content = True
+    n_break_chars = 40 # number of chars after that char_break is inserted
+    break_char = '<br />'
+    def resolve_value(self, value):
+        val = super(LongCharDField, self).resolve_value(value)
+        splitted = [val[self.n_break_chars*i:self.n_break_chars*(i+1)] for i in range(len(val)/self.n_break_chars + 1)]
+        return noesc(self.break_char.join(splitted))
+        
 class PreCharDField(CharDField):
     ''' Content text is in <pre> html tag. '''
     def make_content(self):
@@ -504,42 +513,58 @@ class HistoryListObjectDField(HistoryDField):
                 self.inner_details.append(inner_detail_list)
      
     def make_content(self):
+        def _add_row(i, j, detail):
+            row = tr()
+            row.cssc = ''
+            if i > 0:
+                row.cssc += ' history_row'
+            if detail:
+                row.add(detail)
+            else:
+                row.add(td(attr(colspan=len(thead_row.content) - 3), div(attr(cssc='field_empty'))))
+            if j == 0:
+                row.cssc += ' history_division_row'
+                rowspan_attr = attr(rowspan=len(self.inner_details[i]) or 1, cssc='history_dates_field')
+                row.add(
+                    td(rowspan_attr, date_from),
+                    td(rowspan_attr, date_to),
+                    td(rowspan_attr, a(href=action_url), img(attr(src='/img/icons/open.png')))
+                )
+            self.add(row)
+            
+            
         self.content = []
         self.create_inner_details()
-                    
-        if self.inner_details and self.inner_details[0]:
+
+        if self.inner_details:
             # Header:
             thead_row = tr()
-            for field in self.inner_details[0][0].fields.values():
+            #  Find one (any of them) innter detail for obtaining field labels (cannot take first one, becouse firt can be empty list):
+            some_detail = None
+            for details in self.inner_details:
+                if details:
+                    some_detail = details[0]
+                    break
+                
+            for field in some_detail.fields.values():
                 thead_row.add(th(field.label))
             thead_row.add(th(_('From')), th(_('To')), th(_('A.')))
             self.add(thead(thead_row))
             
             # rows (each row is made from one detail of object in object list
             self.add(tbody(tagid('tbody')))
-            for i, detail in enumerate(self.inner_details):
+            for i in range(len(self.inner_details)):
                 history_rec = self.value[i]
                 date_from = corba_to_datetime(history_rec._from)
                 date_to = corba_to_datetime(history_rec.to)
                 action_url = f_urls['action'] + 'detail/?id=%s' % history_rec.actionId
                 
-                for j, detail in enumerate(self.inner_details[i]):
-                    row = tr()
-                    row.cssc = ''
-                    if i > 0:
-                        row.cssc += ' history_row'
-                    row.add(
-                        detail,
-                    )
-                    if j == 0:
-                        row.cssc += ' history_division_row'
-                        rowspan_attr = attr(rowspan=len(self.inner_details[i]), cssc='history_dates_field')
-                        row.add(
-                            td(rowspan_attr, date_from),
-                            td(rowspan_attr, date_to),
-                            td(rowspan_attr, a(href=action_url), img(attr(src='/img/icons/open.png')))
-                        )
-                    self.add(row)
+                if self.inner_details[i]:
+                    for j, detail in enumerate(self.inner_details[i]):
+                        _add_row(i, j, detail)
+                else:
+                    _add_row(i, 0, None)
+                    
         else:
             self.add(div(attr(cssc='field_empty')))    
 

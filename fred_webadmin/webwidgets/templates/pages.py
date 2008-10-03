@@ -243,7 +243,7 @@ class DomainDetail(DetailPage):
             #self.main.add(DomainDetailDiv(context))
             self.main.add(adifdetails.DomainDetail(c.result, c.history))
             if config.debug:
-                self.main.add('DOMAINDETAIL:', div(attr(style='width: 1024; overflow: auto;'), pre(unicode(c.result).replace(u', ', u',\n'))))
+                self.main.add('DOMAINDETAIL:', div(attr(style='width: 1024px; overflow: auto;'), pre(unicode(c.result).replace(u', ', u',\n'))))
                 
                 
 class ContactDetail(DetailPage):

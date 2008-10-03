@@ -181,6 +181,12 @@ class DSRecordDetail(Detail):
     digestType = CharDField(label=_('digest type'))
     digest = CharDField(label=_('digest'))
     maxSigLife = CharDField(label=_('Max. sig. life'))
+
+class DNSKeyDetail(Detail):
+    flags = CharDField(label=_('Flags'))
+    protocol = CharDField(label=_('Protocol'))
+    alg = CharDField(label=_('Algorithm'))
+    key = LongCharDField(label=_('Public key'))
     
 class KeySetDetail(ObjectDetail):
     admins = NHDField(
@@ -192,12 +198,18 @@ class KeySetDetail(ObjectDetail):
         ListObjectDField(detail_class=DSRecordDetail, display_only=['keyTag', 'alg', 'digestType', 'digest', 'maxSigLife']),
         HistoryListObjectDField(detail_class=DSRecordDetail, display_only=['keyTag', 'alg', 'digestType', 'digest', 'maxSigLife']),
     )
+
+    dnskeys = NHDField(
+        ListObjectDField(detail_class=DNSKeyDetail, display_only=['flags', 'protocol', 'alg', 'key']),
+        HistoryListObjectDField(detail_class=DNSKeyDetail, display_only=['flags', 'protocol', 'alg', 'key']),
+    )
     
     sections = (
         (None, ('handleEPPId', 'authInfo')),
         (_('Selected registrar'), ('registrar', ), DirectSectionLayout),
         (_('Tech. contacts'), ('admins', ), DirectSectionLayout),
         (_('DS records'), ('dsrecords', ), DirectSectionLayout),
+        (_('DNSKeys'), ('dnskeys', ), DirectSectionLayout),
         (_('Dates'), ('createRegistrar', 'updateRegistrar'), DatesSectionLayout),
         (_('States'), ('states', ), DirectSectionLayout),                        
     )
@@ -227,7 +239,7 @@ class DomainDetail(ObjectDetail):
     )
 
     keyset = NHDField(
-        ObjectDField(       detail_class=KeySetDetail, display_only=['handle_url', 'registrar', 'admins', 'dsrecords'], layout_class=DomainsKeySetDetailLayout, sections='all_in_one'),
+        ObjectDField(       detail_class=KeySetDetail, display_only=['handle_url', 'registrar', 'admins', 'dsrecords', 'dnskeys'], layout_class=DomainsKeySetDetailLayout, sections='all_in_one'),
         HistoryObjectDField(detail_class=KeySetDetail, display_only=['handle_url'])
     )
     
