@@ -162,7 +162,7 @@ class IterTable(object):
     def _rewrite_cell(self, cell):
 #        get_url_id_content = lambda filter_name: {'url': f_urls[filter_name] + 'detail/?id=%s',  'icon': '/img/icons/open.png', 'cssc': 'tcenter'}
 #        get_url_handle_content = lambda filter_name: {'url': f_urls[filter_name] + 'detail/?handle=%s'}
-        get_url_from_oid = lambda OID: {'url': f_urls[f_enum_name[OID.type]] + 'detail/?id=%s',  'icon': '/img/icons/open.png', 'cssc': 'tcenter'}
+#        get_url_from_oid = lambda OID: {'url': f_urls[f_enum_name[OID.type]] + 'detail/?id=%s',  'icon': '/img/icons/open.png', 'cssc': 'tcenter'}
         oid_url_string = '%sdetail/?id=%s'
         rewrite_rules = {
 #                        'CT_CONTACT_HANDLE': get_url_handle_content('contact'),
@@ -186,19 +186,23 @@ class IterTable(object):
                         'CT_OTHER': {}
                        }
         contentType = self.header_type[cell['index']]
-        for key in rewrite_rules[contentType]:
-            if key == 'value':
-                cell['value'] = rewrite_rules[contentType]['value']
-            if key == 'icon':
-                cell['icon'] = rewrite_rules[contentType]['icon']
-            if key == 'cssc':
-                cell['cssc'] = rewrite_rules[contentType]['cssc']
-            if key == 'oid_url':
-                val = cell['value'] 
-                cell['url'] = rewrite_rules[contentType][key] % (f_urls[f_enum_name[val.type]], val.id)
+        
+        if rewrite_rules[contentType].has_key('value'):
+            cell['value'] = rewrite_rules[contentType]['value']
+        if rewrite_rules[contentType].has_key('icon'):
+            cell['icon'] = rewrite_rules[contentType]['icon']
+        if rewrite_rules[contentType].has_key('cssc'):
+            cell['cssc'] = rewrite_rules[contentType]['cssc']
+        if rewrite_rules[contentType].has_key('oid_url'):
+            val = cell['value']
+            if val.id:
+                cell['url'] = rewrite_rules[contentType]['oid_url'] % (f_urls[f_enum_name[val.type]], val.id)
                 cell['value'] = val.handle
-            if key == 'url':
-                cell['url'] = rewrite_rules[contentType]['url'] % (cell['value'],)
+            else:
+                cell['icon'] = ''
+                cell['value'] = ''
+        if rewrite_rules[contentType].has_key('url'):
+            cell['url'] = rewrite_rules[contentType]['url'] % (cell['value'],)
 
 
 

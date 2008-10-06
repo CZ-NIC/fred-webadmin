@@ -9,7 +9,7 @@ from fred_webadmin.webwidgets.utils import SortedDict
 from fred_webadmin.utils import get_detail_from_oid
 from fred_webadmin.corba import ccReg
 from fred_webadmin.translation import _
-
+from fred_webadmin.corba import Registry
 
 class DeclarativeDFieldsMetaclass(WebWidget.__metaclass__):
     """

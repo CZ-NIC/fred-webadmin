@@ -46,7 +46,10 @@
 .section_table > tbody > tr > td, .section_table > tbody > tr > th,
 .section_table > thead > tr > td, .section_table > thead > tr > th, 
 .filter_panel td { 
-	border: thin solid gray; 
+	border: thin solid gray;
+}
+.filter_panel td {
+	height: 2.5em;
 }
 .filter_panel { text-align: center; }
 .filter_panel a { background:white url(../img/admin/nav-bg.gif) bottom repeat-x; padding:4px;  color:black; border:1px solid #bbb; border-color:#ddd #aaa #aaa #ddd; }

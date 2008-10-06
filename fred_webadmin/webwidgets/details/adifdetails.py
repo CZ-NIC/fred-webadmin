@@ -300,7 +300,7 @@ class PublicRequestDetail(Detail):
     resolveTime = CharDField(label=_('Close time'))
     
     def add_to_bottom(self):
-        if self.data:
+        if self.data and self.data.get('status') == Registry.PublicRequest.PRS_NEW:
             self.media_files.append('/js/publicrequests.js')
             self.add(FilterPanel([
                 [_('Accept_and_send'), "javascript:processPublicRequest('%s')" % (f_urls['publicrequest'] + 'resolve/?id=%s' % self.data.get('id'))],
