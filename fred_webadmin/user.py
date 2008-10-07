@@ -29,9 +29,9 @@ class User(object):
             self.nperms = ['domain.filter', 'domain.filter.authinfo', 
                            'registrar.detail.city', 'registrar.change.street2', 'registrar.filter.city',
                            'domain.detail.createdate', 'domain.detail.authinfo']
-            self.nperms = []
         else:
             self.nperms = ['domain.filter.admincontact']
+        self.nperms = []
         #self.nperms = []
         debug('Created user with nperms = %s' % str(self.nperms))
         
