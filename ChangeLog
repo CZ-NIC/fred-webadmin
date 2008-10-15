@@ -1,3 +1,15 @@
+2008-10-15 Tomas Divis (version 3.0.4)
+ 
+    * Fixing search for domains by admin contact
+
+    * Fixing invoicing 
+        - no PDF and XML icons in invoice list when there are no PDF and XML
+        - PDF and XML links back in invoice details
+
+    * Fixing public request detail
+	- buttons formatting
+        - buttons hiding after request processing
+
 2008-10-02 Tomas Divis (version 3.0.3)
 
     * Fixing CSV and TXT export 
