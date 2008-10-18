@@ -1,3 +1,7 @@
+2008-10-18 Tomas Divis (version 3.1.0)
+
+    * Adding DNSKEY record to keyset details
+	
 2008-10-15 Tomas Divis (version 3.0.4)
  
     * Fixing search for domains by admin contact
