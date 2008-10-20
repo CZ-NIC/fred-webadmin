@@ -710,10 +710,13 @@ class ADIF(AdifPage):
                     form.non_field_errors().append('(type: %s, exception: %s)' % (escape(unicode(type(e))), unicode(e)))
                     form.non_field_errors().append(noesc(escape(unicode(traceback.format_exc())).replace('\n', '<br/>')))
             except Exception, e:
-                if config.auth_method == 'LDAP' and isinstance(e, ldap.INVALID_CREDENTIALS):
-                    form.non_field_errors().append(_('Invalid username and/or password!'))
-                    if config.debug:
-                        form.non_field_errors().append('(%s)' % str(e))
+                if config.auth_method == 'LDAP':
+                    if isinstance(e, ldap.INVALID_CREDENTIALS):
+                        form.non_field_errors().append(_('Invalid username and/or password!'))
+                        if config.debug:
+                            form.non_field_errors().append('(%s)' % str(e))
+                    elif isinstance(e, ldap.SERVER_DOWN):
+                        form.non_field_errors().append(_('LDAP server is unavailable!'))
                 else:
                     raise
 
