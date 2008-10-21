@@ -20,9 +20,9 @@ iors = (#(label, nshost, nscontext),
 
 tablesize = 45
 
-auth_method = 'CORBA' # 'LDAP', 'CORBA'
-LDAP_server = 'ldap.office.nic.cz'
-LDAP_scope = 'uid=%s,ou=People,dc=nic,dc=cz'
+auth_method = 'DU_AUTHENTICATION' # 'LDAP', 'CORBA'
+LDAP_server = 'DU_LDAP_SERVER'
+LDAP_scope = 'DU_LDAP_SCOPE'
 
 # gettext
 gettext_domain = 'adif'

@@ -49,10 +49,11 @@ class FredWebAdminInstall(install):
         ('nshost=', None, 'CORBA nameservice host [localhost]'),
         ('nsport=', None, 'Port where CORBA nameservice listen [2809]'),
         ('webadminport=', None, 'Port of fred-webadmin  [18456]'),
+        ('ldapserver=', None, 'LDAP server'),
+        ('ldapscope=', None, 'LDAP scope'),
         #('nodepcheck',  None, 'Install script will not check for dependencies.'), 
+        ("idldir=",  "d", "directory where IDL files reside [PREFIX/share/idl/fred/]"),
     ])
-    user_options.append(("idldir=",  "d", 
-        "directory where IDL files reside [PREFIX/share/idl/fred/]"))
 
     # boolean_options = install.boolean_options
     # boolean_options.append('nodepcheck')
@@ -65,6 +66,9 @@ class FredWebAdminInstall(install):
         self.nshost = DEFAULT_NSHOST
         self.nsport = DEFAULT_NSPORT
         self.webadminport = DEFAULT_WEBADMINPORT
+        self.ldapserver = ''
+        self.ldapscope = ''
+        self.authentization = 'CORBA'
         #self.nodepcheck = None
         
     def finalize_options(self):
@@ -144,10 +148,10 @@ class FredWebAdminInstallData(install_data):
         ('nshost=', None, 'CORBA nameservice host [localhost]'),
         ('nsport=', None, 'Port where CORBA nameservice listen [2809]'),
         ('webadminport=', None, 'Port of fred-webadmin  [18456]'),
+        ("idldir=",  "d", "directory where IDL files reside [PREFIX/share/idl/fred/]"),
+        ('ldapserver=', None, 'LDAP server'),
+        ('ldapscope=', None, 'LDAP scope'),
     ])
-    user_options.append(("idldir=",  "d", 
-        "directory where IDL files reside [PREFIX/share/idl/fred/]"))
-
     def initialize_options(self):
         install_data.initialize_options(self)
         self.nscontext = None
@@ -155,6 +159,9 @@ class FredWebAdminInstallData(install_data):
         self.nsport = None
         self.webadminport = None
         self.idldir = None
+        self.ldapserver = None
+        self.ldapscope = None
+        self.authentization = None
 
     def finalize_options(self):
         self.set_undefined_options('install',
@@ -162,8 +169,16 @@ class FredWebAdminInstallData(install_data):
                 ('nshost', 'nshost'),
                 ('nsport', 'nsport'),
                 ('webadminport', 'webadminport'),
-                ('idldir', 'idldir'))
+                ('idldir', 'idldir'),
+                ('ldapserver', 'ldapserver'),
+                ('ldapscope', 'ldapscope'),
+        )
+        
         install_data.finalize_options(self)
+        if self.ldapserver and self.ldapscope:
+            self.authentization = 'LDAP'
+        else:
+            self.authentization = 'CORBA'
 
 
     def update_webadmin_cfg(self):
@@ -174,6 +189,9 @@ class FredWebAdminInstallData(install_data):
         values.append(('DU_NS_HOST', self.nshost+':'+self.nsport))
         values.append(('DU_NS_CONTEXT', self.nscontext))
         values.append(('DU_WEBADMIN_PORT', self.webadminport))
+        values.append(('DU_AUTHENTICATION', self.authentization))
+        values.append(('DU_LDAP_SERVER', self.ldapserver))
+        values.append(('DU_LDAP_SCOPE', self.ldapscope))
 
         self.replace_pattern(
                 os.path.join(self.srcdir, 'webadmin_cfg.py.install'),

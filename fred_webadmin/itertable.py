@@ -354,6 +354,7 @@ class FilterLoader(object):
             else:
                 if sub_filter.isActive():
                     val = sub_filter._get_value()
+                    debug('VALUE (from corba)=%s' % val)
                     if isinstance(sub_filter, ccReg.Filters._objref_Date):
                         value = corba_to_date_time_interval(val, corba_to_date)
                     elif isinstance(sub_filter, ccReg.Filters._objref_DateTime):
