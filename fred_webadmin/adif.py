@@ -664,7 +664,7 @@ class ADIF(AdifPage):
                 form = LoginForm(kwd, action='/login/', method='post')
         else:
             form = LoginForm(action='/login/', method='post')
-            
+        
         if form.is_valid():
             debug('form is valid')
             login = form.cleaned_data.get('login', '')
@@ -717,6 +717,8 @@ class ADIF(AdifPage):
                             form.non_field_errors().append('(%s)' % str(e))
                     elif isinstance(e, ldap.SERVER_DOWN):
                         form.non_field_errors().append(_('LDAP server is unavailable!'))
+                    else:
+                        raise
                 else:
                     raise
 
