@@ -116,7 +116,10 @@ class BaseDetail(div):
         
     def set_fields_values(self):
         for field in self.fields.values():
-            field.value = field.value_from_data(self.data)
+            if field.access:
+                field.value = field.value_from_data(self.data)
+#            else:
+#                print 'No access field "%s", not setting value' % field.name 
     
     @classmethod
     def get_object_name(cls):

@@ -57,8 +57,9 @@ import config
 importIDL(config.idl)
 ccReg = sys.modules['ccReg']
 Registry = sys.modules['Registry']
-orb = CORBA.ORB_init(["-ORBnativeCharCodeSet","UTF-8"], CORBA.ORB_ID)
-#orb = CORBA.ORB_init(["-ORBnativeCharCodeSet","UTF-8", "-ORBtraceLevel", "10"], CORBA.ORB_ID)
+orb = CORBA.ORB_init(["-ORBnativeCharCodeSet", "UTF-8"], CORBA.ORB_ID)
+#orb = CORBA.ORB_init(["-ORBnativeCharCodeSet", "UTF-8", "-ORBtraceLevel", "10"], CORBA.ORB_ID)
+#omniORB.setClientCallTimeout(2000)
 
 # invoice types (used both in IterTabe and ADIF)
 invoices = [
@@ -69,7 +70,7 @@ invoices = [
 ccReg.Invoicing.Invoices = invoices # XXX - future lang switching
 
 class Corba(object):
-    def __init__(self, nscontext=None):
+    def __init__(self):
         object.__init__(self)
         #self.module = sys.modules[module_name] #sys.modules[
             #importIDL(idl or os.path.join(os.path.dirname(os.path.abspath(__file__)), IDL_FILE))[0]

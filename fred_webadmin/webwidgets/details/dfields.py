@@ -35,16 +35,6 @@ def resolve_object(obj_data):
     else:
         return obj_data
     
-#def resolve_detail_class(obj_data):
-#    ''' Detect detail class if object is OID or OID in CORBA.Any'''
-#    if isinstance(obj_data, CORBA.Any):
-#        obj_data = from_any(obj_data, True)
-#    if isinstance(obj_data, Registry.OID):
-#        detail_name = f_name_detailname[f_enum_name[obj_data.type]]
-#        detail_class = getattr(fred_webadmin.webwidgets.details.adifdetails, detail_name, None)
-#        return detail_class
-        
-
 class DField(WebWidget):
     ''' Base class for detail fields '''
     creation_counter = 0
@@ -57,7 +47,7 @@ class DField(WebWidget):
         self.owner_form = None
         self._value = None
         self.access = True # if user have nperm for this field, than detail.filter
-        self.no_access_content = span(attr(style='background-color: gray;'), _('CENSORED'))
+        self.no_access_content = div(attr(cssc='no_access'), _('CENSORED'))
         
         # Increase the creation counter, and save our local copy.
         self.creation_counter = DField.creation_counter
@@ -82,8 +72,11 @@ class DField(WebWidget):
         return value    
     
     def _set_value(self, value):
-        self._value = self.resolve_value(value)
-        self.make_content()
+        if self.access:
+            self._value = self.resolve_value(value)
+            self.make_content()
+        else:
+            value = ''
     def _get_value(self):
         return self._value
     value = LateBindingProperty(_get_value, _set_value)
@@ -93,6 +86,7 @@ class DField(WebWidget):
     
     def render(self, indent_level=0):
         if not self.access:
+            self.content = [] # if some field call this method of parent after thy create content, erase it
             self.make_content_no_access()
         return super(DField, self).render(indent_level)
     
@@ -739,6 +733,7 @@ class BaseNHDField(DField):
             
     def _set_value(self, value):
         self._value = self.current_field.value = self.resolve_value(value)
+        self.make_content()
     def _get_value(self):
         return self.current_field._value
     
@@ -750,15 +745,13 @@ class BaseNHDField(DField):
     
     def on_add(self):
         super(BaseNHDField, self).on_add()
-        self.current_field.parent_widget = self.parent_widget
-        self.current_field.on_add() 
+        if self.current_field:
+            self.current_field.parent_widget = self.parent_widget
+            self.current_field.on_add() 
         
-
-    def render(self, indent_level=0):
+    def make_content(self):
         self.content = []
         self.add(self.current_field)
-        return super(BaseNHDField, self).render(indent_level)
-        #return self.current_field.render(indent_level)
 
 
 class NHDField(BaseNHDField):

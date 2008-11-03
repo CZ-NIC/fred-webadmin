@@ -173,6 +173,9 @@ class FilterForm(Form):
             else: # data passed to form in constructor are cleaned_data (e.g. from itertable.get_filter)
                 for field_name, [neg, value] in self.data.items():
                     debug('field %s, setting value %s' % (field_name, value))
+                    if not base_fields.get(field_name):
+                        debug('field %s is in npermission -> skiping')
+                        break # when field is in npermissions, it can still be here if user loads saved filter -> 
                     field = deepcopy(base_fields[field_name])
                     if isinstance(field, CompoundFilterField):
                         field.parent_form = self
