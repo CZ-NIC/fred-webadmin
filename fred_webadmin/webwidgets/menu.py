@@ -27,7 +27,21 @@ class Menu(ul):
         while node:
             self.open_nodes.append(node)
             node = node.parent
-            
+    
+    def get_url(self, menu):
+        if menu.url:
+            return menu.url
+        if menu.submenus:
+            first_available_menu = None
+            for smenu in menu.submenus:
+                if not first_available_menu and not self.user.check_nperms(smenu.nperm, smenu.nperm_type):
+                    first_available_menu = smenu
+                if smenu.default and not self.user.check_nperms(smenu.nperm, smenu.nperm_type):
+                    return self.get_url(smenu)
+            # no default menu, take first available:
+            if first_available_menu:
+                return self.get_url(first_available_menu)
+    
     def create_menu_tree(self):
         for menu in self.menutree.submenus:
             if self.user.check_nperms(menu.nperm, menu.nperm_type):
@@ -42,8 +56,10 @@ class Menu(ul):
                 cssc += ' selected-menu'
                 if menu.submenus:
                     submenu = Menu(menu, self.selected_menu_handle, self.user)
+            
+            url = self.get_url(menu)
 
-            self.add(li(attr(cssc=cssc), a(attr(href=menu.url), menu.caption), submenu))
+            self.add(li(attr(cssc=cssc), a(attr(href=url), menu.caption), submenu))
 
 class MenuHoriz(Menu):
     "Menu for horizonal use (e.g. no nested ul ul), instead it is sequence of ul"
@@ -66,8 +82,10 @@ class MenuHoriz(Menu):
                 cssc += ' selected-menu'
                 if menu.submenus:
                     self.submenu = MenuHoriz(menu, self.selected_menu_handle, self.user)
-
-            self._menu1.add(li(attr(cssc=cssc), a(attr(href=menu.url), menu.caption)))
+            
+            url = self.get_url(menu)
+            
+            self._menu1.add(li(attr(cssc=cssc), a(attr(href=url), menu.caption)))
         self.add(div(attr(cssc='cleaner'), ''))
         if self.submenu:
             self.add(div(attr(cssc='submenu'), self.submenu, div(attr(cssc='cleaner'), '')))#, div(attr(cssc='cleaner'), 'wtf??')))

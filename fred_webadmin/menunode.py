@@ -1,14 +1,18 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import sys
+import types
 from translation import _
 from mappings import f_urls
 
 class MenuNode(object):
     _menudict = {}
-    def __init__(self, handle, caption, body_id=None, cssc=None, url=None, submenu=None, nperm=None, nperm_type='all'):
+    def __init__(self, handle, caption, body_id=None, cssc=None, url=None, submenu=None, nperm=None, nperm_type='all', default=False):
         ''' nperm defines negative permssion(s) - can be string or list of strings
             nperm type: if nperm is list, then nperm_type determinates whether to hide permission it is needed 'all' of them, or just 'one' of them (default is 'all')
+            nperms of submenus are appended to self.nperm
+
+            default: mean that this menu is default submenu, it means that if parent url is None, this default submenu's url will be taken for parent url
         '''
         self.parent = None
         self.handle = handle
@@ -23,14 +27,30 @@ class MenuNode(object):
         self._url = None
         self.url = url
         
-        self.nperm = nperm
+        self.default = default
+        
+        self.nperm = []
+        if isinstance(nperm, types.StringTypes):
+            self.nperm.append(nperm)
+        elif nperm:
+            self.nperm = nperm
         self.nperm_type = nperm_type
         
         self.submenus = []
         if submenu:
+            submenu_default_present = False
             for smenu in submenu:
                 self.submenus.append(smenu)
                 smenu.parent = self
+                self.nperm.extend(smenu.nperm)
+                if smenu.default:
+                    if submenu_default_present != True:
+                        submenu_default_present = True
+                    else:
+                        raise RuntimeError('Menu specification error: there could be only one default submenu of menu!')
+        
+        self.nperm = list(set(self.nperm)) # only distinct values 
+                
         MenuNode._menudict[handle] = self
         
     @classmethod
@@ -64,20 +84,14 @@ class MenuNode(object):
         
     
     def _get_url(self):
-        if self._url is not None:
-            return self._url
-        else:
-            if self.parent:
-                return self.parent.url
-            else:
-                return None
-            
+        return self._url
     def _set_url(self, value):
         self._url = value
     url = property(_get_url, _set_url)
     
     def mprint(self, level=0):
-        output = ('\t' * level) + '%s (%s, %s, %s)' % (self.caption, self.cssc, self.body_id, self.url) + '\n'
+        output = ('\t' * level) + '%s (%s, %s, %s) %s' % (self.caption, self.cssc, self.body_id, self.url, ['', '*'][self.default]) + '\n'
+        #output += ', '.join(self.nperm) + '\n'
         for smenu in self.submenus:
             output += smenu.mprint(level + 1)
         return output
@@ -86,15 +100,15 @@ class MenuNode(object):
     
 menu_tree = MenuNode('root', '', '', 'menu-item', '#', [
     MenuNode('summary', _('Summary'), 'body-summary', 'menu-item menu-summary', url='/summary/'), 
-    MenuNode('object', _('Objects'), 'body-objects', 'menu-item menu-objects', url=f_urls['domain'] + 'allfilters/', nperm=['domain.read', 'contact.read', 'nsset.read', 'keyset.read'], submenu=[
+    MenuNode('object', _('Objects'), 'body-objects', 'menu-item menu-objects', submenu=[
         MenuNode('domain', _('Search domains'), cssc='menu-item', url=f_urls['domain'] + 'allfilters/', nperm='domain.read'),
         MenuNode('contact', _('Search contacts'), cssc='menu-item', url=f_urls['contact'] + 'allfilters/', nperm='contact.read'),
         MenuNode('nsset', _('Search nssets'), cssc='menu-item', url=f_urls['nsset'] + 'allfilters/', nperm='nsset.read'),
         MenuNode('keyset', _('Search keysets'), cssc='menu-item', url=f_urls['keyset'] + 'allfilters/', nperm='keyset.read'),        
     ]), 
-    MenuNode('registrar', _('Registrars'), 'body-registrars', 'menu-item menu-registrars', url=f_urls['registrar'] + 'filter/', nperm='registrar.read', submenu=[
+    MenuNode('registrar', _('Registrars'), 'body-registrars', 'menu-item menu-registrars', nperm='registrar.read', submenu=[
         MenuNode('registrarlist', _('List'), cssc='menu-item', url=f_urls['registrar'] + 'filter/?list_all=1', nperm='registrar.read'),
-        MenuNode('registrarfilter', _('Search'), cssc='menu-item', url=f_urls['registrar'] + 'allfilters/', nperm='registrar.read'),
+        MenuNode('registrarfilter', _('Search'), cssc='menu-item', url=f_urls['registrar'] + 'allfilters/', nperm='registrar.read', default=True),
         MenuNode('registrarcreate', _('Create new'), cssc='menu-item', url=f_urls['registrar'] + 'create/', nperm='registrar.create'),
         MenuNode('invoice', _('Invoices'), cssc='menu-item', url=f_urls['invoice'] + 'allfilters/', nperm='invoice.read'),
     ]), 
@@ -107,3 +121,7 @@ menu_tree = MenuNode('root', '', '', 'menu-item', '#', [
     ]), 
     MenuNode('statistics', _('Statistics'), 'body-statistics', 'menu-item menu-statistics', url='/statistics/')
 ])
+
+
+if __name__ == '__main__':
+    print menu_tree.mprint()

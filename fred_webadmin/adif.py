@@ -648,8 +648,7 @@ class ADIF(AdifPage):
                 get_corba_session().setHistory(new_history)
                 debug('History set to %s' % new_history)
                 return json_response(new_history)
-        else:
-            return super(ADIF, self).default(*args, **kwd)
+        return super(ADIF, self).default(*args, **kwd)
         
         
     def login(self, *args, **kwd):

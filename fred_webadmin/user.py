@@ -29,10 +29,15 @@ class User(object):
             self.nperms = ['domain.filter', 'domain.filter.authinfo', 
                            'registrar.detail.city', 'registrar.change.street2', 'registrar.filter.city',
                            'domain.detail.createdate', 'domain.detail.authinfo']
-        else:
-            self.nperms = ['domain.filter.admincontact']
+        #else:
+#        self.nperms = [
+#            'domain.filter.admincontact', 'domain.detail.admins', 'domain.detail.nsset', 'domain.detail.authinfo',
+#            'domain.detail.states',
+#            'domain.read',
+#            'nsset.read',
+#            'registrar.detail.name', 'registrar.detail.organization',
+#        ]
         self.nperms = []
-        #self.nperms = []
         debug('Created user with nperms = %s' % str(self.nperms))
         
     def has_nperm(self, nperm):
@@ -40,6 +45,8 @@ class User(object):
         #return self._user.hasNPermission(nperm)
     
     def has_all_nperms(self, nperms):
+        if not nperms: # nprems are empty
+            return False
         for nperm in nperms:
             if not self.has_nperm(nperm): # nperm not in self.nperms:
                 return False
@@ -49,7 +56,7 @@ class User(object):
         for nperm in nperms:
             if self.has_nperm(nperm):
                 return True
-            return False
+        return False
 #        if not nperms:
 #            return True
 #        else:
