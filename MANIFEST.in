@@ -7,5 +7,7 @@ include webadmin_cfg.py.install
 include fred-webadmin.install
 include fred-webadmin-server.install
 include MANIFEST.in
+include setup.cfg
+include setup.cfg.template
 
 recursive-include freddist *.py README
