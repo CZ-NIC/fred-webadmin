@@ -56,7 +56,7 @@ class BaseForm(form):
     # class is different than Form. See the comments by the Form class for more
     # information. Any improvements to the form API should be made to *this*
     # class, not to the Form class
-    nperm_name = None
+    nperm_names = []
     name_postfix = ''
     def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None,
                  initial=None, error_class=ErrorList, label_suffix=':', layout_class=TableFormLayout, 
@@ -93,15 +93,17 @@ class BaseForm(form):
     
     def filter_base_fields(self):
         "Filters base fields against user negative permissions, so if user has nperm on field we delete it from base_fields"
-        if self.nperm_name:
+        if self.nperm_names:
             user = cherrypy.session.get('user', None)
             if user is None:
                 self.base_fields = SortedDict({})
             else:
                 object_name = self.get_object_name()
-                self.base_fields = SortedDict([(name, field) for name, field in self.base_fields.items() 
-                                               if not user.has_nperm('%s.%s.%s' % (object_name, self.nperm_name, field.name))
-                                              ])
+                self.base_fields = SortedDict(
+                    [(name, field) for name, field in self.base_fields.items() 
+                     if not user.check_nperms(['%s.%s.%s' % (nperm_name, object_name, field.get_nperm()) for nperm_name in self.nperm_names], 'one')
+                    ]
+                )
     
     @classmethod
     def get_object_name(cls):
@@ -312,6 +314,18 @@ class BaseForm(form):
             if field.widget.needs_multipart_form:
                 return True
         return False
+    
+    @classmethod
+    def get_nperms(cls):
+        if cls.nperm_names:
+            nperms = []
+            for field in cls.base_fields.values():
+                field_nperm = field.get_nperm()
+                field_nperms = ['%s.%s.%s' % (nperm_name, cls.get_object_name(), field_nperm) for nperm_name in cls.nperm_names]
+                nperms.extend(field_nperms)
+            return nperms
+        else:
+            return []
 
 class Form(BaseForm):
     "A collection of Fields, plus their associated data."

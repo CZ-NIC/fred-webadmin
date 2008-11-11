@@ -50,8 +50,8 @@ cherrycfg = {
     'global': {
         'server.socket_port': 18456,
         'server.socket_host': "",
-        #'server.thread_pool': 10,
-        #'server.environment': 'production',
+        'server.thread_pool': 10,
+        'server.environment': 'production',
         'tools.decode.on': True,
         'tools.decode.encoding': 'utf-8',
         'tools.encode.on': True,

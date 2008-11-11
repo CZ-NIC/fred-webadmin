@@ -39,14 +39,15 @@ class DField(WebWidget):
     ''' Base class for detail fields '''
     creation_counter = 0
     
-    def __init__(self, name='', label=None, *content, **kwd):
+    def __init__(self, name='', label=None, nperm = None, *content, **kwd):
         super(DField, self).__init__(*content, **kwd)
         self.tag = ''
         self.name = name
         self.label = label
+        self._nperm = nperm
         self.owner_form = None
         self._value = None
-        self.access = True # if user have nperm for this field, than detail.filter
+        self.access = True # if user have nperm for this field, then this will be set to False in Detail.build_fields()
         self.no_access_content = div(attr(cssc='no_access'), _('CENSORED'))
         
         # Increase the creation counter, and save our local copy.
@@ -76,7 +77,8 @@ class DField(WebWidget):
             self._value = self.resolve_value(value)
             self.make_content()
         else:
-            value = ''
+            self._value = None
+            self.make_content_no_access()
     def _get_value(self):
         return self._value
     value = LateBindingProperty(_get_value, _set_value)
@@ -85,11 +87,14 @@ class DField(WebWidget):
         return data.get(self.name)
     
     def render(self, indent_level=0):
-        if not self.access:
-            self.content = [] # if some field call this method of parent after thy create content, erase it
-            self.make_content_no_access()
         return super(DField, self).render(indent_level)
-    
+
+    def get_nperm(self):
+        if self._nperm:
+            return self._nperm.lower()
+        else:
+            return self.name.lower()
+           
 class CharDField(DField):
     enclose_content = True
     def resolve_value(self, value):
@@ -210,15 +215,18 @@ class DiscloseCharDField(DField):
         
     def make_content(self):
         self.content = []
-        cssc = 'disclose' + unicode(bool(self.value[1])) # => 'discloseTrue' or 'discloseFalse'
-        if self.value[0] == '':
-            self.add(div(attr(cssc=cssc + ' field_empty')))
+        if self.value:
+            cssc = 'disclose' + unicode(bool(self.value[1])) # => 'discloseTrue' or 'discloseFalse'
+            if self.value[0] == '':
+                self.add(div(attr(cssc=cssc + ' field_empty')))
+            else:
+                self.add(span(attr(cssc=cssc), self.value[0]))
         else:
-            self.add(span(attr(cssc=cssc), self.value[0]))
+            self.add(div(attr(cssc='field_empty'))) # in case no access (from permissions)
     
     def on_add(self):
         super(DiscloseCharDField, self).on_add()
-        if self.parent_widget:
+        if self.parent_widget and self.value:
             cssc = 'disclose' + unicode(bool(self.value[1])) # => 'discloseTrue' or 'discloseFalse'
             if getattr(self.parent_widget, 'cssc', False):
                 self.parent_widget.cssc += ' ' + cssc
@@ -267,13 +275,11 @@ class ObjectDField(DField):
         self.layout_class = layout_class
     
     def resolve_value(self, value):
-#        if self.detail_class is None:
-#            self.detail_class = resolve_detail_class(value)
         return resolve_object(value)
     
     def create_inner_detail(self):
         '''Used by make_content and in custom detail layouts and custom section layouts'''
-        self.inner_detail = self.detail_class(self.value, self.owner_detail.history, display_only=self.display_only, sections=self.sections, layout_class=self.layout_class, is_nested=True)
+        self.inner_detail = self.detail_class(self.value, self.owner_detail.history, display_only=self.display_only, sections=self.sections, layout_class=self.layout_class, is_nested=True, all_no_access=not self.access)
         
     def make_content(self):
         from fred_webadmin.webwidgets.details.adifdetails import NSSetDetail 
@@ -732,10 +738,17 @@ class BaseNHDField(DField):
         return value
             
     def _set_value(self, value):
-        self._value = self.current_field.value = self.resolve_value(value)
-        self.make_content()
+        if self.access:
+            self._value = self.current_field.value = self.resolve_value(value)
+            self.make_content()
+        else:
+            self._value = self.current_field.value = None
+            self.make_content_no_access()
     def _get_value(self):
-        return self.current_field._value
+        if self.current_field:
+            return self.current_field._value
+        else:
+            return None
     
     def _set_owner_detail(self, value):
         self._owner_detail = self.normal_field.owner_detail = self.history_field.owner_detail = value
@@ -750,8 +763,9 @@ class BaseNHDField(DField):
             self.current_field.on_add() 
         
     def make_content(self):
-        self.content = []
-        self.add(self.current_field)
+        if self.access:
+            self.content = []
+            self.add(self.current_field)
 
 
 class NHDField(BaseNHDField):
@@ -846,12 +860,14 @@ class DiscloseCharNHDField(NHDField):
         if self.disclose_name is None:
             self.disclose_name = 'disclose' + self.name[0].upper() + self.name[1:]
 
-        value_name = data[self.name]
-        value_disclose = data[self.disclose_name]
-
-        value = self.merge_histories(value_name, value_disclose)
-        return super(DiscloseCharNHDField, self).value_from_data({self.name: value})
-#        
+        value_name = data.get(self.name)
+        if value_name is not None:
+            value_disclose = data[self.disclose_name]
+    
+            value = self.merge_histories(value_name, value_disclose)
+            return super(DiscloseCharNHDField, self).value_from_data({self.name: value})
+        else:
+            return super(DiscloseCharNHDField, self).value_from_data({})
 #        
 #        if self.owner_detail.history and len(value) > 1 and not self.owner_detail.is_nested:
 #            self.displaying_history = True

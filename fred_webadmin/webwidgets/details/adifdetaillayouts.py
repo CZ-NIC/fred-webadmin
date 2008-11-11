@@ -8,7 +8,7 @@ class DomainsNSSetDetailLayout(TableDetailLayout):
         self.cssc = 'section_table'
         
     def _render_nsset(self, nsset_detail):
-        registrar_detail = nsset_detail.fields.get('registrar').current_field.inner_detail # registrar of nsset
+        registrar_detail = nsset_detail.fields['registrar'].current_field.inner_detail # registrar of nsset
         
         handle_field = nsset_detail.fields['handle_url']
         registrar_field = registrar_detail.fields['handle_url']

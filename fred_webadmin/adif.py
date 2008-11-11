@@ -1,8 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-#
-# Version: 1.5.5
-#
+
 import sys
 from fred_webadmin import setuplog
 setuplog.setup_log()
@@ -144,7 +142,7 @@ def check_onperm(objects_nperms, check_type='all'):
                 else:
                     onperms = objects_nperms
                 for objects_nperm in onperms:
-                    nperms.append('%s.%s' % (self.classname, objects_nperm))
+                    nperms.append('%s.%s' % (objects_nperm, self.classname))
                 if user.check_nperms(nperms, check_type):
                     context = {'message': div()}
                     context['message'].add(p(_("You don't have permissions for this page!")))
@@ -1337,6 +1335,33 @@ class Development(object):
             output += "<p>%s\n</p>" % dval
         count = cherrypy.session.get('count', 0) + 1
         cherrypy.session['count'] = count
+        return output
+    
+    def heapy(self):
+        try:
+            from guppy import hpy
+        except ImportError:
+            return 'guppy module not found'
+        h=hpy()
+        #import pdb;pdb.set_trace()
+        heap = h.heap()
+        output = _(u'''This page displays memory consumption by python object on server.
+            It propably cause server threads to not work properly!!! 
+            DO NOT USE THIS PAGE IN PRODUCTION SYSTEM!!!\n\n''')
+                        
+        output += u'\n'.join(unicode(heap).split('\n')[:2]) + '\n'
+        for i in xrange(heap.partition.numrows):
+            item = heap[i]
+            output += unicode(item).split('\n')[2] + '\n'
+
+#        while suboutput:
+#            output += suboutput + u'\n'
+#            more = more.more
+#            suboutput = unicode(more)
+#            print suboutput
+            
+        
+        cherrypy.response.headers["Content-Type"] = "text/plain"
         return output
 
 class Smaz(Page):

@@ -101,23 +101,23 @@ class MenuNode(object):
 menu_tree = MenuNode('root', '', '', 'menu-item', '#', [
     MenuNode('summary', _('Summary'), 'body-summary', 'menu-item menu-summary', url='/summary/'), 
     MenuNode('object', _('Objects'), 'body-objects', 'menu-item menu-objects', submenu=[
-        MenuNode('domain', _('Search domains'), cssc='menu-item', url=f_urls['domain'] + 'allfilters/', nperm='domain.read'),
-        MenuNode('contact', _('Search contacts'), cssc='menu-item', url=f_urls['contact'] + 'allfilters/', nperm='contact.read'),
-        MenuNode('nsset', _('Search nssets'), cssc='menu-item', url=f_urls['nsset'] + 'allfilters/', nperm='nsset.read'),
-        MenuNode('keyset', _('Search keysets'), cssc='menu-item', url=f_urls['keyset'] + 'allfilters/', nperm='keyset.read'),        
+        MenuNode('domain', _('Search domains'), cssc='menu-item', url=f_urls['domain'] + 'allfilters/', nperm='read.domain'),
+        MenuNode('contact', _('Search contacts'), cssc='menu-item', url=f_urls['contact'] + 'allfilters/', nperm='read.contact'),
+        MenuNode('nsset', _('Search nssets'), cssc='menu-item', url=f_urls['nsset'] + 'allfilters/', nperm='read.nsset'),
+        MenuNode('keyset', _('Search keysets'), cssc='menu-item', url=f_urls['keyset'] + 'allfilters/', nperm='read.keyset'),        
     ]), 
-    MenuNode('registrar', _('Registrars'), 'body-registrars', 'menu-item menu-registrars', nperm='registrar.read', submenu=[
-        MenuNode('registrarlist', _('List'), cssc='menu-item', url=f_urls['registrar'] + 'filter/?list_all=1', nperm='registrar.read'),
-        MenuNode('registrarfilter', _('Search'), cssc='menu-item', url=f_urls['registrar'] + 'allfilters/', nperm='registrar.read', default=True),
-        MenuNode('registrarcreate', _('Create new'), cssc='menu-item', url=f_urls['registrar'] + 'create/', nperm='registrar.create'),
-        MenuNode('invoice', _('Invoices'), cssc='menu-item', url=f_urls['invoice'] + 'allfilters/', nperm='invoice.read'),
+    MenuNode('registrar', _('Registrars'), 'body-registrars', 'menu-item menu-registrars', nperm='read.registrar', submenu=[
+        MenuNode('registrarlist', _('List'), cssc='menu-item', url=f_urls['registrar'] + 'filter/?list_all=1', nperm='read.registrar'),
+        MenuNode('registrarfilter', _('Search'), cssc='menu-item', url=f_urls['registrar'] + 'allfilters/', nperm='read.registrar', default=True),
+        MenuNode('registrarcreate', _('Create new'), cssc='menu-item', url=f_urls['registrar'] + 'create/', nperm=['read.registrar', 'write.registrar'], nperm_type='one'),
+        MenuNode('invoice', _('Invoices'), cssc='menu-item', url=f_urls['invoice'] + 'allfilters/', nperm='read.invoice'),
     ]), 
     MenuNode('logs', _('Logs'), 'body-logs', 'menu-item menu-logs', url='/logs/', submenu=[
-        MenuNode('action', _('Actions'), cssc='menu-item', url=f_urls['action'] + 'allfilters/', nperm='action.read'),
-        MenuNode('publicrequest', _('PublicRequests'), cssc='menu-item', url=f_urls['publicrequest'] + 'allfilters/', nperm='publicrequest.read'),
-        MenuNode('mail', _('Emails'), cssc='menu-item', url=f_urls['mail'] + 'allfilters/', nperm='email.read'),
-        MenuNode('zonegener', _('Zone gener.'), cssc='menu-item', url='/zonegener/', nperm='zonegener.read'),
-        MenuNode('techtest', _('Tech. tests'), cssc='menu-item', url='/techtests/', nperm='techtest.read'),
+        MenuNode('action', _('Actions'), cssc='menu-item', url=f_urls['action'] + 'allfilters/', nperm='read.action'),
+        MenuNode('publicrequest', _('PublicRequests'), cssc='menu-item', url=f_urls['publicrequest'] + 'allfilters/', nperm='read.publicrequest'),
+        MenuNode('mail', _('Emails'), cssc='menu-item', url=f_urls['mail'] + 'allfilters/', nperm='read.email'),
+        MenuNode('zonegener', _('Zone gener.'), cssc='menu-item', url='/zonegener/', nperm='read.zonegener'),
+        MenuNode('techtest', _('Tech. tests'), cssc='menu-item', url='/techtests/', nperm='read.techtest'),
     ]), 
     MenuNode('statistics', _('Statistics'), 'body-statistics', 'menu-item menu-statistics', url='/statistics/')
 ])

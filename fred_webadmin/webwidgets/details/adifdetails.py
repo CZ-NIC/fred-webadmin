@@ -356,7 +356,14 @@ class InvoiceDetail(Detail):
                )
     
     
-    
+detail_classes = [AccessDetail, RegistrarDetail, 
+                  ObjectDetail, 
+                  ContactDetail, 
+                  HostDetail, NSSetDetail, 
+                  DSRecordDetail, DNSKeyDetail, KeySetDetail, 
+                  DomainDetail, 
+                  ActionDetail, PublicRequestDetail, MailDetail, 
+                  PaymentDetail, PaymentActionDetail, InvoiceDetail]
     
 #class DomainDetail(Detail):
 #    name = CharDField(label=_('Domain'))

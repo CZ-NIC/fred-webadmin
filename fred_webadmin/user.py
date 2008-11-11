@@ -26,9 +26,31 @@ class User(object):
         #self.nperms = ['domain.read', 'domain.filter.owner', 'domain.filter.email']
         #self.nperms = ['registrar.read']
         if self.login == 'helpdesk':
-            self.nperms = ['domain.filter', 'domain.filter.authinfo', 
-                           'registrar.detail.city', 'registrar.change.street2', 'registrar.filter.city',
-                           'domain.detail.createdate', 'domain.detail.authinfo']
+            self.nperms = [
+#                           'read.domain.createregistrar',
+#                           'read.domain.updateregistrar',
+#                           'read.domain.registrar',
+#                           'read.domain.nsset',
+#                           'read.domain.keyset',
+#                           'read.domain.registrant',
+#                           'read.domain.admins',
+#                           #'read.domain',
+                           #'read.contact',
+                           'write.registrar',
+                           'read.invoice',
+                           #'read.nsset', 
+                           #'read.keyset', 
+#                           'read.domain.authinfo', 
+#                           'read.registrar.city', 'write.registrar.street2', 'read.registrar.city', 
+                           #'read.registrar.name', 'read.registrar.organization'
+#                           #'read.registrar',
+#                           'read.domain.createdate', 'read.domain.authinfo',
+#                           
+#                           #'read.domain.admins',
+#                           #'read.domain.nsset',
+#                            'read.domain.registrar',
+
+                          ]
         #else:
 #        self.nperms = [
 #            'domain.filter.admincontact', 'domain.detail.admins', 'domain.detail.nsset', 'domain.detail.authinfo',
@@ -37,11 +59,22 @@ class User(object):
 #            'nsset.read',
 #            'registrar.detail.name', 'registrar.detail.organization',
 #        ]
-        self.nperms = []
+#        self.nperms = []
         debug('Created user with nperms = %s' % str(self.nperms))
         
     def has_nperm(self, nperm):
-        return nperm.lower() in self.nperms
+        ''' Return True, if nperm in self.nperms or any of its shorter versions created
+            from it by stripping right part of it from "." character to end
+            Example: 
+             if nperm is 'read.domain.authinfo' function returns True if one of following strings are in self.nperms:
+                 'read', 'read.domain', 'read.domain.authinfo'
+        '''
+        parts = nperm.split('.')
+        for i in range(len(parts)):
+            tmp_nperm = '.'.join(parts[:i+1])
+            if tmp_nperm.lower() in self.nperms:
+                return True
+        return 
         #return self._user.hasNPermission(nperm)
     
     def has_all_nperms(self, nperms):
@@ -52,7 +85,7 @@ class User(object):
                 return False
         return True
     
-    def has_one_nperms(self, nperms):
+    def has_one_nperm(self, nperms):
         for nperm in nperms:
             if self.has_nperm(nperm):
                 return True
@@ -66,12 +99,12 @@ class User(object):
 #            return False
 
     def check_nperms(self, nperms, check_type = 'all'):
-        'Returns True if user has NOT permmission (has negative permission)'
+        'Returns True if user has NOT permission (has negative permission)'
         #debug('USER NPERM pri checku: %s, proti %s, check_type %s' % (self.nperms, nperms, check_type))  
         result = ((isinstance(nperms, types.StringTypes) and self.has_nperm(nperms)) or 
                   (isiterable(nperms) and 
                    (check_type == 'all' and self.has_all_nperms(nperms) or
-                    check_type == 'one' and self.has_one_nperms(nperms))
+                    check_type == 'one' and self.has_one_nperm(nperms))
                   )
                  )
         #print ' -> %s' % result

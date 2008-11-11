@@ -115,7 +115,7 @@ class FilterForm(Form):
     tattr_list = []
     default_fields_names = []
     name_postfix = 'FilterForm'
-    nperm_name = 'filter'
+    nperm_names = ['read']
     
     def __init__(self, data=None, data_cleaned=False, files=None, auto_id='id_%s', prefix=None,
                  initial=None, error_class=ErrorList, label_suffix=':', layout_class=FilterTableFormLayout,
@@ -332,8 +332,8 @@ class DomainFilterForm(ObjectFilterForm):
     
 #    fqdn = CharField(label=_('Domain name'))
     Registrant = CompoundFilterField(label=_('Owner'), form_class=ContactFilterForm)
-    AdminContact = CompoundFilterField(label=_('Admin'), form_class=ContactFilterForm)
-    TempContact = CompoundFilterField(label=_('Temp'), form_class=ContactFilterForm)
+    AdminContact = CompoundFilterField(label=_('Admin'), form_class=ContactFilterForm, nperm='admins')
+    TempContact = CompoundFilterField(label=_('Temp'), form_class=ContactFilterForm, nperm='temps')
     NSSet = CompoundFilterField(label=_('Nameserver set'), form_class=NSSetFilterForm)
     KeySet = CompoundFilterField(label=_('Key set'), form_class=KeySetFilterForm)    
     

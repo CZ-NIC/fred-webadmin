@@ -19,12 +19,13 @@ class Field(WebWidget):
     #tattr_list = input.tattr_list
     is_hidden = False
     
-    def __init__(self, name='', value='', required=True, label=None, initial=None, help_text=None, *content, **kwd):
+    def __init__(self, name='', value='', required=True, label=None, initial=None, nperm = None, help_text=None, *content, **kwd):
         super(Field, self).__init__(*content, **kwd)
         self.tag = ''
         self.required = required
         self.label = label
         self.initial = initial
+        self._nperm = nperm
         self.help_text = help_text
         self.needs_multipart_form = False
         self.order = 0 # order in form, set during form creation
@@ -81,6 +82,12 @@ class Field(WebWidget):
         if unicode(initial_value) != unicode(data_value):
             return True
         return False
+    
+    def get_nperm(self):
+        if self._nperm:
+            return self._nperm.lower()
+        else:
+            return self.name.lower()
     
 class CharField(Field):
     tattr_list = input.tattr_list

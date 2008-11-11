@@ -33,7 +33,6 @@ class DeclarativeDFieldsMetaclass(WebWidget.__metaclass__):
         for i, (field_name, field) in enumerate(attrs['base_fields'].items()):
             field.name = field_name
             field.order = i
-            
 
         new_class = type.__new__(cls, name, bases, attrs)
         return new_class
@@ -41,9 +40,10 @@ class DeclarativeDFieldsMetaclass(WebWidget.__metaclass__):
     
 class BaseDetail(div):
     editable = False
+    nperm_names = ['read']
     
     def __init__(self, data, history, label_suffix=':', display_only = None, sections = None, layout_class=SectionDetailLayout,#TableDetailLayout,
-                 is_nested = False, *content, **kwd):
+                 is_nested = False, all_no_access=False, *content, **kwd):
         super(BaseDetail, self).__init__(*content, **kwd)
         self.tag = u''
         self.media_files.append('/css/details.css')
@@ -61,6 +61,7 @@ class BaseDetail(div):
         self.label_suffix = label_suffix
         self.layout_class = layout_class
         self.is_nested = is_nested
+        self.all_no_access = all_no_access
         
         # check if display_only contains correct field names
         if display_only:
@@ -88,21 +89,25 @@ class BaseDetail(div):
     def filter_base_fields(self):
         "Filters base fields against user negative permissions, so if user has nperm on field we delete it from base_fields"
         user = cherrypy.session.get('user', None)
-        #import pdb; pdb.set_trace()
         if user is None:
             self.base_fields = SortedDict({})
 #                self.default_fields_names = []
         else:
-            object_name = self.get_object_name()
-            #self.base_fields = SortedDict([(name, field) for name, field in self.base_fields.items()])
-            #nself.base_fields = SortedDict(self.base_fields)
+#            object_name = self.get_object_name()
+#            #self.base_fields = SortedDict([(name, field) for name, field in self.base_fields.items()])
+#            #nself.base_fields = SortedDict(self.base_fields)
 #            self.base_fields = SortedDict([(name, field) for name, field in self.base_fields.items() 
 #                                           if not user.has_nperm('%s.%s.%s' % (object_name, 'detail', field.name)) and (not self.display_only or field.name in self.display_only)
 #                                          ])
             
-            for name, field in self.base_fields.items():
-                if user.has_nperm('%s.%s.%s' % (object_name, 'detail', field.name)):
-                    field.access = False
+#            for name, field in self.base_fields.items():
+#                field_nperm = field.get_nperm()
+#                if user.check_nperms(['%s.%s.%s' % (nperm_name, object_name, field_nperm) for nperm_name in self.nperm_names], 'one'):
+#                    #if isinstance(self, NSSetDetail):
+#                    print repr(self)
+#                    print field.name
+#                    import pdb;pdb.set_trace()
+#                    field.access = False
             
             self.base_fields = SortedDict([(name, field) for name, field in self.base_fields.items() 
                                            if not self.display_only or field.name in self.display_only
@@ -110,15 +115,25 @@ class BaseDetail(div):
 #                self.default_fields_names = [field_name for field_name in self.default_fields_names if field_name in self.base_fields.keys()]
     
     def build_fields(self):
-        self.fields = self.base_fields.deepcopy()
-        for field in self.fields.values():
-            field.owner_detail = self
+        user = cherrypy.session.get('user', None)
+        if user is None:
+            self.fields = SortedDict({})
+        else:
+            self.fields = self.base_fields.deepcopy()
+            object_name = self.get_object_name()
+            for field in self.fields.values():
+                field_nperm = field.get_nperm()
+                if self.all_no_access or user.check_nperms(['%s.%s.%s' % (nperm_name, object_name, field_nperm) for nperm_name in self.nperm_names], 'one'):
+                    field.access = False
+                field.owner_detail = self
         
     def set_fields_values(self):
         for field in self.fields.values():
             if field.access:
                 field.value = field.value_from_data(self.data)
-#            else:
+            else:
+                field.value = field.value_from_data({}) # emtpy dict as there are no data
+                field.make_content_no_access()
 #                print 'No access field "%s", not setting value' % field.name 
     
     @classmethod
@@ -138,6 +153,17 @@ class BaseDetail(div):
             self.add_to_bottom()
         debug('After adding layout %s to %s' % (self.layout_class, self.__class__.__name__))
         return super(BaseDetail, self).render(indent_level)        
-            
+    
+    @classmethod
+    def get_nperms(cls):
+        nperms = []
+        for field in cls.base_fields.values():
+            field_nperm = field.get_nperm()
+            field_nperms = ['%s.%s.%s' % (nperm_name, cls.get_object_name(), field_nperm) for nperm_name in cls.nperm_names]
+            nperms.extend(field_nperms)
+        return nperms
+    
+
+ 
 class Detail(BaseDetail):
     __metaclass__ = DeclarativeDFieldsMetaclass
