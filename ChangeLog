@@ -1,5 +1,13 @@
-2008-10-18 Tomas Divis (version 3.1.0)
+2008-11-11 Jaromir Talir (version 3.1.1)
 
+    * Adding possibility to edit registra system flag
+
+    * Bugfix of message in case of LDAP connection problems
+
+    * Updated MANIFEST.in
+
+2008-10-18 Tomas Divis (version 3.1.0)
+	
     * Adding DNSKEY record to keyset details
 	
 2008-10-15 Tomas Divis (version 3.0.4)
