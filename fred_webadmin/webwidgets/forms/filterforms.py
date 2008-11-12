@@ -58,7 +58,8 @@ class UnionFilterForm(Form):
                             '/js/interval_fields.js', 
                             '/js/scwLanguages.js',
                             '/js/form_content.js',
-                            '/filter_forms_javascript.js'
+                            '/filter_forms_javascript.js',
+                            '/js/check_filter_forms_javascript.js',
                            ]
         #self.onsubmit = '''alert('submituji');sendUnionForm(this); return false;'''
         #self.onsubmit = '''alert('submituju'); false;'''
