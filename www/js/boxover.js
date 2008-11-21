@@ -32,7 +32,7 @@ function init() {
 }
 
 function defHdrStyle() {
-	dvHdr.innerHTML='<img  style="vertical-align:middle"  src="info.gif">&nbsp;&nbsp;'+dvHdr.innerHTML;
+	//dvHdr.innerHTML='<img  style="vertical-align:middle"  src="info.gif">&nbsp;&nbsp;'+dvHdr.innerHTML;
 	dvHdr.style.fontWeight='bold';
 	dvHdr.style.width='auto'; //'150px';
 	dvHdr.style.fontFamily='arial';
