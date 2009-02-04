@@ -59,7 +59,7 @@ class User(object):
 #            'nsset.read',
 #            'registrar.detail.name', 'registrar.detail.organization',
 #        ]
-#        self.nperms = []
+        self.nperms = []
         debug('Created user with nperms = %s' % str(self.nperms))
         
     def has_nperm(self, nperm):
