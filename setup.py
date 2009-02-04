@@ -212,6 +212,7 @@ class FredWebAdminInstallData(install_data):
     def update_webadmin_server(self):
         values = []
         values.append(('DU_PREFIX', self.getDir('prefix')))
+        values.append(('DU_LOCALSTATEDIR', self.getDir('localstatedir')))
         self.replace_pattern(
                 os.path.join(self.srcdir, 'fred-webadmin-server.install'),
                 os.path.join('build', 'fred-webadmin-server'),

@@ -13,7 +13,7 @@ MSG_START="Starting FRED webadmin HTTP server..."
 MSG_STOP="Stopping FRED webadmin HTTP server..."
 
 WEBADMIN_EXEC="DU_PREFIX/sbin/fred-webadmin"
-PIDFILE="DU_PREFIX/var/run/fred-webadmin"
+PIDFILE="DU_LOCALSTATEDIR/run/fred-webadmin"
 
 PATH=$PATH:/sbin
 
