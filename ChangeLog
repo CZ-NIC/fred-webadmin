@@ -1,3 +1,15 @@
+2009-02-04 Jaromir Talir (version 3.1.2)
+
+    * Bugfix in mousover on history status field of objects
+
+    * Log directory changed to /var/log/fred-webadmin/
+
+    * Setup.py install script allows to specify LDAP directory
+
+    * Bugfix redirect after successful login (double login)
+
+    * Initial permissions framework (not used yet)
+
 2008-11-11 Jaromir Talir (version 3.1.1)
 
     * Adding possibility to edit registra system flag
