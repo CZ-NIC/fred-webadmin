@@ -3,6 +3,8 @@ import cherrypy
 import datetime
 from logging import debug, error
 from omniORB.any import from_any
+import csv
+import StringIO
 
 from corba import ccReg, Registry, CorbaServerDisconnectedException
 from adif import u2c
@@ -10,16 +12,33 @@ from translation import _
 from fred_webadmin.webwidgets.forms.filterforms import FilterFormEmptyValue
 from fred_webadmin.mappings import f_name_enum, f_enum_name, f_header_ids, f_urls, f_name_default_sort
 from fred_webadmin.utils import c2u, date_time_interval_to_corba, corba_to_date_time_interval, date_to_corba, corba_to_date, datetime_to_corba, corba_to_datetime
+#
+#def fileGenerator(source, separator = '|'):
+#    "Generates CSV stream from IterTable object"
+#    data = separator.join(source.rawheader)
+#    yield "%s\n" % (data)
+#    for i in xrange(source.num_rows):
+#        row = source[i]
+#        data = separator.join([col['value'] for col in row])
+#        yield "%s\n" % (data)
 
 def fileGenerator(source, separator = '|'):
-    "Generates CVS stream from IterTable object"
-    data = separator.join(source.rawheader)
-    yield "%s\n" % (data)
+    "Generates CSV stream from IterTable object"
+    
+    out = StringIO.StringIO() # csv writer supports only files for output, so we have to use StringIO 
+    w = csv.writer(out)
+    
+    data = source.rawheader
+    w.writerow([unicode(item).encode('utf-8') for item in data])
+    yield out.getvalue()
+    
     for i in xrange(source.num_rows):
         row = source[i]
-        data = separator.join([col['value'] for col in row])
-        yield "%s\n" % (data)
-        
+        data = [col['value'] for col in row]
+        out.seek(0)
+        w.writerow([unicode(item).encode('utf-8') for item in data])
+        out.truncate() # truncate from current pos to end (if something remained from last iteration)
+        yield out.getvalue() # returning one line of data
 
 
 class IterTable(object):
