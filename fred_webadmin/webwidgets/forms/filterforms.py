@@ -297,8 +297,8 @@ class ObjectFilterForm(FilterForm):
 class ContactFilterForm(ObjectFilterForm):
     default_fields_names = ObjectFilterForm.default_fields_names + ['Name']
     
-    Email = EmailField(label=_('Email'))
-    NotifyEmail = EmailField(label=_('Notify email'))
+    Email = CharField(label=_('Email'))
+    NotifyEmail = CharField(label=_('Notify email'))
 #    contact_type = MultipleChoiceField(label=_('Contact type'), choices=(('owner', _('Owner')), ('admin', _('Admin')), ('techadmin', _('techadmin')), ('temporary', _('Temporary'))))
     Name = CharField(label=_('Name'))
     Organization = CharField(label=_('Organization'))
