@@ -1,3 +1,3 @@
 [bdist_rpm]
-requires=python-simplejson, python-dns, python-cherrypy, libomniORBpy3-devel, omniORB-servers, omniORB-bootscripts
+requires=python-simplejson, python-dns, python-cherrypy, libomniORBpy3-devel, omniORB-servers, omniORB-bootscripts, redhat-lsb
 install-extra-opts=--prefix=/usr --sysconfdir=/etc --localstatedir=/var --no-check-deps
