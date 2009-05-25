@@ -1,3 +1,9 @@
+2009-05-25 Tomas Divis, Jaromir Talir (version 3.1.4)
+
+    * Changed email fields in filter so that wildecards can be user
+
+    * Updated init script
+
 2009-03-26 Tomas Divis (version 3.1.3)
 
     * In In pagetable export to csv, separator have change to ',' (from '|'),
