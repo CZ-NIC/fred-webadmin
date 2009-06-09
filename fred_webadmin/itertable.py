@@ -48,7 +48,7 @@ class IterTable(object):
     """
     def __init__(self, request_object, sessionKey, pagesize=50):
         debug('Creating IterTable of type %s' % request_object)
-        super(IterTable, self).__init__(self)
+        super(IterTable, self).__init__()
         self.iterable = True
         self.request_object = request_object
         table, header_id = self._map_request(sessionKey)
