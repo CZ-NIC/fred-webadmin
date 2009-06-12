@@ -7,7 +7,7 @@ from fred_webadmin.translation import _
 from fred_webadmin import config
 from fred_webadmin.utils import get_current_url, append_getpar_to_url
 
-from details import ContactDetailDiv, DomainDetailDiv, NSSetDetailDiv, ActionDetailDiv, RegistrarDetailDiv, PublicRequestDetailDiv, MailDetailDiv, InvoiceDetailDiv
+#from details import ContactDetailDiv, DomainDetailDiv, NSSetDetailDiv, ActionDetailDiv, RegistrarDetailDiv, PublicRequestDetailDiv, MailDetailDiv, InvoiceDetailDiv
 from fred_webadmin.webwidgets.details import adifdetails
 
 class BaseTemplate(HTMLPage):

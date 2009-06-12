@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+# THIS FILE IS NOT USED IN WEBADMIN ANYMORE
+
 import datetime
 import cherrypy
 from fred_webadmin.webwidgets.gpyweb.gpyweb import attr, div, span, h1, table, tbody, tr, th, td, p, strong, b, small, a, form, input, select, option, textarea, script, pre, br, acronym, hr
