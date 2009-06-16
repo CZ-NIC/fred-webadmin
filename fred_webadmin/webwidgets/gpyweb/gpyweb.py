@@ -143,9 +143,10 @@ class WebWidget(object):
         
         
     def __getattr__(self, name):
-        #print "getting %s %s" % (name, repr(self))
-#        if name in ['__reduce__', '__getstate__', '__module__', '__getinitargs__', 'tatr' 'content']:
-#            raise AttributeError, name
+        #print 'getting "%s" of "%s"' % (name, repr(self))
+        if name in ['__reduce__', '__getstate__', '__setstate__', '__module__', '__getinitargs__', '__getnewargs__', '__deepcopy__', 
+                    'tatr' 'content']:
+            raise AttributeError, name
         if self.tattr.has_key(name):
             return self.tattr[name]
         else:
@@ -160,8 +161,8 @@ class WebWidget(object):
                             return con
                     except AttributeError:
                         pass
-        #print "NEDOSTAL JSEM %s, JEHO __DICT__:" % name
-        #print self.__dict__
+#        print "DIDN'T GET %s" % name
+#        print self.__dict__
         raise AttributeError(u'__getattr__ try to access non-existend attribute "%s" of object "%s"' % (name, unicode(self.__repr__())))
 
     def __setattr__(self, name, value):
