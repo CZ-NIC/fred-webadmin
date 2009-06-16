@@ -155,28 +155,30 @@ class CorbaEnumChoiceField(ChoiceField):
             
             
 
-class DateIntervalField(MultiValueField):
-    def __init__(self, name='', value='', *args, **kwargs):
+class AbstractIntervalField(MultiValueField):
+    ''' Abstract class field for DateIntervalField and DateTimeIntervalField'''
+    def __init__(self, name='', value='', fields=None, *args, **kwargs):
+        self.__dict__['initialized'] = False
         # fields = (FROM, TO, DAY, TYPE, OFFSET)
-        fields = (DateField(size=10), DateField(size=10), DateField(size=10), 
-                  ChoiceField(content=[attr(onchange='onChangeDateIntervalType(this)')], choices=INTERVAL_CHOICES_DATE_ONLY), 
-                  DecimalField(initial=1, size=5, min_value=-32768, max_value=32767)) 
-        super(DateIntervalField, self).__init__(name, value, fields, *args, **kwargs)
-        fields[3].required = True # intertnal type is required
+ 
+        super(AbstractIntervalField, self).__init__(name, value, fields, *args, **kwargs)
+        self.fields[3].required = True # intertnal type is required
         self.media_files.append('/js/interval_fields.js')
+        self.initialized = True
     
     def _set_value(self, value):
         if not value:
             value = [None, None, None, 1, 0]
-        super(DateIntervalField, self)._set_value(value)
+        super(AbstractIntervalField, self)._set_value(value)
         self.set_iterval_date_display()
     
     def set_from_clean(self, value):
-        super(DateIntervalField, self).set_from_clean(value)
+        super(AbstractIntervalField, self).set_from_clean(value)
         self.set_iterval_date_display()
             
     def set_iterval_date_display(self):
         if hasattr(self, 'date_interval_span'): # when initializing value, make_content method is not yet called, so this checks if it already was
+        #if self.initialized: # when initializing value, make_content method is not yet called, so this checks if it already was
             date_interval_display = 'none'
             date_day_display = 'none'
             date_interval_offset_span = 'none'
@@ -211,7 +213,7 @@ class DateIntervalField(MultiValueField):
         self.set_iterval_date_display()
         
     def clean(self):
-        cleaned_data = super(DateIntervalField, self).clean()
+        cleaned_data = super(AbstractIntervalField, self).clean()
         if cleaned_data and int(cleaned_data[3]) == ccReg.INTERVAL._v and cleaned_data[0] and cleaned_data[1]: # if from and to field filled, and not day filled
             if cleaned_data[0] > cleaned_data[1]: # if from > to
                 errors = ErrorList(['"From" must be bigger than "To"'])
@@ -234,15 +236,18 @@ class DateIntervalField(MultiValueField):
                )
     
 
+class DateIntervalField(AbstractIntervalField):
+    def __init__(self, name='', value='', *args, **kwargs):
+        fields = (DateField(size=10), DateField(size=10), DateField(size=10), 
+                  ChoiceField(content=[attr(onchange='onChangeDateIntervalType(this)')], choices=INTERVAL_CHOICES_DATE_ONLY), 
+                  DecimalField(initial=1, size=5, min_value=-32768, max_value=32767))
+        super(DateIntervalField, self).__init__(name, value, fields, *args, **kwargs)
     
-class DateTimeIntervalField(DateIntervalField):
-    def __init__(self, name='', value='', *args, **kwargs): # pylint: disable-msg=E1003
-        # fields = (FROM, TO, DAY, TYPE, OFFSET) 
+class DateTimeIntervalField(AbstractIntervalField):
+    def __init__(self, name='', value='', *args, **kwargs):
         fields = (SplitDateSplitTimeField(), SplitDateSplitTimeField(), DateField(size=10), 
                   ChoiceField(content=attr(onchange='onChangeDateIntervalType(this)'), choices=INTERVAL_CHOICES), 
                   DecimalField(initial=1, size=5, min_value=-32768, max_value=32767))
-        # Here is called really parent of parent of this class, to avoid self.fields initialization from parent:
-        super(DateIntervalField, self).__init__(name, value, fields, *args, **kwargs)
-        fields[3].required = True # intertnal type is required
-        self.media_files.append('/js/interval_fields.js')
-    
+        super(DateTimeIntervalField, self).__init__(name, value, fields, *args, **kwargs)
+
+
