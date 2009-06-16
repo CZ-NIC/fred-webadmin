@@ -158,13 +158,12 @@ class CorbaEnumChoiceField(ChoiceField):
 class AbstractIntervalField(MultiValueField):
     ''' Abstract class field for DateIntervalField and DateTimeIntervalField'''
     def __init__(self, name='', value='', fields=None, *args, **kwargs):
-        self.__dict__['initialized'] = False
+        self.__dict__['content_initialized'] = False
         # fields = (FROM, TO, DAY, TYPE, OFFSET)
  
         super(AbstractIntervalField, self).__init__(name, value, fields, *args, **kwargs)
         self.fields[3].required = True # intertnal type is required
         self.media_files.append('/js/interval_fields.js')
-        self.initialized = True
     
     def _set_value(self, value):
         if not value:
@@ -177,8 +176,8 @@ class AbstractIntervalField(MultiValueField):
         self.set_iterval_date_display()
             
     def set_iterval_date_display(self):
-        if hasattr(self, 'date_interval_span'): # when initializing value, make_content method is not yet called, so this checks if it already was
-        #if self.initialized: # when initializing value, make_content method is not yet called, so this checks if it already was
+        #if hasattr(self, 'date_interval_span'): # when initializing value, make_content method is not yet called, so this checks if it already was
+        if self.content_initialized: # when initializing value, make_content method is not yet called, so this checks if it already was
             date_interval_display = 'none'
             date_day_display = 'none'
             date_interval_offset_span = 'none'
@@ -210,6 +209,7 @@ class AbstractIntervalField(MultiValueField):
                       _('day') + ':', self.fields[2]
                      ),
                 )
+        self.content_initialized = True
         self.set_iterval_date_display()
         
     def clean(self):
