@@ -50,7 +50,7 @@ from translation import _
 
 
 from webwidgets.templates.pages import (
-    BaseSite, BaseSiteMenu, LoginPage, DisconnectedPage, NotFound404Page, AllFiltersPage, FilterPage, ErrorPage, DigPage, 
+    BaseSite, BaseSiteMenu, LoginPage, DisconnectedPage, NotFound404Page, AllFiltersPage, FilterPage, ErrorPage, DigPage, SetInZoneStatusPage, 
     DomainDetail, ContactDetail, NSSetDetail, KeySetDetail, RegistrarDetail, ActionDetail, PublicRequestDetail, MailDetail, InvoiceDetail,
     #DomainEdit, ContactEdit, NSSetEdit, 
     RegistrarEdit,
@@ -427,6 +427,8 @@ class AdifPage(Page):
             return ErrorPage
         elif action == 'dig':
             return DigPage
+        elif action == 'setinzonestatus':
+            return SetInZoneStatusPage
         else:
             # returns ClassName + Action (e.g. DomainDetail) class from module of this class, if there is no such, then it returns BaseSiteMenu: 
             template_name = self.__class__.__name__ + action.capitalize()
@@ -750,7 +752,28 @@ class Domain(AdifPage, ListTableMixin):
         context['handle'] = handle
         context['dig'] = dig
         return self._render('dig', context)
+
+    @check_onperm('write')
+    def setinzonestatus(self, **kwd):
+        "Call setInzoneStatus(domainID) "
+        context = {}
+        handle = kwd.get('handle', None) # domain name
+        if not handle:
+            raise cherrypy.HTTPRedirect(f_urls[self.classname])
         
+        context['handle'] = handle
+        admin = cherrypy.session.get('Admin')
+        if hasattr(admin, "setInZoneStatus"):
+            try:
+                context['success'] = admin.setInZoneStatus(handle)
+            except Exception, e:
+                context['error'] = e
+        else:
+            context['error'] = _("Function setInZoneStatus() is not implemented in Admin.")
+        
+        return self._render('setinzonestatus', context)
+
+
 
 class Contact(AdifPage, ListTableMixin):
     pass

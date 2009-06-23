@@ -264,7 +264,8 @@ class DomainDetail(ObjectDetail):
             self.add(FilterPanel([
                 [_('Actions'), 'action', [{'RequestHandle': self.data.get('handle')}]],
                 [_('Emails'), 'mail', [{'Message': self.data.get('handle')}]],
-                [_('dig'), f_urls['domain'] + 'dig/?handle=' + self.data.get('handle')]
+                [_('dig'), f_urls['domain'] + 'dig/?handle=' + self.data.get('handle')], 
+                [_('Set InZone Status'), f_urls['domain'] + 'setinzonestatus/?handle=' + self.data.get('handle')], 
             ]))
         super(DomainDetail, self).add_to_bottom()
         

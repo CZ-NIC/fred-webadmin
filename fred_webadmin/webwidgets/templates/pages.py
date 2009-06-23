@@ -360,3 +360,17 @@ class DigPage(BaseSiteMenu):
             self.main.add(h3(_('Domain'), c.handle))
         if c.get('dig'):
             self.main.add(pre(c.dig))
+
+
+class SetInZoneStatusPage(BaseSiteMenu):
+    def __init__(self, context = None):
+        super(SetInZoneStatusPage, self).__init__(context)
+        c = self.context
+        self.main.add(h2(_('Set InZone Status')))
+        if c.get('handle'):
+            self.main.add(h3(_('Domain'), c.handle))
+        if c.get('success') and c.success:
+            self.main.add(pre(attr(style='color:green;'), 
+                              _("Function returns True.")))
+        if c.get('error'):
+            self.main.add(pre(attr(style='color:red;'), c.error))
