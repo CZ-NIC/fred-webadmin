@@ -756,21 +756,30 @@ class Domain(AdifPage, ListTableMixin):
     @check_onperm('write')
     def setinzonestatus(self, **kwd):
         "Call setInzoneStatus(domainID) "
-        context = {}
-        handle = kwd.get('handle', None) # domain name
-        if not handle:
+        context = {'error': None}
+        domain_id = kwd.get('id', None) # domain ID
+        if not domain_id:
             raise cherrypy.HTTPRedirect(f_urls[self.classname])
         
-        context['handle'] = handle
         admin = cherrypy.session.get('Admin')
         if hasattr(admin, "setInZoneStatus"):
             try:
-                context['success'] = admin.setInZoneStatus(handle)
+                context['success'] = admin.setInZoneStatus(int(domain_id))
             except Exception, e:
                 context['error'] = e
         else:
             context['error'] = _("Function setInZoneStatus() is not implemented in Admin.")
         
+        # if it was succefful, redirect into domain detail
+        if context['error'] is None:
+            raise cherrypy.HTTPRedirect(f_urls[self.classname] + '/detail/?id=%s' % domain_id)
+        
+        # display domain name
+        try:
+            context['handle'] = admin.getDomainById(int(domain_id)).fqdn
+        except Exception, e:
+            context['error'] = e
+        # display page with error message
         return self._render('setinzonestatus', context)
 
 

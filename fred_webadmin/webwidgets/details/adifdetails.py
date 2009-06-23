@@ -261,11 +261,14 @@ class DomainDetail(ObjectDetail):
     
     def add_to_bottom(self):
         if self.data:
+            self.media_files.append('/js/publicrequests.js')
             self.add(FilterPanel([
                 [_('Actions'), 'action', [{'RequestHandle': self.data.get('handle')}]],
                 [_('Emails'), 'mail', [{'Message': self.data.get('handle')}]],
                 [_('dig'), f_urls['domain'] + 'dig/?handle=' + self.data.get('handle')], 
-                [_('Set InZone Status'), f_urls['domain'] + 'setinzonestatus/?handle=' + self.data.get('handle')], 
+                [_('Set InZone Status'), "javascript:processPublicRequest('%s')" % 
+                    (f_urls['domain'] + 'setinzonestatus/?id=%d' % self.data.get('id'))],
+                
             ]))
         super(DomainDetail, self).add_to_bottom()
         

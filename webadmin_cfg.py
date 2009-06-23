@@ -20,6 +20,7 @@ log_level = logging.DEBUG
 #idl = '/home/glin/programming/svn_enum_checkout/enum/idl/trunk/ccReg.idl'
 #idl = '/home/glin/programming/nic/webadmin/servers/idl_devel/idl/ccReg.idl'
 idl = '/home/glin/programming/nic/webadmin/servers/idl_trunk/idl/ccReg.idl'
+idl = '/home/zbohm/enum/idl/trunk/idl/ccReg.idl' #!!!
 
 iors = (#(label, nshost, nscontext),
         (u'maňásek-tom', 'jsadek', 'fred-tom'),
@@ -32,7 +33,7 @@ iors = (#(label, nshost, nscontext),
         (u'jarahp', 'jarahp:22346', 'fred'),
        ) 
 
-auth_method = 'LDAP' # 'LDAP', 'CORBA'
+auth_method = 'CORBA' # 'LDAP', 'CORBA'
 LDAP_server = 'ldap.office.nic.cz'
 LDAP_scope = 'uid=%s,ou=People,dc=nic,dc=cz'
 
