@@ -50,7 +50,7 @@ js_calendar_date_format = 'D.M.YYYY'
 cherrycfg = {
     'global': {
         'server.socket_port': 18456,
-        'server.socket_host': "",
+        'server.socket_host': "0.0.0.0",
         'server.thread_pool': 10,
         'server.environment': 'production',
         'tools.decode.on': True,
