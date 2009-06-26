@@ -772,7 +772,10 @@ class Domain(AdifPage, ListTableMixin):
         
         # if it was succefful, redirect into domain detail
         if context['error'] is None:
-            raise cherrypy.HTTPRedirect(f_urls[self.classname] + '/detail/?id=%s' % domain_id)
+            # use this URL in trunk version:
+            # HTTPRedirect(f_urls[self.classname] + '/detail/?id=%s' % domain_id)
+            # this URL is compatible with branche 3.1
+            raise cherrypy.HTTPRedirect('/domain/detail/?id=%s' % domain_id)
         
         # display domain name
         try:
