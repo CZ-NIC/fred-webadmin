@@ -1,3 +1,11 @@
+2009-06-30 Tomas Divis, Zdenek Bohm, Jaroslav Benkovsky (version 3.1.5)
+
+    * Adding possibility to set serverInZoneManual state on domain
+	
+    * Support for Python 2.6
+	
+    * Fixing startup script
+
 2009-05-25 Tomas Divis, Jaromir Talir (version 3.1.4)
 
     * Changed email fields in filter so that wildecards can be user
