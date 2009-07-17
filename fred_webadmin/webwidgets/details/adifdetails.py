@@ -266,7 +266,7 @@ class DomainDetail(ObjectDetail):
                 [_('Actions'), 'action', [{'RequestHandle': self.data.get('handle')}]],
                 [_('Emails'), 'mail', [{'Message': self.data.get('handle')}]],
                 [_('dig'), f_urls['domain'] + 'dig/?handle=' + self.data.get('handle')], 
-                [_('Set InZone Status'), "javascript:processPublicRequest('%s')" % 
+                [_('Set InZone Status'), "javascript:setInZoneStatus('%s')" % 
                     (f_urls['domain'] + 'setinzonestatus/?id=%d' % self.data.get('id'))],
                 
             ]))

@@ -11,3 +11,10 @@ function closePublicRequest(url) {
         location.href=url;
     }
 }
+
+function setInZoneStatus(url) {
+    number = Math.floor(Math.random()*1000)
+    if (prompt("Type "+number+" to manually put the domain into the zone") == number) {
+        location.href=url;
+    }
+}
