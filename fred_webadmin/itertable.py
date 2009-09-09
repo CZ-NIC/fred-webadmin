@@ -6,8 +6,6 @@ from omniORB.any import from_any
 import csv
 import StringIO
 
-from __future__ import generators
-
 from corba import ccReg, Registry, CorbaServerDisconnectedException
 from utils import u2c
 from translation import _
