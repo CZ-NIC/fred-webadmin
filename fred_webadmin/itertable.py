@@ -174,8 +174,8 @@ class IterTable(object):
     def next(self):
         debug("In itertable.next(), row_index: %s" % self._row_index)
         while self._row_index < (self.page_start + self.page_rows):
-            self._row_index += 1
             row = self._get_row(self._row_index)
+            self._row_index += 1
             yield row
 
         self._row_index = self.page_start
