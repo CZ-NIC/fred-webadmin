@@ -6,8 +6,10 @@ from omniORB.any import from_any
 import csv
 import StringIO
 
+from __future__ import generators
+
 from corba import ccReg, Registry, CorbaServerDisconnectedException
-from adif import u2c
+from utils import u2c
 from translation import _
 from fred_webadmin.webwidgets.forms.filterforms import FilterFormEmptyValue
 from fred_webadmin.mappings import f_name_enum, f_enum_name, f_header_ids, f_urls, f_name_default_sort
@@ -107,7 +109,7 @@ class IterTable(object):
         self._row_index = self.page_start
             
     def __iter__(self):
-        return self
+        return self.next()
 
     def __len__(self):
         debug("Itertable.LEN = %s" % self.page_rows)
@@ -171,12 +173,12 @@ class IterTable(object):
 
     def next(self):
         debug("In itertable.next(), row_index: %s" % self._row_index)
-        if self._row_index >= (self.page_start + self.page_rows):
-            self._row_index = self.page_start
-            raise StopIteration
-        row = self._get_row(self._row_index)
-        self._row_index += 1
-        return row
+        while self._row_index < (self.page_start + self.page_rows):
+            self._row_index += 1
+            row = self._get_row(self._row_index)
+            yield row
+
+        self._row_index = self.page_start
 
     def _rewrite_cell(self, cell):
 #        get_url_id_content = lambda filter_name: {'url': f_urls[filter_name] + 'detail/?id=%s',  'icon': '/img/icons/open.png', 'cssc': 'tcenter'}
