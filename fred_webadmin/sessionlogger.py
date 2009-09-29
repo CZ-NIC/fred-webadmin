@@ -244,9 +244,8 @@ class SessionLogger(object):
             Request (action string code -> action int code) mapping from
             the server. 
             """
-        #TODO: Fix this after server fix
         action_list = self.dao.GetServiceActions(self.service_type)
-        self.actions = {"ClientLogin" : 100, "ClientLogout" : 101, "DomainFilter" : 1302, "FileFilter" : 1303, "DomainDetail" : 1304 }
+        self.actions = {}
         for (id, status) in action_list:
             self.actions[status] = id
 
