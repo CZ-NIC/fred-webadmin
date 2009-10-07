@@ -48,63 +48,79 @@ class SessionLogger(object):
             to.
         common_properties: List of properties that should be added by default
             to every log request.
-        should_throw_exceptions: Boolean indicating whether SessionLogger should
+        throws_exceptions: Boolean indicating whether SessionLogger should
             throw Exceptions or return error codes on error.
-        log: When should_throw_exceptions == True and we encounter an error,
-            this function is called with a string description of what happened.
+        log: When we encounter an error, this function is called with a string
+            description of what happened.
 
     """
 
-    def __init__(self, throws_exceptions=False, logging_function=None):
-        """ 
-            Initializes all values and starts a logging session on the server.
-            When @throws_exceptions is True, logger throws LoggingException
-            if any error occurrs.
+    def __init__(self, dao, throws_exceptions=False, logging_function=None):
+        """Inits SessionLogger.
+
+            Arguments:
+                
         """
+        self.dao = dao
         self.actions = None 
         self.logging_session_id = None
-        self.dao = None # Data Access Object
         self.common_properties = {}
-        self.should_throw_exceptions = throws_exceptions
-        self.log = logging_function or logging.debug    # Function for logging
+        self.throws_exceptions = throws_exceptions
+        self.log = logging_function or logging.debug
 
-    def start_session(self, lang, name, service_type=4, dao=None):
-        """
-            Starts a new logging session. Returns true iff session started
-            successfully.
+    def start_session(self, lang, name, service_type=4):
+        """Starts a new logging session.
+
+            Arguments:
+                lang: String. Language of the started session.
+                name: String. Registrar ID for EPP session or user name for
+                    WebAdmin.
+                service_type: Integer. Type of service that is going to be
+                    logged.
+                dao: Data Access Object for logging. Probably Corba Logger
+                    object for normal usage.
+            
+            Returns: True if session started successfully, False otherwise.
+
+            Raises: If SessionLogger should throw exceptions, throws
+                LoggingException on error.
+
         """
         name = u2c(name)
         try:
-            if dao is None:
-                self.dao = corba.getObject('Logger', 'Logger')
-            else:
-                self.dao = dao
-                
             if languages.has_key(lang.lower()) == False:
                 raise ValueError("Invalid language provided to SessionLogger.")
             else:
                 lang_code = languages[lang.lower()]
-
+            
             self.logging_session_id = self.dao.CreateSession(lang_code, 
                                                                  name)
             if self.logging_session_id == 0:
                 raise LoggingException("""Invalid arguments provided to
                                         CreateSession: %s, %s.""" %
                                         (lang_code, name))
-
             self.__load_action_codes(service_type)
 
             return True
         except Exception as e:
-            if self.should_throw_exceptions:
-                self.log(str(e))
-                self.log(traceback.format_exc())
+            self.log(str(e))
+            self.log(traceback.format_exc())
+            if self.throws_exceptions:
                 raise LoggingException(e)
             else:
-                self.log(str(e))
                 return False
 
     def set_common_property(self, name, value, output=False, child=False):
+        """Set a property that will automatically be logged in every request.
+            
+            Common properties are logged when a log request is created.
+            Therefore if you create a request and then set a common property, it
+            will be logged automaticalyy in every following request, but not
+            this one.
+
+            Arguments:
+                See LogRequest.update.
+        """
         name = u2c(name)
         self.common_properties[name] = (name, value, output, child)
 
@@ -118,12 +134,14 @@ class SessionLogger(object):
             request_id = self.__server_create_request(source_ip, content, 
                                                       action_type, properties)
             log_request = LogRequest(self.dao, request_id, 
-                                throws_exceptions=self.should_throw_exceptions,
+                                throws_exceptions=self.throws_exceptions,
                                 logging_function=self.log) 
             log_request.update_multiple(self.common_properties.values())
             return log_request
         except Exception as e:
-            if self.should_throw_exceptions:
+            self.log(str(e))
+            self.log(traceback.format_exc())
+            if self.throws_exceptions:
                 raise LoggingException(e)
             else:
                 self.log(str(e))
@@ -139,14 +157,19 @@ class SessionLogger(object):
         try:
             request_id = self.__server_create_request(source_ip, content, 
                                                       action_type, properties)
+            # TODO(tomas): Cannot send logging_session_id now, otherwise the
+            # call fails. When it's a login log request, the logging_session_id
+            # must only be sent when closing the request.
             log_request = LogRequestLogin(self.dao, request_id, 
                                 self.logging_session_id, 
-                                throws_exceptions=self.should_throw_exceptions,
+                                throws_exceptions=self.throws_exceptions,
                                 logging_function=self.log) 
             log_request.update_multiple(self.common_properties.values())
             return log_request
         except Exception as e:
-            if self.should_throw_exceptions:
+            self.log(str(e))
+            self.log(traceback.format_exc())
+            if self.throws_exceptions:
                 raise LoggingException(e)
             else:
                 self.log(str(e))
@@ -163,7 +186,9 @@ class SessionLogger(object):
                 raise LoggingException("CloseSession failed.")
             return True
         except Exception as e:
-            if self.should_throw_exceptions:
+            self.log(str(e))
+            self.log(traceback.format_exc())
+            if self.throws_exceptions:
                 raise LoggingException(e)
             else:
                 self.log(str(e))
@@ -222,12 +247,20 @@ class LogRequest(object):
             req.update("session_id", 132)
             ...
             req.commit("<foo/>")
+
+        Arguments:
+            dao: Data Access Object for logging. Usually Corba Logger object.
+            request_id: Integer identifier of the request.
+            throws_exceptions: Boolean. True iff SessionLogger throws 
+                exceptions.
+            log: When we encounter an error, this function is called with 
+                a string description of what happened.
     """
 
     def __init__(self, dao, request_id, throws_exceptions, logging_function):
         self.dao = dao
         self.request_id = request_id
-        self.should_throw_exceptions = throws_exceptions
+        self.throws_exceptions = throws_exceptions
         self.log = logging_function
 
     def update(self, name, value, output=False, child=False):
@@ -248,7 +281,7 @@ class LogRequest(object):
             Returns:
                 True if request was logged OK, False otherwise.
             Raises:
-                LoggingException: If SessionLogger.should_throw_exceptions 
+                LoggingException: If SessionLogger.throws_exceptions 
                 is True and any error has occured.
         """
 
@@ -259,17 +292,18 @@ class LogRequest(object):
         name = u2c(name)
         value = u2c(value)
         try:
-            rc = self.dao.UpdateRequest(self.request_id, 
-                                        [ccReg.RequestProperty(name, value, 
-                                                               output, child)])
-            if not rc:
-                raise LoggingException("UpdateSession failed.")
+            property = [ccReg.RequestProperty(name, value, output, child)]
+            success = self.dao.UpdateRequest(self.request_id, property)
+            if not success:
+                raise LoggingException("UpdateRequest failed with args: %s,"
+                                       "%s." % self.request_id, property)
             return True
-        except Exception, e:
-            if self.should_throw_exceptions:
-                raise LoggingException(e)
+        except Exception as exc:
+            self.log(str(exc))
+            self.log(traceback.format_exc())
+            if self.throws_exceptions:
+                raise LoggingException(exc)
             else:
-                self.log(str(e))
                 return False
 
     def update_multiple(self, properties):
@@ -289,15 +323,16 @@ class LogRequest(object):
         """ Close this logging request. Warning: the request cannot be changed
             anymore after committing. """
         try:
-            rc = self.dao.CloseRequest(self.request_id, content, [])
-            if not rc:
+            success = self.dao.CloseRequest(self.request_id, content, [])
+            if not success:
                 raise LoggingException("CloseRequest failed.")
             return True
-        except Exception, e:
-            if self.should_throw_exceptions:
-                raise LoggingException(e)
+        except Exception as exc:
+            self.log(str(exc))
+            self.log(traceback.format_exc())
+            if self.throws_exceptions:
+                raise LoggingException(exc)
             else:
-                self.log(str(e))
                 return False
 
 
@@ -316,24 +351,24 @@ class LogRequestLogin(LogRequest):
 
     def commit(self, content=""):
         try:
-            rc = self.dao.CloseRequestLogin(self.request_id, content, [], 
+            success = self.dao.CloseRequestLogin(self.request_id, content, [], 
                                             self.logging_session_id)
-            if not rc:
+            if not success:
                 raise LoggingException("""CloseRequest failed with args: (%s, 
                                         %s, %s, %s).""" % (self.request_id, 
                                         content, [], self.logging_session_id))
             return True
         except Exception as e:
-            if self.should_throw_exceptions:
+            self.log(str(e))
+            self.log(traceback.format_exc())
+            if self.throws_exceptions:
                 raise LoggingException(e)
             else:
-                self.log(str(e))
                 return False
 
 
 class LoggingException(Exception):
-    """ Generic exception thrown by this logging framework when something
-        goes wrong. """
+    """ Generic exception thrown by this logging framework. """
     def __init__(self, value):
         Exception.__init__(self, value)
         self.value = value

@@ -32,14 +32,14 @@ class TestLoggerCommon(object):
         
         self.corba_mock.ReplayAll()
 
-        logger = sessionlogger.SessionLogger()
-        rc = logger.start_session("EN", "test_name", dao=dao)
+        logger = sessionlogger.SessionLogger(dao)
+        rc = logger.start_session("EN", "test_name")
         
         assert logger is not None
         assert rc == True
         
-        logger = sessionlogger.SessionLogger(throws_exceptions=True)
-        rc = logger.start_session("EN", "test_name", dao=dao)
+        logger = sessionlogger.SessionLogger(dao, throws_exceptions=True)
+        rc = logger.start_session("EN", "test_name")
 
         assert logger is not None
         assert rc == True
@@ -65,14 +65,14 @@ class TestLoggerCommon(object):
         
         self.corba_mock.ReplayAll()
 
-        logger = sessionlogger.SessionLogger()
-        rc = logger.start_session("EN", u"test_name", dao=dao)
+        logger = sessionlogger.SessionLogger(dao)
+        rc = logger.start_session("EN", u"test_name")
         
         assert logger is not None
         assert rc == True
         
-        logger = sessionlogger.SessionLogger(throws_exceptions=True)
-        rc = logger.start_session("EN", u"test_name", dao=dao)
+        logger = sessionlogger.SessionLogger(dao, throws_exceptions=True)
+        rc = logger.start_session("EN", u"test_name")
 
         assert logger is not None
         assert rc == True
@@ -99,16 +99,16 @@ class TestLoggerCommon(object):
 
         self.corba_mock.ReplayAll()
 
-        logger = sessionlogger.SessionLogger()
-        rc1 = logger.start_session(lang="EN", name="test_name", dao=dao)
+        logger = sessionlogger.SessionLogger(dao)
+        rc1 = logger.start_session(lang="EN", name="test_name")
         rc2 = logger.close_session()
 
         assert logger is not None
         assert rc1 == True
         assert rc2 == True
         
-        logger = sessionlogger.SessionLogger(throws_exceptions=True)
-        rc1 = logger.start_session(lang="EN", name="test_name", dao=dao)
+        logger = sessionlogger.SessionLogger(dao, throws_exceptions=True)
+        rc1 = logger.start_session(lang="EN", name="test_name")
         rc2 = logger.close_session()
 
         assert logger is not None
@@ -143,8 +143,8 @@ class TestLoggerCommon(object):
 
         self.corba_mock.ReplayAll()
         
-        logger = sessionlogger.SessionLogger()
-        rc = logger.start_session(lang="EN", name="test_name", dao=dao)
+        logger = sessionlogger.SessionLogger(dao)
+        rc = logger.start_session(lang="EN", name="test_name")
         request = logger.create_request("127.0.0.1", 
             """<foo test='content bar foo'>foofoofoo</foo>""", "ClientLogin")
 
@@ -152,8 +152,8 @@ class TestLoggerCommon(object):
         assert rc == True
         assert request is not None
 
-        logger = sessionlogger.SessionLogger(throws_exceptions=True)
-        rc = logger.start_session(lang="EN", name="test_name", dao=dao)
+        logger = sessionlogger.SessionLogger(dao, throws_exceptions=True)
+        rc = logger.start_session(lang="EN", name="test_name")
         request = logger.create_request("127.0.0.1", 
             """<foo test='content bar foo'>foofoofoo</foo>""", "ClientLogin")
 
@@ -190,8 +190,8 @@ class TestLoggerCommon(object):
 
         self.corba_mock.ReplayAll()
         
-        logger = sessionlogger.SessionLogger()
-        rc = logger.start_session(lang="EN", name="test_name", dao=dao)
+        logger = sessionlogger.SessionLogger(dao)
+        rc = logger.start_session(lang="EN", name="test_name")
         logger.set_common_property("session_id", "foobarfooid")
         request = logger.create_request("127.0.0.1", 
             """<foo test='content bar foo'>foofoofoo</foo>""", "ClientLogin")
@@ -200,8 +200,8 @@ class TestLoggerCommon(object):
         assert rc == True
         assert request is not None
 
-        logger = sessionlogger.SessionLogger(throws_exceptions=True)
-        rc = logger.start_session(lang="EN", name="test_name", dao=dao)
+        logger = sessionlogger.SessionLogger(dao, throws_exceptions=True)
+        rc = logger.start_session(lang="EN", name="test_name")
         logger.set_common_property("session_id", "foobarfooid")
         request = logger.create_request("127.0.0.1", 
             """<foo test='content bar foo'>foofoofoo</foo>""", "ClientLogin")
@@ -227,8 +227,8 @@ class TestLoggerNoExceptionsThrown(object):
 
         self.corba_mock.ReplayAll()
 
-        logger = sessionlogger.SessionLogger(throws_exceptions=False)
-        rc = logger.start_session("test_invalid_lang", "test_name", dao=dao)
+        logger = sessionlogger.SessionLogger(dao, throws_exceptions=False)
+        rc = logger.start_session("test_invalid_lang", "test_name")
 
         assert logger is not None
         assert rc == False
@@ -249,8 +249,8 @@ class TestLoggerNoExceptionsThrown(object):
 
         self.corba_mock.ReplayAll()
 
-        logger = sessionlogger.SessionLogger()
-        rc = logger.start_session(lang="EN", name="test_name", dao=dao)
+        logger = sessionlogger.SessionLogger(dao)
+        rc = logger.start_session(lang="EN", name="test_name")
         request = logger.create_request("127.0.0.1", """<foo test='content bar
                                         foo'>foofoofoo</foo>""", 
                                         "Invalid action type")
@@ -278,8 +278,8 @@ class TestLoggerNoExceptionsThrown(object):
 
         self.corba_mock.ReplayAll()
 
-        logger = sessionlogger.SessionLogger()
-        rc1 = logger.start_session(lang="EN", name="test_name", dao=dao)
+        logger = sessionlogger.SessionLogger(dao)
+        rc1 = logger.start_session(lang="EN", name="test_name")
         request = logger.create_request("127.0.0.1", """<foo test='content bar 
                                         foo'>foofoofoo</foo>""", "ClientLogin")
 
@@ -303,8 +303,8 @@ class TestLoggerNoExceptionsThrown(object):
 
         self.corba_mock.ReplayAll()
 
-        logger = sessionlogger.SessionLogger()
-        rc1 = logger.start_session(lang="EN", name="test_name", dao=dao)
+        logger = sessionlogger.SessionLogger(dao)
+        rc1 = logger.start_session(lang="EN", name="test_name")
         rc2 = logger.close_session()
 
         assert logger is not None
@@ -328,8 +328,8 @@ class TestLoggerWithExceptions(object):
 
         self.corba_mock.ReplayAll()
 
-        logger = sessionlogger.SessionLogger(throws_exceptions=True)
-        rc = logger.start_session("test_invalid_lang", "test_name", dao=dao)
+        logger = sessionlogger.SessionLogger(dao, throws_exceptions=True)
+        rc = logger.start_session("test_invalid_lang", "test_name")
 
         assert logger is not None
         assert rc == False
@@ -351,8 +351,8 @@ class TestLoggerWithExceptions(object):
 
         self.corba_mock.ReplayAll()
 
-        logger = sessionlogger.SessionLogger(throws_exceptions=True)
-        rc = logger.start_session(lang="EN", name="test_name", dao=dao)
+        logger = sessionlogger.SessionLogger(dao, throws_exceptions=True)
+        rc = logger.start_session(lang="EN", name="test_name")
         request = logger.create_request("127.0.0.1", """<foo test='content bar 
                                         foo'>foofoofoo</foo>""", 
                                         "Invalid action type")
@@ -380,8 +380,8 @@ class TestLoggerWithExceptions(object):
 
         self.corba_mock.ReplayAll()
 
-        logger = sessionlogger.SessionLogger(throws_exceptions=True)
-        rc1 = logger.start_session(lang="EN", name="test_name", dao=dao)
+        logger = sessionlogger.SessionLogger(dao, throws_exceptions=True)
+        rc1 = logger.start_session(lang="EN", name="test_name")
         request = logger.create_request("127.0.0.1", """<foo test='content bar
                                         foo'>foofoofoo</foo>""", "ClientLogin")
 
@@ -404,8 +404,8 @@ class TestLoggerWithExceptions(object):
 
         self.corba_mock.ReplayAll()
 
-        logger = sessionlogger.SessionLogger(throws_exceptions=True)
-        rc = logger.start_session(lang="EN", name="test_name", dao=dao)
+        logger = sessionlogger.SessionLogger(dao, throws_exceptions=True)
+        rc = logger.start_session(lang="EN", name="test_name")
         rc = logger.close_session()
 
         assert logger is not None
