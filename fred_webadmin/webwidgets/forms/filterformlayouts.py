@@ -9,7 +9,9 @@ from fred_webadmin.translation import _
 import forms
 import filterforms
 from adiffields import CompoundFilterField
-from fred_webadmin.webwidgets.gpyweb.gpyweb import WebWidget, noesc, tagid, attr, notag, div, span, table, tbody, tr, th, td, input, label, select, option, ul, li, script, a, img, strong
+from fred_webadmin.webwidgets.gpyweb.gpyweb import (WebWidget, noesc, tagid,
+    attr, notag, div, span, table, tbody, tr, th, td, input, label, select, 
+    option, ul, li, script, a, img, strong)
 from fields import ChoiceField, BooleanField, HiddenField
 from fred_webadmin.webwidgets.utils import SortedDict
 from fred_webadmin.webwidgets.utils import escape_js_literal

@@ -25,11 +25,14 @@ __all__ = ['UnionFilterForm', 'RegistrarFilterForm', 'ObjectStateFilterForm',
            'get_filter_forms_javascript']
 
 class FilterFormEmptyValue(object):
-    '''Class used in clean method of Field as empty value (if field.is_emtpy()=True, than clean vill return instance of this object'''
+    ''' Class used in clean method of Field as empty value (if
+        field.is_emtpy()=True, than clean vill return instance of this object.
+    '''
     pass
 
 class UnionFilterForm(Form):
-    'Form that contains more Filter Forms, data for this form is list of data for its Filter Forms'
+    ''' Form that contains more Filter Forms, data for this form is list of data
+        for its Filter Forms. '''
     def __init__(self, data=None, data_cleaned=False, initial=None, layout_class=UnionFilterFormLayout, form_class=None, *content, **kwd):
         '''
         Form containting CompoundFilterForms (class FilterForms), between them is logical OR.
