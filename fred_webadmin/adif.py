@@ -336,6 +336,7 @@ class ListTableMixin(object):
                 context['main'].add(u"rows: " + str(self._get_itertable().num_rows))
                 req.update("result_size", self._get_itertable().num_rows)
                 # Log the selected filters.
+                # TODO(tomas): Log OR operators somehow...
                 for name, value, neg in form_utils.flatten_form_data(
                     form.cleaned_data):
                     req.update("filter_%s" % name, value)

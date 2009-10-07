@@ -114,6 +114,25 @@ u'Name': [False,"ddd"]}] }]
  (u'CreateRegistrar/Handle/blabla', 'value', False),\
  (u'CreateRegistrar/Name', 'ddd', False)]
 
+        Try nested form fields with multiple trees (more forms connected by OR
+        operation).
+
+        >>> import datetime
+        >>> tmp = [{u'TaxDate': [False, [None, None, \
+datetime.date(2009, 10, 14), 1, 0]], \
+u'Object': [False, {u'ObjectState': [False, {u'StateId': [False, "empty"]}], \
+u'UpdateRegistrar': [False, {u'Name': [False, u'name reg']}]}], \
+u'Type': [True, 1]}, {u'Type': [False, 1]}]
+
+        >>> flatten_form_data(tmp)
+        [(u'Type', 1, True), \
+(u'Object.ObjectState.StateId', 'empty', False), \
+(u'Object.UpdateRegistrar.Name', u'name reg', False), \
+(u'TaxDate', [None, None, datetime.date(2009, 10, 14), 1, 0], False), \
+(u'Type', 1, False)]
+
+
+
         Try simple form field.
 
         >>> flatten_form_data([{u'first' : [True, "val"]}])
@@ -122,16 +141,17 @@ u'Name': [False,"ddd"]}] }]
     field_names = []
     field_values = []
     field_negations = []
-    for key, value in data[0].items():
-        field_names.extend(_get_field_names(key, value, sep))
-        field_values.extend(_get_values(value))
-        field_negations.extend(_get_negations(value))
-    flattened_data = []
-    # Merge the flattened lists into an array of tuples.
-    for name in field_names:
-        index = field_names.index(name)
-        flattened_data.append((name, 
-            field_values[index],
-            field_negations[index]))
+    for tree in data:
+        for key, value in tree.items():
+            field_names.extend(_get_field_names(key, value, sep))
+            field_values.extend(_get_values(value))
+            field_negations.extend(_get_negations(value))
+        flattened_data = []
+        # Merge the flattened lists into an array of tuples.
+        for index, name in enumerate(field_names):
+            flattened_data.append((name, 
+                field_values[index],
+                field_negations[index]))
 
     return flattened_data
+
