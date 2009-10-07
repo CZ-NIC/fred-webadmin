@@ -106,9 +106,6 @@ class IterTable(object):
             self.next_page = self.last_page
         self._row_index = self.page_start
             
-    def __iter__(self):
-        return self.next()
-
     def __len__(self):
         debug("Itertable.LEN = %s" % self.page_rows)
         return self.page_rows
@@ -169,6 +166,9 @@ class IterTable(object):
     def get_absolute_row(self, index):
         return self._table.getRow(index)
 
+    def __iter__(self):
+        return self.next()
+
     def next(self):
         debug("In itertable.next(), row_index: %s" % self._row_index)
         while self._row_index < (self.page_start + self.page_rows):
@@ -177,7 +177,7 @@ class IterTable(object):
             yield row
 
         self._row_index = self.page_start
-
+        
     def _rewrite_cell(self, cell):
 #        get_url_id_content = lambda filter_name: {'url': f_urls[filter_name] + 'detail/?id=%s',  'icon': '/img/icons/open.png', 'cssc': 'tcenter'}
 #        get_url_handle_content = lambda filter_name: {'url': f_urls[filter_name] + 'detail/?handle=%s'}

@@ -4,12 +4,12 @@
 import types
 import traceback
 import sys
-import adif
+from fred_webadmin.corba import CorbaServerDisconnectedException
 from logging import debug, error
 
-import cherrypy
 from omniORB import CORBA
 
+from fred_webadmin.customview import CustomView
 from fred_webadmin.webwidgets.gpyweb.gpyweb import attr, div, p, pre
 from fred_webadmin import config
 from fred_webadmin.corba import ccReg, Registry
@@ -22,16 +22,17 @@ def catch_webadmin_exceptions_decorator(view_func):
         self = args[0]
         try:
             return view_func(*args, **kwd)
-        except adif.CorbaServerDisconnectedException, e:
+        except CorbaServerDisconnectedException, e:
             self.remove_session_data()
             return self._render('disconnected')
-            #raise cherrypy.HTTPRedirect('/disconnected/')
         except CORBA.TRANSIENT, e:
             error("BACKEND IS NOT RUNNING")
             #raise e
             context = {'message': div()}
             if config.debug:
-                context['message'].add(p('''Congratulations! Prave se vam (nebo nekomu pred vami) povedlo schodit backend server, pripiste si plusovy bod!'''))
+                context['message'].add(p('''Congratulations! Prave se vam '''
+                '''(nebo nekomu pred vami) povedlo shodit backend server, '''
+                '''pripiste si plusovy bod!'''))
             else:
                 context['message'].add(p(_('Error: Backend server is not running!')))
             context['message'].add(pre(attr( id='traceback'), traceback.format_exc()))    
@@ -44,7 +45,7 @@ def catch_webadmin_exceptions_decorator(view_func):
             context['message'].add(pre(attr(id='traceback'), traceback.format_exc()))
             return self._render('error', context)
             
-        except adif.CustomView, e:
+        except CustomView, e:
             return e.rendered_view
         
          
@@ -60,8 +61,8 @@ class AdifPageMetaClass(type):
 #            if type(value) == types.FunctionType and not name.startswith('_'):
 #                value.exposed = True
            
-    def __new__(cls, name, bases, attrs):
-        debug('%s|%s|%s|%s' % (cls, name, bases, attrs))
+    def __new__(mcs, name, bases, attrs):
+        debug('%s|%s|%s|%s' % (mcs, name, bases, attrs))
         #dict[name] = catch_webadmin_exceptions_decorator(value)
         
         for attr_name, attr in attrs.items():
@@ -71,6 +72,6 @@ class AdifPageMetaClass(type):
                 attrs[attr_name] = catch_webadmin_exceptions_decorator(attr)
                 attrs[attr_name].exposed = True
 
-        new_class = type.__new__(cls, name, bases, attrs)
+        new_class = type.__new__(mcs, name, bases, attrs)
         return new_class
     
