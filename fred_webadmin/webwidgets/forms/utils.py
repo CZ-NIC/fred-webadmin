@@ -129,7 +129,7 @@ u'Type': [True, 1]}, {u'Type': [False, 1]}]
 (u'Object.ObjectState.StateId', 'empty', False), \
 (u'Object.UpdateRegistrar.Name', u'name reg', False), \
 (u'TaxDate', [None, None, datetime.date(2009, 10, 14), 1, 0], False), \
-(u'Type', 1, False)]
+('or', '', 'False'), (u'Type', 1, False)]
 
 
 
@@ -146,12 +146,19 @@ u'Type': [True, 1]}, {u'Type': [False, 1]}]
             field_names.extend(_get_field_names(key, value, sep))
             field_values.extend(_get_values(value))
             field_negations.extend(_get_negations(value))
-        flattened_data = []
-        # Merge the flattened lists into an array of tuples.
-        for index, name in enumerate(field_names):
-            flattened_data.append((name, 
-                field_values[index],
-                field_negations[index]))
+        field_names.append("or")
+        field_values.append("")
+        field_negations.append(str(False))
+    field_names.pop()
+    field_values.pop()
+    field_negations.pop()
+
+    flattened_data = []
+    # Merge the flattened lists into an array of tuples.
+    for index, name in enumerate(field_names):
+        flattened_data.append((name, 
+            field_values[index],
+            field_negations[index]))
 
     return flattened_data
 
