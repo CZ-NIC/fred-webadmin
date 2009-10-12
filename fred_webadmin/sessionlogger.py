@@ -86,7 +86,8 @@ class SessionLogger(object):
                 LoggingException on error.
 
         """
-        name = u2c(name)
+        if not isinstance(name, basestring):
+            name = u2c( str(name))
         try:
             if languages.has_key(lang.lower()) == False:
                 raise ValueError("Invalid language provided to SessionLogger.")
@@ -97,7 +98,7 @@ class SessionLogger(object):
                                                                  name)
             if self.logging_session_id == 0:
                 raise LoggingException("""Invalid arguments provided to
-                                        CreateSession: %s, %s.""" %
+                                        CreateSession: (%s, %s).""" %
                                         (lang_code, name))
             self.__load_action_codes(service_type)
 
