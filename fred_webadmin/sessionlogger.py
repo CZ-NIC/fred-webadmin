@@ -87,7 +87,9 @@ class SessionLogger(object):
 
         """
         if not isinstance(name, basestring):
-            name = u2c( str(name))
+            name = str(name)
+        else:
+            name = u2c(name)
         try:
             if languages.has_key(lang.lower()) == False:
                 raise ValueError("Invalid language provided to SessionLogger.")
