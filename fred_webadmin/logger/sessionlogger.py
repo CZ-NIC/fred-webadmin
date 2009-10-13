@@ -1,10 +1,14 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
+"""
+    Logging framework.
+"""
+
 import omniORB
 import logging
 import traceback
 
-from fred_webadmin import corba
 from fred_webadmin.corba import ccReg
 from fred_webadmin.utils import u2c
 
@@ -105,11 +109,11 @@ class SessionLogger(object):
             self.__load_action_codes(service_type)
 
             return True
-        except Exception as e:
-            self.log(str(e))
+        except Exception as exc:
+            self.log(str(exc))
             self.log(traceback.format_exc())
             if self.throws_exceptions:
-                raise LoggingException(e)
+                raise LoggingException(exc)
             else:
                 return False
 
@@ -141,13 +145,13 @@ class SessionLogger(object):
                                 logging_function=self.log) 
             log_request.update_multiple(self.common_properties.values())
             return log_request
-        except Exception as e:
-            self.log(str(e))
+        except Exception as exc:
+            self.log(str(exc))
             self.log(traceback.format_exc())
             if self.throws_exceptions:
-                raise LoggingException(e)
+                raise LoggingException(exc)
             else:
-                self.log(str(e))
+                self.log(str(exc))
                 return None
 
     def create_request_login(self, source_ip, content, action_type, 
@@ -188,13 +192,13 @@ class SessionLogger(object):
             if ret_code == 0:
                 raise LoggingException("CloseSession failed.")
             return True
-        except Exception as e:
-            self.log(str(e))
+        except Exception as exc:
+            self.log(str(exc))
             self.log(traceback.format_exc())
             if self.throws_exceptions:
-                raise LoggingException(e)
+                raise LoggingException(exc)
             else:
-                self.log(str(e))
+                self.log(str(exc))
                 return False
 
     def __load_action_codes(self, service_type):
@@ -295,8 +299,8 @@ class LogRequest(object):
         name = u2c(name)
         value = u2c(value)
         try:
-            property = [ccReg.RequestProperty(name, value, output, child)]
-            success = self.dao.UpdateRequest(self.request_id, property)
+            prop = [ccReg.RequestProperty(name, value, output, child)]
+            success = self.dao.UpdateRequest(self.request_id, prop)
             if not success:
                 raise LoggingException("UpdateRequest failed with args: %s,"
                                        "%s." % self.request_id, property)

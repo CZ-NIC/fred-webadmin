@@ -37,7 +37,20 @@ f_name_detailname = dict([(item._n[3:].lower(), item._n[3:].capitalize() + 'Deta
 f_name_detailname['nsset'] = 'NSSetDetail' 
 f_name_detailname['keyset'] = 'KeySetDetail' 
 f_name_detailname['publicrequest'] = 'PublicRequestDetail'
- 
+
+f_name_actionname =  dict([(item._n[3:].lower(), item._n[3:].capitalize()) for 
+                           item in ccReg.FilterType._items])
+f_name_actionname['nsset'] = 'NSSet'
+f_name_actionname['mail'] = 'Emails'
+f_name_actionname['keyset'] = 'KeySet' 
+f_name_actionname['action'] = 'Actions'
+f_name_actionname['publicrequest'] = 'PublicRequest'
+
+f_name_actionfiltername = dict([(key, value + 'Filter') for key, value in
+                           f_name_actionname.items()])
+
+f_name_actiondetailname = dict([(key, value + 'Detail') for key, value in
+                           f_name_actionname.items()])
 
 # This one will be deleted after getByHanle will be obsolete:
 f_name_get_by_handle = {

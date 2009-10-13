@@ -3,8 +3,8 @@ import logging
 
 from nose.tools import with_setup, raises
 
-from fred_webadmin import sessionlogger 
-from fred_webadmin.sessionlogger import LoggingException
+from fred_webadmin.logger import sessionlogger 
+from fred_webadmin.logger.sessionlogger import LoggingException
 from fred_webadmin.corba import ccReg
 
 

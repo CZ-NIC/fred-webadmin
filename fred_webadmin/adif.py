@@ -35,7 +35,8 @@ from cherrypy.lib import http
 import simplejson
 
 import webwidgets.forms.utils as form_utils
-from sessionlogger import SessionLogger
+from logger.sessionlogger import SessionLogger
+from logger.codes import logcodes
 
 # decorator for exposing methods
 import exposed
@@ -52,8 +53,10 @@ from translation import _
 
 
 from webwidgets.templates.pages import (
-    BaseSite, BaseSiteMenu, LoginPage, DisconnectedPage, NotFound404Page, AllFiltersPage, FilterPage, ErrorPage, DigPage, SetInZoneStatusPage, 
-    DomainDetail, ContactDetail, NSSetDetail, KeySetDetail, RegistrarDetail, ActionDetail, PublicRequestDetail, MailDetail, InvoiceDetail,
+    BaseSite, BaseSiteMenu, LoginPage, DisconnectedPage, NotFound404Page, 
+    AllFiltersPage, FilterPage, ErrorPage, DigPage, SetInZoneStatusPage, 
+    DomainDetail, ContactDetail, NSSetDetail, KeySetDetail, RegistrarDetail, 
+    ActionDetail, PublicRequestDetail, MailDetail, InvoiceDetail,
     #DomainEdit, ContactEdit, NSSetEdit, 
     RegistrarEdit,
     #ActionEdit, PublicRequestEdit, MailEdit, InvoiceEdit
@@ -73,7 +76,13 @@ from fred_webadmin.webwidgets.forms.filterforms import get_filter_forms_javascri
 from itertable import IterTable, fileGenerator, CorbaFilterIterator
 from fred_webadmin.utils import json_response, get_current_url
 
-from mappings import f_name_enum, f_name_id, f_name_get_by_handle, f_name_editformname, f_urls
+from mappings import (f_name_enum, 
+                      f_name_id, 
+                      f_name_get_by_handle, 
+                      f_name_editformname, 
+                      f_urls, 
+                      f_name_actionfiltername, 
+                      f_name_actiondetailname)
 from user import User
 
 from customview import CustomView
@@ -288,11 +297,9 @@ class ListTableMixin(object):
     def filter(self, *args, **kwd):
         debug('filter ARGS:%s' % unicode(args))
 
-        # TODO(tomas): The action type should not be hardcoded here. Use some
-        # kind of mapping, possibly add it to mapping.py.
         req = cherrypy.session["logger"].create_request(
             cherrypy.request.remote.ip, cherrypy.request.body, 
-            "%sFilter" % (self.__class__.__name__,))
+            f_name_actionfiltername[self.__class__.__name__.lower()])
 
         if args:
             if args[0] == 'jsondata':
@@ -368,8 +375,9 @@ class ListTableMixin(object):
 
     @check_onperm('read')
     def detail(self, **kwd):
-        req = cherrypy.session["logger"].create_request(cherrypy.request.remote.ip, \
-            cherrypy.request.body, "%sDetail" % (self.__class__.__name__,))
+        req = cherrypy.session["logger"].create_request(
+            cherrypy.request.remote.ip, cherrypy.request.body, 
+            f_name_actiondetailname[self.__class__.__name__.lower()])
 
         context = {}
         
@@ -575,8 +583,7 @@ class ADIF(AdifPage):
             log_req = cherrypy.session["logger"].create_request(
                 cherrypy.request.remote.ip, 
                 cherrypy.request.body, "Login")
-            log_req.update("warning", "Already logged in.")
-            log_req.update("code", "AlreadyLoggedIn", child=True)
+            log_req.update("warning", logcodes["AlreadyLoggedIn"])
             log_req.commit()
 
             raise cherrypy.HTTPRedirect('/summary/')
@@ -657,6 +664,7 @@ class ADIF(AdifPage):
             except ccReg.Admin.AuthFailed, e:
                 form.non_field_errors().append(_('Login error, please enter '
                                                  'correct login and password'))
+                log_req
                 if config.debug:
                     form.non_field_errors().append('(type: %s, exception: %s)' %
                                                    (escape(unicode(type(e))), 
@@ -668,9 +676,8 @@ class ADIF(AdifPage):
                     if isinstance(e, ldap.INVALID_CREDENTIALS):
                         form.non_field_errors().append(_('Invalid username '
                                                          'and/or password!'))
-                        req.update("warning", "Invalid username and/or "
-                                   "password.")
-                        req.update("code", "InvalidCredentials", child=True)
+                        log_req.update("warning", logcodes["InvalidLogin"])
+                        log_req.commit();
                         if config.debug:
                             form.non_field_errors().append('(%s)' % str(e))
                     elif isinstance(e, ldap.SERVER_DOWN):
@@ -786,7 +793,17 @@ class Registrar(AdifPage, ListTableMixin):
                     setattr(obj, key, val)
                     log_request.update("set_%s" % key, val)
                 debug('Saving registrar: %s' % obj)
-                get_corba_session().updateRegistrar(u2c(obj))
+                try:
+                    get_corba_session().updateRegistrar(u2c(obj))
+                except:
+                    form.non_field_errors().append("Updating registrar failed."
+                                                    "Did you try to create a "
+                                                    "registrar with an "
+                                                    "already used handle?")
+                    return self._render('edit', form)
+#                    raise ValueError()
+                finally:
+                    log_request.commit("")
                 raise cherrypy.HTTPRedirect(get_current_url(cherrypy.request))
             else:
                 if debug:
@@ -802,8 +819,9 @@ class Registrar(AdifPage, ListTableMixin):
     @check_onperm('write')
     def edit(self, *params, **kwd):
         registrar = self._get_detail(obj_id=kwd.get('id'))
-        log_request = logger.create_request(cherrypy.request.remote.ip, \
-                cherrypy.request.body, "RegistrarUpdate")
+        log_request = cherrypy.session["logger"].create_request(
+            cherrypy.request.remote.ip, cherrypy.request.body, 
+            "RegistrarUpdate")
         return self._update_registrar(registrar, log_request, *params, **kwd)
 
     @check_onperm('write')
@@ -827,16 +845,24 @@ class Domain(AdifPage, ListTableMixin):
     @check_onperm('read')
     def dig(self, **kwd):
         context = {}
+        log_request = cherrypy.session['logger'].create_request(
+            cherrypy.request.remote.ip, cherrypy.request.body, 
+            "DomainDig")
         handle = kwd.get('handle', None)
+        log_request.update("handle", handle)
         if not handle:
+            log_request.commit("")
             raise cherrypy.HTTPRedirect(f_urls[self.classname])
         try:
             query = dns.message.make_query(handle, 'ANY')
             resolver = dns.resolver.get_default_resolver().nameservers[0]
             dig = dns.query.udp(query, resolver).to_text()
         except:
+            #TODO(tomas): Log an error?
             context['main'] = _("Object_not_found")
             return self._render('base', ctx=context)
+        finally:
+            log_request.commit("");
         context['handle'] = handle
         context['dig'] = dig
         return self._render('dig', context)

@@ -50,6 +50,8 @@ def flatten_form_data(data, sep='.'):
         Flattens the representation of a form's cleaned data to an array of
         (separator separated field name, field value, top level negation flag)
         tuples.
+        OR operations are handled by inserting a ("or", "", false) tuple at the
+        respective position.
 
         Args:
             data: Cleaned data of a form. The top-level dictionary is a list of
@@ -143,12 +145,16 @@ u'Type': [True, 1]}, {u'Type': [False, 1]}]
     field_negations = []
     for tree in data:
         for key, value in tree.items():
-            field_names.extend(_get_field_names(key, value, sep))
-            field_values.extend(_get_values(value))
-            field_negations.extend(_get_negations(value))
+            try:
+                field_names.extend(_get_field_names(key, value, sep))
+                field_values.extend(_get_values(value))
+                field_negations.extend(_get_negations(value))
+            except:
+                return None
         field_names.append("or")
         field_values.append("")
         field_negations.append(str(False))
+    # Get rid of the last OR
     field_names.pop()
     field_values.pop()
     field_negations.pop()
