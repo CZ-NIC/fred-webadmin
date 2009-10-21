@@ -257,14 +257,14 @@ class TestLoggerNoExceptionsThrown(object):
 
         assert logger is not None
         assert rc == True
-        assert request is None
+        assert request is not None
 
         self.corba_mock.VerifyAll()
 
 
     @with_setup(setup)
     def test_create_request_failed(self):
-        """ Request is NONE when corba CreateRequest fails. """
+        """ Request is not NONE when corba CreateRequest fails. """
         dao = self.corba_mock.CreateMockAnything()
 
         dao.CreateSession(ccReg.EN, "test_name").AndReturn(9)
@@ -285,7 +285,7 @@ class TestLoggerNoExceptionsThrown(object):
 
         assert logger is not None
         assert rc1 == True
-        assert request is None
+        assert request is not None
 
         self.corba_mock.VerifyAll()
 

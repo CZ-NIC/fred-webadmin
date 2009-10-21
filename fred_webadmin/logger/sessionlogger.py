@@ -109,7 +109,7 @@ class SessionLogger(object):
             self.__load_action_codes(service_type)
 
             return True
-        except Exception as exc:
+        except Exception, exc:
             self.log(str(exc))
             self.log(traceback.format_exc())
             if self.throws_exceptions:
@@ -140,19 +140,23 @@ class SessionLogger(object):
         try:
             request_id = self.__server_create_request(source_ip, content, 
                                                       action_type, properties)
-            log_request = LogRequest(self.dao, request_id, 
-                                throws_exceptions=self.throws_exceptions,
-                                logging_function=self.log) 
+        except Exception, e:
+            self.log(traceback.format_exc())
+            if self.throws_exceptions:
+                raise LoggingException(e)
+            request_id = -1
+
+        log_request = LogRequest(self.dao, request_id, 
+                                 throws_exceptions=self.throws_exceptions,
+                                 logging_function=self.log) 
+        try:
             log_request.update_multiple(self.common_properties.values())
             return log_request
-        except Exception as exc:
-            self.log(str(exc))
+        except Exception, exc:
             self.log(traceback.format_exc())
             if self.throws_exceptions:
                 raise LoggingException(exc)
-            else:
-                self.log(str(exc))
-                return None
+        return log_request
 
     def create_request_login(self, source_ip, content, action_type, 
                              properties=None):
@@ -164,23 +168,31 @@ class SessionLogger(object):
         try:
             request_id = self.__server_create_request(source_ip, content, 
                                                       action_type, properties)
-            # TODO(tomas): Cannot send logging_session_id now, otherwise the
-            # call fails. When it's a login log request, the logging_session_id
-            # must only be sent when closing the request.
-            log_request = LogRequestLogin(self.dao, request_id, 
-                                self.logging_session_id, 
-                                throws_exceptions=self.throws_exceptions,
-                                logging_function=self.log) 
-            log_request.update_multiple(self.common_properties.values())
-            return log_request
-        except Exception as e:
-            self.log(str(e))
+        except Exception, e:
             self.log(traceback.format_exc())
             if self.throws_exceptions:
                 raise LoggingException(e)
-            else:
-                self.log(str(e))
-                return None
+            request_id = -1
+        # TODO(tomas): Cannot send logging_session_id now, otherwise the
+        # call fails. When it's a login log request, the logging_session_id
+        # must only be sent when closing the request.
+        log_request = LogRequestLogin(
+            self.dao, request_id, self.logging_session_id, 
+            throws_exceptions=self.throws_exceptions,
+            logging_function=self.log) 
+        try:
+            log_request.update_multiple(self.common_properties.values())
+            return log_request
+        except Exception, e:
+            self.log(traceback.format_exc())
+            if self.throws_exceptions:
+                raise LoggingException(e)
+            # When throws_exceptions == False, we always need to return a
+            # LogRequest object. That's the whole point of not having silent errors
+            # - user can ignore them. If this returned None, we could call
+            # None.update_request and still would get an Exception in the outer
+            # code.
+            return log_request
 
     def close_session(self):
         """ 
@@ -192,7 +204,7 @@ class SessionLogger(object):
             if ret_code == 0:
                 raise LoggingException("CloseSession failed.")
             return True
-        except Exception as exc:
+        except Exception, exc:
             self.log(str(exc))
             self.log(traceback.format_exc())
             if self.throws_exceptions:
@@ -217,11 +229,10 @@ class SessionLogger(object):
             Ask the server to create a new logging request.
             Returns request id iff request has been created successfully.
         """
-        if not self.actions.has_key(action_type):
-            raise ValueError("""Invalid action type provided to CreateRequest: 
-                              %s.""" % (action_type,))
         if content is None:
             content = ""
+        if not self.actions.has_key(action_type):
+            raise ValueError("Invalid action type.")
         try:
             request_id = self.dao.CreateRequest(source_ip, 
                                                 service_type_webadmin,
@@ -305,7 +316,7 @@ class LogRequest(object):
                 raise LoggingException("UpdateRequest failed with args: %s,"
                                        "%s." % self.request_id, property)
             return True
-        except Exception as exc:
+        except Exception, exc:
             self.log(str(exc))
             self.log(traceback.format_exc())
             if self.throws_exceptions:
@@ -334,7 +345,7 @@ class LogRequest(object):
             if not success:
                 raise LoggingException("CloseRequest failed.")
             return True
-        except Exception as exc:
+        except Exception, exc:
             self.log(str(exc))
             self.log(traceback.format_exc())
             if self.throws_exceptions:
@@ -365,7 +376,7 @@ class LogRequestLogin(LogRequest):
                                         %s, %s, %s).""" % (self.request_id, 
                                         content, [], self.logging_session_id))
             return True
-        except Exception as e:
+        except Exception, e:
             self.log(str(e))
             self.log(traceback.format_exc())
             if self.throws_exceptions:
