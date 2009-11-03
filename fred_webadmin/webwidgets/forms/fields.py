@@ -546,8 +546,6 @@ class HiddenDecimalField(DecimalField):
             self.type = u'hidden'
     
 
-
-
 class ChoiceField(Field):
     #widget = Select
     tattr_list = select.tattr_list
@@ -616,6 +614,27 @@ class ChoiceField(Field):
     
     def set_from_clean(self, value):
         self.value = unicode(value)
+
+
+class IntegerChoiceField(ChoiceField):
+     def clean(self):
+        """
+        Validates that the input is in self.choices.
+        """
+        value = super(ChoiceField, self).clean()
+        if value == '':
+            value = 0
+        if self.is_empty():
+            value = 0
+        if value == 0:
+            return value
+        value = int(value)
+        valid_values = set([k for k, _ignored_  in self.choices])
+        #import pdb; pdb.set_trace()
+        if value not in valid_values:
+            raise ValidationError(_(u'Select a valid choice. That choice is not one of the available choices.'))
+        return value
+
 
 class NullBooleanField(ChoiceField):
     """

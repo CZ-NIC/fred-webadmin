@@ -110,7 +110,6 @@ class SessionLogger(object):
 
             return True
         except Exception, exc:
-            self.log(str(exc))
             self.log(traceback.format_exc())
             if self.throws_exceptions:
                 raise LoggingException(exc)
@@ -188,8 +187,8 @@ class SessionLogger(object):
             if self.throws_exceptions:
                 raise LoggingException(e)
             # When throws_exceptions == False, we always need to return a
-            # LogRequest object. That's the whole point of not having silent errors
-            # - user can ignore them. If this returned None, we could call
+            # LogRequest object. That's the whole point of not having silent 
+            # errors: user can ignore them. If this returned None, we could call
             # None.update_request and still would get an Exception in the outer
             # code.
             return log_request
@@ -205,12 +204,10 @@ class SessionLogger(object):
                 raise LoggingException("CloseSession failed.")
             return True
         except Exception, exc:
-            self.log(str(exc))
             self.log(traceback.format_exc())
             if self.throws_exceptions:
                 raise LoggingException(exc)
             else:
-                self.log(str(exc))
                 return False
 
     def __load_action_codes(self, service_type):
@@ -232,7 +229,7 @@ class SessionLogger(object):
         if content is None:
             content = ""
         if not self.actions.has_key(action_type):
-            raise ValueError("Invalid action type.")
+            raise ValueError("Invalid action type: %s." % action_type)
         try:
             request_id = self.dao.CreateRequest(source_ip, 
                                                 service_type_webadmin,
@@ -317,7 +314,6 @@ class LogRequest(object):
                                        "%s." % self.request_id, property)
             return True
         except Exception, exc:
-            self.log(str(exc))
             self.log(traceback.format_exc())
             if self.throws_exceptions:
                 raise LoggingException(exc)
@@ -346,7 +342,6 @@ class LogRequest(object):
                 raise LoggingException("CloseRequest failed.")
             return True
         except Exception, exc:
-            self.log(str(exc))
             self.log(traceback.format_exc())
             if self.throws_exceptions:
                 raise LoggingException(exc)
@@ -377,7 +372,6 @@ class LogRequestLogin(LogRequest):
                                         content, [], self.logging_session_id))
             return True
         except Exception, e:
-            self.log(str(e))
             self.log(traceback.format_exc())
             if self.throws_exceptions:
                 raise LoggingException(e)

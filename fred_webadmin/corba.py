@@ -5,9 +5,9 @@
 import sys
 # extension imports
 import omniORB
-import omniORB.codesets
+#import omniORB.codesets
 import CosNaming
-from omniORB import CORBA, importIDL
+#from omniORB import CORBA, importIDL
 
 from translation import _
 
@@ -54,10 +54,10 @@ omniORB.installCommFailureExceptionHandler(cookie, commFailure)
 
 import config
 #module_name = importIDL(config.idl)[0] # this hase to be here because cherrypy session needs to know ccReg module on start (while loadin session from file)
-importIDL(config.idl)
+omniORB.importIDL(config.idl)
 ccReg = sys.modules['ccReg']
 Registry = sys.modules['Registry']
-orb = CORBA.ORB_init(["-ORBnativeCharCodeSet", "UTF-8"], CORBA.ORB_ID)
+orb = omniORB.CORBA.ORB_init(["-ORBnativeCharCodeSet", "UTF-8"], omniORB.CORBA.ORB_ID)
 #orb = CORBA.ORB_init(["-ORBnativeCharCodeSet", "UTF-8", "-ORBtraceLevel", "10"], CORBA.ORB_ID)
 #omniORB.setClientCallTimeout(2000)
 

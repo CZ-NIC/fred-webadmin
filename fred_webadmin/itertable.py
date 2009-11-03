@@ -1,10 +1,11 @@
 import sys
 import cherrypy
 import datetime
-from logging import debug, error
-from omniORB.any import from_any
 import csv
 import StringIO
+
+from logging import debug, error
+from omniORB.any import from_any
 
 from corba import ccReg, Registry, CorbaServerDisconnectedException
 from utils import u2c
@@ -68,15 +69,15 @@ class IterTable(object):
 
     def _map_request(self, sessionKey):
         try:
-            debug('GETTING ADMIN, which is: %s a sessionkey=%s' % (cherrypy.session.get('Admin', 'Admin'), sessionKey))
+            debug('GETTING ADMIN, which is: %s a sessionkey=%s' % 
+                  (cherrypy.session.get('Admin', 'Admin'), sessionKey))
             corbaSession = cherrypy.session.get('Admin').getSession(sessionKey)
         except ccReg.Admin.ObjectNotFound:
-            raise CorbaServerDisconnectedException
-        #func = getattr(corbaSession, types[self.request_object]['func'])
-        #table = func()
-        
-        #table = corbaSession.getPageTable(ccReg.FT_ACTION)#f_name_enum[self.request_object])
-        table = corbaSession.getPageTable(f_name_enum[self.request_object])
+            raise CorbaServerDisconnectedException  
+        try:
+            table = corbaSession.getPageTable(f_name_enum[self.request_object])
+        except KeyError:
+            raise ValueError("Invalid request object.")
         debug("Returned PageTable: %s" % table)
         header_id = 'CT_OID_ICON' #f_header_ids[self.request_object]#types[self.request_object]['id']
         return table, header_id
@@ -86,15 +87,9 @@ class IterTable(object):
         self.page_size = self._table._get_pageSize()
         self.page_start = self._table._get_start()
         self.num_rows = self._table._get_numRows() # number of rows in table
-        #self.total_rows = self._table._get_resultSize() # number of rows in database
         self.num_rows_over_limit = self._table.numRowsOverLimit()
         self.num_pages = self._table._get_numPages()
-#        page_end = min(self.page_start + self.page_size, self.num_rows)
         self.page_rows = self._table._get_numPageRows()
-#        if page_end > self.num_rows:
-#            self._page_rows = self.page_size - (page_end - self.num_rows)
-#        else:
-#            self._page_rows = self.page_size
         self.current_page = self.page_index + 1
         self.first_page = 1
         self.last_page = self.num_pages
@@ -116,15 +111,20 @@ class IterTable(object):
     def _get_row(self, index):
         row = []
         items = self._table.getRow(index)
-        row_id = self._table.getRowId(index)
-        row_id_oid = Registry.OID(row_id, str(row_id), f_name_enum[self.request_object])  # create OID from rowId
+        row_id = self.get_row_id(index)
+        # Create OID from rowId.
+        row_id_oid = Registry.OID(row_id, str(row_id), 
+                                  f_name_enum[self.request_object])
         items.insert(0, row_id_oid)
         for i, item in enumerate(items):
             cell = {}
             cell['index'] = i
-            if i == 0: # items[0] is id, which is inserted to items (it was obtained from self._table.getRowId(index)
+            if i == 0: 
+                # items[0] is id, which is inserted to items (it was obtained
+                # from self._table.getRowId(index).
                 cell['value'] = item
-            else: # all other items are corba ANY values
+            else: 
+                # All other items are corba ANY values.
                 cell['value'] = c2u(from_any(item, True))
             self._rewrite_cell(cell)
             row.append(cell)
@@ -170,7 +170,6 @@ class IterTable(object):
         return self.next()
 
     def next(self):
-        debug("In itertable.next(), row_index: %s" % self._row_index)
         while self._row_index < (self.page_start + self.page_rows):
             row = self._get_row(self._row_index)
             self._row_index += 1
@@ -214,8 +213,10 @@ class IterTable(object):
             cell['cssc'] = rewrite_rules[contentType]['cssc']
         if rewrite_rules[contentType].has_key('oid_url'):
             val = cell['value']
+            debug("val: %s" % val)
             if val.id:
-                cell['url'] = rewrite_rules[contentType]['oid_url'] % (f_urls[f_enum_name[val.type]], val.id)
+                cell['url'] = rewrite_rules[contentType]['oid_url'] % \
+                    (f_urls[f_enum_name[val.type]], val.id)
                 cell['value'] = val.handle
             else:
                 cell['icon'] = ''
@@ -320,7 +321,7 @@ class CorbaFilterIterator(object):
 class FilterLoader(object):
     @classmethod
     def set_filter(cls, itertable, union_filter_data):
-        #import pdb; pdb.set_trace()
+#        import pdb; pdb.set_trace()
         for filter_data in union_filter_data:
             compound = itertable._table.add()
             cls._set_one_compound_filter(compound, filter_data)
@@ -343,6 +344,9 @@ class FilterLoader(object):
                         value = date_time_interval_to_corba(val, date_to_corba)
                     elif isinstance(sub_filter, ccReg.Filters._objref_DateTime):
                         value = date_time_interval_to_corba(val, datetime_to_corba)
+#                    elif isinstance(
+ #                       sub_filter, ccReg.Filters._objref_RequestServiceType):
+  #                      value = int(val)
                     elif isinstance(sub_filter, (ccReg.Filters._objref_Int, ccReg.Filters._objref_Id)):
                         value = int(val)
                     else:
@@ -350,8 +354,6 @@ class FilterLoader(object):
     
                     debug('SETTING VALUE TO SUBFILTer: %s' % u2c(value))
                     sub_filter._set_value(u2c(value))
-                    
-                
         
     @classmethod
     def get_filter_data(cls, itertable):

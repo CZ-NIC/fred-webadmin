@@ -12,6 +12,9 @@ sessions_dir = 'DU_LOCALSTATEDIR/lib/fred-webadmin/sessions/'
 log_dir = 'DU_LOCALSTATEDIR/log/fred-webadmin/'
 log_level = logging.ERROR
 
+# Session logger settings
+session_logging_enabled = True
+
 
 idl = 'DU_IDL_DIR/ccReg.idl' #'/usr/share/idl/fred/ccReg.idl'
 iors = (#(label, nshost, nscontext),

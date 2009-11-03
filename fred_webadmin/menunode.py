@@ -112,12 +112,15 @@ menu_tree = MenuNode('root', '', '', 'menu-item', '#', [
         MenuNode('registrarcreate', _('Create new'), cssc='menu-item', url=f_urls['registrar'] + 'create/', nperm=['read.registrar', 'write.registrar'], nperm_type='one'),
         MenuNode('invoice', _('Invoices'), cssc='menu-item', url=f_urls['invoice'] + 'allfilters/', nperm='read.invoice'),
     ]), 
-    MenuNode('logs', _('Logs'), 'body-logs', 'menu-item menu-logs', url='/logs/', submenu=[
-        MenuNode('action', _('Actions'), cssc='menu-item', url=f_urls['action'] + 'allfilters/', nperm='read.action'),
-        MenuNode('publicrequest', _('PublicRequests'), cssc='menu-item', url=f_urls['publicrequest'] + 'allfilters/', nperm='read.publicrequest'),
-        MenuNode('mail', _('Emails'), cssc='menu-item', url=f_urls['mail'] + 'allfilters/', nperm='read.email'),
-        MenuNode('zonegener', _('Zone gener.'), cssc='menu-item', url='/zonegener/', nperm='read.zonegener'),
-        MenuNode('techtest', _('Tech. tests'), cssc='menu-item', url='/techtests/', nperm='read.techtest'),
+    MenuNode('logs', _('Logs'), 'body-logs', 'menu-item menu-logs', 
+        submenu=[
+            MenuNode('logger', _('Logs'), cssc='menu-item', url=f_urls['logger']
+            + 'allfilters/', nperm='read.logger'),
+            MenuNode('action', _('Actions'), cssc='menu-item', url=f_urls['action'] + 'allfilters/', nperm='read.action'),
+            MenuNode('publicrequest', _('PublicRequests'), cssc='menu-item', url=f_urls['publicrequest'] + 'allfilters/', nperm='read.publicrequest'),
+            MenuNode('mail', _('Emails'), cssc='menu-item', url=f_urls['mail'] + 'allfilters/', nperm='read.email'),
+            MenuNode('zonegener', _('Zone gener.'), cssc='menu-item', url='/zonegener/', nperm='read.zonegener'),
+            MenuNode('techtest', _('Tech. tests'), cssc='menu-item', url='/techtests/', nperm='read.techtest'),
     ]), 
     MenuNode('statistics', _('Statistics'), 'body-statistics', 'menu-item menu-statistics', url='/statistics/')
 ])

@@ -22,7 +22,7 @@ def json_response(data):
     cherrypy.response.headers['Content-Type'] = 'text/javascript'
     return simplejson.dumps(data) 
 
-class LateBindingProperty(property) :
+"""class LateBindingProperty(property) :
     __doc__ = property.__dict__['__doc__'] # see bug #576990
 
     def __init__(self, fget=None, fset=None, fdel=None, doc=None) :
@@ -32,7 +32,86 @@ class LateBindingProperty(property) :
             fset = lambda s, v, n=fset.__name__ : getattr(s, n)(v)
         if fdel: 
             fdel = lambda s, n=fdel.__name__ : getattr(s, n)()
-        property.__init__(self, fget, fset, fdel, doc)
+        property.__init__(self, fget, fset, fdel, doc)"""
+"""
+class LateBindingProperty(object):
+    def __init__(self, getname=None, setname=None, delname=None,
+                 doc=None):
+        self.getname = getname.__name__ if getname is not None else None
+        self.setname = setname.__name__ if setname is not None else None
+        self.delname = delname.__name__ if delname is not None else None
+        self.__doc__ = doc
+
+    def __get__(self, obj, objtype=None):
+        if obj is None:
+            return self
+        if self.getname is None:
+            raise AttributeError('unreadable attribute')
+        try:
+            fget = getattr(obj, self.getname)
+        except AttributeError:
+            raise TypeError('%s object does not have a %s method' %
+                            (type(obj).__name__, self.getname))
+        return fget()
+
+    def __set__(self, obj, value):
+        if self.setname is None:
+            raise AttributeError("can't set attribute")
+        try:
+            fset = getattr(obj, self.setname)
+        except AttributeError:
+            raise TypeError('%s object does not have a %s method' %
+                            (type(obj).__name__, self.setname))
+        fset(value)
+
+    def __delete__(self, obj):
+        if self.delname is None:
+            raise AttributeError("can't delete attribute")
+        try:
+            fdel = getattr(obj, self.delname)
+        except AttributeError:
+            raise TypeError('%s object does not have a %s method' %
+                            (type(obj).__name__, self.delname))
+        fdel()
+"""
+
+
+def update_meta (self, other):
+    """ Taken from http://code.activestate.com/recipes/408713/ """
+    self.__name__ = other.__name__
+    self.__doc__ = other.__doc__
+    self.__dict__.update(other.__dict__)
+    return self
+
+
+class LateBindingProperty (property):
+    """ Taken from http://code.activestate.com/recipes/408713/ """
+
+    def __new__(cls, fget=None, fset=None, fdel=None, doc=None):
+
+        if fget is not None:
+            def __get__(obj, objtype=None, name=fget.__name__):
+                fget = getattr(obj, name)
+                return fget()
+
+            fget = update_meta(__get__, fget)
+
+        if fset is not None:
+            def __set__(obj, value, name=fset.__name__):
+                fset = getattr(obj, name)
+                return fset(value)
+
+            fset = update_meta(__set__, fset)
+
+        if fdel is not None:
+            def __delete__(obj, name=fdel.__name__):
+                fdel = getattr(obj, name)
+                return fdel()
+
+            fdel = update_meta(__delete__, fdel)
+
+        return property(fget, fset, fdel, doc)
+
 
 def get_current_url(request = None):
     ''' Returns requested url of request. '''

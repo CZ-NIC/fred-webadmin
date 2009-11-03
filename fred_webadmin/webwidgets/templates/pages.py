@@ -337,6 +337,18 @@ class InvoiceDetail(DetailPage):
             self.main.add(adifdetails.InvoiceDetail(c.result, c.history))
             if config.debug:
                 self.main.add('InvoiceDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
+
+class LoggerDetail(DetailPage):
+    def __init__(self, context = None):
+        super(LoggerDetail, self).__init__(context)
+        c = self.context
+        if c.get('result'):
+            self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
+            #self.main.add(InvoiceDetailDiv(context))
+            self.main.add(adifdetails.LoggerDetail(c.result, c.history))
+            if config.debug:
+                self.main.add('LoggerDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
+
                 
                 
 class EditPage(BaseSiteMenu):

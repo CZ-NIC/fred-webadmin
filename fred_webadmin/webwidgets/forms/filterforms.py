@@ -22,7 +22,7 @@ __all__ = ['UnionFilterForm', 'RegistrarFilterForm', 'ObjectStateFilterForm',
            'ObjectFilterForm', 'ContactFilterForm', 'NSSetFilterForm', 'KeySetFilterForm', 'DomainFilterForm', 
            'ActionFilterForm', 'FilterFilterForm', 'PublicRequestFilterForm', 
            'InvoiceFilterForm', 'MailFilterForm', 'FileFilterForm',
-           'get_filter_forms_javascript']
+           'LoggerFilterForm', 'get_filter_forms_javascript']
 
 class FilterFormEmptyValue(object):
     ''' Class used in clean method of Field as empty value (if
@@ -360,7 +360,23 @@ class ActionFilterForm(FilterForm):
     Registrar = CompoundFilterField(label=_('Registrar'), form_class=RegistrarFilterForm)
     SvTRID = CharField(label=_('SvTRID'))
     ClTRID = CharField(label=_('ClTRID'))
-    
+
+
+class LoggerFilterForm(FilterForm):
+    default_fields_names = ['Service']
+
+    Service = IntegerChoiceField(label=_('Service type'), choices=[
+        (0, u'UNIX Whois'), (1, u'Web Whois'), (2, u'Public Request'), 
+        (3, u'EPP'), (4, u'WebAdmin'), (5, u'Intranet')])
+    SourceIp = CharField(label=_('Source IP'))
+#    ActionType = ChoiceField(
+#        label=_('Action type'), 
+#        choices=CorbaLazyRequestIterStruct(
+#            'Logger', 'GetServiceActions', ['id', 'name']))
+    TimeBegin = DateTimeIntervalField(label=_('Begin time'))
+    TimeEnd = DateTimeIntervalField(label=_('End time'))
+
+
 
 class FilterFilterForm(FilterForm):
     default_fields_names = ['Type']
@@ -432,7 +448,8 @@ form_classes = (DomainFilterForm,
                 FileFilterForm,
                 InvoiceFilterForm,
                 MailFilterForm,
-                ObjectStateFilterForm
+                ObjectStateFilterForm,
+                LoggerFilterForm,
                )
 
 def get_filter_forms_javascript():

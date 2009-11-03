@@ -1,18 +1,24 @@
 import sys
-from corba import ccReg
+import fred_webadmin.config as config
 from pprint import pprint
+from omniORB import CORBA, importIDL
+
+importIDL(config.idl)
+ccReg = sys.modules['ccReg']
+
+filter_type_items = ccReg.FilterType._items
 
 #dict {classname: enum_item) where enum_item is item in FilterType (from corba) and url is base url of that object  
-f_name_enum = dict([(item._n[3:].lower(), item) for item in ccReg.FilterType._items])
+f_name_enum = dict([(item._n[3:].lower(), item) for item in filter_type_items])
 
 # dict {enum_item: classname}
-f_enum_name = dict([(item, item._n[3:].lower()) for item in ccReg.FilterType._items])
+f_enum_name = dict([(item, item._n[3:].lower()) for item in filter_type_items])
 
 #dict {classname: id_item) where id_item is item in FilterType (from corba) and url is base url of that object  
-f_name_id = dict([(item._n[3:].lower(), item._v) for item in ccReg.FilterType._items])
+f_name_id = dict([(item._n[3:].lower(), item._v) for item in filter_type_items])
 
 # dict {id_item: classname}
-f_id_name = dict([(item._v, item._n[3:].lower()) for item in ccReg.FilterType._items])
+f_id_name = dict([(item._v, item._n[3:].lower()) for item in filter_type_items])
 
 # dict {enum_item: url} 
 f_urls = dict([(name, '/%s/' % (name)) for name in f_name_enum.keys()])
@@ -23,28 +29,29 @@ f_header_ids = dict([(name, 'CT_%s_ID' % (name.upper())) for name in f_name_enum
 # dict {OT_*, classname}, where OT_* is from _Admin.idl ObjectType 
 f_objectType_name = dict([(item, item._n[3:].lower()) for item in ccReg.PublicRequest.ObjectType._items])
 
-f_name_filterformname = dict([(item._n[3:].lower(), item._n[3:].capitalize() + 'FilterForm') for item in ccReg.FilterType._items])
+f_name_filterformname = dict([(item._n[3:].lower(), item._n[3:].capitalize() + 'FilterForm') for item in filter_type_items])
 f_name_filterformname['nsset'] = 'NSSetFilterForm' 
 f_name_filterformname['keyset'] = 'KeySetFilterForm' 
 f_name_filterformname['publicrequest'] = 'PublicRequestFilterForm' 
 
-f_name_editformname = dict([(item._n[3:].lower(), item._n[3:].capitalize() + 'EditForm') for item in ccReg.FilterType._items])
+f_name_editformname = dict([(item._n[3:].lower(), item._n[3:].capitalize() + 'EditForm') for item in filter_type_items])
 f_name_editformname['nsset'] = 'NSSetEditForm' 
 f_name_editformname['keyset'] = 'KeySetEditForm' 
 f_name_editformname['publicrequest'] = 'PublicRequestEditForm'
 
-f_name_detailname = dict([(item._n[3:].lower(), item._n[3:].capitalize() + 'Detail') for item in ccReg.FilterType._items])
+f_name_detailname = dict([(item._n[3:].lower(), item._n[3:].capitalize() + 'Detail') for item in filter_type_items])
 f_name_detailname['nsset'] = 'NSSetDetail' 
 f_name_detailname['keyset'] = 'KeySetDetail' 
 f_name_detailname['publicrequest'] = 'PublicRequestDetail'
 
 f_name_actionname =  dict([(item._n[3:].lower(), item._n[3:].capitalize()) for 
-                           item in ccReg.FilterType._items])
+                           item in filter_type_items])
 f_name_actionname['nsset'] = 'NSSet'
 f_name_actionname['mail'] = 'Emails'
 f_name_actionname['keyset'] = 'KeySet' 
 f_name_actionname['action'] = 'Actions'
 f_name_actionname['publicrequest'] = 'PublicRequest'
+f_name_actionname['logger'] = 'Request'
 
 f_name_actionfiltername = dict([(key, value + 'Filter') for key, value in
                            f_name_actionname.items()])

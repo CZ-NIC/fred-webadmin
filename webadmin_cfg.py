@@ -3,54 +3,43 @@
 import logging
 
 debug = True
+#debug = False
 caching_filter_form_javascript = True # if this settings is on, then when doing changes to filter form, you should erase all sessions, because old filter forms are still in session
 
-
-def curdir(f = ''):
-    import os.path
-    return os.path.join(os.path.dirname(__file__), f) # in globlal module builtin variable __file__ is path, from which was program executed
-base_dir = curdir()
-#base_dir = '/home/glin/programming/workspace/webadmin/'
-www_dir = base_dir + "www/"
-sessions_dir = base_dir + 'sessions/'
-locale_dir = base_dir + 'locale/'
-log_dir = base_dir
+www_dir = '/home/tomas/fred/root/share/fred-webadmin/www/'
+locale_dir = '/home/tomas/fred/root/share/fred-webadmin/locale/'
+sessions_dir = '/home/tomas/fred/root/var/lib/fred-webadmin/sessions/'
+log_dir = '/home/tomas/fred/root/var/log/fred-webadmin/'
 log_level = logging.DEBUG
 
-#idl = '/home/glin/programming/svn_enum_checkout/enum/idl/trunk/ccReg.idl'
-#idl = '/home/glin/programming/nic/webadmin/servers/idl_devel/idl/ccReg.idl'
-idl = '/home/glin/programming/nic/webadmin/servers/idl_trunk/idl/ccReg.idl'
-idl = '/home/zbohm/enum/idl/trunk/idl/ccReg.idl' #!!!
+# SessionLogger settings
+session_logging_enabled = True
 
+
+idl = '/home/tomas/code/enum/idl/trunk/idl/ccReg.idl' #'/usr/share/idl/fred/ccReg.idl'
 iors = (#(label, nshost, nscontext),
-        (u'maňásek-tom', 'jsadek', 'fred-tom'),
-        (u'localní', 'localhost', 'fred'),
-        (u'maňásek', 'jsadek', 'fred'),
-        (u'glin-server-maňásek-name-glin', 'jsadek', 'fred-glin'),
-        (u'hokuston2', 'pokuston', 'fred2'), 
-        (u'hokuston', 'pokuston:32346', 'fred'), 
-        (u'koliha', 'curlew', 'fred'),
-        (u'jarahp', 'jarahp:22346', 'fred'),
-       ) 
+	#	('Test', 'localhost:22346', 'fred'),
+        ('Test', 'localhost', 'fred'),
+	   )
+
+tablesize = 45
 
 auth_method = 'CORBA' # 'LDAP', 'CORBA'
-LDAP_server = 'ldap.office.nic.cz'
-LDAP_scope = 'uid=%s,ou=People,dc=nic,dc=cz'
-
-tablesize = 50
+LDAP_server = ''
+LDAP_scope = ''
 
 # gettext
 gettext_domain = 'adif'
 localepath = locale_dir
-lang = 'cs_CZ'
-#lang = 'en_US'
+#lang = 'cs_CZ'
+lang = 'en_US'
 
 js_calendar_date_format = 'D.M.YYYY'
 
 cherrycfg = {
     'global': {
-        'server.socket_port': 18456,
-        'server.socket_host': "0.0.0.0",
+        'server.socket_port': 22353,
+        'server.socket_host': '0.0.0.0',
         'server.thread_pool': 10,
         'server.environment': 'production',
         'tools.decode.on': True,
@@ -60,9 +49,9 @@ cherrycfg = {
         'tools.sessions.on': True,
         'tools.sessions.storage_type': 'file',
         'tools.sessions.storage_path': sessions_dir,
-        'tools.sessions.timeout': 60 * 5, # in minutes
+        'tools.sessions.timeout': 60, # in minutes
         'server.log_to_screen': False,
-        'server.log_file': log_dir + 'fred_webadmin.log',
+        'server.log_file': log_dir + 'fred-webadmin.log',
     },
     '/': {'tools.staticdir.root':  www_dir},
     '/css': {'tools.staticdir.on': True,

@@ -36,6 +36,7 @@ import simplejson
 
 import webwidgets.forms.utils as form_utils
 from logger.sessionlogger import SessionLogger
+from logger.dummylogger import DummyLogger
 from logger.codes import logcodes
 
 # decorator for exposing methods
@@ -56,7 +57,7 @@ from webwidgets.templates.pages import (
     BaseSite, BaseSiteMenu, LoginPage, DisconnectedPage, NotFound404Page, 
     AllFiltersPage, FilterPage, ErrorPage, DigPage, SetInZoneStatusPage, 
     DomainDetail, ContactDetail, NSSetDetail, KeySetDetail, RegistrarDetail, 
-    ActionDetail, PublicRequestDetail, MailDetail, InvoiceDetail,
+    ActionDetail, PublicRequestDetail, MailDetail, InvoiceDetail, LoggerDetail,
     #DomainEdit, ContactEdit, NSSetEdit, 
     RegistrarEdit,
     #ActionEdit, PublicRequestEdit, MailEdit, InvoiceEdit
@@ -347,7 +348,7 @@ class ListTableMixin(object):
                 for name, value, neg in form_utils.flatten_form_data(
                     form.cleaned_data):
                     req.update("filter_%s" % name, value)
-                    req.update("negation", str(neg))
+                    req.update("negation", str(neg), child=True)
 
                 req.commit("")
 
@@ -608,9 +609,16 @@ class ADIF(AdifPage):
                 corba.connect(ior, nscontext)
                 admin = corba.getObject('Admin', 'Admin')
 
-                logger = SessionLogger(dao=corba.getObject("Logger", "Logger"),
-                                       throws_exceptions=True, 
-                                       logging_function=debug)
+                if not config.session_logging_enabled:
+                    # DummyLogger provides correct interface, but does
+                    # not log anything
+                    logger = DummyLogger()
+                else:
+                    logger = SessionLogger(
+                        dao=corba.getObject("Logger", "Logger"),
+                        throws_exceptions=True, 
+                        logging_function=error)
+                    
                 logger.start_session("en", login)
                 cherrypy.session['logger'] = logger
                 log_req = logger.create_request(cherrypy.request.remote.ip, 
@@ -664,7 +672,7 @@ class ADIF(AdifPage):
             except ccReg.Admin.AuthFailed, e:
                 form.non_field_errors().append(_('Login error, please enter '
                                                  'correct login and password'))
-                log_req
+                log_req.update("error", logcodes["AuthFailed"])
                 if config.debug:
                     form.non_field_errors().append('(type: %s, exception: %s)' %
                                                    (escape(unicode(type(e))), 
@@ -732,19 +740,15 @@ class Summary(AdifPage):
         context.main = ul(li(a(attr(href='''/file/filter/?json_data=[{%22presention|CreateTime%22:%22on%22,%22CreateTime/3%22:%2210%22,%22CreateTime/0/0%22:%22%22,%22CreateTime/0/1/0%22:%220%22,%22CreateTime/0/1/1%22:%220%22,%22CreateTime/1/0%22:%22%22,%22CreateTime/1/1/0%22:%220%22,%22CreateTime/1/1/1%22:%220%22,%22CreateTime/4%22:%22-2%22,%22CreateTime/2%22:%22%22,%22presention|Type%22:%22000%22,%22Type%22:%225%22}]'''), _('Domain expiration letters'))))
         return self._render('summary', ctx=context)
     
-class Logs(AdifPage):
-    def _template(self, action=''):
-        return BaseSiteMenu
-        
-    @login_required
-    def index(self):
-        context = DictLookup()
-        context.main = p('Tady asi nic nebude, pokud jo, tak asi registrar/filter, a tim padem by tahle klasa Logs byla zbytecna. PS: Martine, tohle je asi na tobe, aby jsi rozhodl co tu ma byt.')
-        return self._render('base', ctx=context)
+    
+class Logger(AdifPage, ListTableMixin):
+    pass
+
 
 class Statistics(AdifPage):
     def _template(self, action=''):
         return BaseSiteMenu
+
 
 class Registrar(AdifPage, ListTableMixin):
 #    def __init__(self):
@@ -801,7 +805,6 @@ class Registrar(AdifPage, ListTableMixin):
                                                     "registrar with an "
                                                     "already used handle?")
                     return self._render('edit', form)
-#                    raise ValueError()
                 finally:
                     log_request.commit("")
                 raise cherrypy.HTTPRedirect(get_current_url(cherrypy.request))
@@ -954,8 +957,14 @@ class PublicRequest(AdifPage, ListTableMixin):
     def resolve(self, **kwd):
         '''Accept and send'''
         context = {}
+        req = cherrypy.session["logger"].create_request(
+            cherrypy.request.remote.ip, cherrypy.request.body,
+            "PublicRequestAccept")
         try:
             id_pr = int(kwd.get('id'))
+            req.update("publicrequest_id", id_pr)
+            req.commit()
+
         except (TypeError, ValueError):
             context['main'] = _("Required_integer_as_parameter")
             return self._render('base', ctx=context)
@@ -974,8 +983,13 @@ class PublicRequest(AdifPage, ListTableMixin):
     def close(self, **kwd):
         '''Close and invalidate'''
         context = {}
+        req = cherrypy.session["logger"].create_request(
+            cherrypy.request.remote.ip, cherrypy.request.body,
+            "PublicRequestInvalidate")
         try:
             id_ai = int(kwd.get('id'))
+            req.update("publicrequest_id", id_ai)
+            req.commit()
         except (TypeError, ValueError):
             context['main'] = _("Required_integer_as_parameter")
             return self._render('base', ctx=context)
@@ -1080,11 +1094,11 @@ class Detail41(AdifPage):
 
 def runserver():
     print "-----====### STARTING ADIF ###====-----"
-    
+
     root = ADIF()
     root.detail41 = Detail41()
     root.summary = Summary()
-    root.logs = Logs()
+    root.logger = Logger()
     root.registrar = Registrar()
     root.action = Action()
     root.domain = Domain()

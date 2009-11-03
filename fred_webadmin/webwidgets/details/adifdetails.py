@@ -328,6 +328,7 @@ class PaymentDetail(Detail):
     price = CharDField(label=_('Price'))
     balance = CharDField(label=_('Balance'))
     
+
 class PaymentActionDetail(Detail):
     paidObject = ObjectHandleDField(label=_('Object'))
     actionTime = CharDField(label=_('Action time'))
@@ -336,7 +337,18 @@ class PaymentActionDetail(Detail):
     unitsCount = CharDField(label=_('Count'))
     pricePerUnit = CharDField(label=_('PPU'))
     price = CharDField(label=_('Price'))
-    
+
+
+class LoggerDetail(Detail):
+    timeBegin = CharDField(label=_('Start time'))
+    timeEnd = CharDField(label=_('End time'))
+    action_type = CharDField(label=_('Action type'))
+    session_id = CharDField(label=_('Session id'))
+    props = ListCharDField(label=_('Properties'))
+
+    (_('Dates'), ('timeBegin', 'timeEnd'), DatesSectionLayout),
+
+
 class InvoiceDetail(Detail):
     number = CharDField(label=_('Number'))
     registrar = ObjectHandleDField(label=_('Registrar'))
