@@ -3,6 +3,8 @@ import cherrypy
 import datetime
 import csv
 import StringIO
+import omniORB
+import CORBA
 
 from logging import debug, error
 from omniORB.any import from_any
@@ -64,7 +66,6 @@ class IterTable(object):
         self._table = table
         self._table._set_pageSize(pagesize)
         
-#        self._table.reload()
         self._update()
 
     def _map_request(self, sessionKey):
@@ -112,6 +113,7 @@ class IterTable(object):
         row = []
         items = self._table.getRow(index)
         row_id = self.get_row_id(index)
+#        import pdb; pdb.set_trace()
         # Create OID from rowId.
         row_id_oid = Registry.OID(row_id, str(row_id), 
                                   f_name_enum[self.request_object])
@@ -130,11 +132,38 @@ class IterTable(object):
             row.append(cell)
         return row
 
-    def get_row_id(self, index):
-        return self._table.getRowId(index)
     
+    def get_row_id(self, index):
+        """
+            Returns id of the specified row.
+
+            Attrs:
+                index: index of the row.
+            Returns:
+                Id of the index-th row.
+            Raises:
+                IndexError when index is out of range.
+                Usual Corba exceptions.
+        """
+        try:
+            return self._table.getRowId(index)
+        except ccReg.Table.INVALID_ROW, exc:
+            raise IndexError("Index %i is out of bounds." % index)
+
     def get_rows_dict(self, start = None, limit = None, raw_header = False):
-        ''' Get rows, where each rows is dict (key: value), where key is header name (used for extjs grid and FilterList) '''
+        """
+            Gets specified rows from pagetable.
+
+            Attrs:
+                start: Integer. Index of the first row.
+                limit: Integer. Nmber of rows to fetch.
+                raw_header: Boolean. Indicates whether self.header or
+                    self.raw_header names should be used as resulting dict
+                    keys.
+            Returns:
+                Dicionary of (key: value) where key is header name (used for 
+                extjs grid and FilterList)
+            """
         if start is None:
             start = self.page_start
         else:
@@ -148,11 +177,9 @@ class IterTable(object):
             
         rows = []
         index = start
+        header = self.rawheader if raw_header else self.header
+        # Make sure that limit never gets beyond bounds.
         limit = min(limit, self.num_rows - start)
-        if raw_header:
-            header = self.rawheader
-        else:
-            header = self.header
         while index < start + limit:
             row = {}
             irow = self._get_row(index)
@@ -164,17 +191,29 @@ class IterTable(object):
     
 
     def get_absolute_row(self, index):
+        """
+            Returns the specified row.
+
+            Attrs:
+                index: index of the row.
+            Returns:
+                Row with given index.
+            Raises:
+                IndexError when index is out of range.
+                Usual Corba exceptions.
+        """
         return self._table.getRow(index)
 
     def __iter__(self):
+        """ To make IterTable iterable. """
         return self.next()
 
     def next(self):
+        """ To make IterTable iterable. """
         while self._row_index < (self.page_start + self.page_rows):
             row = self._get_row(self._row_index)
             self._row_index += 1
             yield row
-
         self._row_index = self.page_start
         
     def _rewrite_cell(self, cell):
@@ -247,9 +286,11 @@ class IterTable(object):
     def set_sort_by_name(self, column_name, direction):
         bool_dir = {u'ASC': True, u'DESC': False}[direction]
         try:
+            # Subtract one for the ID column (see IterTable.set_sort(...)).
             col_num = self.rawheader.index(column_name) - 1
         except ValueError:
-            error('VALUEERROR is set sort, index: (header: %s, index: %s)' % (self.header, column_name))
+            error("Column '%s' not found in rawheader (%s)" % (column_name,
+                  self.rawheader))
             raise
         self.set_sort(col_num, bool_dir)
     

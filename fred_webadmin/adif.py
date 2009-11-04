@@ -28,7 +28,6 @@ import config
 if config.auth_method == 'LDAP':
     import ldap
 
-
 # CherryPy main import
 import cherrypy
 from cherrypy.lib import http
