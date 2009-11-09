@@ -152,11 +152,11 @@ class IterTable(object):
 
     def get_rows_dict(self, start = None, limit = None, raw_header = False):
         """
-            Gets specified rows from pagetable.
+            Gets specified number of rows from pagetable.
 
             Attrs:
                 start: Integer. Index of the first row.
-                limit: Integer. Nmber of rows to fetch.
+                limit: Integer. Number of rows to fetch. Defaults to pageSize.
                 raw_header: Boolean. Indicates whether self.header or
                     self.raw_header names should be used as resulting dict
                     keys.
@@ -373,32 +373,28 @@ class FilterLoader(object):
         for key, [neg, val] in filter_data.items():
             func = getattr(compound, "add%s" % key)
             sub_filter = func() # add
-            debug("SUB_FILTER: %s" % sub_filter)
 
+            # Follows ugly code full of 'isinstance' calls. However, it seems
+            # to be necessary because we're using Corba.
             if isinstance(sub_filter, ccReg.Filters._objref_Compound): # Compound:
                 cls._set_one_compound_filter(sub_filter, val)
             else:
-                debug("Setting VAL %s" % val)
                 sub_filter._set_neg(u2c(neg))
-                if not isinstance(val, FilterFormEmptyValue): # set only filters, that are active (have value) - 
+                # Only set active filters (those that have a value). 
+                if not isinstance(val, FilterFormEmptyValue): 
                     if isinstance(sub_filter, ccReg.Filters._objref_Date):
                         value = date_time_interval_to_corba(val, date_to_corba)
                     elif isinstance(sub_filter, ccReg.Filters._objref_DateTime):
                         value = date_time_interval_to_corba(val, datetime_to_corba)
-#                    elif isinstance(
- #                       sub_filter, ccReg.Filters._objref_RequestServiceType):
-  #                      value = int(val)
                     elif isinstance(sub_filter, (ccReg.Filters._objref_Int, ccReg.Filters._objref_Id)):
                         value = int(val)
                     else:
                         value = val
     
-                    debug('SETTING VALUE TO SUBFILTer: %s' % u2c(value))
                     sub_filter._set_value(u2c(value))
         
     @classmethod
     def get_filter_data(cls, itertable):
-        #import pdb; pdb.set_trace()
         filter_data = []
         for compound_filter in CorbaFilterIterator(itertable._table):
             filter_data.append(cls._get_one_compound_filter_data(compound_filter))
