@@ -51,6 +51,9 @@ f_objectType_name = dict([(item, item._n[3:].lower()) for
     item in ccReg.PublicRequest.ObjectType._items])
 
 def generate_dict(suffix):
+    """ Returns a dict with (classname -> Classname + suffix) pairs.
+        This is really just an utility function to prevent boilerplate code.
+    """
     rules = {
         'nsset' : 'NSSet',
         'keyset' : 'KeySet',
@@ -75,7 +78,7 @@ f_name_actionname = generate_dict('')
 # Overwrite some remaining non-matching (class -> action) mappings.
 # This is necessary because of tight coupling between class names and action
 # types. And names used in Corba would be weird as Python class names here in
-# webadmin.
+# webadmin (e.g. logger is better than request).
 # Possible TODO(tomas): refactor to loosen the coupling.
 f_name_actionname['mail'] = 'Emails'
 f_name_actionname['action'] = 'Actions'
