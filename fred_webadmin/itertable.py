@@ -111,9 +111,14 @@ class IterTable(object):
 
     def _get_row(self, index):
         row = []
-        items = self._table.getRow(index)
-        row_id = self.get_row_id(index)
-#        import pdb; pdb.set_trace()
+        try:
+            items = self._table.getRow(index)
+            row_id = self.get_row_id(index)
+        except ccReg.Table.INVALID_ROW, exc:
+            import traceback; 
+            raise IndexError(
+                "Index %s out of bounds. Original exception: %s" % \
+                (index, traceback.format_exc()))
         # Create OID from rowId.
         row_id_oid = Registry.OID(row_id, str(row_id), 
                                   f_name_enum[self.request_object])
@@ -148,11 +153,14 @@ class IterTable(object):
         try:
             return self._table.getRowId(index)
         except ccReg.Table.INVALID_ROW, exc:
-            raise IndexError("Index %i is out of bounds." % index)
+            import traceback; 
+            raise IndexError(
+                "Index %s out of bounds. Original exception: %s" % \
+                (index, traceback.format_exc()))
 
     def get_rows_dict(self, start = None, limit = None, raw_header = False):
         """
-            Gets specified number of rows from pagetable.
+            Get a specified number of rows from pagetable.
 
             Attrs:
                 start: Integer. Index of the first row.
@@ -202,7 +210,13 @@ class IterTable(object):
                 IndexError when index is out of range.
                 Usual Corba exceptions.
         """
-        return self._table.getRow(index)
+        try:
+            return self._table.getRow(index)
+        except ccReg.Table.INVALID_ROW, exc:
+            import traceback; 
+            raise IndexError(
+                "Index %s out of bounds. Original exception: %s" % \
+                (index, traceback.format_exc()))
 
     def __iter__(self):
         """ To make IterTable iterable. """
@@ -217,42 +231,19 @@ class IterTable(object):
         self._row_index = self.page_start
         
     def _rewrite_cell(self, cell):
-#        get_url_id_content = lambda filter_name: {'url': f_urls[filter_name] + 'detail/?id=%s',  'icon': '/img/icons/open.png', 'cssc': 'tcenter'}
-#        get_url_handle_content = lambda filter_name: {'url': f_urls[filter_name] + 'detail/?handle=%s'}
-#        get_url_from_oid = lambda OID: {'url': f_urls[f_enum_name[OID.type]] + 'detail/?id=%s',  'icon': '/img/icons/open.png', 'cssc': 'tcenter'}
         oid_url_string = '%sdetail/?id=%s'
         rewrite_rules = {
-#                        'CT_CONTACT_HANDLE': get_url_handle_content('contact'),
-#                        'CT_REGISTRAR_HANDLE': get_url_handle_content('registrar'),
-#                        #'CT_DOMAIN_HANDLE': {'url': f_urls['domain'] + 'detail/?handle=%s'},
-#                        'CT_DOMAIN_HANDLE': get_url_handle_content('domain'),
-#                        'CT_NSSET_HANDLE': get_url_handle_content('nsset'),
-#                        'CT_KEYSET_HANDLE': get_url_handle_content('keyset'),
-#                        'CT_CONTACT_ID': get_url_id_content('contact'),
-#                        'CT_REGISTRAR_ID': get_url_id_content('registrar'),
-#                        'CT_DOMAIN_ID': get_url_id_content('domain'),
-#                        'CT_NSSET_ID': get_url_id_content('nsset'),
-#                        'CT_KEYSET_ID': get_url_id_content('keyset'),
-#                        'CT_MAIL_ID': get_url_id_content('mail'),
-#                        'CT_PUBLICREQUEST_ID': get_url_id_content('publicrequest'),
-#                        'CT_ACTION_ID': get_url_id_content('action'),
-#                        'CT_INVOICE_ID': get_url_id_content('invoice'),
-#                        #'CT_FILE_ID': {'url': f_urls['file'] + 'detail/?id=%s',  'icon': 'list.gif', 'cssc': 'tcenter'},
-                        'CT_OID': {'oid_url': oid_url_string},
-                        'CT_OID_ICON': {'oid_url': oid_url_string, 'icon': '/img/icons/open.png'}, #{'url': f_urls['request'] + 'detail/?id=%s',  'icon': 'list.gif', 'cssc': 'tcenter'},
-                        'CT_OTHER': {}
-                       }
+                'CT_OID': {'oid_url': oid_url_string},
+                'CT_OID_ICON': {'oid_url': oid_url_string, 
+                                'icon': '/img/icons/open.png'}, 
+                'CT_OTHER': {}
+            }
         contentType = self.header_type[cell['index']]
         
-        if rewrite_rules[contentType].has_key('value'):
-            cell['value'] = rewrite_rules[contentType]['value']
         if rewrite_rules[contentType].has_key('icon'):
             cell['icon'] = rewrite_rules[contentType]['icon']
-        if rewrite_rules[contentType].has_key('cssc'):
-            cell['cssc'] = rewrite_rules[contentType]['cssc']
         if rewrite_rules[contentType].has_key('oid_url'):
             val = cell['value']
-            debug("val: %s" % val)
             if val.id:
                 cell['url'] = rewrite_rules[contentType]['oid_url'] % \
                     (f_urls[f_enum_name[val.type]], val.id)
@@ -262,9 +253,6 @@ class IterTable(object):
                 cell['value'] = ''
         if rewrite_rules[contentType].has_key('url'):
             cell['url'] = rewrite_rules[contentType]['url'] % (cell['value'],)
-
-
-
       
     def set_filter(self, union_filter_data):
         self.clear_filter()

@@ -51,7 +51,7 @@ class Initializer(object):
         self.pagetable_mock = self.create_pagetable_mock()
 
     def init_itertable(self, pagetable_mock, columnDesc=None, page=1, 
-                       pageSize=5, start=1, numRows=50, numPages=10, 
+                       pageSize=5, start=1, numRows=50, 
                        numPageRows=5, rowsOverLimit=False):
         """ Utility method to prevent boilerplate code.
             Provides methods that are called by Itertable.__init__. 
@@ -65,13 +65,13 @@ class Initializer(object):
         pagetable_mock.getColumnHeaders().InAnyOrder("init pt").AndReturn(
             [Registry.Table.ColumnDesc(desc, Registry.Table.CT_OTHER) for 
              desc in columnDesc])
-        pagetable_mock._set_pageSize(50)
-        self.itertable_update(pagetable_mock, page, pageSize, start, numRows,
-                          numPages, numPageRows, rowsOverLimit)
+        pagetable_mock._set_pageSize(pageSize)
+        self.itertable_update(
+            pagetable_mock, page, pageSize, start, numRows, 
+            numPageRows, rowsOverLimit)
        
     def itertable_update(self, pagetable_mock, page=1, pageSize=5, start=1,
-                     numRows=50, numPages=10, numPageRows=5,
-                     rowsOverLimit=False):
+                     numRows=50, numPageRows=5, rowsOverLimit=False):
         """ Utility method to prevent boilerplate code.
             Simulates IterTable._update method. """
         pagetable_mock._get_page().InAnyOrder("update pt").AndReturn(page)
@@ -82,7 +82,7 @@ class Initializer(object):
         pagetable_mock.numRowsOverLimit().InAnyOrder(
             "update pt").AndReturn(rowsOverLimit)
         pagetable_mock._get_numPages().InAnyOrder("update pt").AndReturn(
-            numPages)
+            numRows / pageSize)
         pagetable_mock._get_numPageRows().InAnyOrder(
             "update pt").AndReturn(numPageRows)
 
@@ -107,7 +107,7 @@ class TestItertable(Initializer):
     @with_setup(Initializer.setup)
     def test_init(self):
         """ IterTable initializes correctly. """
-        self.init_itertable(self.pagetable_mock)
+        self.init_itertable(self.pagetable_mock, pageSize=50)
         
         self.corba_mock.ReplayAll()
 
@@ -134,7 +134,7 @@ class Test_getRow(Initializer):
     @with_setup(Initializer.setup)
     def test__get_row(self):
         """_get_row returns row correctly. """
-        self.init_itertable(self.pagetable_mock)
+        self.init_itertable(self.pagetable_mock, pageSize=50)
         self.pagetable_mock.getRow(2).AndReturn([CORBA.Any(CORBA.TC_string,
                                                  'test value')])
         self.pagetable_mock.getRowId(2).AndReturn(12)
@@ -158,7 +158,7 @@ class Test_getRow(Initializer):
     @with_setup(Initializer.setup)
     def test__get_row_out_of_index(self):
         """ _get_row raises IndexError when index is out of range. """
-        self.init_itertable(self.pagetable_mock, numPages=1, numPageRows=1)
+        self.init_itertable(self.pagetable_mock, numPageRows=1, pageSize=50)
 
         self.pagetable_mock.getRow(2).AndRaise(
             CORBA.BAD_PARAM(omniORB.BAD_PARAM_PythonValueOutOfRange, 
@@ -174,7 +174,7 @@ class Test_getRow(Initializer):
     @with_setup(Initializer.setup)
     def test__get_row_out_of_index(self):
         """ _get_row raises IndexError when index is out of range. """
-        self.init_itertable(self.pagetable_mock, numPages=1, numPageRows=1)
+        self.init_itertable(self.pagetable_mock, numPageRows=1, pageSize=50)
 
         self.pagetable_mock.getRow(-1).AndRaise(
             CORBA.BAD_PARAM(omniORB.BAD_PARAM_PythonValueOutOfRange, 
@@ -191,15 +191,17 @@ class Test_getRow(Initializer):
     @with_setup(Initializer.setup)
     def test__get_row_invalid_argument(self):
         """ _get_row raises ValueError when index is not an integer. """
-        self.init_itertable(self.pagetable_mock, numPages=1, numPageRows=1)
+        self.init_itertable(self.pagetable_mock, numPageRows=1, pageSize=50)
 
-        self.pagetable_mock.getRow("intentional error - this should be an integer").\
-            AndRaise(CORBA.BAD_PARAM(omniORB.BAD_PARAM_WrongPythonType,
-                     CORBA.COMPLETED_NO))
+        self.pagetable_mock.getRow(
+            "intentional error - this should be an integer").AndRaise(
+            CORBA.BAD_PARAM(
+                omniORB.BAD_PARAM_WrongPythonType,CORBA.COMPLETED_NO))
         self.pagetable_mock.getRowId(2).AndReturn(1)
 
         self.corba_mock.ReplayAll()
-        table = IterTable("test_req_object", test_corba_session_string, pagesize=50)
+        table = IterTable(
+            "test_req_object", test_corba_session_string, pagesize=50)
         table._get_row("intentional error - this should be an integer")
         self.corba_mock.VerifyAll()
 
@@ -210,23 +212,35 @@ class TestGetRowDict(Initializer):
 
     @with_setup(Initializer.setup)
     def test_get_rows_dict(self):
-        """ get_rows_dict returns correct row. """
-        self.init_itertable(self.pagetable_mock, columnDesc=["c1", "c2"], start=0, pageSize=1, numPages=1, numPageRows=1)
-
-        self.pagetable_mock.getRow(1).AndReturn(
-            [CORBA.Any(CORBA.TC_string, 'test value'), 
-             CORBA.Any(CORBA.TC_string, 'test value 2')])
-        self.pagetable_mock.getRowId(1).AndReturn(1)
-
+        """ get_rows_dict returns correct rows when no arguments are given. """
+        self.init_itertable(
+            self.pagetable_mock, columnDesc=["c1", "c2"], page=1, pageSize=2, 
+            start=5, numRows=10, numPageRows=2)
+        self.pagetable_mock.getRow(5).AndReturn(
+            [CORBA.Any(CORBA.TC_string, 'test value 1.1'), 
+             CORBA.Any(CORBA.TC_string, 'test value 1.2')])
+        self.pagetable_mock.getRowId(5).AndReturn(5)
+        self.pagetable_mock.getRow(6).AndReturn(
+            [CORBA.Any(CORBA.TC_string, 'test value 2.1'), 
+             CORBA.Any(CORBA.TC_string, 'test value 2.2')])
+        self.pagetable_mock.getRowId(6).AndReturn(6)
         self.corba_mock.ReplayAll()
-        table = IterTable("test_req_object", test_corba_session_string, pagesize=50)
-        rows = table.get_rows_dict(start=1)
 
-        assert len(rows) == 1
+        table = IterTable(
+            "test_req_object", test_corba_session_string, pagesize=2)
+        rows = table.get_rows_dict()
+
+        assert len(rows) == 2
+
         assert len(rows[0]) == 3
-        assert rows[0]['Id'] == u'1'
-        assert rows[0]["c1"] == u'test value'
-        assert rows[0]["c2"] == u'test value 2'
+        assert rows[0].get(u'Id') == u'5'
+        assert rows[0].get(u'c1') == u'test value 1.1'
+        assert rows[0].get(u'c2') == u'test value 1.2'
+
+        assert len(rows[1]) == 3
+        assert rows[1].get(u'Id') == u'6'
+        assert rows[1].get(u'c1') == u'test value 2.1'
+        assert rows[1].get(u'c2') == u'test value 2.2'
 
         self.corba_mock.VerifyAll()
 
@@ -234,19 +248,25 @@ class TestGetRowDict(Initializer):
     def test_get_rows_dict_multiple_rows(self):
         """ get_row_dict returns multiple rows correctly. """
         self.init_itertable(self.pagetable_mock, columnDesc=["c1", "c2"], 
-                            start=0, pageSize=1, numPages=1, numPageRows=1)
-
-        self.pagetable_mock._set_pageSize(10)
+                            start=0, numPageRows=1, numRows=20, pageSize=10)
+        self.pagetable_mock._set_pageSize(11)
         self.itertable_update(self.pagetable_mock)
-        for i in range(5, 15):
+        for i in range(5, 16):
             self.pagetable_mock.getRow(i).AndReturn(
-                [CORBA.Any(CORBA.TC_string, 'test value'), 
-                 CORBA.Any(CORBA.TC_string, 'test value 2')])
+                [CORBA.Any(CORBA.TC_string, 'test value %i.1' % i), 
+                 CORBA.Any(CORBA.TC_string, 'test value %i.2' % i)])
             self.pagetable_mock.getRowId(i).AndReturn(i)
-
         self.corba_mock.ReplayAll()
-        table = IterTable("test_req_object", test_corba_session_string, pagesize=50)
-        rows = table.get_rows_dict(start=5, limit=10)
+
+        table = IterTable(
+            "test_req_object", test_corba_session_string, pagesize=10)
+        rows = table.get_rows_dict(start=5, limit=11)
+
+        assert len(rows) == 11
+        assert len(rows[6]) == 3
+        assert rows[6].get(u'Id') == u'11'
+        assert rows[6].get(u'c1') == u'test value 11.1'
+        assert rows[6].get(u'c2') == u'test value 11.2'
 
 
 class TestGetRowId(Initializer):
@@ -257,11 +277,12 @@ class TestGetRowId(Initializer):
     def test_get_row_id(self):
         """ get_row_id returns correct id when index is OK. """
         self.init_itertable(self.pagetable_mock, columnDesc=["c1", "c2"], 
-                            start=0, pageSize=1, numPages=1, numPageRows=1)
+                            start=0, numPageRows=1, numRows=20, pageSize=5)
         self.pagetable_mock.getRowId(1).AndReturn(1)
         self.corba_mock.ReplayAll()
 
-        table = IterTable("test_req_object", test_corba_session_string, pagesize=50)
+        table = IterTable(
+            "test_req_object", test_corba_session_string, pagesize=5)
         id = table.get_row_id(1)
 
         assert id == 1
@@ -272,7 +293,7 @@ class TestGetRowId(Initializer):
     def test_get_row_id_index_out_of_bounds(self):
         """ get_row_id returns correct id when index is OK. """
         self.init_itertable(self.pagetable_mock, columnDesc=["c1", "c2"], 
-                            start=0, pageSize=1, numPages=1, numPageRows=1)
+                            start=0, numPageRows=1, pageSize=50)
         self.pagetable_mock.getRowId(10000).AndRaise(ccReg.Table.INVALID_ROW())
         self.corba_mock.ReplayAll()
 
@@ -285,7 +306,7 @@ class TestGetRowId(Initializer):
     def test_get_row_id_negative_index(self):
         """ get_row_id returns correct id when index is OK. """
         self.init_itertable(self.pagetable_mock, columnDesc=["c1", "c2"], 
-                            start=0, pageSize=1, numPages=1, numPageRows=1)
+                            start=0, numPageRows=1, pageSize=50)
         self.pagetable_mock.getRowId(-1).AndRaise(ccReg.Table.INVALID_ROW())
         self.corba_mock.ReplayAll()
 
