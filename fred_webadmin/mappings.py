@@ -11,7 +11,7 @@ def corbaname_to_classname(item):
         type. 
     """
     rules = {
-        ccReg.FT_STATEMENT_ITEM._v : 'bankstatement'
+        ccReg.FT_STATEMENTITEM._v : 'bankstatement'
     }
     return rules.get(item._v, item._n[3:].lower())
     
