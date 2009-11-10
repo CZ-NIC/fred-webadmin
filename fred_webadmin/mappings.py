@@ -55,7 +55,7 @@ def generate_dict(suffix):
         'nsset' : 'NSSet',
         'keyset' : 'KeySet',
         'publicrequest' : 'PublicRequest',
-        'bankstatement' : 'Bankstatement'
+        'bankstatement' : 'BankStatement'
     }
     result = dict(
         [
