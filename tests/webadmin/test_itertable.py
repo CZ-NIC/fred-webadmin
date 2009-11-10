@@ -268,6 +268,21 @@ class TestGetRowDict(Initializer):
         assert rows[6].get(u'c1') == u'test value 11.1'
         assert rows[6].get(u'c2') == u'test value 11.2'
 
+    @raises(IndexError)
+    @with_setup(Initializer.setup)
+    def test_get_rows_dict_multiple_rows(self):
+        """ get_row_dict returns multiple rows correctly. """
+        self.init_itertable(self.pagetable_mock, columnDesc=["c1", "c2"], 
+                            start=0, numPageRows=1, numRows=20, pageSize=10)
+        self.pagetable_mock._set_pageSize(100)
+        self.itertable_update(self.pagetable_mock)
+        self.pagetable_mock.getRow(21).AndRaise(ccReg.Table.INVALID_ROW)
+        self.corba_mock.ReplayAll()
+
+        table = IterTable(
+            "test_req_object", test_corba_session_string, pagesize=10)
+        rows = table.get_rows_dict(start=21, limit=100)
+
 
 class TestGetRowId(Initializer):
     def __init__(self):
@@ -291,7 +306,7 @@ class TestGetRowId(Initializer):
     @raises(IndexError)
     @with_setup(Initializer.setup)
     def test_get_row_id_index_out_of_bounds(self):
-        """ get_row_id returns correct id when index is OK. """
+        """ get_row_id raises IndexError when index is too big. """
         self.init_itertable(self.pagetable_mock, columnDesc=["c1", "c2"], 
                             start=0, numPageRows=1, pageSize=50)
         self.pagetable_mock.getRowId(10000).AndRaise(ccReg.Table.INVALID_ROW())
@@ -304,7 +319,7 @@ class TestGetRowId(Initializer):
     @raises(IndexError)
     @with_setup(Initializer.setup)
     def test_get_row_id_negative_index(self):
-        """ get_row_id returns correct id when index is OK. """
+        """ get_row_id raises IndexError when index negative. """
         self.init_itertable(self.pagetable_mock, columnDesc=["c1", "c2"], 
                             start=0, numPageRows=1, pageSize=50)
         self.pagetable_mock.getRowId(-1).AndRaise(ccReg.Table.INVALID_ROW())
