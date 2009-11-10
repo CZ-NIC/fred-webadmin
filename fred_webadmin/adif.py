@@ -406,7 +406,12 @@ class ListTableMixin(object):
     
     @login_required
     def index(self):
-        raise cherrypy.HTTPRedirect(f_urls[self.classname] + 'allfilters/')
+        if (config.debug or f_urls.has_key(self.classname)):
+            raise cherrypy.HTTPRedirect(f_urls[self.classname] + 'allfilters/')
+        else:
+            # In production (non-debug) environment we just fall back to 
+            # /summary.
+            raise cherrypy.HTTPRedirect('/summary/')
 
     @check_onperm('read')
     def _get_detail(self, obj_id):
