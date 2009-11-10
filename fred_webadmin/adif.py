@@ -411,7 +411,8 @@ class ListTableMixin(object):
         else:
             # In production (non-debug) environment we just fall back to 
             # /summary.
-            raise cherrypy.HTTPRedirect('/summary/')
+            raise NotImplementedError("Support for '%s' has not yet been "
+                                      "implemented." % self.classname)
 
     @check_onperm('read')
     def _get_detail(self, obj_id):
