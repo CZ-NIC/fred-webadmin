@@ -1,3 +1,28 @@
+"""
+    Module mappings.py.
+    Provides dictionaries that map classes used in webadmin to their respective
+    corba counterparts.
+
+    doctests:
+
+    >>> filter_type_items
+    [{'classname': 'filter', 'item': FT_FILTER},\
+ {'classname': 'registrar', 'item': FT_REGISTRAR},\
+ {'classname': 'obj', 'item': FT_OBJ},\
+ {'classname': 'contact', 'item': FT_CONTACT},\
+ {'classname': 'nsset', 'item': FT_NSSET},\
+ {'classname': 'keyset', 'item': FT_KEYSET},\
+ {'classname': 'domain', 'item': FT_DOMAIN},\
+ {'classname': 'action', 'item': FT_ACTION},\
+ {'classname': 'invoice', 'item': FT_INVOICE},\
+ {'classname': 'publicrequest', 'item': FT_PUBLICREQUEST},\
+ {'classname': 'mail', 'item': FT_MAIL},\
+ {'classname': 'file', 'item': FT_FILE},\
+ {'classname': 'logger', 'item': FT_LOGGER},\
+ {'classname': 'session', 'item': FT_SESSION},\
+ {'classname': 'bankstatement', 'item': FT_STATEMENTITEM}]
+"""
+
 import sys
 import fred_webadmin.config as config
 from pprint import pprint
@@ -53,8 +78,28 @@ f_objectType_name = dict([(item, item._n[3:].lower()) for
 def generate_dict(suffix):
     """ Returns a dict with (classname -> Classname + suffix) pairs.
         This is really just an utility function to prevent boilerplate code.
+
+        doctests:
+        >>> generate_dict("TestSuffix")
+        {'session': 'SessionTestSuffix', \
+'bankstatement': 'BankStatementTestSuffix', \
+'domain': 'DomainTestSuffix', \
+'obj': 'ObjTestSuffix', \
+'invoice': 'InvoiceTestSuffix', \
+'file': 'FileTestSuffix', \
+'filter': 'FilterTestSuffix', \
+'keyset': 'KeySetTestSuffix', \
+'contact': 'ContactTestSuffix', \
+'registrar': 'RegistrarTestSuffix', \
+'nsset': 'NSSetTestSuffix', \
+'action': 'ActionTestSuffix', \
+'mail': 'MailTestSuffix', \
+'logger': 'LoggerTestSuffix', \
+'publicrequest': 'PublicRequestTestSuffix'}
     """
     rules = {
+        # If more than the first letter should be capitalized, we have to do it
+        # manually.
         'nsset' : 'NSSet',
         'keyset' : 'KeySet',
         'publicrequest' : 'PublicRequest',
@@ -79,7 +124,8 @@ f_name_actionname = generate_dict('')
 # This is necessary because of tight coupling between class names and action
 # types. And names used in Corba would be weird as Python class names here in
 # webadmin (e.g. logger is better than request).
-# Possible TODO(tomas): refactor to loosen the coupling.
+# Possible TODO(tomas): refactor to loosen the coupling. PLUS how come it
+# matches with filter, edit and detail and not with action?!
 f_name_actionname['mail'] = 'Emails'
 f_name_actionname['action'] = 'Actions'
 f_name_actionname['logger'] = 'Request'
