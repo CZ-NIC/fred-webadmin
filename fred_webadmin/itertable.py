@@ -1,10 +1,6 @@
-import sys
 import cherrypy
-import datetime
 import csv
 import StringIO
-import omniORB
-import CORBA
 
 from logging import debug, error
 from omniORB.any import from_any
@@ -12,7 +8,7 @@ from omniORB.any import from_any
 from fred_webadmin.translation import _
 from fred_webadmin.webwidgets.forms.filterforms import FilterFormEmptyValue
 from fred_webadmin.mappings import (
-    f_name_enum, f_enum_name, f_header_ids, f_urls, f_name_default_sort)
+    f_name_enum, f_enum_name, f_urls, f_name_default_sort)
 from fred_webadmin.utils import (
     u2c, c2u, date_time_interval_to_corba, 
     corba_to_date_time_interval, date_to_corba, corba_to_date, 
@@ -31,8 +27,9 @@ from fred_webadmin.corba import (
 
 def fileGenerator(source, separator = '|'):
     "Generates CSV stream from IterTable object"
-    
-    out = StringIO.StringIO() # csv writer supports only files for output, so we have to use StringIO 
+
+    # CSV writer only supports files for output => we have to use StringIO.
+    out = StringIO.StringIO()
     w = csv.writer(out)
     
     data = source.rawheader
@@ -44,8 +41,12 @@ def fileGenerator(source, separator = '|'):
         data = [col['value'] for col in row]
         out.seek(0)
         w.writerow([unicode(item).encode('utf-8') for item in data])
-        out.truncate() # truncate from current pos to end (if something remained from last iteration)
-        yield out.getvalue() # returning one line of data
+        # Truncate from current pos to end (if something remained 
+        # from the last iteration).
+        out.truncate()
+
+        # Return one line of data.
+        yield out.getvalue()
 
 
 class IterTable(object):
@@ -74,6 +75,7 @@ class IterTable(object):
         self.page_index = None
         self.page_size = None
         self.page_start = None
+        # Number of rows in table.
         self.num_rows = None
         self.num_rows_over_limit = None
         self.num_pages = None
@@ -82,15 +84,16 @@ class IterTable(object):
         self.first_page = None
         self.last_page = None
         self.prev_page = None
+        self.next_page = None
         self._row_index = None
 
         self._update()
 
-    def _map_request(self, sessionKey):
+    def _map_request(self, session_key):
         try:
             debug('GETTING ADMIN, which is: %s a sessionkey=%s' % 
-                  (cherrypy.session.get('Admin', 'Admin'), sessionKey))
-            corbaSession = cherrypy.session.get('Admin').getSession(sessionKey)
+                  (cherrypy.session.get('Admin', 'Admin'), session_key))
+            corbaSession = cherrypy.session.get('Admin').getSession(session_key)
         except ccReg.Admin.ObjectNotFound:
             raise CorbaServerDisconnectedException  
         try:
@@ -98,14 +101,14 @@ class IterTable(object):
         except KeyError:
             raise ValueError("Invalid request object.")
         debug("Returned PageTable: %s" % table)
-        header_id = 'CT_OID_ICON' #f_header_ids[self.request_object]#types[self.request_object]['id']
+        header_id = 'CT_OID_ICON'
         return table, header_id
     
     def _update(self):
         self.page_index = self._table._get_page()
         self.page_size = self._table._get_pageSize()
         self.page_start = self._table._get_start()
-        self.num_rows = self._table._get_numRows() # number of rows in table
+        self.num_rows = self._table._get_numRows()
         self.num_rows_over_limit = self._table.numRowsOverLimit()
         self.num_pages = self._table._get_numPages()
         self.page_rows = self._table._get_numPageRows()
@@ -145,8 +148,7 @@ class IterTable(object):
             cell = {}
             cell['index'] = i
             if i == 0: 
-                # items[0] is id, which is inserted to items (it was obtained
-                # from self._table.getRowId(index).
+                # items[0] is id (obtained from self._table.getRowId(index)).
                 cell['value'] = item
             else: 
                 # All other items are corba ANY values.
@@ -230,7 +232,7 @@ class IterTable(object):
         """
         try:
             return self._table.getRow(index)
-        except ccReg.Table.INVALID_ROW, exc:
+        except ccReg.Table.INVALID_ROW:
             import traceback 
             raise IndexError(
                 "Index %s out of bounds. Original exception: %s" % \
@@ -303,7 +305,8 @@ class IterTable(object):
         
     def set_default_sort(self):
         if f_name_default_sort.get(self.request_object):
-            for column_name, direction in reversed(f_name_default_sort[self.request_object]):
+            for column_name, direction in reversed(
+                f_name_default_sort[self.request_object]):
                 self.set_sort_by_name(column_name, direction)
 
     def get_filter_data(self):
@@ -314,22 +317,17 @@ class IterTable(object):
 
     def clear_filter(self):
         self._table.clear()
-#        self._table.reload()
         self._update()
 
     def reload(self):
-        debug('FILTER BEFORE RELOAD')
-        #import pdb; pdb.set_trace()
         self._table.reload()
         self.set_default_sort()
-        debug('FILTER AFTER RELOAD')
         self._update()
         
     def load_filter(self, filter_id):
         self._table.loadFilter(filter_id)
 
     def set_page(self, num):
-#        import pdb; pdb.set_trace()
         if (self.num_pages > 0) and (num > self.num_pages):
             num = self.num_pages
         elif num <= 0:
@@ -337,11 +335,6 @@ class IterTable(object):
         self._table.setPage(num - 1)
         self._update()
     
-    def set_page_start(self, start):
-        page_num = start % self.page_size
-        self.set_page(page_num)
-    
-
     def set_page_size(self, size):
         self._table._set_pageSize(size)
         self._update()
