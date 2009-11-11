@@ -9,12 +9,16 @@ import CORBA
 from logging import debug, error
 from omniORB.any import from_any
 
-from corba import ccReg, Registry, CorbaServerDisconnectedException
-from utils import u2c
-from translation import _
+from fred_webadmin.translation import _
 from fred_webadmin.webwidgets.forms.filterforms import FilterFormEmptyValue
-from fred_webadmin.mappings import f_name_enum, f_enum_name, f_header_ids, f_urls, f_name_default_sort
-from fred_webadmin.utils import c2u, date_time_interval_to_corba, corba_to_date_time_interval, date_to_corba, corba_to_date, datetime_to_corba, corba_to_datetime
+from fred_webadmin.mappings import (
+    f_name_enum, f_enum_name, f_header_ids, f_urls, f_name_default_sort)
+from fred_webadmin.utils import (
+    u2c, c2u, date_time_interval_to_corba, 
+    corba_to_date_time_interval, date_to_corba, corba_to_date, 
+    datetime_to_corba, corba_to_datetime)
+from fred_webadmin.corba import (
+    ccReg, Registry, CorbaServerDisconnectedException)
 #
 #def fileGenerator(source, separator = '|'):
 #    "Generates CSV stream from IterTable object"
@@ -49,23 +53,37 @@ class IterTable(object):
         access to rows (fetches them on demand), thus it can access very large
         data sets without running out of memory.
     """
-    def __init__(self, request_object, sessionKey, pagesize=50):
-        debug('Creating IterTable of type %s' % request_object)
+    def __init__(self, request_object, session_key, pagesize=50):
         super(IterTable, self).__init__()
+
         self.iterable = True
         self.request_object = request_object
-        table, header_id = self._map_request(sessionKey)
+
+        table, header_id = self._map_request(session_key)
+        self._table = table
+        self._table._set_pageSize(pagesize)
+
         columnHeaders = table.getColumnHeaders()
         self.rawheader = [x.name for x in columnHeaders]
         self.rawheader.insert(0, 'Id')
+
         self.header = [ _(x) for x in self.rawheader ]
         self.header_type = [x.type._n for x in columnHeaders]
         self.header_type.insert(0, header_id)
-        debug('HEADER=%s' % self.header)
-        debug('HEADER_TYPE=%s' % self.header_type)
-        self._table = table
-        self._table._set_pageSize(pagesize)
-        
+
+        self.page_index = None
+        self.page_size = None
+        self.page_start = None
+        self.num_rows = None
+        self.num_rows_over_limit = None
+        self.num_pages = None
+        self.page_rows = None
+        self.current_page = None
+        self.first_page = None
+        self.last_page = None
+        self.prev_page = None
+        self._row_index = None
+
         self._update()
 
     def _map_request(self, sessionKey):
@@ -114,8 +132,8 @@ class IterTable(object):
         try:
             items = self._table.getRow(index)
             row_id = self.get_row_id(index)
-        except ccReg.Table.INVALID_ROW, exc:
-            import traceback; 
+        except ccReg.Table.INVALID_ROW:
+            import traceback 
             raise IndexError(
                 "Index %s out of bounds. Original exception: %s" % \
                 (index, traceback.format_exc()))
@@ -152,8 +170,8 @@ class IterTable(object):
         """
         try:
             return self._table.getRowId(index)
-        except ccReg.Table.INVALID_ROW, exc:
-            import traceback; 
+        except ccReg.Table.INVALID_ROW:
+            import traceback 
             raise IndexError(
                 "Index %s out of bounds. Original exception: %s" % \
                 (index, traceback.format_exc()))
@@ -213,7 +231,7 @@ class IterTable(object):
         try:
             return self._table.getRow(index)
         except ccReg.Table.INVALID_ROW, exc:
-            import traceback; 
+            import traceback 
             raise IndexError(
                 "Index %s out of bounds. Original exception: %s" % \
                 (index, traceback.format_exc()))

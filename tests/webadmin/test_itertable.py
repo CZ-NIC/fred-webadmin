@@ -55,17 +55,15 @@ class Initializer(object):
                        numPageRows=5, rowsOverLimit=False):
         """ Utility method to prevent boilerplate code.
             Provides methods that are called by Itertable.__init__. 
-            Those methods can be called in any order (pagetable_mock behaves
-            like a stub during the initialization).
         """
         if columnDesc is None:
             columnDesc = ["col1", "col2"]
         self.session_mock.getPageTable(test_type_corba_enum).AndReturn(
             self.pagetable_mock)
-        pagetable_mock.getColumnHeaders().InAnyOrder("init pt").AndReturn(
+        pagetable_mock.getColumnHeaders().InAnyOrder("initpt").AndReturn(
             [Registry.Table.ColumnDesc(desc, Registry.Table.CT_OTHER) for 
              desc in columnDesc])
-        pagetable_mock._set_pageSize(pageSize)
+        pagetable_mock._set_pageSize(pageSize).InAnyOrder("initpt")
         self.itertable_update(
             pagetable_mock, page, pageSize, start, numRows, 
             numPageRows, rowsOverLimit)
@@ -74,17 +72,17 @@ class Initializer(object):
                      numRows=50, numPageRows=5, rowsOverLimit=False):
         """ Utility method to prevent boilerplate code.
             Simulates IterTable._update method. """
-        pagetable_mock._get_page().InAnyOrder("update pt").AndReturn(page)
-        pagetable_mock._get_pageSize().InAnyOrder("update pt").AndReturn(
+        pagetable_mock._get_page().InAnyOrder("updatept").AndReturn(page)
+        pagetable_mock._get_pageSize().InAnyOrder("updatept").AndReturn(
             pageSize)
-        pagetable_mock._get_start().InAnyOrder("update pt").AndReturn(start)
-        pagetable_mock._get_numRows().InAnyOrder("update pt").AndReturn(numRows)
+        pagetable_mock._get_start().InAnyOrder("updatept").AndReturn(start)
+        pagetable_mock._get_numRows().InAnyOrder("updatept").AndReturn(numRows)
         pagetable_mock.numRowsOverLimit().InAnyOrder(
-            "update pt").AndReturn(rowsOverLimit)
-        pagetable_mock._get_numPages().InAnyOrder("update pt").AndReturn(
+            "updatept").AndReturn(rowsOverLimit)
+        pagetable_mock._get_numPages().InAnyOrder("updatept").AndReturn(
             numRows / pageSize)
         pagetable_mock._get_numPageRows().InAnyOrder(
-            "update pt").AndReturn(numPageRows)
+            "updatept").AndReturn(numPageRows)
 
 
     def create_pagetable_mock(self):
