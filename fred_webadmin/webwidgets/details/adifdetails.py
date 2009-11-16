@@ -337,6 +337,8 @@ class LoggerDetail(Detail):
     session_id = CharDField(label=_('Session id'))
 #    props = ListCharDField(label=_('Properties'))
     props = RequestPropertyDField(label=_('Properties'))
+    raw_request = CharDField(label=_("Raw request"))
+    raw_response = CharDField(label=_("Raw response"))
 
     (_('Dates'), ('timeBegin', 'timeEnd'), DatesSectionLayout),
 
