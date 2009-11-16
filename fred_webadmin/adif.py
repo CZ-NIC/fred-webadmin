@@ -298,7 +298,7 @@ class ListTableMixin(object):
     def filter(self, *args, **kwd):
         debug('filter ARGS:%s' % unicode(args))
 
-        log_req = cherrypy.session["logger"].create_request(
+        log_req = cherrypy.session['Logger'].create_request(
             cherrypy.request.remote.ip, cherrypy.request.body, 
             f_name_actionfiltername[self.__class__.__name__.lower()])
 
@@ -376,7 +376,7 @@ class ListTableMixin(object):
 
     @check_onperm('read')
     def detail(self, **kwd):
-        req = cherrypy.session["logger"].create_request(
+        req = cherrypy.session['Logger'].create_request(
             cherrypy.request.remote.ip, cherrypy.request.body, 
             f_name_actiondetailname[self.__class__.__name__.lower()])
 
@@ -587,7 +587,7 @@ class ADIF(AdifPage):
         if cherrypy.session.get('corbaSessionString'): # already logged in
             debug('Already logged in, corbaSessionString = %s' % 
                    cherrypy.session.get('corbaSessionString'))
-            log_req = cherrypy.session["logger"].create_request(
+            log_req = cherrypy.session['Logger'].create_request(
                 cherrypy.request.remote.ip, 
                 cherrypy.request.body, "Login")
             log_req.update("warning", logcodes["AlreadyLoggedIn"])
@@ -624,9 +624,12 @@ class ADIF(AdifPage):
                         dao=corba.getObject("Logger", "Logger"),
                         throws_exceptions=True, 
                         logging_function=error)
+                    # Add corba logger to the cherrypy session object, so that
+                    # it can be found by CorbaLazyRequest.
+                    cherrypy.session['corba_logd'] = corba.getObject("Logger", "Logger")
                     
                 logger.start_session("en", login)
-                cherrypy.session['logger'] = logger
+                cherrypy.session['Logger'] = logger
                 log_req = logger.create_request(cherrypy.request.remote.ip, 
                                                 cherrypy.request.body, 
                                                 "Login")
@@ -715,11 +718,11 @@ class ADIF(AdifPage):
                 debug('Admin.destroySession call failed, backend server '
                       'is not running.\n%s' % e)
 
-        if cherrypy.session.get("logger"):
-            req = cherrypy.session['logger'].create_request(
+        if cherrypy.session.get('Logger'):
+            req = cherrypy.session['Logger'].create_request(
                 cherrypy.request.remote.ip, cherrypy.request.body, "Logout")
             req.commit("") 
-            cherrypy.session['logger'].close_session()
+            cherrypy.session['Logger'].close_session()
         
         self.remove_session_data()
         
@@ -748,7 +751,37 @@ class Summary(AdifPage):
     
     
 class Logger(AdifPage, ListTableMixin):
-    pass
+    """ If cherrypy.session.get("corba_logd") is not None, then we know that
+        corba logger is present, so we should be able to display the logged
+        events.
+        Otherwise just print a warning (that's kind of the best we can do).
+    """
+
+    def filter(self, *args, **kwd):
+        if cherrypy.session.get("corba_logd"):
+            return ListTableMixin.filter(self, *args, **kwd)
+        else:
+            return self.index()
+
+    def allfilters(self, *args, **kwd):
+        if cherrypy.session.get("corba_logd"):
+            return ListTableMixin.allfilters(self, *args, **kwd)
+        else:
+            return self.index()
+
+    def detail(self, **kwd):
+        if cherrypy.session.get("corba_logd"):
+            return ListTableMixin.detail(self, **kwd)
+        else:
+            return self.index()
+
+    def index(self):
+        if cherrypy.session.get("corba_logd"):
+            return ListTableMixin.index(self)
+        else:
+            context = DictLookup()
+            context.main = p("Corba logger could not be found.")
+            return self._render('base', ctx=context)
 
 
 class Statistics(AdifPage):
@@ -827,14 +860,14 @@ class Registrar(AdifPage, ListTableMixin):
     @check_onperm('write')
     def edit(self, *params, **kwd):
         registrar = self._get_detail(obj_id=kwd.get('id'))
-        log_request = cherrypy.session["logger"].create_request(
+        log_request = cherrypy.session['Logger'].create_request(
             cherrypy.request.remote.ip, cherrypy.request.body, 
             "RegistrarUpdate")
         return self._update_registrar(registrar, log_request, *params, **kwd)
 
     @check_onperm('write')
     def create(self, *params, **kwd):
-        log_request = cherrypy.session['logger'].create_request(
+        log_request = cherrypy.session['Logger'].create_request(
             cherrypy.request.remote.ip, cherrypy.request.body, 
             "RegistrarCreate")
         registrar = self._get_empty_corba_struct()
@@ -853,7 +886,7 @@ class Domain(AdifPage, ListTableMixin):
     @check_onperm('read')
     def dig(self, **kwd):
         context = {}
-        log_request = cherrypy.session['logger'].create_request(
+        log_request = cherrypy.session['Logger'].create_request(
             cherrypy.request.remote.ip, cherrypy.request.body, 
             "DomainDig")
         handle = kwd.get('handle', None)
@@ -962,7 +995,7 @@ class PublicRequest(AdifPage, ListTableMixin):
     def resolve(self, **kwd):
         '''Accept and send'''
         context = {}
-        req = cherrypy.session["logger"].create_request(
+        req = cherrypy.session['Logger'].create_request(
             cherrypy.request.remote.ip, cherrypy.request.body,
             "PublicRequestAccept")
         try:
@@ -988,7 +1021,7 @@ class PublicRequest(AdifPage, ListTableMixin):
     def close(self, **kwd):
         '''Close and invalidate'''
         context = {}
-        req = cherrypy.session["logger"].create_request(
+        req = cherrypy.session['Logger'].create_request(
             cherrypy.request.remote.ip, cherrypy.request.body,
             "PublicRequestInvalidate")
         try:

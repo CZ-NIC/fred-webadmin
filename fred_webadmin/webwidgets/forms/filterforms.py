@@ -369,10 +369,11 @@ class LoggerFilterForm(FilterForm):
         (0, u'UNIX Whois'), (1, u'Web Whois'), (2, u'Public Request'), 
         (3, u'EPP'), (4, u'WebAdmin'), (5, u'Intranet')])
     SourceIp = CharField(label=_('Source IP'))
+#    import pdb; pdb.set_trace()
 #    ActionType = ChoiceField(
 #        label=_('Action type'), 
 #        choices=CorbaLazyRequestIterStruct(
-#            'Logger', 'GetServiceActions', ['id', 'name']))
+#            'corba_logd', 'GetServiceActions', ['id', 'name']))
     TimeBegin = DateTimeIntervalField(label=_('Begin time'))
     TimeEnd = DateTimeIntervalField(label=_('End time'))
 
