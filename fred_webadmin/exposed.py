@@ -62,7 +62,7 @@ class AdifPageMetaClass(type):
 #                value.exposed = True
            
     def __new__(mcs, name, bases, attrs):
-        debug('%s|%s|%s|%s' % (mcs, name, bases, attrs))
+#        debug('%s|%s|%s|%s' % (mcs, name, bases, attrs))
         #dict[name] = catch_webadmin_exceptions_decorator(value)
         
         for attr_name, attr in attrs.items():

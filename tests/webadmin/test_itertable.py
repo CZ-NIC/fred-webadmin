@@ -11,15 +11,17 @@ from fred_webadmin.itertable import IterTable
 
 test_type_corba_enum = 42
 
-""" Inject "test_req_object" into mapping. """
-fred_webadmin.itertable.f_name_enum = {}
-fred_webadmin.itertable.f_name_enum["test_req_object"] = test_type_corba_enum
+""" We have decided to use monkey patching to avoid the necessity of 
+    refactoring IterTable to accept webadmin -> corba mapping as an 
+    argument (old codebase with no tests, ugh...). """
+monkey_patched_f_name_enum = {}
+monkey_patched_f_name_enum["test_req_object"] = test_type_corba_enum
 
-fred_webadmin.itertable.f_enum_name = {}
-fred_webadmin.itertable.f_enum_name[test_type_corba_enum] = "test_req_object"
+monkey_patched_f_enum_name = {}
+monkey_patched_f_enum_name[test_type_corba_enum] = "test_req_object"
 
-fred_webadmin.itertable.f_urls = {}
-fred_webadmin.itertable.f_urls["test_req_object"] = "www.test.foo/baz/"
+monkey_patched_f_urls = {}
+monkey_patched_f_urls["test_req_object"] = "www.test.foo/baz/"
 
 # Fake session string for Corba session
 test_corba_session_string = "test_ses_key"
@@ -31,13 +33,31 @@ class Initializer(object):
         TODO(tomas): Probably may not be be a class at all.
     """
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         self.corba_mock = None
         self.admin_mock = None
         self.session_mock = None
         self.pagetable_mock = None
+        self._on_teardown = []
 
-    def setup(self):
+    def monkey_patch(self, obj, attr, new_value):
+        """ Taken from
+            http://lackingrhoticity.blogspot.com/2008/12/
+            helper-for-monkey-patching-in-tests.html"""
+        old_value = getattr(obj, attr)
+        def tear_down():
+            setattr(obj, attr, old_value)
+        self._on_teardown.append(tear_down)
+        setattr(obj, attr, new_value)
+
+    def tearDown(self):
+        """ Taken from
+            http://lackingrhoticity.blogspot.com/2008/12/
+            helper-for-monkey-patching-in-tests.html"""
+        for func in reversed(self._on_teardown):
+            func()
+
+    def setUp(self):
         self.corba_mock = mox.Mox()
         # Create admin mock and add it to cherrypy.session
         self.admin_mock = self.create_admin_mock()
@@ -49,6 +69,14 @@ class Initializer(object):
             "setup").AndReturn(self.session_mock)
         # Create pagetable mock
         self.pagetable_mock = self.create_pagetable_mock()
+
+        # Monkey patch the mapping.
+        self.monkey_patch(fred_webadmin.itertable, "f_name_enum", 
+            monkey_patched_f_name_enum)
+        self.monkey_patch(fred_webadmin.itertable, "f_enum_name",
+            monkey_patched_f_enum_name)
+        self.monkey_patch(fred_webadmin.itertable, "f_urls",
+            monkey_patched_f_urls)
 
     def init_itertable(self, pagetable_mock, columnDesc=None, page=1, 
                        pageSize=5, start=1, numRows=50, 
@@ -102,7 +130,6 @@ class TestItertable(Initializer):
     def __init__(self):
         Initializer.__init__(self)
 
-    @with_setup(Initializer.setup)
     def test_init(self):
         """ IterTable initializes correctly. """
         self.init_itertable(self.pagetable_mock, pageSize=50)
@@ -115,7 +142,6 @@ class TestItertable(Initializer):
         self.corba_mock.VerifyAll()
 
     @raises(ValueError)
-    @with_setup(Initializer.setup)
     def test_init_unknown_request_object(self):
         """ IterTable throws KeyError when request_object is not known. """
         self.init_itertable(self.pagetable_mock)
@@ -129,7 +155,6 @@ class Test_getRow(Initializer):
     def __init__(self):
         Initializer.__init__(self)
 
-    @with_setup(Initializer.setup)
     def test__get_row(self):
         """_get_row returns row correctly. """
         self.init_itertable(self.pagetable_mock, pageSize=50)
@@ -153,7 +178,6 @@ class Test_getRow(Initializer):
         self.corba_mock.VerifyAll()
 
     @raises(IndexError)
-    @with_setup(Initializer.setup)
     def test__get_row_out_of_index(self):
         """ _get_row raises IndexError when index is out of range. """
         self.init_itertable(self.pagetable_mock, numPageRows=1, pageSize=50)
@@ -169,7 +193,6 @@ class Test_getRow(Initializer):
         self.corba_mock.VerifyAll()
 
     @raises(CORBA.BAD_PARAM)
-    @with_setup(Initializer.setup)
     def test__get_row_out_of_index(self):
         """ _get_row raises IndexError when index is out of range. """
         self.init_itertable(self.pagetable_mock, numPageRows=1, pageSize=50)
@@ -186,7 +209,6 @@ class Test_getRow(Initializer):
 
 
     @raises(CORBA.BAD_PARAM)
-    @with_setup(Initializer.setup)
     def test__get_row_invalid_argument(self):
         """ _get_row raises ValueError when index is not an integer. """
         self.init_itertable(self.pagetable_mock, numPageRows=1, pageSize=50)
@@ -208,7 +230,6 @@ class TestGetRowDict(Initializer):
     def __init__(self):
         Initializer.__init__(self)
 
-    @with_setup(Initializer.setup)
     def test_get_rows_dict(self):
         """ get_rows_dict returns correct rows when no arguments are given. """
         self.init_itertable(
@@ -242,7 +263,6 @@ class TestGetRowDict(Initializer):
 
         self.corba_mock.VerifyAll()
 
-    @with_setup(Initializer.setup)
     def test_get_rows_dict_multiple_rows(self):
         """ get_row_dict returns multiple rows correctly. """
         self.init_itertable(self.pagetable_mock, columnDesc=["c1", "c2"], 
@@ -267,7 +287,6 @@ class TestGetRowDict(Initializer):
         assert rows[6].get(u'c2') == u'test value 11.2'
 
     @raises(IndexError)
-    @with_setup(Initializer.setup)
     def test_get_rows_dict_multiple_rows(self):
         """ get_row_dict returns multiple rows correctly. """
         self.init_itertable(self.pagetable_mock, columnDesc=["c1", "c2"], 
@@ -286,7 +305,6 @@ class TestGetRowId(Initializer):
     def __init__(self):
         Initializer.__init__(self)
 
-    @with_setup(Initializer.setup)
     def test_get_row_id(self):
         """ get_row_id returns correct id when index is OK. """
         self.init_itertable(self.pagetable_mock, columnDesc=["c1", "c2"], 
@@ -302,7 +320,6 @@ class TestGetRowId(Initializer):
         self.corba_mock.VerifyAll()
 
     @raises(IndexError)
-    @with_setup(Initializer.setup)
     def test_get_row_id_index_out_of_bounds(self):
         """ get_row_id raises IndexError when index is too big. """
         self.init_itertable(self.pagetable_mock, columnDesc=["c1", "c2"], 
@@ -315,7 +332,6 @@ class TestGetRowId(Initializer):
 
 
     @raises(IndexError)
-    @with_setup(Initializer.setup)
     def test_get_row_id_negative_index(self):
         """ get_row_id raises IndexError when index negative. """
         self.init_itertable(self.pagetable_mock, columnDesc=["c1", "c2"], 
@@ -326,3 +342,26 @@ class TestGetRowId(Initializer):
         table = IterTable("test_req_object", test_corba_session_string, pagesize=50)
         id = table.get_row_id(index=-1) # negative index
 
+
+class TestIteration(Initializer):
+    def __init__(self):
+        Initializer.__init__(self)
+    
+    def test_next(self):
+        """ IterTable works as an iterator (`for row in itertable` works). """
+        self.init_itertable(self.pagetable_mock, columnDesc=["c1", "c2"], 
+                            start=0, numPageRows=10, numRows=20, pageSize=5)
+        for i in range(0, 10):
+            self.pagetable_mock.getRow(i).AndReturn(
+                [CORBA.Any(CORBA.TC_string, 'test value %i.1' % i), 
+                CORBA.Any(CORBA.TC_string, 'test value %i.2' % i)])
+            self.pagetable_mock.getRowId(i).AndReturn(i)
+        self.corba_mock.ReplayAll()
+
+        table = IterTable("test_req_object", test_corba_session_string, pagesize=5)
+        for i, row in enumerate(table):
+            assert row is not None
+            assert len(row) == 3
+            assert row[0].get(u'value') == str(i)
+
+        self.corba_mock.VerifyAll()

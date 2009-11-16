@@ -2,36 +2,30 @@ import cherrypy
 
 from fred_webadmin import config
 from fred_webadmin.adif import u2c, c2u
+#from fred_webadmin import corba
 from fred_webadmin.corba import Corba, ccReg
 #from sys import stderr as err
 
 login, password = 'superuser', 'superuser123'
 
 
-class TestFilterLoader:
+class TestFilterLoader(object):
     def __init__(self):
         self.admin = None
         self.corbaSession = None
         
     def setup(self):
-    #    err.writeln("setup module done")
-#        err.write('SetUp module\n')
-        ior=config.iors[0]
         corba = Corba()
-        corba.connect(ior)
+        corba.connect()
         
         self.admin = corba.getObject('Admin', 'Admin')
-        self.corbaSession = self.admin.login(u2c(login), u2c(password))
-        print "Setting admin to session, ktery je:", self.admin
+        self.admin.authenticateUser(u2c(login), u2c(password)) 
+        self.corbaSessionString = self.admin.createSession(u2c(login))
+
         cherrypy.session = {'Admin': self.admin}
-        print "hnedGETTING ADMIN, ktery je:", cherrypy.session.get('Admin')
-        corbaSession = cherrypy.session.get('Admin').getSession(self.corbaSession)
-#        err.write("SetUp module done\n")
     
     def teardown(self):
         pass
-#        err.write("TearDown module\n")
-#        err.write("TearDown module done\n")
         
     def test_filter_loader(self):
         'Tests filter loader - create, save to severver and load back a filter' 
@@ -41,7 +35,7 @@ class TestFilterLoader:
         print 'printing'
         input_filter_data = [{u'object': [False, {u'handle': [False, u'test.cz']}]}, {u'registrar': [False, {u'handle': [True, u'REG-FRED_A']}]}]
         
-        itable = IterTable('actions', self.corbaSession)
+        itable = IterTable('action', self.corbaSessionString)
         print "SET FILTERS:"
         FilterLoader.set_filter(itable, input_filter_data)
         print "GET FILTERS DATA:"

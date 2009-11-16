@@ -79,6 +79,7 @@ from fred_webadmin.utils import json_response, get_current_url
 from mappings import (f_name_enum, 
                       f_name_id, 
                       f_name_get_by_handle, 
+                      f_name_filterformname,
                       f_name_editformname, 
                       f_urls, 
                       f_name_actionfiltername, 
@@ -297,7 +298,7 @@ class ListTableMixin(object):
     def filter(self, *args, **kwd):
         debug('filter ARGS:%s' % unicode(args))
 
-        req = cherrypy.session["logger"].create_request(
+        log_req = cherrypy.session["logger"].create_request(
             cherrypy.request.remote.ip, cherrypy.request.body, 
             f_name_actionfiltername[self.__class__.__name__.lower()])
 
@@ -341,15 +342,15 @@ class ListTableMixin(object):
                 context = self._get_list(context, form.cleaned_data, **kwd)
 
                 context['main'].add(u"rows: " + str(self._get_itertable().num_rows))
-                req.update("result_size", self._get_itertable().num_rows)
+                log_req.update("result_size", self._get_itertable().num_rows)
                 # Log the selected filters.
                 # TODO(tomas): Log OR operators better...
                 for name, value, neg in form_utils.flatten_form_data(
                     form.cleaned_data):
-                    req.update("filter_%s" % name, value)
-                    req.update("negation", str(neg), child=True)
+                    log_req.update("filter_%s" % name, value)
+                    log_req.update("negation", str(neg), child=True)
 
-                req.commit("")
+                log_req.commit("")
 
                 return self._render('filter', context)
             else:
@@ -398,7 +399,7 @@ class ListTableMixin(object):
         return form_class
     
     def _get_filterform_class(self):
-        form_name = self.__class__.__name__ + 'FilterForm'
+        form_name = f_name_filterformname[self.classname]
         form_class = getattr(sys.modules[self.__module__], form_name, None)
         if not form_class:
             raise RuntimeError('No such formclass in modules "%s"' % form_name)
@@ -785,7 +786,6 @@ class Registrar(AdifPage, ListTableMixin):
             form = form_class(kwd, initial=initial, method='post')
             debug("KWD: %s" % kwd)
             context['main'].add(pre(('KWD: %s' % kwd).replace(',', ',\n')))
-            log_request.update
             if form.is_valid():
                 if debug:
                     context['main'].add(pre(unicode('Cleaned_data:\n%s' % 
@@ -809,9 +809,9 @@ class Registrar(AdifPage, ListTableMixin):
                                                     "Did you try to create a "
                                                     "registrar with an "
                                                     "already used handle?")
-                    return self._render('edit', form)
-                finally:
-                    log_request.commit("")
+                    context['form'] = form
+                    return self._render('edit', context)
+                log_request.commit("")
                 raise cherrypy.HTTPRedirect(get_current_url(cherrypy.request))
             else:
                 if debug:

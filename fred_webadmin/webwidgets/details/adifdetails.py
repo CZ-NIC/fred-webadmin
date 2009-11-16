@@ -48,7 +48,7 @@ class RegistrarDetail(Detail):
         (None, ('handle', 'organization', 'name', 'credit')),
         (_('Address'), ('street1', 'street2', 'street3', 'city', 'postalcode', 'stateorprovince', 'country')),
         (_('Other_data'), ('telephone', 'fax', 'email', 'url', 'ico', 'dic', 'varSymb', 'vat', 'hidden')),
-        (_('Authentication'), ('access', ), DirectSectionLayout),        
+        (_('Authentication'), ('access', ), DirectSectionLayout)
     )
 
     def add_to_bottom(self):
@@ -74,9 +74,11 @@ class ObjectDetail(Detail):
 
     #registrar = HistoryObjectDField(label=_('Registrar'), detail_class=RegistrarDetail, display_only=['handle_url', 'name'])
     registrar = NHDField(
-        ObjectDField(       detail_class=RegistrarDetail, display_only=['handle_url', 'name'], layout_class=DirectSectionDetailLayout, sections='all_in_one'),
-        HistoryObjectDField(detail_class=RegistrarDetail, display_only=['handle_url', 'name'])
-    )
+        ObjectDField(
+            detail_class=RegistrarDetail, 
+            display_only=['handle_url', 'name'], 
+            layout_class=DirectSectionDetailLayout, sections='all_in_one'),
+            HistoryObjectDField(detail_class=RegistrarDetail, display_only=['handle_url', 'name']))
     
     createDate = CharDField(label=_('Create date'))
     updateDate = CharDField(label=_('Update date'))
@@ -89,36 +91,22 @@ class ObjectDetail(Detail):
     states = HistoryStateDField()
 
 class ContactDetail(ObjectDetail):
-    #organization = CharNHDField(label=_('Organization'))
     organization = DiscloseCharNHDField(label=_('Organization'))
-    #name = CharNHDField(label=_('Name'))
     name = DiscloseCharNHDField(label=_('Name'))
-    #ident = CharNHDField(label=_('Identification data'))
     ident = DiscloseCharNHDField(label=_('Identification data'))
     
-    #vat = CharNHDField(label=_('DPH'))
     vat = DiscloseCharNHDField(label=_('DPH'))
-    #telephone = CharNHDField(label=_('Phone'))
     telephone = DiscloseCharNHDField(label=_('Phone'))
-    #fax = CharNHDField(label=_('Fax'))
     fax = DiscloseCharNHDField(label=_('Fax'))
-    #email = CharNHDField(label=_('Email'))
     email = DiscloseCharNHDField(label=_('Email'))
-    #notifyEmail = CharNHDField(label=_('Notify email'))
     notifyEmail = DiscloseCharNHDField(label=_('Notify email'))
     
-    #street1 = CharNHDField(label=_('Street'))
     street1 = DiscloseCharNHDField(label=_('Street'), disclose_name='discloseAddress')
-    #street2 = CharNHDField(label='')
     street2 = DiscloseCharNHDField(label='', disclose_name='discloseAddress')
-    #street3 = CharNHDField(label='')
     street3 = DiscloseCharNHDField(label='', disclose_name='discloseAddress')
     
-    #postalcode = CharNHDField(label=_('ZIP'))
     postalcode = DiscloseCharNHDField(label=_('ZIP'), disclose_name='discloseAddress')
-    #city = CharNHDField(label=_('City'))
     city = DiscloseCharNHDField(label=_('City'), disclose_name='discloseAddress')
-    #country = CharNHDField(label=_('Country'))
     country = DiscloseCharNHDField(label=_('Country'), disclose_name='discloseAddress')
     
     sections = (
@@ -126,7 +114,7 @@ class ContactDetail(ObjectDetail):
         (_('Selected registrar'), ('registrar', ), DirectSectionLayout),
         (_('Dates'), (), DatesSectionLayout),
         (_('Address'), ('street1', 'street2', 'street3', 'postalcode', 'city', 'country')),
-        (_('States'), ('states', ), DirectSectionLayout),
+        (_('States'), ('states', ), DirectSectionLayout)
     )
     
     def add_to_bottom(self):
@@ -149,13 +137,11 @@ class HostDetail(Detail):
 class NSSetDetail(ObjectDetail):
     admins = NHDField(
         ListObjectDField(detail_class=ContactDetail, display_only=['handle_url', 'organization', 'name', 'email']),
-        HistoryListObjectDField(detail_class=ContactDetail, display_only=['handle_url', 'organization', 'name', 'email']),
-    )
+        HistoryListObjectDField(detail_class=ContactDetail, display_only=['handle_url', 'organization', 'name', 'email']))
     
     hosts = NHDField(
         ListObjectDField(detail_class=HostDetail, display_only=['fqdn', 'inet']),
-        HistoryListObjectDField(detail_class=HostDetail, display_only=['fqdn', 'inet']),
-    )
+        HistoryListObjectDField(detail_class=HostDetail, display_only=['fqdn', 'inet']))
 
     sections = (
         (None, ('handleEPPId', 'authInfo')),
@@ -163,7 +149,7 @@ class NSSetDetail(ObjectDetail):
         (_('Tech. contacts'), ('admins', ), DirectSectionLayout),
         (_('Hosts'), ('hosts', ), DirectSectionLayout),
         (_('Dates'), ('createRegistrar', 'updateRegistrar'), DatesSectionLayout),
-        (_('States'), ('states', ), DirectSectionLayout),                        
+        (_('States'), ('states', ), DirectSectionLayout)
     )
         
     def add_to_bottom(self):
@@ -191,18 +177,15 @@ class DNSKeyDetail(Detail):
 class KeySetDetail(ObjectDetail):
     admins = NHDField(
         ListObjectDField(detail_class=ContactDetail, display_only=['handle_url', 'organization', 'name', 'email']),
-        HistoryListObjectDField(detail_class=ContactDetail, display_only=['handle_url', 'organization', 'name', 'email']),
-    )
+        HistoryListObjectDField(detail_class=ContactDetail, display_only=['handle_url', 'organization', 'name', 'email']))
     
     dsrecords = NHDField(
         ListObjectDField(detail_class=DSRecordDetail, display_only=['keyTag', 'alg', 'digestType', 'digest', 'maxSigLife']),
-        HistoryListObjectDField(detail_class=DSRecordDetail, display_only=['keyTag', 'alg', 'digestType', 'digest', 'maxSigLife']),
-    )
+        HistoryListObjectDField(detail_class=DSRecordDetail, display_only=['keyTag', 'alg', 'digestType', 'digest', 'maxSigLife']))
 
     dnskeys = NHDField(
         ListObjectDField(detail_class=DNSKeyDetail, display_only=['flags', 'protocol', 'alg', 'key']),
-        HistoryListObjectDField(detail_class=DNSKeyDetail, display_only=['flags', 'protocol', 'alg', 'key']),
-    )
+        HistoryListObjectDField(detail_class=DNSKeyDetail, display_only=['flags', 'protocol', 'alg', 'key']))
     
     sections = (
         (None, ('handleEPPId', 'authInfo')),
@@ -211,7 +194,7 @@ class KeySetDetail(ObjectDetail):
         (_('DS records'), ('dsrecords', ), DirectSectionLayout),
         (_('DNSKeys'), ('dnskeys', ), DirectSectionLayout),
         (_('Dates'), ('createRegistrar', 'updateRegistrar'), DatesSectionLayout),
-        (_('States'), ('states', ), DirectSectionLayout),                        
+        (_('States'), ('states', ), DirectSectionLayout)
     )
     
     def add_to_bottom(self):
@@ -229,24 +212,33 @@ class DomainDetail(ObjectDetail):
     outZoneDate = CharDField(label=_('Out zone date'))
 
     registrant = NHDField(
-        ObjectDField(       detail_class=ContactDetail, display_only=['handle_url', 'organization', 'name'], layout_class=DirectSectionDetailLayout, sections='all_in_one'),
-        HistoryObjectDField(detail_class=ContactDetail, display_only=['handle_url', 'organization', 'name'])
-    )
+        ObjectDField(
+            detail_class=ContactDetail, 
+            display_only=['handle_url', 'organization', 'name'], 
+            layout_class=DirectSectionDetailLayout, sections='all_in_one'),
+            HistoryObjectDField(detail_class=ContactDetail, display_only=['handle_url', 'organization', 'name']))
 
     nsset = NHDField(
-        ObjectDField(       detail_class=NSSetDetail, display_only=['handle_url', 'registrar', 'admins', 'hosts'], layout_class=DomainsNSSetDetailLayout, sections='all_in_one'),
-        HistoryObjectDField(detail_class=NSSetDetail, display_only=['handle_url'])
-    )
+        ObjectDField(
+            detail_class=NSSetDetail, 
+            display_only=['handle_url', 'registrar', 'admins', 'hosts'], 
+            layout_class=DomainsNSSetDetailLayout, sections='all_in_one'),
+            HistoryObjectDField(detail_class=NSSetDetail, display_only=['handle_url']))
 
     keyset = NHDField(
-        ObjectDField(       detail_class=KeySetDetail, display_only=['handle_url', 'registrar', 'admins', 'dsrecords', 'dnskeys'], layout_class=DomainsKeySetDetailLayout, sections='all_in_one'),
-        HistoryObjectDField(detail_class=KeySetDetail, display_only=['handle_url'])
-    )
+        ObjectDField(
+            detail_class=KeySetDetail, 
+            display_only=['handle_url', 'registrar', 'admins', 'dsrecords', 'dnskeys'], 
+            layout_class=DomainsKeySetDetailLayout, sections='all_in_one'),
+        HistoryObjectDField(detail_class=KeySetDetail, display_only=['handle_url']))
     
     admins = NHDField(
-        ListObjectDField(detail_class=ContactDetail, display_only=['handle_url', 'organization', 'name', 'email']),
-        HistoryListObjectDField(detail_class=ContactDetail, display_only=['handle_url', 'organization', 'name', 'email']),
-    )
+        ListObjectDField(
+            detail_class=ContactDetail, 
+            display_only=['handle_url', 'organization', 'name', 'email']),
+            HistoryListObjectDField(
+                detail_class=ContactDetail, 
+                display_only=['handle_url', 'organization', 'name', 'email']))
     
     sections = (
         (None, ('handleEPPId', 'authInfo')),
@@ -267,8 +259,7 @@ class DomainDetail(ObjectDetail):
                 [_('Emails'), 'mail', [{'Message': self.data.get('handle')}]],
                 [_('dig'), f_urls['domain'] + 'dig/?handle=' + self.data.get('handle')], 
                 [_('Set InZone Status'), "javascript:setInZoneStatus('%s')" % 
-                    (f_urls['domain'] + 'setinzonestatus/?id=%d' % self.data.get('id'))],
-                
+                    (f_urls['domain'] + 'setinzonestatus/?id=%d' % self.data.get('id'))],          
             ]))
         super(DomainDetail, self).add_to_bottom()
         
@@ -344,7 +335,8 @@ class LoggerDetail(Detail):
     timeEnd = CharDField(label=_('End time'))
     action_type = CharDField(label=_('Action type'))
     session_id = CharDField(label=_('Session id'))
-    props = ListCharDField(label=_('Properties'))
+#    props = ListCharDField(label=_('Properties'))
+    props = RequestPropertyDField(label=_('Properties'))
 
     (_('Dates'), ('timeBegin', 'timeEnd'), DatesSectionLayout),
 
@@ -380,50 +372,3 @@ detail_classes = [AccessDetail, RegistrarDetail,
                   DomainDetail, 
                   ActionDetail, PublicRequestDetail, MailDetail, 
                   PaymentDetail, PaymentActionDetail, InvoiceDetail]
-    
-#class DomainDetail(Detail):
-#    name = CharDField(label=_('Domain'))
-#    registrar = ObjectDField(label = _('Selected_registrar'), 
-#        detail_class=RegistrarDetail, 
-#        display_only=['name', 'handle'],
-#    )
-#class DomainDetail(Detail):
-#    authInfo = NHDField(
-#        CharDField(label=_('AuthInfo')),
-#        HistoryDField(label=_('AuthInfo'), inner_field = CharDField())
-#    )
-#    #authInfo = HistoryDField(label=_('AuthInfo'), inner_field = CharDField())
-#    
-#    handle = CharDField(label=_('Domain'))
-#    
-#    createDate = CharDField(label=_('Create Date'))
-#    updateDate = CharDField(label=_('Update Date'))
-#    transferDate = CharDField(label=_('Transfer Date'))    
-#    
-#    registrar = ObjectDField(label=_('Selected_registrar'), 
-#        detail_class=RegistrarDetail 
-#    )
-#    updateRegistrar = ObjectDField(label=('Update_registrar'), 
-#        detail_class=RegistrarDetail 
-#    )    
-#    createRegistrar = ObjectDField(label=_('Create_registrar'), 
-#        detail_class=RegistrarDetail
-#    )
-#    
-#    admins = ListObjectDField(label=_('Admins'), detail_class=ContactDetail, display_only=['handle_url', 'name', 'email'])
-#    
-#    temps = HistoryObjectDField(label=_('Temps'), detail_class=ContactDetail, display_only=['handle_url', 'name', 'email'])
-#    
-#    #admin_pets = HistoryDField(label=_('Admin pets'), inner_field=ListObjectDField(detail_class=ContactDetail, display_only=['handle_url', 'name', 'email']))
-#    admin_pets = HistoryListObjectDField(label=_('Admin pets (natural)'), detail_class=ContactDetail, display_only=['handle_url', 'name', 'email'])
-#        
-#    
-#    
-#    
-#    sections = (
-#        (None, ('handle', 'authInfo')),
-#        ('Registrar', ('registrar', 'updateRegistrar', 'createRegistrar'), AllRegistrarsSectionLayout),
-#        ('Admins', 'admins', DirectSectionLayout),
-#        ('Temps', 'temps', DirectSectionLayout),
-#        ('Admin pets', 'admin_pets', DirectSectionLayout),
-#    )

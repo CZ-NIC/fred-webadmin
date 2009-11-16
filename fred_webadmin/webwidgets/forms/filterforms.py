@@ -22,7 +22,7 @@ __all__ = ['UnionFilterForm', 'RegistrarFilterForm', 'ObjectStateFilterForm',
            'ObjectFilterForm', 'ContactFilterForm', 'NSSetFilterForm', 'KeySetFilterForm', 'DomainFilterForm', 
            'ActionFilterForm', 'FilterFilterForm', 'PublicRequestFilterForm', 
            'InvoiceFilterForm', 'MailFilterForm', 'FileFilterForm',
-           'LoggerFilterForm', 'get_filter_forms_javascript']
+           'LoggerFilterForm', 'BankStatementFilterForm', 'get_filter_forms_javascript']
 
 class FilterFormEmptyValue(object):
     ''' Class used in clean method of Field as empty value (if
@@ -377,6 +377,12 @@ class LoggerFilterForm(FilterForm):
     TimeEnd = DateTimeIntervalField(label=_('End time'))
 
 
+class BankStatementFilterForm(FilterForm):
+    default_fields_names = ['Type']
+    
+    Type = CorbaEnumChoiceField(label=_('Type'), 
+                                corba_enum=ccReg.BankingInvoicing.OperationType)
+
 
 class FilterFilterForm(FilterForm):
     default_fields_names = ['Type']
@@ -384,6 +390,7 @@ class FilterFilterForm(FilterForm):
     UserID = CharField(label=_('User name'))
     GroupID = CharField(label=_('Group name'))
     Type = ChoiceField(label=_('Result'), choices=[(1, u'Poraněn'), (2, u'Preživší'), (3, u'Mrtev'), (4, u'Nemrtvý')])
+
 
 class PublicRequestFilterForm(FilterForm):
     default_fields_names = ['Id']
@@ -398,6 +405,7 @@ class PublicRequestFilterForm(FilterForm):
     Object = CompoundFilterField(label=_('Object'), form_class=ObjectFilterForm)
     EppAction = CompoundFilterField(label=_('Action'), form_class=ActionFilterForm)
 
+
 class FileFilterForm(FilterForm):
     default_fields_names = ['Type']
     
@@ -407,6 +415,7 @@ class FileFilterForm(FilterForm):
     CreateTime = DateTimeIntervalField(label=_('Create time'))
     #Size = IntegerField(label=_('Size'))
     Type = ChoiceField(label=_('Type'), choices=CorbaLazyRequestIterStruct('FileManager', 'getTypeEnum', ['id', 'name']))
+
 
 class InvoiceFilterForm(FilterForm):
     default_fields_names = ['Type']

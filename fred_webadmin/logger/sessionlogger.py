@@ -309,6 +309,7 @@ class LogRequest(object):
         try:
             prop = [ccReg.RequestProperty(name, value, output, child)]
             success = self.dao.UpdateRequest(self.request_id, prop)
+            self.log("PROPERTIES: %s" % prop)
             if not success:
                 raise LoggingException("UpdateRequest failed with args: %s,"
                                        "%s." % self.request_id, property)

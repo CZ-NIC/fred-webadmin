@@ -97,10 +97,15 @@ class IterTable(object):
         except ccReg.Admin.ObjectNotFound:
             raise CorbaServerDisconnectedException  
         try:
+            debug(f_name_enum)
             table = corbaSession.getPageTable(f_name_enum[self.request_object])
+            if not table:
+                raise ValueError(
+                    "Nonexistent PageTable (corbaSession.getPageTable returned"
+                    " None). This is most probably a bug on the server, so"
+                    " go tell the server developers.")
         except KeyError:
             raise ValueError("Invalid request object.")
-        debug("Returned PageTable: %s" % table)
         header_id = 'CT_OID_ICON'
         return table, header_id
     
@@ -249,6 +254,7 @@ class IterTable(object):
             self._row_index += 1
             yield row
         self._row_index = self.page_start
+        raise StopIteration()
         
     def _rewrite_cell(self, cell):
         oid_url_string = '%sdetail/?id=%s'
@@ -264,7 +270,7 @@ class IterTable(object):
             cell['icon'] = rewrite_rules[contentType]['icon']
         if rewrite_rules[contentType].has_key('oid_url'):
             val = cell['value']
-            if val.id:
+            if val.id is not None:
                 cell['url'] = rewrite_rules[contentType]['oid_url'] % \
                     (f_urls[f_enum_name[val.type]], val.id)
                 cell['value'] = val.handle

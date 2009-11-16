@@ -18,7 +18,7 @@ from fred_webadmin.utils import corba_to_datetime, datetime_to_corba, LateBindin
 from fred_webadmin.corba import ccReg, Registry
 from fred_webadmin.webwidgets.xml_prettyprint import xml_prettify_webwidget
 from fred_webadmin.mappings import f_enum_name, f_name_detailname
-import fred_webadmin.webwidgets.details.adifdetails# as details_module
+#import fred_webadmin.webwidgets.details.adifdetails# as details_module
 from fred_webadmin.corbalazy import CorbaLazyRequestIter
 
 def resolve_object(obj_data):
@@ -137,7 +137,8 @@ class EmailDField(CharDField):
             self.add(div(attr(cssc='field_empty')))
         if self._value:
             self.add(a(attr(href='mailto:' + self._value), self._value))
-            
+
+
 class ListCharDField(CharDField):
     def resolve_value(self, value):
         return ', '.join([unicode(sub_val) for sub_val in value])
@@ -149,8 +150,62 @@ class CorbaEnumDField(CharDField):
             value = _(value._n)
         value = super(CorbaEnumDField, self).resolve_value(value)
         return value
+
+
+class RequestPropertyDField(DField):
+    """ ccReg.RequestProperty detail field. 
+        Note: Currently only used by LoggerDetail.
+    """
+    def __init__(self, name='', label=None, *content, **kwd):
+        DField.__init__(self, name, label, *content, **kwd)
         
-    
+    def resolve_value(self, value):
+        """ Handles displayed value formatting.
+
+            Args:
+                value: List of ccReg.RequestProperty objects.
+
+            Returns: 
+                The formatted value.
+
+            Doctests:
+                Correct nonempty input gives correct output.
+                >>> value = [\
+                    ccReg.RequestProperty(name='result_size', value='0', \
+                        output=False, child=False), \
+                    ccReg.RequestProperty(\
+                        name='filter_Service', value='4', \
+                        output=False, child=False)]
+                >>> result = RequestPropertyDField().resolve_value(value)
+                >>> result.value
+                'result_size: 0<br />filter_Service: 4'
+
+                Correct empty input gives correct empty output.
+                >>> value = []
+                >>> result = RequestPropertyDField().resolve_value(value)
+                >>> result.value
+                ''
+
+                Invalid input type raises AttributeError.
+                >>> value = "invalid value"
+                >>> result = RequestPropertyDField().resolve_value(value)
+                Traceback (most recent call last):
+                ...
+                AttributeError: 'str' object has no attribute 'child'
+        """
+        break_char = '<br />'
+        return noesc(
+            break_char.join([self._format_property(prop) for prop in value]))
+
+    def _format_property(self, prop):
+        """ Creates a formatted string from prop.
+            
+            Args:
+                prop: Type ccReg.RequestProperty.
+        """
+        indent = "   " if prop.child else ""
+        return "%s%s: %s" % (indent, prop.name, prop.value)
+
     
 class ObjectHandleDField(DField):
     def make_content(self):
@@ -211,8 +266,6 @@ class DiscloseCharDField(DField):
     ''' Field which get additional boolean value (usualy dislose + self.name[1].upper() + self.name[1:], but can be specified),
         and display main value in span with red or greed background according to dislose value flag).
     '''
-        
-        
     def make_content(self):
         self.content = []
         if self.value:
@@ -282,7 +335,7 @@ class ObjectDField(DField):
         self.inner_detail = self.detail_class(self.value, self.owner_detail.history, display_only=self.display_only, sections=self.sections, layout_class=self.layout_class, is_nested=True, all_no_access=not self.access)
         
     def make_content(self):
-        from fred_webadmin.webwidgets.details.adifdetails import NSSetDetail 
+#        from fred_webadmin.webwidgets.details.adifdetails import NSSetDetail 
         self.content = []
         self.create_inner_detail()
         self.add(self.inner_detail)
@@ -297,8 +350,11 @@ class ListObjectDField(DField):
         self.detail_class = detail_class
         self.display_only = display_only
         self.layout_class = layout_class
-        
-        self.cssc = u'section_table history_list_table' # although this is not a section table, it is mostly used in DirectSectionLayout, so it is in place where SectionTable is and so it should have the same style
+
+        # Although this is not a section table, it is mostly used in 
+        # DirectSectionLayout, so it is in the same place as SectionTable.
+        # Ergo it should have the same style.
+        self.cssc = u'section_table history_list_table' 
         
         
     def resolve_value(self, value):
@@ -312,16 +368,22 @@ class ListObjectDField(DField):
         return value
     
     
-    def create_inner_details(self):
+    def _create_inner_details(self):
         '''Used by make_content and in custom detail layouts and custom section layouts'''
         self.inner_details = []
         if self.value:
             for value in self.value:
-                self.inner_details.append(self.detail_class(value, self.owner_detail.history, display_only=self.display_only, layout_class=self.layout_class, is_nested=True))
+                self.inner_details.append(
+                    self.detail_class(
+                        value, 
+                        self.owner_detail.history, 
+                        display_only=self.display_only, 
+                        layout_class=self.layout_class, 
+                        is_nested=True))
      
     def make_content(self):
         self.content = []
-        self.create_inner_details()
+        self._create_inner_details()
         
         if self.inner_details:
             # Header:
@@ -359,7 +421,7 @@ class ListObjectHandleDField(DField):
                 
 class ConvertDField(DField):
     ''' Converts source value to another value, rendering it to other field. 
-        Parametr 'convert_table' is dict or list or tupple of couples (source_value, convert_to_value)
+        Parametr 'convert_table' is dict or list or tuple of couples (source_value, convert_to_value)
     ''' 
     def __init__(self, name='', label=None, inner_field = None, convert_table = None, *content, **kwd):
         super(ConvertDField, self).__init__(name, label, *content, **kwd)
@@ -714,8 +776,8 @@ class HistoryStateDField(DField):
             
 
 class BaseNHDField(DField):
-    ''' Patent class for NHDField. NHDField is based on value HistoryRecordList, but this field only
-        switch between two fields according to history flag.
+    ''' Parent class for NHDField. NHDField is based on value HistoryRecordList, but this field only
+        switches between two fields according to history flag.
     '''
     def __init__(self, normal_field, history_field, *content, **kwd):
         self.normal_field = normal_field

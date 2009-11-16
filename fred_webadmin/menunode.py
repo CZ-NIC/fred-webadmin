@@ -105,6 +105,8 @@ menu_tree = MenuNode('root', '', '', 'menu-item', '#', [
         MenuNode('contact', _('Search contacts'), cssc='menu-item', url=f_urls['contact'] + 'allfilters/', nperm='read.contact'),
         MenuNode('nsset', _('Search nssets'), cssc='menu-item', url=f_urls['nsset'] + 'allfilters/', nperm='read.nsset'),
         MenuNode('keyset', _('Search keysets'), cssc='menu-item', url=f_urls['keyset'] + 'allfilters/', nperm='read.keyset'),        
+        MenuNode('bankstatement', _('Search bank statements'),
+            cssc='menu-item', url=f_urls['bankstatement'] + 'allfilters/', nperm='read.keyset'),        
     ]), 
     MenuNode('registrar', _('Registrars'), 'body-registrars', 'menu-item menu-registrars', nperm='read.registrar', submenu=[
         MenuNode('registrarlist', _('List'), cssc='menu-item', url=f_urls['registrar'] + 'filter/?list_all=1', nperm='read.registrar'),

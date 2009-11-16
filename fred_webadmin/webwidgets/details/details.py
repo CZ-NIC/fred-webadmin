@@ -23,7 +23,7 @@ class DeclarativeDFieldsMetaclass(WebWidget.__metaclass__):
         # If this class is subclassing another Detail, add that Detail's fields.
         # Note that we loop over the bases in *reverse*. This is necessary in
         # order to preserve the correct order of fields.
-        debug('%s|%s|%s|%s' % (cls, name, bases, attrs))
+ #       debug('%s|%s|%s|%s' % (cls, name, bases, attrs))
 
         for base in bases[::-1]:
             if hasattr(base, 'base_fields'):
