@@ -383,6 +383,13 @@ class BankStatementFilterForm(FilterForm):
     
     Type = CorbaEnumChoiceField(label=_('Type'), 
                                 corba_enum=ccReg.BankingInvoicing.OperationType)
+    AccountDate = DateTimeIntervalField(label=_('Account date'))
+    
+    AccountNumber = CharField(label=_('Account number'))
+    BankCode = CharField(label=_('Bank code'))
+
+    ConstSymb = CharField(label=_('Constant symbol'))
+    VarSymb = CharField(label=_('Variable symbol'))
 
 
 class FilterFilterForm(FilterForm):

@@ -101,9 +101,9 @@ class IterTable(object):
             table = corbaSession.getPageTable(f_name_enum[self.request_object])
             if not table:
                 raise ValueError(
-                    "Nonexistent PageTable (corbaSession.getPageTable returned"
+                    "Nonexistent PageTable for %s (corbaSession.getPageTable returned"
                     " None). This is most probably a bug on the server, so"
-                    " go tell the server developers.")
+                    " go tell the server developers." % self.request_object)
         except KeyError:
             raise ValueError("Invalid request object.")
         header_id = 'CT_OID_ICON'
