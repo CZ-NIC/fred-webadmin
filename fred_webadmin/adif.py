@@ -620,13 +620,11 @@ class ADIF(AdifPage):
                     # not log anything
                     logger = DummyLogger()
                 else:
-                    logger = SessionLogger(
-                        dao=corba.getObject("Logger", "Logger"),
-                        throws_exceptions=True, 
-                        logging_function=error)
                     # Add corba logger to the cherrypy session object, so that
                     # it can be found by CorbaLazyRequest.
-                    cherrypy.session['corba_logd'] = corba.getObject("Logger", "Logger")
+                    corba_logd = corba.getObject("Logger", "Logger")
+                    cherrypy.session['corba_logd'] = corba_logd
+                    logger = SessionLogger(dao=corba_logd)
                     
                 logger.start_session("en", login)
                 cherrypy.session['Logger'] = logger

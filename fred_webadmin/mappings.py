@@ -5,8 +5,8 @@
 
     doctest:
 
-    >>> filter_type_items
-    [{'classname': 'filter', 'item': FT_FILTER},\
+    >>> filter_type_items #doctest: +NORMALIZE_WHITESPACE
+    [{'classname': 'filter', 'item': FT_FILTER},   \
  {'classname': 'registrar', 'item': FT_REGISTRAR},\
  {'classname': 'obj', 'item': FT_OBJ},\
  {'classname': 'contact', 'item': FT_CONTACT},\
