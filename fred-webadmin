@@ -6,7 +6,7 @@ sys.path.insert(0, '/etc/fred/')
 #psyco.full()
 
 from fred_webadmin import adif
-from option_parse import options
+from util.option_parse import options
 
 if __name__ == '__main__':
     if options.nperms or options.nperms_distinct:
