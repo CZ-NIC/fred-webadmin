@@ -3,7 +3,7 @@
     Provides dictionaries that map classes used in webadmin to their respective
     corba counterparts.
 
-    doctests:
+    doctest:
 
     >>> filter_type_items
     [{'classname': 'filter', 'item': FT_FILTER},\
@@ -20,7 +20,8 @@
  {'classname': 'file', 'item': FT_FILE},\
  {'classname': 'logger', 'item': FT_LOGGER},\
  {'classname': 'session', 'item': FT_SESSION},\
- {'classname': 'bankstatement', 'item': FT_STATEMENTITEM}]
+ {'classname': 'bankstatement', 'item': FT_STATEMENTITEM},\
+ {'classname': 'zone', 'item': FT_ZONE}]
 """
 
 import sys
@@ -86,6 +87,7 @@ def generate_dict(suffix):
 'domain': 'DomainTestSuffix', \
 'obj': 'ObjTestSuffix', \
 'invoice': 'InvoiceTestSuffix', \
+'zone': 'ZoneTestSuffix', \
 'file': 'FileTestSuffix', \
 'filter': 'FilterTestSuffix', \
 'keyset': 'KeySetTestSuffix', \

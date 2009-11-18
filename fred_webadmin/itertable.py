@@ -1,3 +1,6 @@
+"""
+    Title comes here.
+"""
 import cherrypy
 import csv
 import StringIO
@@ -167,8 +170,8 @@ class IterTable(object):
         """
             Returns id of the specified row.
 
-            Attrs:
-                index: index of the row.
+            Args:
+                index: Index of the row.
             Returns:
                 Id of the index-th row.
             Raises:
@@ -187,7 +190,7 @@ class IterTable(object):
         """
             Get a specified number of rows from pagetable.
 
-            Attrs:
+            Args:
                 start: Integer. Index of the first row.
                 limit: Integer. Number of rows to fetch. Defaults to pageSize.
                 raw_header: Boolean. Indicates whether self.header or
@@ -227,7 +230,7 @@ class IterTable(object):
         """
             Returns the specified row.
 
-            Attrs:
+            Args:
                 index: index of the row.
             Returns:
                 Row with given index.
