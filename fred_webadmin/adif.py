@@ -756,29 +756,30 @@ class Logger(AdifPage, ListTableMixin):
     """
 
     def filter(self, *args, **kwd):
-        if cherrypy.session.get("corba_logd"):
+        if config.session_logging_enabled:
             return ListTableMixin.filter(self, *args, **kwd)
         else:
             return self.index()
 
     def allfilters(self, *args, **kwd):
-        if cherrypy.session.get("corba_logd"):
+        if config.session_logging_enabled:
             return ListTableMixin.allfilters(self, *args, **kwd)
         else:
             return self.index()
 
     def detail(self, **kwd):
-        if cherrypy.session.get("corba_logd"):
+        if config.session_logging_enabled:
             return ListTableMixin.detail(self, **kwd)
         else:
             return self.index()
 
     def index(self):
-        if cherrypy.session.get("corba_logd"):
+        if config.session_logging_enabled:
             return ListTableMixin.index(self)
         else:
             context = DictLookup()
-            context.main = p("Corba logger could not be found.")
+            context.main = p(
+                "Session logging disabled (see your webadmin_cfg.py).")
             return self._render('base', ctx=context)
 
 

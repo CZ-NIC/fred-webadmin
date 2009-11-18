@@ -363,19 +363,23 @@ class ActionFilterForm(FilterForm):
 
 
 class LoggerFilterForm(FilterForm):
-    default_fields_names = ['Service']
+    # Only create & show the fields, if session logging is enabled (otherwise
+    # corba logger is not running and CorbaLazyRequestIterStruct would cause
+    # trouble. Plus it does not really make sense to show these fields when the
+    # corba logger is not running, thus cannot return any values.
+    if config.session_logging_enabled:
+        default_fields_names = ['Service']
 
-    Service = IntegerChoiceField(label=_('Service type'), choices=[
-        (0, u'UNIX Whois'), (1, u'Web Whois'), (2, u'Public Request'), 
-        (3, u'EPP'), (4, u'WebAdmin'), (5, u'Intranet')])
-    SourceIp = CharField(label=_('Source IP'))
-#    import pdb; pdb.set_trace()
-#    ActionType = ChoiceField(
-#        label=_('Action type'), 
-#        choices=CorbaLazyRequestIterStruct(
-#            'corba_logd', 'GetServiceActions', ['id', 'name']))
-    TimeBegin = DateTimeIntervalField(label=_('Begin time'))
-    TimeEnd = DateTimeIntervalField(label=_('End time'))
+        Service = IntegerChoiceField(label=_('Service type'), choices=[
+            (0, u'UNIX Whois'), (1, u'Web Whois'), (2, u'Public Request'), 
+            (3, u'EPP'), (4, u'WebAdmin'), (5, u'Intranet')])
+        SourceIp = CharField(label=_('Source IP'))
+        ActionType = IntegerChoiceField(
+            label=_('Action type'), 
+            choices=CorbaLazyRequestIterStruct(
+                'corba_logd', 'GetServiceActions', ['id', 'status'], 4))
+        TimeBegin = DateTimeIntervalField(label=_('Begin time'))
+        TimeEnd = DateTimeIntervalField(label=_('End time'))
 
 
 class BankStatementFilterForm(FilterForm):
