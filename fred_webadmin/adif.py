@@ -384,6 +384,8 @@ class ListTableMixin(object):
         
         result = self._get_detail(obj_id=kwd.get('id'))
 
+        debug(result)
+
         req.update("object_id", kwd.get("id"))
         
         context['edit'] = kwd.get('edit', False)
@@ -789,10 +791,6 @@ class Statistics(AdifPage):
 
 
 class Registrar(AdifPage, ListTableMixin):
-#    def __init__(self):
-#        AdifPage.__init__(self)
-#        ListTableMixin.__init__(self)
-    
     def _get_empty_corba_struct(self):
         new = []
         new.append(0) # id

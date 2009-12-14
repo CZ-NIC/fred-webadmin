@@ -51,19 +51,29 @@ class AccessEditForm(EditForm):
     password = CharField(label=_('Password'))
     md5Cert = CharField(label=_('MD5 of cert.'))
 
+
+class ZoneEditForm(EditForm):
+    name = CharField(label=_('Name'))
+
+
 class RegistrarEditForm(EditForm):
     id = HiddenDecimalField()
     handle = CharField(label=_('Handle')) # registrar identification
     name = CharField(label=_('Name'), required=False) # registrar name
     organization = CharField(label=_('Organization'), required=False) # organization name
+
     street1 = CharField(label=_('Street1'), required=False) # address part 1
     street2 = CharField(label=_('Street2'), required=False) # address part 2
     street3 = CharField(label=_('Street3'), required=False) # address part 3
     city = CharField(label=_('City'), required=False) # city of registrar headquaters
     stateorprovince = CharField(label=_('State'), required=False) # address part
     postalcode = CharField(label=_('ZIP'), required=False) # address part
-    country = ChoiceField(label=_('Country'), choices=CorbaLazyRequestIterStruct('Admin', 'getCountryDescList', ['cc', 'name']), initial=CorbaLazyRequest('Admin', 'getDefaultCountry'), required=False) # country code
-#    country = ChoiceField(label=_('Country'), choices=CorbaLazyRequestIterStruct('Admin', 'getCountryDescList', ['cc', 'name'], required=False), initial='CZ') # country code    
+    countryCode = ChoiceField(
+        label=_('Country'), 
+        choices=CorbaLazyRequestIterStruct(
+            'Admin', 'getCountryDescList', ['cc', 'name']), 
+        initial=CorbaLazyRequest('Admin', 'getDefaultCountry'), 
+        required=False) # country code
     
     ico = CharField(label=_('ICO'), required=False)
     dic = CharField(label=_('DIC'), required=False)
@@ -77,6 +87,8 @@ class RegistrarEditForm(EditForm):
     hidden = BooleanField(label=_('System registrar'), required=False) # System registrar
     #access = EPPAccessSeq # list of epp access data
     access = FormSetField(label=_('Authentication'), form_class=AccessEditForm, can_delete=True)
+    zones = FormSetField(
+        label=_('Zones'), form_class=ZoneEditForm, can_delete=True)
     
     
 form_classes = [AccessEditForm, RegistrarEditForm]

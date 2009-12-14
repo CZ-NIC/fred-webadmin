@@ -5,23 +5,24 @@
 
     doctest:
 
-    >>> filter_type_items #doctest: +NORMALIZE_WHITESPACE
-    [{'classname': 'filter', 'item': FT_FILTER},   \
- {'classname': 'registrar', 'item': FT_REGISTRAR},\
- {'classname': 'obj', 'item': FT_OBJ},\
- {'classname': 'contact', 'item': FT_CONTACT},\
- {'classname': 'nsset', 'item': FT_NSSET},\
- {'classname': 'keyset', 'item': FT_KEYSET},\
- {'classname': 'domain', 'item': FT_DOMAIN},\
- {'classname': 'action', 'item': FT_ACTION},\
- {'classname': 'invoice', 'item': FT_INVOICE},\
- {'classname': 'publicrequest', 'item': FT_PUBLICREQUEST},\
- {'classname': 'mail', 'item': FT_MAIL},\
- {'classname': 'file', 'item': FT_FILE},\
- {'classname': 'logger', 'item': FT_LOGGER},\
- {'classname': 'session', 'item': FT_SESSION},\
- {'classname': 'bankstatement', 'item': FT_STATEMENTITEM},\
- {'classname': 'zone', 'item': FT_ZONE}]
+    >>> filter_type_items == [{'classname': 'filter', 'item': ccReg.FT_FILTER},\
+ {'classname': 'registrar', 'item': ccReg.FT_REGISTRAR},\
+ {'classname': 'obj', 'item': ccReg.FT_OBJ},\
+ {'classname': 'contact', 'item': ccReg.FT_CONTACT},\
+ {'classname': 'nsset', 'item': ccReg.FT_NSSET},\
+ {'classname': 'keyset', 'item': ccReg.FT_KEYSET},\
+ {'classname': 'domain', 'item': ccReg.FT_DOMAIN},\
+ {'classname': 'action', 'item': ccReg.FT_ACTION},\
+ {'classname': 'invoice', 'item': ccReg.FT_INVOICE},\
+ {'classname': 'publicrequest', 'item': ccReg.FT_PUBLICREQUEST},\
+ {'classname': 'mail', 'item': ccReg.FT_MAIL},\
+ {'classname': 'file', 'item': ccReg.FT_FILE},\
+ {'classname': 'logger', 'item': ccReg.FT_LOGGER},\
+ {'classname': 'session', 'item': ccReg.FT_SESSION},\
+ {'classname': 'bankstatement', 'item': ccReg.FT_STATEMENTITEM},\
+ {'classname': 'zone', 'item': ccReg.FT_ZONE},\
+ {'classname': 'statementhead', 'item': ccReg.FT_STATEMENTHEAD}]
+    True
 """
 
 import sys
@@ -77,12 +78,14 @@ f_objectType_name = dict([(item, item._n[3:].lower()) for
     item in ccReg.PublicRequest.ObjectType._items])
 
 def generate_dict(suffix):
-    """ Returns a dict with (classname -> Classname + suffix) pairs.
-        This is really just an utility function to prevent boilerplate code.
+    """ Returns a dict with (classname -> Classname + suffix) pairs. Note the 
+        capital letter. 
+
+        Anyway, this is really just an utility function to prevent 
+        boilerplate code.
 
         doctests:
-        >>> generate_dict("TestSuffix")
-        {'session': 'SessionTestSuffix', \
+        >>> generate_dict("TestSuffix") ==  {'session': 'SessionTestSuffix', \
 'bankstatement': 'BankStatementTestSuffix', \
 'domain': 'DomainTestSuffix', \
 'obj': 'ObjTestSuffix', \
@@ -97,7 +100,9 @@ def generate_dict(suffix):
 'action': 'ActionTestSuffix', \
 'mail': 'MailTestSuffix', \
 'logger': 'LoggerTestSuffix', \
+'statementhead': 'StatementheadTestSuffix',\
 'publicrequest': 'PublicRequestTestSuffix'}
+        True
     """
     rules = {
         # If more than the first letter should be capitalized, we have to do it

@@ -23,8 +23,6 @@ class DeclarativeDFieldsMetaclass(WebWidget.__metaclass__):
         # If this class is subclassing another Detail, add that Detail's fields.
         # Note that we loop over the bases in *reverse*. This is necessary in
         # order to preserve the correct order of fields.
- #       debug('%s|%s|%s|%s' % (cls, name, bases, attrs))
-
         for base in bases[::-1]:
             if hasattr(base, 'base_fields'):
                 fields = base.base_fields.items() + fields
@@ -71,7 +69,8 @@ class BaseDetail(div):
              
         self.display_only = display_only
         
-        # sections can be devined as class attribute of detail, so take care to create attribute but not override it, if it already exists
+        # Sections can be defined as class attribute of detail, so take care
+        # to create attribute but not override it, if it already exists.
         if getattr(self, 'sections', None) is None: 
             self.sections = None
         if sections is not None:
@@ -87,32 +86,16 @@ class BaseDetail(div):
             self.sections = [[None, self.fields.keys()]]
 
     def filter_base_fields(self):
-        "Filters base fields against user negative permissions, so if user has nperm on field we delete it from base_fields"
+        """ Filters base fields against user negative permissions, 
+            so if user has nperm on field we delete it from base_fields.
+        """
         user = cherrypy.session.get('user', None)
         if user is None:
             self.base_fields = SortedDict({})
-#                self.default_fields_names = []
         else:
-#            object_name = self.get_object_name()
-#            #self.base_fields = SortedDict([(name, field) for name, field in self.base_fields.items()])
-#            #nself.base_fields = SortedDict(self.base_fields)
-#            self.base_fields = SortedDict([(name, field) for name, field in self.base_fields.items() 
-#                                           if not user.has_nperm('%s.%s.%s' % (object_name, 'detail', field.name)) and (not self.display_only or field.name in self.display_only)
-#                                          ])
-            
-#            for name, field in self.base_fields.items():
-#                field_nperm = field.get_nperm()
-#                if user.check_nperms(['%s.%s.%s' % (nperm_name, object_name, field_nperm) for nperm_name in self.nperm_names], 'one'):
-#                    #if isinstance(self, NSSetDetail):
-#                    print repr(self)
-#                    print field.name
-#                    import pdb;pdb.set_trace()
-#                    field.access = False
-            
-            self.base_fields = SortedDict([(name, field) for name, field in self.base_fields.items() 
-                                           if not self.display_only or field.name in self.display_only
-                                          ])
-#                self.default_fields_names = [field_name for field_name in self.default_fields_names if field_name in self.base_fields.keys()]
+            self.base_fields = SortedDict(
+                [(name, field) for name, field in self.base_fields.items() 
+                    if not self.display_only or field.name in self.display_only])
     
     def build_fields(self):
         user = cherrypy.session.get('user', None)
@@ -123,8 +106,10 @@ class BaseDetail(div):
             object_name = self.get_object_name()
             for field in self.fields.values():
                 field_nperm = field.get_nperm()
-                if self.all_no_access or user.check_nperms(['%s.%s.%s' % (nperm_name, object_name, field_nperm) for nperm_name in self.nperm_names], 'one'):
-                    field.access = False
+                if self.all_no_access or user.check_nperms(
+                    ['%s.%s.%s' % (nperm_name, object_name, field_nperm) for \
+                        nperm_name in self.nperm_names], 'one'):
+                            field.access = False
                 field.owner_detail = self
         
     def set_fields_values(self):

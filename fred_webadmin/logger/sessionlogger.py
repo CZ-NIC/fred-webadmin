@@ -23,7 +23,7 @@ service_type_webadmin = 4
 """
 
 # Initilize (lowercase lang code string -> lang code int) mapping from
-# corba IDL (e.g. {cs : ccReg.CS, en : ccReg.EN}).
+# corba IDL (e.g. {'cs' : ccReg.CS, 'en' : ccReg.EN}).
 languages = dict((code._n.lower(), code) for code in ccReg.Languages._items)
 
 
@@ -58,7 +58,11 @@ class SessionLogger(object):
         """Inits SessionLogger.
 
             Arguments:
-                
+                dao: Data Access Object for the logger. 
+                    That's where we get our data from / send them to.
+                    Generally it's a Corba Logger object for normal use and 
+                    mock object for unit tests.
+
         """
         self.dao = dao
         self.actions = None 
@@ -107,7 +111,7 @@ class SessionLogger(object):
             
             Common properties are logged when a log request is created.
             Therefore if you create a request and then set a common property, it
-            will be logged automaticalyy in every following request, but not
+            will be logged automatically in every following request, but not
             this one.
 
             Arguments:

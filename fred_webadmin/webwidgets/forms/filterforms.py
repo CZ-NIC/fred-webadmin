@@ -213,47 +213,6 @@ class FilterForm(Form):
             if name in self.cleaned_data:
                 del self.cleaned_data[name]
 
-#    def get_fields_for_layout(self, parent_prefix_composed_name, parent_prefix_label):
-#        fields = []
-#        
-#        for field in self.fields.values():
-#            new_label = '%s.%s' % (parent_prefix_label, field.label)
-#            new_composed_name = '%s.%s' % (parent_prefix_composed_name, field.composed_name)
-#            
-#            if not isinstance(field,  CompoundFilterField):
-#                field.label = new_label
-#                field.composed_name = new_composed_name 
-#                fields.append(field)
-#            else:
-#                fields.extend(field.form.get_fields_for_layout(new_label, new_composed_name))
-#        
-#        return fields
-#        
-#    def get_non_fields_errors_for_layout(self):
-#        non_fields_errors = self.non_field_errors()
-#        
-#        for field in self.fields.values():
-#            if isinstance(field,  CompoundFilterField):
-#                non_fields_errors.extend(field.form.get_non_fields_errors_for_layout)
-#        return non_fields_errors
-
-#class DomainFilterForm2(FilterForm):
-#    default_fields_names = ['owner', 'domain_name', 'crdate']
-#    
-#    domain_name = CharField(label=_('Domain name'))
-#    crdate = DateIntervalField(label=_('Registration date'))
-#    owner = CharField(label=_('Owner'))
-#    registrar = CharField(label=_('Registrar'))
-#    status1 = ChoiceField(choices=((1, u'Poraněn'), (2, u'Preživší'), (3, u'Mrtev'), (4, u'Nemrtvý')))
-#    status2 = MultipleChoiceField(choices=((1, u'Poraněn'), (2, u'Preživší'), (3, u'Mrtev'), (4, u'Nemrtvý')))
-#    email = EmailField(max_length=30)
-#    expired = BooleanField()
-#    valid = NullBooleanField() 
-#    cas = TimeField(label=('cas vyrazeni'))
-#    datumpropadnuti = SplitDateTimeField(label=_('Datum propadnuti'))
-#    casprejmenovani = SplitTimeField(label=_('cas prejmenovani'))
-#    datum_umrti = SplitDateSplitTimeField(label=_('datum umrti'))
-#    doba_zmrtvychvstani = DateTimeIntervalField(label=_('doba zmrtvychvstani'))
    
 class RegistrarFilterForm(FilterForm):
     default_fields_names = ['Handle']
@@ -262,18 +221,17 @@ class RegistrarFilterForm(FilterForm):
     Name = CharField(label=_('Name'))
     Organization = CharField(label=_('Organization'))
     City = CharField(label=_('City'))
-    Country = CharField(label=_('Country'))
-    
-#    ico = CharField(label=_('ICO'))
-#    vat = CharField(label=_('VAT'))
-#    crDate = DateIntervalField(label=_('Registration date'))
-#    upDate = DateIntervalField(label=_('Update date'))
+    CountryCode = CharField(label=_('Country'))
+
     
 class ObjectStateFilterForm(FilterForm):
     default_field_names = ['StateId']
 
-    #StateId = IntegerField(label=_('State Id')) 
-    StateId = ChoiceField(label=_('State Type'), choices=CorbaLazyRequestIterStruct('Admin', 'getObjectStatusDescList', ['id', 'shortName'], config.lang[:2]))
+    StateId = ChoiceField(
+        label=_('State Type'), 
+        choices=CorbaLazyRequestIterStruct(
+            'Admin', 'getObjectStatusDescList', 
+            ['id', 'shortName'], config.lang[:2]))
 
     ValidFrom = DateTimeIntervalField(label=_('Valid from'))
     ValidTo = DateTimeIntervalField(label=_('Valid to'))
@@ -285,16 +243,20 @@ class ObjectFilterForm(FilterForm):
     Handle = CharField(label=_('Handle'))
     AuthInfo = CharField(label=_('AuthInfo'))
 
-    Registrar = CompoundFilterField(label=_('Registrar'), form_class=RegistrarFilterForm)
-    CreateRegistrar = CompoundFilterField(label=_('Creation registrar'), form_class=RegistrarFilterForm)
-    UpdateRegistrar = CompoundFilterField(label=_('Update registrar'), form_class=RegistrarFilterForm)
+    Registrar = CompoundFilterField(
+        label=_('Registrar'), form_class=RegistrarFilterForm)
+    CreateRegistrar = CompoundFilterField(
+        label=_('Creation registrar'), form_class=RegistrarFilterForm)
+    UpdateRegistrar = CompoundFilterField(
+        label=_('Update registrar'), form_class=RegistrarFilterForm)
     
     CreateTime = DateTimeIntervalField(label=_('Registration date'))
     UpdateTime = DateTimeIntervalField(label=_('Update date'))
     TransferTime = DateTimeIntervalField(label=_('Transfer date'))
     DeleteTime = DateTimeIntervalField(label=_('Delete date'))
 
-    ObjectState = CompoundFilterField(label=_('Object state'), form_class=ObjectStateFilterForm)
+    ObjectState = CompoundFilterField(
+        label=_('Object state'), form_class=ObjectStateFilterForm)
 
     
 class ContactFilterForm(ObjectFilterForm):
@@ -302,44 +264,39 @@ class ContactFilterForm(ObjectFilterForm):
     
     Email = CharField(label=_('Email'))
     NotifyEmail = CharField(label=_('Notify email'))
-#    contact_type = MultipleChoiceField(label=_('Contact type'), choices=(('owner', _('Owner')), ('admin', _('Admin')), ('techadmin', _('techadmin')), ('temporary', _('Temporary'))))
     Name = CharField(label=_('Name'))
     Organization = CharField(label=_('Organization'))
     Ssn = CharField(label=_('Identification'))
     Vat = CharField(label=_('VAT'))
     
 class NSSetFilterForm(ObjectFilterForm):
-    TechContact = CompoundFilterField(label=_('Technical contact'), form_class=ContactFilterForm)
+    TechContact = CompoundFilterField(
+        label=_('Technical contact'), form_class=ContactFilterForm)
     HostIP = CharField(label=_('IP address'))
     HostFQDN = CharField(label=_('Nameserver name'))
-    #HostFQDN1 = CharField(label=_('Nameserver name 1'))
-    #HostFQDN2 = CharField(label=_('Nameserver name 2'))
     
     def clean(self):
         cleaned_data = super(NSSetFilterForm, self).clean()
         return cleaned_data
 
 class KeySetFilterForm(ObjectFilterForm):
-    TechContact = CompoundFilterField(label=_('Technical contact'), form_class=ContactFilterForm)
-    #HostIP = CharField(label=_('IP address'))
-    #HostFQDN = CharField(label=_('Nameserver name'))
-    #HostFQDN1 = CharField(label=_('Nameserver name 1'))
-    #HostFQDN2 = CharField(label=_('Nameserver name 2'))
-    
-#    def clean(self):
-#        cleaned_data = super(KeySetFilterForm, self).clean()
-#        return cleaned_data
+    TechContact = CompoundFilterField(
+        label=_('Technical contact'), form_class=ContactFilterForm)
         
     
 class DomainFilterForm(ObjectFilterForm):
     default_fields_names = ['Handle']
     
-#    fqdn = CharField(label=_('Domain name'))
-    Registrant = CompoundFilterField(label=_('Owner'), form_class=ContactFilterForm)
-    AdminContact = CompoundFilterField(label=_('Admin'), form_class=ContactFilterForm, nperm='admins')
-    TempContact = CompoundFilterField(label=_('Temp'), form_class=ContactFilterForm, nperm='temps')
-    NSSet = CompoundFilterField(label=_('Nameserver set'), form_class=NSSetFilterForm)
-    KeySet = CompoundFilterField(label=_('Key set'), form_class=KeySetFilterForm)    
+    Registrant = CompoundFilterField(
+        label=_('Owner'), form_class=ContactFilterForm)
+    AdminContact = CompoundFilterField(
+        label=_('Admin'), form_class=ContactFilterForm, nperm='admins')
+    TempContact = CompoundFilterField(
+        label=_('Temp'), form_class=ContactFilterForm, nperm='temps')
+    NSSet = CompoundFilterField(
+        label=_('Nameserver set'), form_class=NSSetFilterForm)
+    KeySet = CompoundFilterField(
+        label=_('Key set'), form_class=KeySetFilterForm)    
     
     ExpirationDate = DateIntervalField(label=_('Expiry date'))
     OutZoneDate = DateIntervalField(label=_('OutZone date'))
@@ -351,13 +308,17 @@ class DomainFilterForm(ObjectFilterForm):
 class ActionFilterForm(FilterForm):
     default_fields_names = ['SvTRID']
     
-    #Type = MultipleChoiceField(label=_('Request type'), choices=((1, u'Poraněn'), (2, u'Přeživší'), (3, u'Mrtev'), (4, u'Nemrtvý')))
-    Type = ChoiceField(label=_('Request type'), choices=CorbaLazyRequestIterStruct('Admin', 'getEPPActionTypeList', ['id', 'name']))
+    Type = ChoiceField(
+        label=_('Request type'), 
+        choices=CorbaLazyRequestIterStruct(
+            'Admin', 'getEPPActionTypeList', ['id', 'name']))
     Object = CompoundFilterField(label=_('Object'), form_class=ObjectFilterForm)
     RequestHandle = CharField(label=_('Requested Handle'))
     Time = DateTimeIntervalField(label=_('Received date'))
-    Response = CorbaEnumChoiceField(label=_('Result'), corba_enum=ccReg.EPPActionsFilter.ResultType)
-    Registrar = CompoundFilterField(label=_('Registrar'), form_class=RegistrarFilterForm)
+    Response = CorbaEnumChoiceField(
+        label=_('Result'), corba_enum=ccReg.EPPActionsFilter.ResultType)
+    Registrar = CompoundFilterField(
+        label=_('Registrar'), form_class=RegistrarFilterForm)
     SvTRID = CharField(label=_('SvTRID'))
     ClTRID = CharField(label=_('ClTRID'))
 
@@ -401,21 +362,27 @@ class FilterFilterForm(FilterForm):
     
     UserID = CharField(label=_('User name'))
     GroupID = CharField(label=_('Group name'))
-    Type = ChoiceField(label=_('Result'), choices=[(1, u'Poraněn'), (2, u'Preživší'), (3, u'Mrtev'), (4, u'Nemrtvý')])
+    Type = ChoiceField(
+        label=_('Result'), 
+        choices=[(1, u'Poraněn'), (2, u'Preživší'), 
+                 (3, u'Mrtev'), (4, u'Nemrtvý')])
 
 
 class PublicRequestFilterForm(FilterForm):
     default_fields_names = ['Id']
     
     Id = IntegerField(label=_('ID'))
-    Type = CorbaEnumChoiceField(label=_('Type'), corba_enum=ccReg.PublicRequest.Type)
-    Status = CorbaEnumChoiceField(label=_('Status'), corba_enum=ccReg.PublicRequest.Status)
+    Type = CorbaEnumChoiceField(
+        label=_('Type'), corba_enum=ccReg.PublicRequest.Type)
+    Status = CorbaEnumChoiceField(
+        label=_('Status'), corba_enum=ccReg.PublicRequest.Status)
     CreateTime = DateTimeIntervalField(label=_('Create time'))
     ResolveTime = DateTimeIntervalField(label=_('Resolve time'))
     Reason = CharField(label=_('Reason'))
     EmailToAnswer = CharField(label=_('Email to answer'))
     Object = CompoundFilterField(label=_('Object'), form_class=ObjectFilterForm)
-    EppAction = CompoundFilterField(label=_('Action'), form_class=ActionFilterForm)
+    EppAction = CompoundFilterField(
+        label=_('Action'), form_class=ActionFilterForm)
 
 
 class FileFilterForm(FilterForm):
@@ -425,37 +392,44 @@ class FileFilterForm(FilterForm):
     Path = CharField(label=_('Path'))
     MimeType = CharField(label=_('Mime type'))
     CreateTime = DateTimeIntervalField(label=_('Create time'))
-    #Size = IntegerField(label=_('Size'))
-    Type = ChoiceField(label=_('Type'), choices=CorbaLazyRequestIterStruct('FileManager', 'getTypeEnum', ['id', 'name']))
+    Type = ChoiceField(
+        label=_('Type'), 
+        choices=CorbaLazyRequestIterStruct(
+            'FileManager', 'getTypeEnum', ['id', 'name']))
 
 
 class InvoiceFilterForm(FilterForm):
     default_fields_names = ['Type']
     
-    Type = CorbaEnumChoiceField(label=_('Type'), corba_enum=ccReg.Invoicing.InvoiceType)
+    Type = CorbaEnumChoiceField(
+        label=_('Type'), corba_enum=ccReg.Invoicing.InvoiceType)
     Number = CharField(label=_('Number'))
     CreateTime = DateTimeIntervalField(label=_('Create time'))
     TaxDate = DateIntervalField(label=_('Tax date'))
-    Registrar = CompoundFilterField(label=_('Registrar'), form_class=RegistrarFilterForm)
+    Registrar = CompoundFilterField(
+        label=_('Registrar'), form_class=RegistrarFilterForm)
     Object = CompoundFilterField(label=_('Object'), form_class=ObjectFilterForm)
     File = CompoundFilterField(label=_('File'), form_class=FileFilterForm)
     
 class MailFilterForm(FilterForm):
     default_fields_names = ['Type']
     
-    Type = ChoiceField(label=_('Type'), choices=CorbaLazyRequestIterStruct('Mailer', 'getMailTypes', ['id', 'name']))
-    #Type = IntegerField(label=_('Type')) # docasny, az bude v corba tak smazat
+    Type = ChoiceField(
+        label=_('Type'), 
+        choices=CorbaLazyRequestIterStruct(
+            'Mailer', 'getMailTypes', ['id', 'name']))
     Handle = CharField(label=_('Handle'))
     CreateTime = DateTimeIntervalField(label=_('Create time'))
     ModifyTime = DateTimeIntervalField(label=_('Modify time'))
-    #Status = ChoiceField(label=_('Status'), choices=CorbaLazyRequestIterStruct('Admin', 'getMailStatus', ['id', 'name']))
+#    Status = ChoiceField(label=_('Status'), 
+#        choices=CorbaLazyRequestIterStruct(
+#            'Admin', 'getMailStatus', ['id', 'name']))
     Status = IntegerField(label=_('Status')) # docasny, az bude v corba tak smazat
     Attempt = IntegerField(label=_('Attempt'))
     Message = CharField(label=_('Message'))
-    Attachment = CompoundFilterField(label=_('Attachment'), form_class=FileFilterForm)
+    Attachment = CompoundFilterField(
+        label=_('Attachment'), form_class=FileFilterForm)
 
-    
-    
       
 form_classes = (DomainFilterForm, 
                 NSSetFilterForm, 
@@ -474,7 +448,9 @@ form_classes = (DomainFilterForm,
                )
 
 def get_filter_forms_javascript():
-    'Javascript is cached in user session (must be there, bucause each user can have other forms, because of different permissions'
+    """ Javascript is cached in user session (must be there, beucause each user 
+        can have other forms, because of different permissions. 
+    """
     output = u''
     all_fields_dict = {}
     for form_class in form_classes: 
@@ -491,14 +467,3 @@ def get_filter_forms_javascript():
         output += "}\n"
     output += u'allFieldsDict = %s' % (simplejson.dumps(all_fields_dict) + u'\n')
     return output
-   
-
-#def valueToCorbaFilter(field):
-#    
-#    translation = {
-#        CharField: field.value,
-#        DateIntervalField: DateInterval(value[0], value[1]),
-#    }
-#    return translation[field.__class__]
-#    }
-#    

@@ -360,7 +360,7 @@ class RegistrarDetailDiv(DetailDiv):
             tr(th(_('State')), 
                td(span(result.stateorprovince))),
             tr(th(_('Country')), 
-               td(span(result.country))),
+               td(span(result.countryCode))),
         ))
             
         self.add(table(attr(width='96%', border='1'),

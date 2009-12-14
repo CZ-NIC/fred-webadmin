@@ -16,51 +16,10 @@ class User(object):
         self.surname = user._get_surname()
         self.table_page_size = config.tablesize
         
-        # negative permissions or forbiddance 
-#        self.nperms = ['domain.read', 'domain.create', 'domain.change', 'domain.delete',
-#                       'contact.read', 'contact.create', 'contact.change', 'contact.delete',
-#                       'nsset.read', 'nsset.create', 'nsset.change', 'nsset.delete',
-#                       'registrar.read', 'registrar.create', 'registrar.change', 'registrar.delete',
-#                      ]
-        #self.nperms = ['domain.read', 'contact.read', 'nsset.read']
-        #self.nperms = ['domain.read', 'domain.filter.owner', 'domain.filter.email']
-        #self.nperms = ['registrar.read']
         if self.login == 'helpdesk':
-            self.nperms = [
-#                           'read.domain.createregistrar',
-#                           'read.domain.updateregistrar',
-#                           'read.domain.registrar',
-#                           'read.domain.nsset',
-#                           'read.domain.keyset',
-#                           'read.domain.registrant',
-#                           'read.domain.admins',
-#                           #'read.domain',
-                           #'read.contact',
-                           'write.registrar',
-                           'read.invoice',
-                           #'read.nsset', 
-                           #'read.keyset', 
-#                           'read.domain.authinfo', 
-#                           'read.registrar.city', 'write.registrar.street2', 'read.registrar.city', 
-                           #'read.registrar.name', 'read.registrar.organization'
-#                           #'read.registrar',
-#                           'read.domain.createdate', 'read.domain.authinfo',
-#                           
-#                           #'read.domain.admins',
-#                           #'read.domain.nsset',
-#                            'read.domain.registrar',
+            self.nperms = ['write.registrar', 'read.invoice']
 
-                          ]
-        #else:
-#        self.nperms = [
-#            'domain.filter.admincontact', 'domain.detail.admins', 'domain.detail.nsset', 'domain.detail.authinfo',
-#            'domain.detail.states',
-#            'domain.read',
-#            'nsset.read',
-#            'registrar.detail.name', 'registrar.detail.organization',
-#        ]
         self.nperms = []
-        debug('Created user with nperms = %s' % str(self.nperms))
         
     def has_nperm(self, nperm):
         ''' Return True, if nperm in self.nperms or any of its shorter versions created
@@ -74,8 +33,7 @@ class User(object):
             tmp_nperm = '.'.join(parts[:i+1])
             if tmp_nperm.lower() in self.nperms:
                 return True
-        return 
-        #return self._user.hasNPermission(nperm)
+        return False 
     
     def has_all_nperms(self, nperms):
         if not nperms: # nprems are empty
@@ -90,22 +48,13 @@ class User(object):
             if self.has_nperm(nperm):
                 return True
         return False
-#        if not nperms:
-#            return True
-#        else:
-#            for nperm in nperms:
-#                if nperm in self.nperms:
-#                    return True
-#            return False
 
     def check_nperms(self, nperms, check_type = 'all'):
         'Returns True if user has NOT permission (has negative permission)'
-        #debug('USER NPERM pri checku: %s, proti %s, check_type %s' % (self.nperms, nperms, check_type))  
         result = ((isinstance(nperms, types.StringTypes) and self.has_nperm(nperms)) or 
                   (isiterable(nperms) and 
                    (check_type == 'all' and self.has_all_nperms(nperms) or
                     check_type == 'one' and self.has_one_nperm(nperms))
                   )
                  )
-        #print ' -> %s' % result
         return result 

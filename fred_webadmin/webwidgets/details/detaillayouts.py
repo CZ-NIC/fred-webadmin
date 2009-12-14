@@ -5,13 +5,15 @@ import types
 from logging import debug
 
 from fred_webadmin.translation import _
-from fred_webadmin.webwidgets.gpyweb.gpyweb import WebWidget, tagid, attr, notag, div, span, table, caption, thead, tbody, tr, th, td, input, label, select, option, ul, li, script, a, img, strong
-from fred_webadmin.webwidgets.details.abstractdetaillayout import AbstractDetailLayout
+from fred_webadmin.webwidgets.gpyweb.gpyweb import (
+    WebWidget, tagid, attr, notag, div, span, table, caption, thead, tbody, 
+    tr, th, td, input, label, select, option, ul, li, script, a, img, strong)
+from fred_webadmin.webwidgets.details.abstractdetaillayout import \
+    AbstractDetailLayout
 from fred_webadmin.webwidgets.details.sectionlayouts import SectionLayout
 
 class DetailLayout(AbstractDetailLayout):
     pass
-
 
 
 class TableDetailLayout(DetailLayout):
@@ -42,7 +44,10 @@ class SectionDetailLayout(TableDetailLayout):
         section_layout = SectionLayout
         if len(section_spec) > 2:
             section_layout = section_spec[2]
-            if isinstance(section_layout, types.ListType): # list of layouts, first for detail without history, second for detail with history
+            debug("layout: %s" % section_layout)
+            # List of layouts, first for detail without history, 
+            # second for detail with history.
+            if isinstance(section_layout, types.ListType): 
                 if not self.detail.history: 
                     section_layout = section_layout[0]
                 else:
@@ -89,7 +94,9 @@ class TableRowDetailLayout(TableColumnsDetailLayout):
 
 
 class OnlyFieldsDetailLayout(DetailLayout):
-    ''' Detail, that renders only fields, directly without anything. Fields are separated by comma.'''
+    ''' Detail, that renders only fields, directly without anything. 
+        Fields are separated by comma.
+    '''
     def __init__(self, *content, **kwd):
         super(OnlyFieldsDetailLayout, self).__init__(*content, **kwd)
         self.tag = u''

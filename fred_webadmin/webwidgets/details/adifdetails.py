@@ -1,4 +1,3 @@
-
 from details import Detail
 from dfields import *
 from fred_webadmin.translation import _
@@ -12,6 +11,14 @@ from fred_webadmin.corbalazy import CorbaLazyRequestIterStructToDict
 class AccessDetail(Detail):
     password = CharDField(label=_('Password'))
     md5Cert = CharDField(label=_('MD5')) # registrar name
+
+
+class ZoneDetail(Detail):
+    name = CharDField(label=_('Name'))
+    credit = CharDField(label=_('Credit'))
+    fromDate = CharDField(label=_('From'))
+    toDate = CharDField(label=_('To'))
+
 
 class RegistrarDetail(Detail):
     editable = True
@@ -29,10 +36,10 @@ class RegistrarDetail(Detail):
     city = CharDField(label=_('City')) # city of registrar headquaters
     stateorprovince = CharDField(label=_('State')) # address part
     postalcode = CharDField(label=_('ZIP')) # address part
-    country = CharDField(label=_('Country')) # country code
+    countryCode = CharDField(label=_('Country')) # country code
     
 
-    telephone = CharDField(label=_('Telephone')) # phne number
+    telephone = CharDField(label=_('Telephone')) # phone number
     fax = CharDField(label=_('Fax')) # fax number
     email = EmailDField(label=_('Email')) # contact email
     url = CharDField(label=_('URL')) # URL
@@ -43,12 +50,14 @@ class RegistrarDetail(Detail):
     hidden = CharDField(label=_('System registrar')) # hidden in PIF
     
     access = ListObjectDField(detail_class=AccessDetail)
+    zones = ListObjectDField(detail_class=ZoneDetail)
     
     sections = (
         (None, ('handle', 'organization', 'name', 'credit')),
         (_('Address'), ('street1', 'street2', 'street3', 'city', 'postalcode', 'stateorprovince', 'country')),
         (_('Other_data'), ('telephone', 'fax', 'email', 'url', 'ico', 'dic', 'varSymb', 'vat', 'hidden')),
-        (_('Authentication'), ('access', ), DirectSectionLayout)
+        (_('Authentication'), ('access', ), DirectSectionLayout),
+        (_('Zones'), ('zones', ), DirectSectionLayout),
     )
 
     def add_to_bottom(self):
@@ -60,9 +69,7 @@ class RegistrarDetail(Detail):
                 [_('Contact cr.'), 'contact', [{'CreateRegistrar.Handle': self.data.get('handle')}]],
                 [_('NSSet sel.'), 'nsset', [{'Registrar.Handle': self.data.get('handle')}]],
                 [_('NSSet cr.'), 'nsset', [{'CreateRegistrar.Handle': self.data.get('handle')}]],
-                #[_('Contacts'), 'contact', [{'Registrar.Handle': self.data.get('handle')}]],
                 [_('Actions'), 'action', [{'Registrar.Handle': self.data.get('handle')}]],
-                #[_('Emails'), 'mail', [{'Object.Registrar.Handle': self.data.get('handle')}]],
                 [_('Emails'), 'mail', [{'Message': self.data.get('name')}]],
             ]))
         super(RegistrarDetail, self).add_to_bottom()
@@ -72,7 +79,6 @@ class ObjectDetail(Detail):
     handleEPPId = ObjectHandleEPPIdDField(label=('Handle'))
     handle = CharDField(label=_('Handle'))
 
-    #registrar = HistoryObjectDField(label=_('Registrar'), detail_class=RegistrarDetail, display_only=['handle_url', 'name'])
     registrar = NHDField(
         ObjectDField(
             detail_class=RegistrarDetail, 
@@ -120,13 +126,22 @@ class ContactDetail(ObjectDetail):
     def add_to_bottom(self):
         if self.data:
             self.add(FilterPanel([
-                [_('Domains_owner'), 'domain', [{'Registrant.Handle': self.data.get('handle')}]],
-                [_('Domains_admin'), 'domain', [{'AdminContact.Handle': self.data.get('handle')}]],
-                [_('Domains_all'), 'domain', [{'Registrant.Handle': self.data.get('handle')}, {'AdminContact.Handle': self.data.get('handle')}, {'TempContact.Handle': self.data.get('handle')}]],
-                [_('NSSets'), 'nsset', [{'TechContact.Handle': self.data.get('handle')}]],
-                [_('KeySets'), 'keyset', [{'TechContact.Handle': self.data.get('handle')}]],
-                [_('Actions'), 'action', [{'RequestHandle': self.data.get('handle')}]],
-                [_('Emails'), 'mail', [{'Message': self.data.get('handle')}]],
+                [_('Domains_owner'), 'domain', 
+                    [{'Registrant.Handle': self.data.get('handle')}]],
+                [_('Domains_admin'), 'domain', 
+                    [{'AdminContact.Handle': self.data.get('handle')}]],
+                [_('Domains_all'), 'domain', 
+                    [{'Registrant.Handle': self.data.get('handle')}, 
+                        {'AdminContact.Handle': self.data.get('handle')}, 
+                        {'TempContact.Handle': self.data.get('handle')}]],
+                [_('NSSets'), 'nsset', 
+                    [{'TechContact.Handle': self.data.get('handle')}]],
+                [_('KeySets'), 'keyset', 
+                    [{'TechContact.Handle': self.data.get('handle')}]],
+                [_('Actions'), 'action', 
+                    [{'RequestHandle': self.data.get('handle')}]],
+                [_('Emails'), 'mail', 
+                    [{'Message': self.data.get('handle')}]],
             ]))
         super(ContactDetail, self).add_to_bottom()
     
@@ -136,28 +151,38 @@ class HostDetail(Detail):
 
 class NSSetDetail(ObjectDetail):
     admins = NHDField(
-        ListObjectDField(detail_class=ContactDetail, display_only=['handle_url', 'organization', 'name', 'email']),
-        HistoryListObjectDField(detail_class=ContactDetail, display_only=['handle_url', 'organization', 'name', 'email']))
+        ListObjectDField(
+            detail_class=ContactDetail, 
+            display_only=['handle_url', 'organization', 'name', 'email']), 
+        HistoryListObjectDField(
+            detail_class=ContactDetail, 
+            display_only=['handle_url', 'organization', 'name', 'email']))
     
     hosts = NHDField(
-        ListObjectDField(detail_class=HostDetail, display_only=['fqdn', 'inet']),
-        HistoryListObjectDField(detail_class=HostDetail, display_only=['fqdn', 'inet']))
+        ListObjectDField(
+            detail_class=HostDetail, display_only=['fqdn', 'inet']),
+        HistoryListObjectDField(
+            detail_class=HostDetail, display_only=['fqdn', 'inet']))
 
     sections = (
         (None, ('handleEPPId', 'authInfo')),
         (_('Selected registrar'), ('registrar', ), DirectSectionLayout),
         (_('Tech. contacts'), ('admins', ), DirectSectionLayout),
         (_('Hosts'), ('hosts', ), DirectSectionLayout),
-        (_('Dates'), ('createRegistrar', 'updateRegistrar'), DatesSectionLayout),
+        (_('Dates'), ('createRegistrar', 'updateRegistrar'), 
+            DatesSectionLayout),
         (_('States'), ('states', ), DirectSectionLayout)
     )
         
     def add_to_bottom(self):
         if self.data:
             self.add(FilterPanel([
-                [_('Domains'), 'domain', [{'NSSet.Handle': self.data.get('handle')}]],
-                [_('Actions'), 'action', [{'RequestHandle': self.data.get('handle')}]],
-                [_('Emails'), 'mail', [{'Message': self.data.get('handle')}]],
+                [_('Domains'), 'domain', 
+                    [{'NSSet.Handle': self.data.get('handle')}]],
+                [_('Actions'), 'action', 
+                    [{'RequestHandle': self.data.get('handle')}]],
+                [_('Emails'), 'mail', 
+                    [{'Message': self.data.get('handle')}]]
             ]))
         super(NSSetDetail, self).add_to_bottom()
 
@@ -176,16 +201,30 @@ class DNSKeyDetail(Detail):
     
 class KeySetDetail(ObjectDetail):
     admins = NHDField(
-        ListObjectDField(detail_class=ContactDetail, display_only=['handle_url', 'organization', 'name', 'email']),
-        HistoryListObjectDField(detail_class=ContactDetail, display_only=['handle_url', 'organization', 'name', 'email']))
+        ListObjectDField(
+            detail_class=ContactDetail, 
+            display_only=['handle_url', 'organization', 'name', 'email']),
+        HistoryListObjectDField(
+            detail_class=ContactDetail, 
+            display_only=['handle_url', 'organization', 'name', 'email']))
     
     dsrecords = NHDField(
-        ListObjectDField(detail_class=DSRecordDetail, display_only=['keyTag', 'alg', 'digestType', 'digest', 'maxSigLife']),
-        HistoryListObjectDField(detail_class=DSRecordDetail, display_only=['keyTag', 'alg', 'digestType', 'digest', 'maxSigLife']))
+        ListObjectDField(
+            detail_class=DSRecordDetail, 
+            display_only=['keyTag', 'alg', 'digestType', 'digest', 
+                          'maxSigLife']),
+        HistoryListObjectDField(
+            detail_class=DSRecordDetail, 
+            display_only=['keyTag', 'alg', 'digestType', 'digest', 
+                          'maxSigLife']))
 
     dnskeys = NHDField(
-        ListObjectDField(detail_class=DNSKeyDetail, display_only=['flags', 'protocol', 'alg', 'key']),
-        HistoryListObjectDField(detail_class=DNSKeyDetail, display_only=['flags', 'protocol', 'alg', 'key']))
+        ListObjectDField(
+            detail_class=DNSKeyDetail, 
+            display_only=['flags', 'protocol', 'alg', 'key']),
+        HistoryListObjectDField(
+            detail_class=DNSKeyDetail, 
+            display_only=['flags', 'protocol', 'alg', 'key']))
     
     sections = (
         (None, ('handleEPPId', 'authInfo')),
@@ -200,9 +239,12 @@ class KeySetDetail(ObjectDetail):
     def add_to_bottom(self):
         if self.data:
             self.add(FilterPanel([
-                [_('Domains'), 'domain', [{'KeySet.Handle': self.data.get('handle')}]],
-                [_('Actions'), 'action', [{'RequestHandle': self.data.get('handle')}]],
-                [_('Emails'), 'mail', [{'Message': self.data.get('handle')}]],
+                [_('Domains'), 'domain', 
+                    [{'KeySet.Handle': self.data.get('handle')}]],
+                [_('Actions'), 'action', 
+                    [{'RequestHandle': self.data.get('handle')}]],
+                [_('Emails'), 'mail', 
+                    [{'Message': self.data.get('handle')}]],
             ]))
         super(KeySetDetail, self).add_to_bottom()
 
@@ -216,27 +258,32 @@ class DomainDetail(ObjectDetail):
             detail_class=ContactDetail, 
             display_only=['handle_url', 'organization', 'name'], 
             layout_class=DirectSectionDetailLayout, sections='all_in_one'),
-            HistoryObjectDField(detail_class=ContactDetail, display_only=['handle_url', 'organization', 'name']))
+        HistoryObjectDField(
+            detail_class=ContactDetail, 
+            display_only=['handle_url', 'organization', 'name']))
 
     nsset = NHDField(
         ObjectDField(
             detail_class=NSSetDetail, 
             display_only=['handle_url', 'registrar', 'admins', 'hosts'], 
             layout_class=DomainsNSSetDetailLayout, sections='all_in_one'),
-            HistoryObjectDField(detail_class=NSSetDetail, display_only=['handle_url']))
+        HistoryObjectDField(
+            detail_class=NSSetDetail, display_only=['handle_url']))
 
     keyset = NHDField(
         ObjectDField(
             detail_class=KeySetDetail, 
-            display_only=['handle_url', 'registrar', 'admins', 'dsrecords', 'dnskeys'], 
+            display_only=['handle_url', 'registrar', 'admins', 'dsrecords', 
+                          'dnskeys'], 
             layout_class=DomainsKeySetDetailLayout, sections='all_in_one'),
-        HistoryObjectDField(detail_class=KeySetDetail, display_only=['handle_url']))
+        HistoryObjectDField(
+            detail_class=KeySetDetail, display_only=['handle_url']))
     
     admins = NHDField(
         ListObjectDField(
             detail_class=ContactDetail, 
             display_only=['handle_url', 'organization', 'name', 'email']),
-            HistoryListObjectDField(
+        HistoryListObjectDField(
                 detail_class=ContactDetail, 
                 display_only=['handle_url', 'organization', 'name', 'email']))
     
@@ -248,25 +295,28 @@ class DomainDetail(ObjectDetail):
         (_('Admin contacts'), ('admins', ), DirectSectionLayout),
         (_('NSSet'), ('nsset', ), DirectSectionLayout),
         (_('KeySet'), ('keyset', ), DirectSectionLayout),
-        (_('States'), ('states', ), DirectSectionLayout),                        
+        (_('States'), ('states', ), DirectSectionLayout),
     )
     
     def add_to_bottom(self):
         if self.data:
             self.media_files.append('/js/publicrequests.js')
             self.add(FilterPanel([
-                [_('Actions'), 'action', [{'RequestHandle': self.data.get('handle')}]],
-                [_('Emails'), 'mail', [{'Message': self.data.get('handle')}]],
-                [_('dig'), f_urls['domain'] + 'dig/?handle=' + self.data.get('handle')], 
+                [_('Actions'), 'action', 
+                    [{'RequestHandle': self.data.get('handle')}]],
+                [_('Emails'), 'mail', 
+                    [{'Message': self.data.get('handle')}]],
+                [_('dig'), f_urls['domain'] + 'dig/?handle=' + \
+                    self.data.get('handle')], 
                 [_('Set InZone Status'), "javascript:setInZoneStatus('%s')" % 
-                    (f_urls['domain'] + 'setinzonestatus/?id=%d' % self.data.get('id'))],          
+                    (f_urls['domain'] + 'setinzonestatus/?id=%d' % \
+                        self.data.get('id'))],          
             ]))
         super(DomainDetail, self).add_to_bottom()
         
 
 class ActionDetail(Detail):
     time = CharDField(label=_('Received_date'))
-    #registrar = ObjectDField(label=('Registrar'), display_only=['handle_url', 'name'], detail_class=RegistrarDetail, layout_class=OnlyFieldsDetailLayout)
     registrar = ObjectHandleDField(label=_('Registrar'))
     objectHandle = CharDField(label=_('objectHandle'))
     type = CharDField(label=_('Type'))
@@ -277,7 +327,8 @@ class ActionDetail(Detail):
     xml = XMLDField(label=_('XML in'))
 
     sections = (
-        (None, ('time', 'registrar', 'objectHandle', 'type', 'result', 'clTRID', 'svTRID')),
+        (None, ('time', 'registrar', 'objectHandle', 'type', 'result', 
+                'clTRID', 'svTRID')),
         (_('XML In'), ('xml', ), DirectSectionLayout),
         (_('XML Out'), ('xml_out', ), DirectSectionLayout),
     )
@@ -295,16 +346,22 @@ class PublicRequestDetail(Detail):
     resolveTime = CharDField(label=_('Close time'))
     
     def add_to_bottom(self):
-        if self.data and self.data.get('status') == Registry.PublicRequest.PRS_NEW:
-            self.media_files.append('/js/publicrequests.js')
-            self.add(FilterPanel([
-                [_('Accept_and_send'), "javascript:processPublicRequest('%s')" % (f_urls['publicrequest'] + 'resolve/?id=%s' % self.data.get('id'))],
-                [_('Invalidate_and_close'), "javascript:closePublicRequest('%s')" % (f_urls['publicrequest'] + 'close/?id=%s' % self.data.get('id'))],
-            ]))
+        if self.data and \
+            self.data.get('status') == Registry.PublicRequest.PRS_NEW:
+                self.media_files.append('/js/publicrequests.js')
+                self.add(FilterPanel([
+                    [_('Accept_and_send'), 
+                        "javascript:processPublicRequest('%s')" % \
+                        (f_urls['publicrequest'] + 'resolve/?id=%s' % \
+                            self.data.get('id'))],
+                    [_('Invalidate_and_close'), 
+                        "javascript:closePublicRequest('%s')" % \
+                            (f_urls['publicrequest'] + 'close/?id=%s' % \
+                                self.data.get('id'))],
+                ]))
         super(PublicRequestDetail, self).add_to_bottom()
     
 class MailDetail(Detail):
-    #objects = ListObjectHandleDField(label=_('Objects'))
     objects = ListCharDField(label=_('Objects'))
     type = ConvertDField(label=_('Type'), inner_field=CharDField(), convert_table=CorbaLazyRequestIterStructToDict('Mailer', 'getMailTypes', ['id', 'name']))
     status = CharDField(label=_('Status'))
