@@ -43,7 +43,14 @@ class Initializer(object):
     def monkey_patch(self, obj, attr, new_value):
         """ Taken from
             http://lackingrhoticity.blogspot.com/2008/12/
-            helper-for-monkey-patching-in-tests.html"""
+            helper-for-monkey-patching-in-tests.html
+        
+            Basically it stores the original object before monkeypatching and
+            then restores it at teardown. Which is handy, because we do not
+            want the object to stay monkeypatched between unit tests (if the
+            test needs to do the patch, it can, but it should not change the
+            environment for the other tests.
+        """
         old_value = getattr(obj, attr)
         def tear_down():
             setattr(obj, attr, old_value)
@@ -264,7 +271,7 @@ class TestGetRowDict(Initializer):
         self.corba_mock.VerifyAll()
 
     def test_get_rows_dict_multiple_rows(self):
-        """ get_row_dict returns multiple rows correctly. """
+        """ get_rows_dict returns multiple rows correctly. """
         self.init_itertable(self.pagetable_mock, columnDesc=["c1", "c2"], 
                             start=0, numPageRows=1, numRows=20, pageSize=10)
         self.pagetable_mock._set_pageSize(11)
@@ -348,7 +355,9 @@ class TestIteration(Initializer):
         Initializer.__init__(self)
     
     def test_next(self):
-        """ IterTable works as an iterator (`for row in itertable` works). """
+        """ IterTable works as an iterator (`for row in itertable` expression 
+            works).
+        """
         self.init_itertable(self.pagetable_mock, columnDesc=["c1", "c2"], 
                             start=0, numPageRows=10, numRows=20, pageSize=5)
         for i in range(0, 10):

@@ -222,6 +222,7 @@ class RegistrarFilterForm(FilterForm):
     Organization = CharField(label=_('Organization'))
     City = CharField(label=_('City'))
     CountryCode = CharField(label=_('Country'))
+#    ActiveZone = CharField(label=_('Active Zone'))
 
     
 class ObjectStateFilterForm(FilterForm):

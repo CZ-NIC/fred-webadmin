@@ -132,26 +132,6 @@ class SessionLogger(object):
         log_request.update_multiple(self.common_properties.values())
         return log_request
 
-    def create_request_login(self, source_ip, content, action_type, 
-                             properties=None):
-        """
-            Creates a login request object on the server.
-            Returns a new LogRequestLogin or None on error.
-        """
-        properties = properties or []
-        request_id = self.__server_create_request(
-            source_ip, content, action_type, properties)
-
-        # TODO(tomas): Cannot send logging_session_id now, otherwise the
-        # call fails. When it's a login log request, the logging_session_id
-        # must only be sent when closing the request.
-        log_request = LogRequestLogin(
-            self.dao, request_id, self.logging_session_id, 
-            throws_exceptions=self.throws_exceptions,
-            logging_function=self.log) 
-        log_request.update_multiple(self.common_properties.values())
-        return log_request
-
     def close_session(self):
         """ 
             Tells the server to close this logging session.
@@ -275,26 +255,6 @@ class LogRequest(object):
         """ Close this logging request. Warning: the request cannot be changed
             anymore after committing. """
         success = self.dao.CloseRequest(self.request_id, content, [])
-        if not success:
-            raise LoggingException("CloseRequest failed.")
-
-
-class LogRequestLogin(LogRequest):
-    """ 
-        A request for logging a login action.
-        See LogRequest class for further information.
-        Should NOT be instantiated directly; use 
-        SessionLogger.create_request_login.
-    """
-    def __init__(self, dao, request_id, logging_session_id, throws_exceptions, 
-                 logging_function):
-        LogRequest.__init__(self, dao, request_id, throws_exceptions, 
-                            logging_function)
-        self.logging_session_id = logging_session_id
-
-    def commit(self, content=""):
-        success = self.dao.CloseRequestLogin(self.request_id, content, [], 
-                                        self.logging_session_id)
         if not success:
             raise LoggingException("CloseRequest failed.")
 

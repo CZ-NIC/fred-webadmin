@@ -1,7 +1,7 @@
 import cherrypy
 
 from fred_webadmin import config
-from fred_webadmin.adif import u2c, c2u
+from fred_webadmin.controller.adif import u2c, c2u
 #from fred_webadmin import corba
 from fred_webadmin.corba import Corba, ccReg
 #from sys import stderr as err

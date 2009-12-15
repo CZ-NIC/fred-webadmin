@@ -18,8 +18,8 @@ class User(object):
         
         if self.login == 'helpdesk':
             self.nperms = ['write.registrar', 'read.invoice']
-
-        self.nperms = []
+        else:
+            self.nperms = []
         
     def has_nperm(self, nperm):
         ''' Return True, if nperm in self.nperms or any of its shorter versions created

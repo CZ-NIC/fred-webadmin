@@ -22,59 +22,6 @@ def json_response(data):
     cherrypy.response.headers['Content-Type'] = 'text/javascript'
     return simplejson.dumps(data) 
 
-"""class LateBindingProperty(property) :
-    __doc__ = property.__dict__['__doc__'] # see bug #576990
-
-    def __init__(self, fget=None, fset=None, fdel=None, doc=None) :
-        if fget: 
-            fget = lambda s, n=fget.__name__ : getattr(s, n)()
-        if fset: 
-            fset = lambda s, v, n=fset.__name__ : getattr(s, n)(v)
-        if fdel: 
-            fdel = lambda s, n=fdel.__name__ : getattr(s, n)()
-        property.__init__(self, fget, fset, fdel, doc)"""
-"""
-class LateBindingProperty(object):
-    def __init__(self, getname=None, setname=None, delname=None,
-                 doc=None):
-        self.getname = getname.__name__ if getname is not None else None
-        self.setname = setname.__name__ if setname is not None else None
-        self.delname = delname.__name__ if delname is not None else None
-        self.__doc__ = doc
-
-    def __get__(self, obj, objtype=None):
-        if obj is None:
-            return self
-        if self.getname is None:
-            raise AttributeError('unreadable attribute')
-        try:
-            fget = getattr(obj, self.getname)
-        except AttributeError:
-            raise TypeError('%s object does not have a %s method' %
-                            (type(obj).__name__, self.getname))
-        return fget()
-
-    def __set__(self, obj, value):
-        if self.setname is None:
-            raise AttributeError("can't set attribute")
-        try:
-            fset = getattr(obj, self.setname)
-        except AttributeError:
-            raise TypeError('%s object does not have a %s method' %
-                            (type(obj).__name__, self.setname))
-        fset(value)
-
-    def __delete__(self, obj):
-        if self.delname is None:
-            raise AttributeError("can't delete attribute")
-        try:
-            fdel = getattr(obj, self.delname)
-        except AttributeError:
-            raise TypeError('%s object does not have a %s method' %
-                            (type(obj).__name__, self.delname))
-        fdel()
-"""
-
 
 def update_meta (self, other):
     """ Taken from http://code.activestate.com/recipes/408713/ """
@@ -158,44 +105,6 @@ def get_corba_session():
 
 details_cache = {}
 def get_detail(obj_type_name, obj_id):
-#    from webwidgets.gpyweb.gpyweb import DictLookup
-#    if obj_type_name == 'domain' and obj_id == 41:
-#        from omniORB.any import to_any
-#        return dict(id=41L, fqdn=u'yes.cz', 
-#                    roid=u'D0000000041-CZ', 
-#                    registrar=Registry.OID(1, 'TESTING-REG-HANDLE', ccReg.FT_REGISTRAR),
-#                    createDate=u'28.05.2008 16:48:28', transferDate=u'', updateDate=u'', 
-#                    createRegistrarHandle=u'REG-UNITTEST3', updateRegistrarHandle=u'', 
-#                    authInfo=[
-#                        Registry.HistoryRecord(to_any(u'pEklw2iU'), 3, ccReg.DateTimeType(ccReg.DateType(1, 1, 2007), 16, 10, 11), ccReg.DateTimeType(ccReg.DateType(0, 0, 0), 16, 10, 12)), 
-#                        Registry.HistoryRecord(to_any(u'pEklw2iU'), 3, ccReg.DateTimeType(ccReg.DateType(1, 6, 2006), 16, 10, 10), ccReg.DateTimeType(ccReg.DateType(1, 1, 2007), 16, 10, 11)), 
-#                    ], 
-#                    registrantHandle=u'CID:TOM', expirationDate=u'28.05.2009', valExDate=u'', nssetHandle=u'',
-#                    admins=[
-#                            Registry.OID(6, 'CID:Manasek', ccReg.FT_CONTACT),
-#                            Registry.OID(6, 'CID:Tirno', ccReg.FT_CONTACT),
-#                    ],
-#                    admin_pets=[
-#                            Registry.HistoryRecord(to_any([
-#                                Registry.OID(6, 'CID:Racca', ccReg.FT_CONTACT),
-#                                Registry.OID(6, 'CID:Caka', ccReg.FT_CONTACT),
-#                            ]), 3, ccReg.DateTimeType(ccReg.DateType(1, 1, 2008), 16, 10, 11), ccReg.DateTimeType(ccReg.DateType(0, 0, 0), 0, 0, 0)),
-#                            Registry.HistoryRecord(to_any([
-#                                Registry.OID(8, 'CID:Osvald', ccReg.FT_CONTACT),
-#                                Registry.OID(6, 'CID:Olina', ccReg.FT_CONTACT),
-#                            ]), 3, ccReg.DateTimeType(ccReg.DateType(2, 1, 2007), 16, 10, 12), ccReg.DateTimeType(ccReg.DateType(3, 1, 2007), 16, 10, 12)),
-#                            Registry.HistoryRecord(to_any([
-#                                Registry.OID(23, 'CID:Goro', ccReg.FT_CONTACT),
-#                                Registry.OID(8, 'CID:Mourek', ccReg.FT_CONTACT),
-#                            ]), 3, ccReg.DateTimeType(ccReg.DateType(1, 1, 2007), 16, 10, 11), ccReg.DateTimeType(ccReg.DateType(2, 1, 2007), 16, 10, 12)),
-#                    ],
-#                    
-#                    temps=[
-#                            Registry.HistoryRecord(to_any(Registry.OID(6, 'CID:Racca',   ccReg.FT_CONTACT)), 3, ccReg.DateTimeType(ccReg.DateType(3, 3, 2007), 16, 10, 12), ccReg.DateTimeType(ccReg.DateType(0, 0, 0), 0, 0, 0)),
-#                            Registry.HistoryRecord(to_any(Registry.OID(9, 'CID:Osvald', ccReg.FT_CONTACT)), 3, ccReg.DateTimeType(ccReg.DateType(2, 2, 2007), 16, 10, 12), ccReg.DateTimeType(ccReg.DateType(3, 3, 2007), 16, 10, 12)),
-#                            Registry.HistoryRecord(to_any(Registry.OID(23, 'CID:Goro',  ccReg.FT_CONTACT)), 3, ccReg.DateTimeType(ccReg.DateType(1, 1, 2007), 16, 10, 11), ccReg.DateTimeType(ccReg.DateType(2, 2, 2007), 16, 10, 12)),
-#                    ], 
-#                    statusList=[15])
     result_from_cache = details_cache.get((obj_type_name, obj_id))
     if result_from_cache is not None:
         debug('Cache hit (%s, %s)' % (obj_type_name, obj_id))
