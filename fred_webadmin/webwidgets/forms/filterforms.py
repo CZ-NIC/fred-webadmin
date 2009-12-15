@@ -22,7 +22,8 @@ __all__ = ['UnionFilterForm', 'RegistrarFilterForm', 'ObjectStateFilterForm',
            'ObjectFilterForm', 'ContactFilterForm', 'NSSetFilterForm', 'KeySetFilterForm', 'DomainFilterForm', 
            'ActionFilterForm', 'FilterFilterForm', 'PublicRequestFilterForm', 
            'InvoiceFilterForm', 'MailFilterForm', 'FileFilterForm',
-           'LoggerFilterForm', 'BankStatementFilterForm', 'get_filter_forms_javascript']
+           'LoggerFilterForm', 'BankStatementFilterForm', 'ZoneFilterForm',
+           'ZoneNsFilterForm', 'get_filter_forms_javascript']
 
 class FilterFormEmptyValue(object):
     ''' Class used in clean method of Field as empty value (if
@@ -213,7 +214,21 @@ class FilterForm(Form):
             if name in self.cleaned_data:
                 del self.cleaned_data[name]
 
+
+class ZoneNsFilterForm(FilterForm):
+    default_fields_names = ['Fqdn']
+
+    Fqdn = CharField(label=_('Name'))
    
+
+class ZoneFilterForm(FilterForm):
+    default_fields_names = ['Fqdn']
+
+    Fqdn = CharField(label=_('Name'))
+    ZoneNs = CompoundFilterField(
+        label=_('Zone NS'), form_class=ZoneNsFilterForm)
+
+
 class RegistrarFilterForm(FilterForm):
     default_fields_names = ['Handle']
     
@@ -222,7 +237,10 @@ class RegistrarFilterForm(FilterForm):
     Organization = CharField(label=_('Organization'))
     City = CharField(label=_('City'))
     CountryCode = CharField(label=_('Country'))
-#    ActiveZone = CharField(label=_('Active Zone'))
+    ZoneFqdn = CharField(label=_('Zone'))
+
+    ActiveZone = CompoundFilterField(
+        label=_('Active Zone'), form_class=ZoneFilterForm)
 
     
 class ObjectStateFilterForm(FilterForm):

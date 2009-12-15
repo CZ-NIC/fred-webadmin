@@ -67,7 +67,8 @@ class ListTableMixin(object):
             table.set_filter(cleaned_filters)
             if kwd.get('save_input'): # save filter
                 table.save_filter(kwd['save_input'])
-                context['main'].add(_('Filter saved as "%s"') % kwd['save_input'])
+                context['main'].add(_(
+                    'Filter saved as "%s"') % kwd['save_input'])
                 show_result = False
             else: # normal setting filter
                 table.reload()
@@ -77,7 +78,8 @@ class ListTableMixin(object):
                 show_result = False
                 filter_data = table.get_filter_data()
                 form_class = self._get_filterform_class()
-                context['form'] = UnionFilterForm(filter_data, data_cleaned=True, form_class=form_class)
+                context['form'] = UnionFilterForm(
+                    filter_data, data_cleaned=True, form_class=form_class)
             else:
                 table.reload()
 
@@ -89,11 +91,13 @@ class ListTableMixin(object):
         if kwd.get('load'): # load current filter from backend
             cleaned_filter_data = table.get_filter_data()
             form_class = self._get_filterform_class()
-            form = UnionFilterForm(cleaned_filter_data, form_class=form_class, data_cleaned=True)
+            form = UnionFilterForm(
+                cleaned_filter_data, form_class=form_class, data_cleaned=True)
             context['form'] = form
             context['show_form'] = kwd.get('show_form')
             if config.debug:
-                context['main'].add('kwd_json_data_loaded:', cleaned_filter_data)
+                context['main'].add(
+                    'kwd_json_data_loaded:', cleaned_filter_data)
         if kwd.get('list_all'):
             table.clear_filter()
             table._table.add()
@@ -106,15 +110,19 @@ class ListTableMixin(object):
                 context['result'] = _("No_entries_found")
             if table.num_rows == 1:
                 rowId = table.get_row_id(0)
-                raise cherrypy.HTTPRedirect(f_urls[self.classname] + 'detail/?id=%s' % rowId)
+                raise (cherrypy.HTTPRedirect(f_urls[self.classname] + 
+                    'detail/?id=%s' % rowId))
             if kwd.get('txt', None):
                 cherrypy.response.headers["Content-Type"] = "text/plain"
-                cherrypy.response.headers["Content-Disposition"] = "inline; filename=%s_%s.txt" % (self.classname, time.strftime('%Y-%m-%d'))
+                cherrypy.response.headers["Content-Disposition"] = \
+                    "inline; filename=%s_%s.txt" % (self.classname,
+                    time.strftime('%Y-%m-%d'))
                 return fileGenerator(table)
             elif kwd.get('csv', None):
-                #cherrypy.response.headers["Content-Type"] = "application/vnd.ms-excel"
                 cherrypy.response.headers["Content-Type"] = "text/plain"
-                cherrypy.response.headers["Content-Disposition"] = "attachement; filename=%s_%s.csv" % (self.classname, time.strftime('%Y-%m-%d'))
+                cherrypy.response.headers["Content-Disposition"] = \
+                    "attachement; filename=%s_%s.csv" % (
+                        self.classname, time.strftime('%Y-%m-%d'))
                 return fileGenerator(table)
             table.set_page(page)
             
@@ -140,8 +148,6 @@ class ListTableMixin(object):
             itertable.set_sort_by_name(kwd['sort'], kwd['dir'])
         
         rows = itertable.get_rows_dict(kwd.get('start'), kwd.get('limit'))
-
-        #rows = itertable.get_rows_dict(kwd.get('start', 0), kwd.get('limit', itertable.page_size))
         
         json_data = json_response({
             'rows': rows,
@@ -174,15 +180,19 @@ class ListTableMixin(object):
 
         if kwd.get('txt') or kwd.get('csv'):
             return self._get_list(context, **kwd)
-        elif kwd.get('cf') or kwd.get('page') or kwd.get('load') or kwd.get('list_all') or \
-            kwd.get('filter_id') or kwd.get('sort_col'): # clear filter - whole list of objects without using filter form
+        elif (kwd.get('cf') or kwd.get('page') or kwd.get('load') or 
+              kwd.get('list_all') or kwd.get('filter_id') or
+              kwd.get('sort_col')): 
+                # clear filter - whole list of objects without using filter form
             context = self._get_list(context, **kwd)
         else:
             form_class = self._get_filterform_class()
             # bound form with data
             if kwd.get('json_data') or kwd.get('json_linear_filter'):
                 if kwd.get('json_linear_filter'):
-                    kwd['json_data'] = simplejson.dumps(convert_linear_filter_to_form_output(simplejson.loads(kwd['json_linear_filter'])))
+                    kwd['json_data'] = simplejson.dumps(
+                        convert_linear_filter_to_form_output(
+                            simplejson.loads(kwd['json_linear_filter'])))
                 debug('Form inicializuju datama' % kwd)
                 form = UnionFilterForm(kwd, form_class=form_class)
             else:
@@ -193,11 +203,13 @@ class ListTableMixin(object):
             if form.is_valid():
                 if config.debug:
                     context['main'].add(p(u'Jsem validni'))
-                    context['main'].add(u'cleaned_data:' + unicode(form.cleaned_data), br())
+                    context['main'].add(u'cleaned_data:' + unicode(
+                        form.cleaned_data), br())
                 debug(u'cleaned_data:' + unicode(form.cleaned_data))
                 context = self._get_list(context, form.cleaned_data, **kwd)
 
-                context['main'].add(u"rows: " + str(self._get_itertable().num_rows))
+                context['main'].add(u"rows: " + str(
+                    self._get_itertable().num_rows))
                 log_req.update("result_size", self._get_itertable().num_rows)
                 # Log the selected filters.
                 # TODO(tomas): Log OR operators better...
@@ -212,7 +224,8 @@ class ListTableMixin(object):
             else:
                 
                 if form.is_bound and config.debug:
-                    context['main'].add(u'Jsem nevalidni, errors:' + unicode(form.errors.items()))
+                    context['main'].add(u'Jsem nevalidni, errors:' + unicode(
+                        form.errors.items()))
                 context['headline'] = '%s filter' % self.__class__.__name__
         
         return self._render(action, context)
@@ -227,7 +240,8 @@ class ListTableMixin(object):
                               'Type': [False, f_name_id[self.classname]]
                              }])
         itertable.reload()
-        context['filters_list'] = FilterListCustomUnpacked(itertable.get_rows_dict(raw_header=True), self.classname)
+        context['filters_list'] = FilterListCustomUnpacked(
+            itertable.get_rows_dict(raw_header=True), self.classname)
         return self._render('allfilters', context)
 
     @check_onperm('read')
