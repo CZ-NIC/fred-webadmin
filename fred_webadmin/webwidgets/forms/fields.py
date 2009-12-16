@@ -221,7 +221,6 @@ class DateField(CharField):
         self.cssc = 'datefield'
         self.js_calendar = js_calendar
         if js_calendar:
-#            self.media_files.append('/js/scw.js')
             self.media_files = ['/js/scw.js']
             self.onclick = 'scwShow(this,event);' 
         
@@ -343,14 +342,6 @@ class RegexField(CharField):
         self.error_message = error_message or _(u'Enter a valid value.')
 
     def __deepcopy__(self, memo):
-#        regex = self.regex
-#        self.regex = None
-#        __deepcopy__ = self.__deepcopy__
-#        self.__deepcopy__ = None
-#        result = deepcopy(self)
-#        result.regex = regex
-#        result.__deepcopy__ = __deepcopy__
-#        return result
         result = self.__class__(self.name, self.value, self.regex, self.max_length, self.min_length, self.error_message)
         result.negation = self.negation
         result.required = self.required
@@ -540,8 +531,11 @@ class HiddenField(CharField):
 
 class HiddenDecimalField(DecimalField):
     is_hidden = True
-    def __init__(self, name='', value='', max_value=None, min_value=None, max_digits=None, decimal_places=None, *args, **kwargs):
-        super(HiddenDecimalField, self).__init__(name, value, max_value, min_value, max_digits, decimal_places, *args, **kwargs)
+    def __init__(self, name='', value='', max_value=None, min_value=None, 
+                 max_digits=None, decimal_places=None, *args, **kwargs):
+        super(HiddenDecimalField, self).__init__(
+            name, value, max_value, min_value, max_digits, decimal_places, 
+            *args, **kwargs)
         if self.tag == u'input':
             self.type = u'hidden'
     

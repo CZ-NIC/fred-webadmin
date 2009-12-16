@@ -412,12 +412,6 @@ class Summary(AdifPage):
     @login_required
     def index(self):
         context = DictLookup()
-#        context.main = ul(
-#            li(a(attr(href='/naky_url/'), u'Dopisy')),
-#        )
-        #context.main = FilterPanel([[_('Mails'), 'file', [{'Type': '5'}]]])
-        #context.main = ul(li(a(attr(href='''/file/filter/?json_data=[{\'presention|Type\':\'000\',\'Type\':\'5\'}]'}'''), _('Mails'))))
-        #context.main = ul(li(a(attr(href="/file/filter/?json_linear_filter=[{%22Type%22:%225%22}]"), _('Mails'))))
         context.main = ul(li(a(attr(href='''/file/filter/?json_data=[{%22presention|CreateTime%22:%22on%22,%22CreateTime/3%22:%2210%22,%22CreateTime/0/0%22:%22%22,%22CreateTime/0/1/0%22:%220%22,%22CreateTime/0/1/1%22:%220%22,%22CreateTime/1/0%22:%22%22,%22CreateTime/1/1/0%22:%220%22,%22CreateTime/1/1/1%22:%220%22,%22CreateTime/4%22:%22-2%22,%22CreateTime/2%22:%22%22,%22presention|Type%22:%22000%22,%22Type%22:%225%22}]'''), _('Domain expiration letters'))))
         return self._render('summary', ctx=context)
     

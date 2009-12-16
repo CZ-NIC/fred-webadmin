@@ -13,18 +13,6 @@ from fred_webadmin.webwidgets.utils import ErrorDict, ErrorList, ValidationError
 
 NON_FIELD_ERRORS = '__all__'
 
-#class SortedDictFromList(SortedDict):
-#    "A dictionary that keeps its keys in the order in which they're inserted."
-#    # This is different than django.utils.datastructures.SortedDict, because
-#    # this takes a list/tuple as the argument to __init__().
-#    def __init__(self, data=None):
-#        if data is None: data = []
-#        self.keyOrder = [d[0] for d in data]
-#        dict.__init__(self, dict(data))
-#
-#    def copy(self):
-#        return SortedDictFromList([(k, deepcopy(v)) for k, v in self.items()])
-
 class DeclarativeFieldsMetaclass(WebWidget.__metaclass__):
     """
     Metaclass that converts Field attributes to a dictionary called
@@ -37,8 +25,6 @@ class DeclarativeFieldsMetaclass(WebWidget.__metaclass__):
         # If this class is subclassing another Form, add that Form's fields.
         # Note that we loop over the bases in *reverse*. This is necessary in
         # order to preserve the correct order of fields.
-#        debug('%s|%s|%s|%s' % (cls, name, bases, attrs))
-
         for base in bases[::-1]:
             if hasattr(base, 'base_fields'):
                 fields = base.base_fields.items() + fields
@@ -62,7 +48,6 @@ class BaseForm(form):
                  initial=None, error_class=ErrorList, label_suffix=':', layout_class=TableFormLayout, 
                  is_nested = False, empty_permitted=False, *content, **kwd):
         super(BaseForm, self).__init__(*content, **kwd)
-        #self.normal_attrs += ['base_fields', 'fields', 'is_bound', 'data', 'files', 'auto_id', 'prefix', 'initial', 'error_class', 'label_suffix', '_errors', 'layout_class']
         
         if not is_nested:
             self.tag = u'form'
@@ -118,8 +103,6 @@ class BaseForm(form):
     def set_fields_values(self):
         # setting initials is independent on whether form is bound or not:
         for field in self.fields.values():
-#            if field.name == 'access':
-#                import pdb; pdb.set_trace()
             data = self.initial.get(field.name_orig, field.initial)
             if callable(data):
                 data = data()
@@ -130,20 +113,10 @@ class BaseForm(form):
             if self.initial:
                 for field in self.fields.values():
                     if field.initial is not None:
-                        #if field.name == 'access':
-                        #    import pdb; pdb.set_trace()
                         field.value_is_from_initial = True
                         field.value = field.initial
         else:
-##            for key, val in self.data.items():
-##                field = self.fields.get(key)
-##                if field:
-##                    field.value = val
-            print "self:",repr(self)
-            print "DATA:",self.data
             for field in self.fields.values():
-#                if field.name.endswith('DELETE'):
-#                    import pdb; pdb.set_trace() 
                 field.value = field.value_from_datadict(self.data)
                 
          
@@ -197,7 +170,6 @@ class BaseForm(form):
         debug('Adding layout %s to %s' % (self.layout_class, self.__class__.__name__))
         self.add(self.layout_class(self))
         debug('After adding layout %s to %s' % (self.layout_class, self.__class__.__name__))
-        #self.layout_class(self).render(indent_level)
         return super(BaseForm, self).render(indent_level)
 
     def non_field_errors(self):

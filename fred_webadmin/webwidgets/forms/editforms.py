@@ -53,6 +53,8 @@ class AccessEditForm(EditForm):
 
 
 class ZoneEditForm(EditForm):
+    id = HiddenDecimalField(initial=0)
+
     name = CharField(label=_('Name'))
     fromDate = CharField(label=_('From'))
     toDate = CharField(label=_('To'), required=False)
