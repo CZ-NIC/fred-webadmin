@@ -474,6 +474,7 @@ class Registrar(AdifPage, ListTableMixin):
         new.extend(['']*4)
         new.append('') # money
         new.append([]) # accesses
+        new.append([]) # active zones
         new.append(False) # hidden
         return ccReg.Registrar(*new) # empty registrar
 

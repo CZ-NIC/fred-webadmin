@@ -54,6 +54,8 @@ class AccessEditForm(EditForm):
 
 class ZoneEditForm(EditForm):
     name = CharField(label=_('Name'))
+    fromDate = CharField(label=_('From'))
+    toDate = CharField(label=_('To'), required=False)
 
 
 class RegistrarEditForm(EditForm):
@@ -85,6 +87,7 @@ class RegistrarEditForm(EditForm):
     email = CharField(label=_('Email'), required=False) # contact email
     url = CharField(label=_('URL'), required=False) # URL
     hidden = BooleanField(label=_('System registrar'), required=False) # System registrar
+
     #access = EPPAccessSeq # list of epp access data
     access = FormSetField(label=_('Authentication'), form_class=AccessEditForm, can_delete=True)
     zones = FormSetField(

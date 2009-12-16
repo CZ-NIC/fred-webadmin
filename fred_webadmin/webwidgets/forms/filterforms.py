@@ -65,8 +65,6 @@ class UnionFilterForm(Form):
                             '/filter_forms_javascript.js',
                             '/js/check_filter_forms_javascript.js',
                            ]
-        #self.onsubmit = '''alert('submituji');sendUnionForm(this); return false;'''
-        #self.onsubmit = '''alert('submituju'); false;'''
         self.onkeypress = 'if (event.keyCode == 13) {sendUnionForm(this);}' # submit on enter
     
     def set_fields_values(self):
@@ -135,7 +133,6 @@ class FilterForm(Form):
         self.tag = None
     
     def filter_base_fields(self):
-#        import pdb; pdb.set_trace()
         super(FilterForm, self).filter_base_fields()
         user = cherrypy.session.get('user', None)
         if user is None:
@@ -198,7 +195,6 @@ class FilterForm(Form):
         for pos, field in sorted([[field.order, field] for field in fields_for_sort]):  
             self.fields[field.name] = field
             field.owner_form = self
-        debug("RESULTED FIELDS %s" % self.fields.items())
     
     def clean_field(self, name, field):
         try:
@@ -225,6 +221,7 @@ class ZoneFilterForm(FilterForm):
     default_fields_names = ['Fqdn']
 
     Fqdn = CharField(label=_('Name'))
+    EnumZone = BooleanField(label=_('Enum'))
     ZoneNs = CompoundFilterField(
         label=_('Zone NS'), form_class=ZoneNsFilterForm)
 
@@ -464,6 +461,8 @@ form_classes = (DomainFilterForm,
                 MailFilterForm,
                 ObjectStateFilterForm,
                 LoggerFilterForm,
+                ZoneFilterForm,
+                ZoneNsFilterForm,
                )
 
 def get_filter_forms_javascript():

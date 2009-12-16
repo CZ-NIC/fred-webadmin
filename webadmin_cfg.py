@@ -14,6 +14,7 @@ log_level = logging.DEBUG
 
 # SessionLogger settings
 session_logging_enabled = True
+#session_logging_enabled = False
 
 
 idl = '/home/tomas/code/enum/idl/trunk/idl/ccReg.idl' #'/usr/share/idl/fred/ccReg.idl'
