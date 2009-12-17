@@ -19,6 +19,7 @@ parser.add_option('--nperms_for_class', action='store', type="string", dest='npe
                   help='Prints negative permission of specified class.')
 
 if __name__ == '__main__':
+    (options, args) = parser.parse_args()
     if options.nperms or options.nperms_distinct:
         from fred_webadmin.info import print_nperms
         print_nperms(options.nperms_distinct)
