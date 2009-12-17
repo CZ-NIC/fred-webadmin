@@ -203,6 +203,11 @@ class LogRequest(object):
         self.dao = dao
         self.request_id = request_id
 
+    def _convert_nested_to_str(self, value):
+        if not isinstance(value, list) and not isinstance(value, tuple):
+            return str(value)
+        return [self._convert_nested_to_str(item) for item in value]
+
     def update(self, name, value, output=False, child=False):
         """
             Add a new row to the log request.
@@ -224,11 +229,10 @@ class LogRequest(object):
                 LoggingException: If SessionLogger.throws_exceptions 
                 is True and any error has occured.
         """
-
         if not isinstance(name, basestring):
             name = str(name)
         if not isinstance(value, basestring):
-            value = str(value)
+            value = str(self._convert_nested_to_str(value))
         name = u2c(name)
         value = u2c(value)
         prop = [ccReg.RequestProperty(name, value, output, child)]
