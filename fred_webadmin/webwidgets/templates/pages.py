@@ -322,10 +322,10 @@ class MailDetail(DetailPage):
         c = self.context
         if c.get('result'):
             self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
-            #self.main.add(MailDetailDiv(context))
             self.main.add(adifdetails.MailDetail(c.result, c.history))
             if config.debug:
                 self.main.add('MailDETAIL:', div(attr(style='width: 1024px; overflow: auto;'), pre(unicode(c.result).replace(u', ', u',\n'))))
+
 
 class InvoiceDetail(DetailPage):
     def __init__(self, context = None):
@@ -333,10 +333,10 @@ class InvoiceDetail(DetailPage):
         c = self.context
         if c.get('result'):
             self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
-            #self.main.add(InvoiceDetailDiv(context))
             self.main.add(adifdetails.InvoiceDetail(c.result, c.history))
             if config.debug:
                 self.main.add('InvoiceDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
+
 
 class LoggerDetail(DetailPage):
     def __init__(self, context = None):
@@ -344,12 +344,21 @@ class LoggerDetail(DetailPage):
         c = self.context
         if c.get('result'):
             self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
-            #self.main.add(InvoiceDetailDiv(context))
             self.main.add(adifdetails.LoggerDetail(c.result, c.history))
             if config.debug:
                 self.main.add('LoggerDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
 
-                
+
+class BankStatementDetail(DetailPage):
+    def __init__(self, context = None):
+        super(BankStatementDetail, self).__init__(context)
+        c = self.context
+        if c.get('result'):
+            self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
+            self.main.add(adifdetails.BankStatementDetail(c.result, c.history))
+            if config.debug:
+                self.main.add('BankStatementDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
+
                 
 class EditPage(BaseSiteMenu):
     def __init__(self, context = None):

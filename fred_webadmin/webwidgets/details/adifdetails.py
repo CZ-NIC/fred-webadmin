@@ -402,15 +402,19 @@ class LoggerDetail(Detail):
 class BankStatementDetail(Detail):
 
     #TODO(tomas): Add detail fields
+    accountNumber = CharDField(label=_('Account Number'))
+    bankCodeId = CharDField(label=_('Bank Code'))
+    code = CharDField(label=_('Code'))
+    type = CharDField(label=_('Type'))
 
-    def add_to_bottom(self):
-        if self.data:
-#            import pdb; pdb.set_trace()
-            self.add(FilterPanel([
-                [_('Pair Statement'), 
-                    "/bankstatement/pairing/?id=%s" % self.data.get('id')]
-            ]))
-        super(BankStatementDetail, self).add_to_bottom()
+    
+#    def add_to_bottom(self):
+#        if self.data:
+#            self.add(FilterPanel([
+#                [_('Pair Statement'), 
+#                    "/bankstatement/pairing/?id=%s" % self.data.get('id')]
+#            ]))
+#        super(BankStatementDetail, self).add_to_bottom()
 
 
 class InvoiceDetail(Detail):
@@ -443,4 +447,5 @@ detail_classes = [AccessDetail, RegistrarDetail,
                   DSRecordDetail, DNSKeyDetail, KeySetDetail, 
                   DomainDetail, 
                   ActionDetail, PublicRequestDetail, MailDetail, 
-                  PaymentDetail, PaymentActionDetail, InvoiceDetail]
+                  PaymentDetail, PaymentActionDetail, InvoiceDetail,
+                  BankStatementDetail, LoggerDetail]

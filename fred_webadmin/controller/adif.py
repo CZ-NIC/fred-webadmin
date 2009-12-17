@@ -59,7 +59,7 @@ from fred_webadmin.webwidgets.templates.pages import (
     AllFiltersPage, FilterPage, ErrorPage, DigPage, SetInZoneStatusPage, 
     DomainDetail, ContactDetail, NSSetDetail, KeySetDetail, RegistrarDetail, 
     ActionDetail, PublicRequestDetail, MailDetail, InvoiceDetail, LoggerDetail,
-    RegistrarEdit,
+    RegistrarEdit, BankStatementDetail
 )
 from fred_webadmin.webwidgets.gpyweb.gpyweb import WebWidget
 from fred_webadmin.webwidgets.gpyweb.gpyweb import DictLookup, noesc, attr, ul, li, a, div, span, p, br, pre
@@ -457,6 +457,21 @@ class Statistics(AdifPage):
 
 
 class Registrar(AdifPage, ListTableMixin):
+
+    def __init__(self):
+        AdifPage.__init__(self)
+        ListTableMixin.__init__(self)
+        # Some fields must be treated specially (the value must be converted
+        # to corba type first). We use self.type_transformer to map the names
+        # of these fields to their respective converting functions.
+        self.type_transformer = {}
+        self.type_transformer['zones'] = lambda val: map(
+            lambda x: ccReg.ZoneAccess(**x), val)
+        self.type_transformer['access'] = lambda val: map(
+            lambda x: ccReg.EPPAccess(**x), val)
+        self.type_transformer['id'] = lambda val: int(val)
+        # All the other fields (i.e., those not in transformer) are strings.
+
     def _get_empty_corba_struct(self):
         new = []
         new.append(0) # id
@@ -472,6 +487,17 @@ class Registrar(AdifPage, ListTableMixin):
         new.append(False) # hidden
         return ccReg.Registrar(*new) # empty registrar
 
+    def _fill_registrar_struct_from_form(self, registrar, cleaned_data, 
+      log_request):
+        for field_key, field_val in cleaned_data.items():
+            # Create the corba object for the respective field.
+            if field_key in self.type_transformer:
+                corba_val = self.type_transformer[field_key](field_val)
+            else:
+                corba_val = field_val
+            setattr(registrar, field_key, corba_val)
+            # Add this action to the audit log.
+            log_request.update("set_%s" % field_key, field_val)
 
     def _update_registrar(self, registrar, log_request, *params,**kwd):
         kwd['edit'] = True
@@ -481,35 +507,20 @@ class Registrar(AdifPage, ListTableMixin):
 
         if cherrypy.request.method == 'POST':
             form = form_class(kwd, initial=initial, method='post')
-            debug("KWD: %s" % kwd)
             context['main'].add(pre(('KWD: %s' % kwd).replace(',', ',\n')))
             if form.is_valid():
                 if debug:
-                    context['main'].add(pre(unicode('Cleaned_data:\n%s' % 
-                                                     form.cleaned_data).replace(
-                                                        ',', ',\n')))
-                obj = self._get_empty_corba_struct()
-                for key, val in form.cleaned_data.items():
-                    if key == 'id':
-                        val = int(val)
-                    if key == 'access':
-                        for i in range(len(val)):
-                            val[i] = ccReg.EPPAccess(**val[i])
-                    if key == 'zones':
-#                        import pdb; pdb.set_trace()
-                        for i in range(len(val)):
-                            val[i] = ccReg.ZoneAccess(**val[i])
-                    setattr(obj, key, val)
-                    log_request.update("set_%s" % key, val)
-                debug('Saving registrar: %s' % obj)
+                    context['main'].add(pre(unicode(
+                        'Cleaned_data:\n%s' % form.cleaned_data).replace(
+                            ',', ',\n')))
+                self._fill_registrar_struct_from_form(
+                    registrar, form.cleaned_data, log_request)
                 try:
-#                   import pdb; pdb.set_trace()
                     get_corba_session().updateRegistrar(u2c(obj))
                 except:
-                    form.non_field_errors().append("Updating registrar failed."
-                                                    "Did you try to create a "
-                                                    "registrar with an "
-                                                    "already used handle?")
+                    form.non_field_errors().append(
+                        "Updating registrar failed. Perhaps you tried to "
+                        "create a registrar with an already used handle?")
                     context['form'] = form
                     return self._render('edit', context)
                 log_request.commit("")
@@ -709,7 +720,7 @@ class Invoice(AdifPage, ListTableMixin):
     def pairing(self, **kwd):
         pass
 
-class Bankstatement(AdifPage, ListTableMixin):
+class BankStatement(AdifPage, ListTableMixin):
     pass
 
 class Filter(AdifPage, ListTableMixin):
@@ -818,7 +829,7 @@ def runserver():
     root.file = File()
     root.publicrequest = PublicRequest()
     root.invoice = Invoice()
-    root.bankstatement = Bankstatement()
+    root.bankstatement = BankStatement()
     root.filter = Filter()
     root.statistic = Statistics()
     root.devel = Development()
