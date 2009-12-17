@@ -523,6 +523,7 @@ class BooleanField(Field):
 
 class HiddenField(CharField):
     is_hidden = True
+
     def __init__(self, name='', value='', *args, **kwargs):
         super(HiddenField, self).__init__(name, value, *args, **kwargs)
         if self.tag == u'input':
@@ -531,11 +532,23 @@ class HiddenField(CharField):
 
 class HiddenDecimalField(DecimalField):
     is_hidden = True
+
     def __init__(self, name='', value='', max_value=None, min_value=None, 
                  max_digits=None, decimal_places=None, *args, **kwargs):
         super(HiddenDecimalField, self).__init__(
             name, value, max_value, min_value, max_digits, decimal_places, 
             *args, **kwargs)
+        if self.tag == u'input':
+            self.type = u'hidden'
+
+
+class HiddenIntegerField(IntegerField):
+    is_hidden = True
+
+    def __init__(self, name='', value='', max_value=None, min_value=None, 
+                 *args, **kwargs):
+        super(HiddenIntegerField, self).__init__(
+            name, value, max_value, min_value, *args, **kwargs)
         if self.tag == u'input':
             self.type = u'hidden'
     

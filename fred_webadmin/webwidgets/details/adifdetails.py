@@ -396,11 +396,21 @@ class LoggerDetail(Detail):
     raw_request = CharDField(label=_("Raw request"))
     raw_response = CharDField(label=_("Raw response"))
 
-    (_('Dates'), ('timeBegin', 'timeEnd'), DatesSectionLayout),
+#    sections = ((_('Dates'), ('timeBegin', 'timeEnd'), DatesSectionLayout),)
 
 
 class BankStatementDetail(Detail):
-    pass
+
+    #TODO(tomas): Add detail fields
+
+    def add_to_bottom(self):
+        if self.data:
+#            import pdb; pdb.set_trace()
+            self.add(FilterPanel([
+                [_('Pair Statement'), 
+                    "/bankstatement/pairing/?id=%s" % self.data.get('id')]
+            ]))
+        super(BankStatementDetail, self).add_to_bottom()
 
 
 class InvoiceDetail(Detail):

@@ -372,6 +372,8 @@ class BankStatementFilterForm(FilterForm):
     ConstSymb = CharField(label=_('Constant symbol'))
     VarSymb = CharField(label=_('Variable symbol'))
 
+    InvoiceId = IntegerField(label=_('Id'))
+
 
 class FilterFilterForm(FilterForm):
     default_fields_names = ['Type']
@@ -463,6 +465,7 @@ form_classes = (DomainFilterForm,
                 LoggerFilterForm,
                 ZoneFilterForm,
                 ZoneNsFilterForm,
+                BankStatementFilterForm,
                )
 
 def get_filter_forms_javascript():

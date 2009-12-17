@@ -111,7 +111,7 @@ class FilterPanel(table):
     def __init__(self, filters, *content, **kwd):
         ''' filters is list of tripplet [button_label, object_name, filters] where filters in linear form. written
             (e.g. [{'domain.registrar.handle'='ahoj', 'handle'=[True, 'ahoj']}] (True is for negation))
-            (so if there is negation, then value is list [value, negaion], otherwise it is just value)
+            (so if there is negation, then value is list [value, negation], otherwise it is just value)
             Alternatively, instead of filter (which is triplet), can be used direct link (couple):
             [button_label, url]
         '''
@@ -128,14 +128,9 @@ class FilterPanel(table):
             if len(button_data) == 2:
                 button_label, url = button_data
                 
-#                self.filter_buttons.add(
-#                    td(form(attr(action = url, method='POST'), 
-#                            input(attr(type='submit', value=_(button_label))))) 
-#                )
                 self.filter_buttons.add(
                     td(a(attr(href = url), _(button_label))) 
                 )
-
 
             elif len(button_data) == 3:
                 button_label, obj_name, filter = button_data

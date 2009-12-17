@@ -494,12 +494,16 @@ class Registrar(AdifPage, ListTableMixin):
                         val = int(val)
                     if key == 'access':
                         for i in range(len(val)):
-                            print "ACC[%s]=%s" % (i, val[i])
                             val[i] = ccReg.EPPAccess(**val[i])
+                    if key == 'zones':
+#                        import pdb; pdb.set_trace()
+                        for i in range(len(val)):
+                            val[i] = ccReg.ZoneAccess(**val[i])
                     setattr(obj, key, val)
                     log_request.update("set_%s" % key, val)
                 debug('Saving registrar: %s' % obj)
                 try:
+#                   import pdb; pdb.set_trace()
                     get_corba_session().updateRegistrar(u2c(obj))
                 except:
                     form.non_field_errors().append("Updating registrar failed."
@@ -700,7 +704,10 @@ class PublicRequest(AdifPage, ListTableMixin):
 
 
 class Invoice(AdifPage, ListTableMixin):
-    pass
+
+    @check_onperm('write')
+    def pairing(self, **kwd):
+        pass
 
 class Bankstatement(AdifPage, ListTableMixin):
     pass

@@ -53,7 +53,7 @@ class AccessEditForm(EditForm):
 
 
 class ZoneEditForm(EditForm):
-    id = HiddenDecimalField(initial=0)
+    id = HiddenIntegerField(initial=0)
 
     name = CharField(label=_('Name'))
     fromDate = CharField(label=_('From'))
@@ -94,6 +94,10 @@ class RegistrarEditForm(EditForm):
     access = FormSetField(label=_('Authentication'), form_class=AccessEditForm, can_delete=True)
     zones = FormSetField(
         label=_('Zones'), form_class=ZoneEditForm, can_delete=True)
+
+
+class BankStatementEditForm(EditForm):
+    InvoiceId = IntegerField(label=_('Id'))
     
     
 form_classes = [AccessEditForm, RegistrarEditForm]

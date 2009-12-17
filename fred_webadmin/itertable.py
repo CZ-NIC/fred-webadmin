@@ -253,6 +253,7 @@ class IterTable(object):
     def next(self):
         """ To make IterTable iterable. """
         while self._row_index < (self.page_start + self.page_rows):
+#            import pdb; pdb.set_trace()
             row = self._get_row(self._row_index)
             self._row_index += 1
             yield row
