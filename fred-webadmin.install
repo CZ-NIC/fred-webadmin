@@ -7,7 +7,7 @@ for python_path in [DU_PYTHON_PATHS]: #DU_PYTHON_PATH is replaced by /etc/fred a
 #psyco.full()
 
 from fred_webadmin.controller import adif
-from fred_webadmin.option_parse import options
+from util.option_parse import options
 
 if __name__ == '__main__':
     if options.nperms or options.nperms_distinct:
