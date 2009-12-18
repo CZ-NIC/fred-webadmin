@@ -9,6 +9,7 @@ from fred_webadmin.utils import get_current_url, append_getpar_to_url
 
 #from details import ContactDetailDiv, DomainDetailDiv, NSSetDetailDiv, ActionDetailDiv, RegistrarDetailDiv, PublicRequestDetailDiv, MailDetailDiv, InvoiceDetailDiv
 from fred_webadmin.webwidgets.details import adifdetails
+from fred_webadmin.webwidgets.forms import editforms
 
 class BaseTemplate(HTMLPage):
     def __init__(self, context = None):
@@ -19,14 +20,10 @@ class BaseTemplate(HTMLPage):
         self.body.add(div(attr(id='container'),
                           save(self, 'container'),
                           div(attr(id='header'), save(self, 'header')),
-                          #div(cssc='cleaner'),
                           div(attr(id='content_all'), save(self, 'content_all'), #cannot be "content", because of content attribute of gpyweb widgets
                               div(attr(id='columnwrap'), save(self, 'columnwrap'),
                                   div(attr(id='content-main'), save(self, 'main')))),
-                          #div(cssc='cleaner'),
-                          div(attr(id='footer'), save(self, 'footer'), 
-                              #'&copy; CZ.NIC z.s.p.o.'
-                             )
+                          div(attr(id='footer'), save(self, 'footer'))
                           ))
         
         
@@ -42,9 +39,6 @@ class BaseSite(BaseTemplate):
         super(BaseSite, self).__init__(context)
         c = self.context
 
-                
-        
-                
         self.add_media_files('/css/basesite.css')
         self.header.add(
             div(attr(id='branding'), save(self, 'branding'),
@@ -108,13 +102,7 @@ class BaseSiteMenu(BaseSite):
         )
         if c.history:
             self.history_checkbox.checked = ['', 'checked'][c.history]
-        
-#        self.main.add(div(attr(media_files=['/css/ext/css/ext-all.css', 
-#                                            '/js/ext/ext-base.js', 
-#                                            '/js/ext/ext-all.js', 
-#                                            #'/js/itertable.js', 
-#                                            '/js/smaz.js'
-#                                           ])))
+
 
 class ErrorPage(BaseSiteMenu):
     def __init__(self, context = None):
@@ -157,13 +145,6 @@ class FilterPage(BaseSiteMenu):
             self.main.add(script(attr(type='text/javascript'), 'Ext.onReady(function () {addFieldsButtons()})'))
         else:
             self.main.add(a(attr(href=append_getpar_to_url(add_par_dict={'load': 1, 'show_form': 1})), _('Modify filter'))) 
-            
-            #print "VKLADAM JS FORMU"
-            #import cProfile
-            #cProfile.runctx('forms_js = get_filter_forms_javascript()', globals(), locals(), 'prof2')
-
-            #forms_js = get_filter_forms_javascript()
-            #self.main.add(script(attr(type='text/javascript'), forms_js)) 
         
         if c.get('result'):
             self.main.add(p(c['result']))
@@ -171,13 +152,6 @@ class FilterPage(BaseSiteMenu):
         if c.get('itertable'):
             itertable = c.itertable
             self.main.add(WIterTable(itertable))
-#            self.main.add(div(attr(id='div_for_itertable', cssc='extjs', 
-#                                   media_files=['/css/ext/css/ext-all.css', 
-##                                                '/js/MochiKit/MochiKit.js',
-#                                                '/js/logging.js', 
-#                                                '/js/ext/ext-base.js', 
-#                                                '/js/ext/ext-all.js', 
-#                                                '/js/itertable.js'])))
             self.main.add(p(_('Table_as'), a(attr(href='?txt=1'), 'TXT'), ',', a(attr(href='?csv=1'), 'CSV')))
             
             if config.debug:
@@ -219,7 +193,6 @@ class FilterPage(BaseSiteMenu):
                     pageflip.add(div(
                         a(attr(cssc='pager-button', href='?page=%s' % itertable.first_page), noesc('&laquo;')),
                         a(attr(cssc='pager-button', href='?page=%s' % itertable.prev_page), noesc('&lsaquo;')),
-    #                    a(attr(cssc='pager-button', href='?page=%s' % itertable._number), itertable._number),
                         form(attr(style='display: inline;', method='GET'), input(attr(type='text', size='2', name='page', value=itertable.current_page))),
                         a(attr(cssc='pager-button', href='?page=%s' % itertable.next_page), noesc('&rsaquo;')),
                         a(attr(cssc='pager-button', href='?page=%s' % itertable.last_page), noesc('&raquo;'))
@@ -359,6 +332,20 @@ class BankStatementDetail(DetailPage):
             if config.debug:
                 self.main.add('BankStatementDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
 
+
+class BankStatementDetailWithPaymentPairing(DetailPage):
+    def __init__(self, context = None):
+        super(BankStatementDetailWithPaymentPairing, self).__init__(context)
+        c = self.context
+        if c.get('result'):
+#            import pdb; pdb.set_trace()
+            self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
+            self.main.add(adifdetails.BankStatementDetail(c.result, c.history))
+            self.main.add(editforms.BankStatementPairingEditForm(
+                initial={
+                    'statementId' : c.result.statementId,
+                    'id' : c.result.id}))
+
                 
 class EditPage(BaseSiteMenu):
     def __init__(self, context = None):
@@ -367,9 +354,13 @@ class EditPage(BaseSiteMenu):
         if c.get('form'):
             self.main.add(c.form)
 
+
 class RegistrarEdit(EditPage):
     pass
-            
+
+
+class BankStatementPairingEdit(EditPage):
+    pass           
 
 
 class DigPage(BaseSiteMenu):

@@ -96,8 +96,9 @@ class RegistrarEditForm(EditForm):
         label=_('Zones'), form_class=ZoneEditForm, can_delete=True)
 
 
-class BankStatementEditForm(EditForm):
-    InvoiceId = IntegerField(label=_('Id'))
+class BankStatementPairingEditForm(EditForm):
+    handle = CharField(label=_('Pair with Registrar Handle'))
+    statementId = HiddenIntegerField()
+    id = HiddenIntegerField()
     
-    
-form_classes = [AccessEditForm, RegistrarEditForm]
+form_classes = [AccessEditForm, RegistrarEditForm, BankStatementPairingEditForm]

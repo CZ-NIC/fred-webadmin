@@ -396,25 +396,22 @@ class LoggerDetail(Detail):
     raw_request = CharDField(label=_("Raw request"))
     raw_response = CharDField(label=_("Raw response"))
 
-#    sections = ((_('Dates'), ('timeBegin', 'timeEnd'), DatesSectionLayout),)
-
 
 class BankStatementDetail(Detail):
 
-    #TODO(tomas): Add detail fields
     accountNumber = CharDField(label=_('Account Number'))
     bankCodeId = CharDField(label=_('Bank Code'))
     code = CharDField(label=_('Code'))
     type = CharDField(label=_('Type'))
-
-    
-#    def add_to_bottom(self):
-#        if self.data:
-#            self.add(FilterPanel([
-#                [_('Pair Statement'), 
-#                    "/bankstatement/pairing/?id=%s" % self.data.get('id')]
-#            ]))
-#        super(BankStatementDetail, self).add_to_bottom()
+    konstSym = CharDField(label=_('Constant Symbol'))
+    varSymb = CharDField(label=_('Variable Symbol'))
+    specSymb = CharDField(label=_('Specific Symbol'))
+    price = CharDField(label=_('Price'))
+    accountEvid = CharDField(label=_('Account Evid.'))
+    accountMemo = CharDField(label=_('Account Memo'))
+    accountName = CharDField(label=_('Account Name'))
+    invoiceId = CharDField(label=_('Invoice ID'))
+    crTime = CharDField(label=_('crTime'))
 
 
 class InvoiceDetail(Detail):
