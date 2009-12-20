@@ -518,7 +518,7 @@ class Registrar(AdifPage, ListTableMixin):
                 self._fill_registrar_struct_from_form(
                     registrar, form.cleaned_data, log_request)
                 try:
-                    get_corba_session().updateRegistrar(u2c(obj))
+                    get_corba_session().updateRegistrar(u2c(registrar))
                 except:
                     form.non_field_errors().append(
                         "Updating registrar failed. Perhaps you tried to "
