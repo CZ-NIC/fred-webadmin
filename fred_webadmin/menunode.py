@@ -118,10 +118,6 @@ menu_tree = MenuNode('root', '', '', 'menu-item', '#', [
             MenuNode(
                 'keyset', _('Search keysets'), cssc='menu-item', 
                 url=f_urls['keyset'] + 'allfilters/', nperm='read.keyset'),
-            MenuNode(
-                'bankstatement', _('Search bank statements'), cssc='menu-item',
-                url=f_urls['bankstatement'] + 'allfilters/', 
-                nperm='read.keyset')
     ]), 
     MenuNode(
         'registrar', _('Registrars'), 'body-registrars', 
@@ -143,8 +139,8 @@ menu_tree = MenuNode('root', '', '', 'menu-item', '#', [
                 'invoice', _('Invoices'), cssc='menu-item', 
                 url=f_urls['invoice'] + 'allfilters/', nperm='read.invoice'),
             MenuNode(
-                'pairing', _('Pairing'), cssc='menu-item', 
-                url=f_urls['bankstatement'] + 'pairing/', nperm='write.pairing'),
+                'payment', _('Payments'), cssc='menu-item',
+                url=f_urls['bankstatement'] + 'allfilters/', nperm='read.payment')
     ]), 
     MenuNode(
         'logs', _('Logs'), 'body-logs', 'menu-item menu-logs', 
@@ -162,16 +158,7 @@ menu_tree = MenuNode('root', '', '', 'menu-item', '#', [
                 MenuNode(
                     'mail', _('Emails'), cssc='menu-item', 
                     url=f_urls['mail'] + 'allfilters/', nperm='read.email'),
-                MenuNode(
-                    'zonegener', _('Zone gener.'), cssc='menu-item', 
-                    url='/zonegener/', nperm='read.zonegener'),
-                MenuNode(
-                    'techtest', _('Tech. tests'), cssc='menu-item', 
-                    url='/techtests/', nperm='read.techtest'),
     ]), 
-    MenuNode(
-        'statistics', _('Statistics'), 'body-statistics', 
-        'menu-item menu-statistics', url='/statistics/')
 ])
 
 
