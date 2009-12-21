@@ -86,7 +86,7 @@ def generate_dict(suffix):
 
         doctests:
         >>> generate_dict("TestSuffix") ==  {'session': 'SessionTestSuffix', \
-'bankstatement': 'BankStatementTestSuffix', \
+'bankStatement': 'BankStatementTestSuffix', \
 'domain': 'DomainTestSuffix', \
 'obj': 'ObjTestSuffix', \
 'invoice': 'InvoiceTestSuffix', \
