@@ -139,7 +139,7 @@ menu_tree = MenuNode('root', '', '', 'menu-item', '#', [
                 'invoice', _('Invoices'), cssc='menu-item', 
                 url=f_urls['invoice'] + 'allfilters/', nperm='read.invoice'),
             MenuNode(
-                'payment', _('Payments'), cssc='menu-item',
+                'bankstatement', _('Payments'), cssc='menu-item',
                 url=f_urls['bankstatement'] + 'allfilters/', nperm='read.payment')
     ]), 
     MenuNode(
