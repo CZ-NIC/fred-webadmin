@@ -179,12 +179,14 @@ class ListTableMixin(object):
             action = 'list'
 
         if kwd.get('txt') or kwd.get('csv'):
+            log_req.commit("")
             return self._get_list(context, **kwd)
         elif (kwd.get('cf') or kwd.get('page') or kwd.get('load') or 
               kwd.get('list_all') or kwd.get('filter_id') or
               kwd.get('sort_col')): 
                 # clear filter - whole list of objects without using filter form
             context = self._get_list(context, **kwd)
+            log_req.commit("")
         else:
             form_class = self._get_filterform_class()
             # bound form with data
@@ -235,10 +237,8 @@ class ListTableMixin(object):
         context = {'main': div()}
         
         itertable = self._get_itertable('filter')
-        #itertable.set_filter({})
-        itertable.set_filter([{#'userId': cherrypy.session.get('user').id,
-                              'Type': [False, f_name_id[self.classname]]
-                             }])
+        itertable.set_filter(
+            [{'Type': [False, f_name_id[self.classname]]}])
         itertable.reload()
         context['filters_list'] = FilterListCustomUnpacked(
             itertable.get_rows_dict(raw_header=True), self.classname)
