@@ -519,7 +519,7 @@ class Registrar(AdifPage, ListTableMixin):
                     registrar, form.cleaned_data, log_request)
                 try:
                     get_corba_session().updateRegistrar(u2c(registrar))
-                except:
+                except (ccReg.Admin.UpdateFailed, ccReg.Admin.ObjectNotFound):
                     form.non_field_errors().append(
                         "Updating registrar failed. Perhaps you tried to "
                         "create a registrar with an already used handle?")
@@ -544,7 +544,8 @@ class Registrar(AdifPage, ListTableMixin):
         log_request = cherrypy.session['Logger'].create_request(
             cherrypy.request.remote.ip, cherrypy.request.body, 
             "RegistrarUpdate")
-        return self._update_registrar(registrar, log_request, *params, **kwd)
+        result = self._update_registrar(registrar, log_request, *params, **kwd)
+        return result
 
     @check_onperm('write')
     def create(self, *params, **kwd):
@@ -552,7 +553,8 @@ class Registrar(AdifPage, ListTableMixin):
             cherrypy.request.remote.ip, cherrypy.request.body, 
             "RegistrarCreate")
         registrar = self._get_empty_corba_struct()
-        return self._update_registrar(registrar, log_request, *params, **kwd)
+        result = self._update_registrar(registrar, log_request, *params, **kwd)
+        return result
 
 
 class Action(AdifPage, ListTableMixin):
