@@ -23,7 +23,7 @@ __all__ = ['UnionFilterForm', 'RegistrarFilterForm', 'ObjectStateFilterForm',
            'ActionFilterForm', 'FilterFilterForm', 'PublicRequestFilterForm', 
            'InvoiceFilterForm', 'MailFilterForm', 'FileFilterForm',
            'LoggerFilterForm', 'BankStatementFilterForm', 'ZoneFilterForm',
-           'ZoneNsFilterForm', 'get_filter_forms_javascript']
+           'get_filter_forms_javascript']
 
 class FilterFormEmptyValue(object):
     ''' Class used in clean method of Field as empty value (if
@@ -211,19 +211,11 @@ class FilterForm(Form):
                 del self.cleaned_data[name]
 
 
-class ZoneNsFilterForm(FilterForm):
-    default_fields_names = ['Fqdn']
-
-    Fqdn = CharField(label=_('Name'))
-   
-
 class ZoneFilterForm(FilterForm):
     default_fields_names = ['Fqdn']
 
     Fqdn = CharField(label=_('Name'))
     EnumZone = BooleanField(label=_('Enum'))
-    ZoneNs = CompoundFilterField(
-        label=_('Zone NS'), form_class=ZoneNsFilterForm)
 
 
 class RegistrarFilterForm(FilterForm):
@@ -234,7 +226,7 @@ class RegistrarFilterForm(FilterForm):
     Organization = CharField(label=_('Organization'))
     City = CharField(label=_('City'))
     CountryCode = CharField(label=_('Country'))
-    ZoneFqdn = CharField(label=_('Zone'))
+    ZoneFqdn = CharField(label=_('Zone fqdn'))
 
     ActiveZone = CompoundFilterField(
         label=_('Active Zone'), form_class=ZoneFilterForm)
@@ -464,7 +456,6 @@ form_classes = (DomainFilterForm,
                 ObjectStateFilterForm,
                 LoggerFilterForm,
                 ZoneFilterForm,
-                ZoneNsFilterForm,
                 BankStatementFilterForm,
                )
 
