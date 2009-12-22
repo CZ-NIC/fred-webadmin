@@ -1,10 +1,12 @@
 import types
 import cherrypy
+from logging import debug
+
+import fred_webadmin as fred
 
 from fred_webadmin.utils import get_current_url
 from fred_webadmin.webwidgets.gpyweb.gpyweb import div, p, br
 from fred_webadmin.translation import _
-from fred_webadmin import config
 import fred_webadmin.utils as utils
 
 from fred_webadmin.webwidgets.templates.pages import (
@@ -34,7 +36,7 @@ def check_nperm(nperms, nperm_type='all'):
                     context = {'main': div()}
                     context['main'].add(
                         p(_("You don't have permissions for this page!")))
-                    if config.debug:
+                    if fred.config.debug:
                         context['main'].add(
                             p('nperms=%s, nperm_type=%s' % (
                                 nperms, nperm_type)))
@@ -65,7 +67,7 @@ def check_onperm(objects_nperms, check_type='all'):
                     context = {'message': div()}
                     context['message'].add(
                         p(_("You don't have permissions for this page!")))
-                    if config.debug:
+                    if fred.config.debug:
                         context['message'].add(
                             p(
                                 'usernperm = %s,' % user.nperms, br(),
@@ -82,5 +84,3 @@ def check_onperm(objects_nperms, check_type='all'):
         
         return _wrapper
     return _decorator
-
-
