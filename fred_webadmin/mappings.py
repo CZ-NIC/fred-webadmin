@@ -86,7 +86,7 @@ def generate_dict(suffix):
 
         doctests:
         >>> generate_dict("TestSuffix") ==  {'session': 'SessionTestSuffix', \
-'bankStatement': 'BankStatementTestSuffix', \
+'bankstatement': 'BankStatementTestSuffix', \
 'domain': 'DomainTestSuffix', \
 'obj': 'ObjTestSuffix', \
 'invoice': 'InvoiceTestSuffix', \
@@ -100,7 +100,7 @@ def generate_dict(suffix):
 'action': 'ActionTestSuffix', \
 'mail': 'MailTestSuffix', \
 'logger': 'LoggerTestSuffix', \
-'statementhead': 'StatementheadTestSuffix',\
+'statementhead': 'StatementHeadTestSuffix',\
 'publicrequest': 'PublicRequestTestSuffix'}
         True
     """
@@ -110,7 +110,8 @@ def generate_dict(suffix):
         'nsset' : 'NSSet',
         'keyset' : 'KeySet',
         'publicrequest' : 'PublicRequest',
-        'bankstatement' : 'BankStatement'
+        'bankstatement' : 'BankStatement',
+        'statementhead' : 'StatementHead',
     }
     result = dict(
         [
