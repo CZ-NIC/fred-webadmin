@@ -745,33 +745,25 @@ class BankStatement(AdifPage, ListTableMixin):
     def detail(self, **kwd):
         context = {}
 
-        #TODO(tomas): Odstranit statementId hidden field z
-        # BankStatementPairingEditForm co jak se to jmenuje, neni tam
-        # potreba, pouziva se jen id (tzn. obj_id).
-        handle = kwd.get('handle')
+        registrar_handle = kwd.get('handle')
         obj_id = kwd.get('id')
         try:
             obj_id = int(obj_id)
         except (TypeError, ValueError):
-            context['main'] = _("Required_integer_as_parameter")
+            context['main'] = _("Requires integer as parameter")
             raise CustomView(self._render('base', ctx=context))
         
-        if handle is not None and obj_id is not None:
-            try:
-                invoicing = get_corba_session().getBankingInvoicing()
-                success =invoicing.pairPaymentRegistrarHandle(
-                    obj_id, u2c(handle))
-                debug("Paired payment %s with registrar %s: %s" % (
-                    obj_id, handle, success))
-
-            except:
+        if registrar_handle is not None and obj_id is not None:
+            invoicing = get_corba_session().getBankingInvoicing()
+            success = invoicing.pairPaymentRegistrarHandle(
+                obj_id, u2c(registrar_handle))
+            if not success:
                 context['main'] = _("Unable to pair payment with registrar.")
                 return self._render('detail', context)
 
         log_req = cherrypy.session['Logger'].create_request(
             cherrypy.request.remote.ip, cherrypy.request.body, 
             f_name_actiondetailname[self.__class__.__name__.lower()])
-
         
         detail = get_detail(self.classname, obj_id)
         corba_session = get_corba_session()
@@ -783,18 +775,19 @@ class BankStatement(AdifPage, ListTableMixin):
         
         context['result'] = result 
         log_req.commit("")
-#        import pdb; pdb.set_trace()
 
-        # If invoiceId == 0, we have to show the payment pairing edit form too.
+        # If invoiceId == 0, we have to show the payment pairing edit form
+        # (so that the user can link the payment with a registrar).
         action = 'detail' if result.invoiceId != 0 else 'pair_payment'
         return self._render(action, context)
 
     def _template(self, action = ''):
         if action == "pair_payment":
+            # Show detail with payment pairing form.
             template_name = 'BankStatementDetailWithPaymentPairing'
         else:
+            # Show normal detail.
             return super(BankStatement, self)._template(action)
-
         template = getattr(sys.modules[self.__module__], template_name, None)
         if template is None:
             error("TEMPLATE %s IN MODULE %s NOT FOUND, USING DEFAULT: BaseSiteMenu" % (template_name, sys.modules[self.__module__]))
@@ -802,33 +795,6 @@ class BankStatement(AdifPage, ListTableMixin):
         if not issubclass(template, WebWidget):
             raise RuntimeError('%s is not derived from WebWidget - it cannot be template!' % repr(template))
         return template
-
-    @check_onperm('write')
-    def pairing(self, **kwd):
-        context = {'main': div()}
-        if config.debug:
-            context['main'].add('kwd: %s' % kwd) 
-
-        payment_id = int(kwd.get('id', 0))
-
-        init_data = {'paymentId' : payment_id}
-        if cherrypy.request.method == 'POST':
-            form = BankStatementPairingEditForm(kwd, initial=init_data, method='post')
-            if form.is_valid():
-                context['main'].add('cleaned data: %s' % form.cleaned_data) 
-                context['form'] = form
-                registrar_handle = u2c(kwd.get('handle'))
-                invoicing = get_corba_session().getBankingInvoicing()
-                invoicing.pairPaymentRegistrarHandle(
-                    payment_id, registrar_handle)
-            else:
-                if config.debug:
-                    context['main'].add('Form is not valid! Errors: %s' % repr(form.errors))
-        else:
-            form = BankStatementPairingEditForm(initial=init_data, method='post') 
-        
-        context['form'] = form
-        return self._render('pairstatements', context)
 
 
 class Filter(AdifPage, ListTableMixin):
@@ -938,7 +904,6 @@ def runserver():
     root.publicrequest = PublicRequest()
     root.invoice = Invoice()
     root.bankstatement = BankStatement()
-#    root.bankstatementpairing = BankStatementPairing()
     root.filter = Filter()
     root.statistic = Statistics()
     root.devel = Development()
