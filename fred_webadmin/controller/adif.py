@@ -740,6 +740,15 @@ class Invoice(AdifPage, ListTableMixin):
 
 
 class BankStatement(AdifPage, ListTableMixin):
+
+    def _pair_payment_with_registrar(self, payment_id, registrar_handle):
+        """ Links the payment with registrar. """
+        invoicing = get_corba_session().getBankingInvoicing()
+        success = invoicing.pairPaymentRegistrarHandle(
+            payment_id, u2c(registrar_handle))
+        if not success:
+            context['main'] = _("Unable to pair payment with registrar.")
+            return self._render('pair_payment', context)
     
     @check_onperm('read')
     def detail(self, **kwd):
@@ -753,13 +762,11 @@ class BankStatement(AdifPage, ListTableMixin):
             context['main'] = _("Requires integer as parameter")
             raise CustomView(self._render('base', ctx=context))
         
+        # When the user sends the pairing form we arrive at BankStatement
+        # detail again, but this time we receive registrar_handle in kwd
+        # => pair the payment with the registrar.
         if registrar_handle is not None and obj_id is not None:
-            invoicing = get_corba_session().getBankingInvoicing()
-            success = invoicing.pairPaymentRegistrarHandle(
-                obj_id, u2c(registrar_handle))
-            if not success:
-                context['main'] = _("Unable to pair payment with registrar.")
-                return self._render('detail', context)
+            self._pair_payment_with_registrar(obj_id, registrar_handle)
 
         log_req = cherrypy.session['Logger'].create_request(
             cherrypy.request.remote.ip, cherrypy.request.body, 
