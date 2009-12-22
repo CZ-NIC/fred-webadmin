@@ -740,15 +740,17 @@ class Invoice(AdifPage, ListTableMixin):
 
 
 class BankStatement(AdifPage, ListTableMixin):
-
     def _pair_payment_with_registrar(self, payment_id, registrar_handle):
         """ Links the payment with registrar. """
+        log_req = cherrypy.session['Logger'].create_request(
+            cherrypy.request.remote.ip, cherrypy.request.body, "PaymentPair")
         invoicing = get_corba_session().getBankingInvoicing()
         success = invoicing.pairPaymentRegistrarHandle(
             payment_id, u2c(registrar_handle))
         if not success:
             context['main'] = _("Unable to pair payment with registrar.")
             return self._render('pair_payment', context)
+        log_req.commit("")
     
     @check_onperm('read')
     def detail(self, **kwd):
