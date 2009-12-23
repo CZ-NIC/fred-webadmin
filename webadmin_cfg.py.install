@@ -34,6 +34,8 @@ localepath = locale_dir
 lang = 'en_US'
 
 js_calendar_date_format = 'D.M.YYYY'
+# Date format for edit fields
+js_calendar_date_format_edit = 'YYYY-MM-DD'
 
 cherrycfg = {
     'global': {
