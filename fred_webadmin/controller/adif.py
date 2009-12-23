@@ -771,7 +771,6 @@ class BankStatement(AdifPage, ListTableMixin):
             cherrypy.request.remote.ip, cherrypy.request.body, 
             f_name_actiondetailname[self.__class__.__name__.lower()])
         
-        import pdb; pdb.set_trace()
         result = utils.get_detail(self.classname, obj_id)
 
         log_req.update('object_id', kwd.get('id'))

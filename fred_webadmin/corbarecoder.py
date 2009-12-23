@@ -170,10 +170,21 @@ class DaphneCorbaRecode(CorbaRecode):
                   type(item) == datetime.datetime:
                     answer.__dict__[name] = self.encode(item)
                     continue
+                #TODO(tom): Ugly hack with NullDate (because DateField
+                # must not return None for empty date, becuase I wouldn't
+                # be able to convert None (I wouldn't know what to convert it
+                # to...) => Refactor Recoder to know about IDL types!
+                if isinstance(item, NullDate):
+                    answer.__dict__[name] = ccReg.DateType(0,0,0)
+                    continue
                 raise ValueError(
                     "%s attribute in %s is not convertable to Corba type." % (
                         name, answer))
             return answer
+
+
+class NullDate(object):
+    pass
 
 recoder = DaphneCorbaRecode('utf-8')
 c2u = recoder.decode # recode from corba string to unicode

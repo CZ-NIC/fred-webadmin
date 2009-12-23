@@ -7,6 +7,8 @@ import datetime
 from decimal import Decimal, DecimalException
 from logging import debug
 
+import fred_webadmin.corbarecoder as recoder
+
 from fred_webadmin.webwidgets.gpyweb.gpyweb import WebWidget, attr, select, option, span, input
 from fred_webadmin.webwidgets.utils import ValidationError, ErrorList, isiterable
 from fred_webadmin.translation import _
@@ -229,7 +231,9 @@ class DateField(CharField):
         """
         super(DateField, self).clean()
         if self.is_empty():
-            return None
+            #TODO(tom): NullDate is a hack!
+            return recoder.NullDate()
+            #return None:
         if isinstance(self.value, datetime.datetime):
             return self.value.date()
         if isinstance(self.value, datetime.date):
@@ -248,12 +252,6 @@ class DateField(CharField):
         else:
             value = None
 
-    def value_from_datadict(self, data):
-        debug('Jsem %s a beru si data %s' % (self.name, data.get(self.name, None)))
-        import pdb; pdb.set_trace()
-        pass
-
-            
 
 DEFAULT_TIME_INPUT_FORMATS = (
     u'%H:%M:%S',     # '14:30:59'
@@ -316,7 +314,9 @@ class DateTimeField(Field):
         """
         super(DateTimeField, self).clean()
         if self.is_empty():
-            return None
+            #TODO(tom): NullDate is a hack!
+            return recoder.NullDate()
+#            return None
         if isinstance(self.value, datetime.datetime):
             return self.value
         if isinstance(self.value, datetime.date):
