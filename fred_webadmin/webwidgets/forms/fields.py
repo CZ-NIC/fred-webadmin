@@ -121,8 +121,6 @@ class PasswordField(CharField):
         super(PasswordField, self).__init__(name, value, max_length, min_length, *args, **kwargs)
         if self.tag == u'input':
             self.type = u'password'
-            
-
        
    
 class FloatField(Field):
@@ -221,7 +219,7 @@ class DateField(CharField):
         self.cssc = 'datefield'
         self.js_calendar = js_calendar
         if js_calendar:
-            self.media_files = ['/js/scw.js']
+            self.media_files = ['/js/scw.js', '/js/scwLanguages.js']
             self.onclick = 'scwShow(this,event);' 
         
     def clean(self):
@@ -249,6 +247,12 @@ class DateField(CharField):
             self.value = value.strftime(str(date_format))
         else:
             value = None
+
+    def value_from_datadict(self, data):
+        debug('Jsem %s a beru si data %s' % (self.name, data.get(self.name, None)))
+        import pdb; pdb.set_trace()
+        pass
+
             
 
 DEFAULT_TIME_INPUT_FORMATS = (
@@ -587,22 +591,6 @@ class ChoiceField(Field):
         self.make_content()
         return super(ChoiceField, self).render(indent_level)
 
-#    def _get_choices(self):
-#        return self._choices
-#
-#    def _set_choices(self, value):
-#        self._choices = list(value)
-#        self.regenerate_options_tags()
-#    choices = property(_get_choices, _set_choices)
-#    
-#    def _get_value(self):
-#        return self._value
-#    
-#    def _set_value(self, value):
-#        self._value = value
-#        self.regenerate_options_tags()
-#    value = property(_get_value, _set_value)
-
     def clean(self):
         """
         Validates that the input is in self.choices.
@@ -628,7 +616,7 @@ class IntegerChoiceField(ChoiceField):
         """
         Validates that the input is in self.choices.
         """
-        value = super(ChoiceField, self).clean()
+        value = super(IntegerChoiceField, self).clean()
         if value == '':
             value = 0
         if self.is_empty():

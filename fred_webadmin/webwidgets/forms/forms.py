@@ -118,9 +118,6 @@ class BaseForm(form):
         else:
             for field in self.fields.values():
                 field.value = field.value_from_datadict(self.data)
-                
-         
-        
         
     def __iter__(self):
         for field in self.fields.values():

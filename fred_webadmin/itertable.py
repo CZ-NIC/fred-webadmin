@@ -5,6 +5,8 @@ import cherrypy
 import csv
 import StringIO
 
+import fred_webadmin.corbarecoder as recoder
+
 from logging import debug, error
 from omniORB.any import from_any
 
@@ -12,10 +14,6 @@ from fred_webadmin.translation import _
 from fred_webadmin.webwidgets.forms.filterforms import FilterFormEmptyValue
 from fred_webadmin.mappings import (
     f_name_enum, f_enum_name, f_urls, f_name_default_sort)
-from fred_webadmin.utils import (
-    u2c, c2u, date_time_interval_to_corba, 
-    corba_to_date_time_interval, date_to_corba, corba_to_date, 
-    datetime_to_corba, corba_to_datetime)
 from fred_webadmin.corba import (
     ccReg, Registry, CorbaServerDisconnectedException)
 #
@@ -160,7 +158,7 @@ class IterTable(object):
                 cell['value'] = item
             else: 
                 # All other items are corba ANY values.
-                cell['value'] = c2u(from_any(item, True))
+                cell['value'] = recoder.c2u(from_any(item, True))
             self._rewrite_cell(cell)
             row.append(cell)
         return row
@@ -289,7 +287,7 @@ class IterTable(object):
         FilterLoader.set_filter(self, union_filter_data)
         
     def save_filter(self, name):
-        self._table.saveFilter(u2c(name))
+        self._table.saveFilter(recoder.u2c(name))
     
     def get_sort(self):
         col_num, direction = self._table.getSortedBy()
@@ -388,19 +386,21 @@ class FilterLoader(object):
             if isinstance(sub_filter, ccReg.Filters._objref_Compound): # Compound:
                 cls._set_one_compound_filter(sub_filter, val)
             else:
-                sub_filter._set_neg(u2c(neg))
+                sub_filter._set_neg(recoder.u2c(neg))
                 # Only set active filters (those that have a value). 
                 if not isinstance(val, FilterFormEmptyValue): 
                     if isinstance(sub_filter, ccReg.Filters._objref_Date):
-                        value = date_time_interval_to_corba(val, date_to_corba)
+                        value = recoder.date_time_interval_to_corba(
+                            val, recoder.date_to_corba)
                     elif isinstance(sub_filter, ccReg.Filters._objref_DateTime):
-                        value = date_time_interval_to_corba(val, datetime_to_corba)
+                        value = recoder.date_time_interval_to_corba(
+                            val, recoder.datetime_to_corba)
                     elif isinstance(sub_filter, (ccReg.Filters._objref_Int, ccReg.Filters._objref_Id)):
                         value = int(val)
                     else:
                         value = val
     
-                    sub_filter._set_value(u2c(value))
+                    sub_filter._set_value(recoder.u2c(value))
         
     @classmethod
     def get_filter_data(cls, itertable):
@@ -413,7 +413,7 @@ class FilterLoader(object):
     def _get_one_compound_filter_data(cls, compound_filter):
         filter_data = {}
         for sub_filter in CorbaFilterIterator(compound_filter):
-            name = c2u(sub_filter._get_name())
+            name = recoder.c2u(sub_filter._get_name())
             debug('NAME=%s %s' % (name, type(name)))
             neg = sub_filter._get_neg()
             if isinstance(sub_filter, ccReg.Filters._objref_Compound):#Compound):
@@ -423,11 +423,13 @@ class FilterLoader(object):
                     val = sub_filter._get_value()
                     debug('VALUE (from corba)=%s' % val)
                     if isinstance(sub_filter, ccReg.Filters._objref_Date):
-                        value = corba_to_date_time_interval(val, corba_to_date)
+                        value = recoder.corba_to_date_time_interval(
+                            val, recoder.corba_to_date)
                     elif isinstance(sub_filter, ccReg.Filters._objref_DateTime):
-                        value = corba_to_date_time_interval(val, corba_to_datetime)
+                        value = recoder.corba_to_date_time_interval(
+                            val, recoder.corba_to_datetime)
                     else:
-                        value = c2u(val)
+                        value = recoder.c2u(val)
                 else:
                     value = ''
             

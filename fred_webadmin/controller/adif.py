@@ -35,6 +35,9 @@ from cherrypy.lib import http
 import simplejson
 
 import fred_webadmin.webwidgets.forms.utils as form_utils
+import fred_webadmin.corbarecoder as recoder
+import fred_webadmin.utils as utils
+
 from fred_webadmin.logger.sessionlogger import SessionLogger
 from fred_webadmin.logger.dummylogger import DummyLogger
 from fred_webadmin.logger.codes import logcodes
@@ -49,9 +52,6 @@ from fred_webadmin.corba import Corba, CorbaServerDisconnectedException
 corba = Corba()
 
 from fred_webadmin.corba import ccReg, Registry
-
-from fred_webadmin.utils import u2c, c2u, get_corba_session, get_detail
-
 from fred_webadmin.translation import _
 
 
@@ -253,7 +253,7 @@ class ADIF(AdifPage):
             elif args[0] == 'set_history':
                 new_history = simplejson.loads(kwd.get('history', 'false'))
                 cherrypy.session['history'] = new_history
-                get_corba_session().setHistory(new_history)
+                utils.get_corba_session().setHistory(new_history)
                 debug('History set to %s' % new_history)
                 return json_response(new_history)
         return super(ADIF, self).default(*args, **kwd)
@@ -313,9 +313,9 @@ class ADIF(AdifPage):
                     # Throws ldap.INVALID_CREDENTIALS if user is not valid.
                     LDAPBackend().authenticate(login, password) 
                 else:
-                    admin.authenticateUser(u2c(login), u2c(password)) 
+                    admin.authenticateUser(recoder.u2c(login), recoder.u2c(password)) 
                 
-                corbaSessionString = admin.createSession(u2c(login))
+                corbaSessionString = admin.createSession(recoder.u2c(login))
 
                 logger.set_common_property("session_id", corbaSessionString)
 
@@ -331,14 +331,14 @@ class ADIF(AdifPage):
                 cherrypy.session['Admin'] = admin
                 cherrypy.session['filter_forms_javascript'] = None
                 
-                cherrypy.session['user'] = User(get_corba_session().getUser())
+                cherrypy.session['user'] = User(utils.get_corba_session().getUser())
                 
                 cherrypy.session['Mailer'] = corba.getObject('Mailer', 'Mailer')
                 cherrypy.session['FileManager'] = corba.getObject('FileManager',
                                                                   'FileManager')
                 
                 cherrypy.session['history'] = False
-                get_corba_session().setHistory(False)
+                utils.get_corba_session().setHistory(False)
 
                 redir_addr = form.cleaned_data.get('next')
                 
@@ -387,7 +387,7 @@ class ADIF(AdifPage):
         if cherrypy.session.get('Admin'):
             try:
                 cherrypy.session['Admin'].destroySession(
-                    u2c(cherrypy.session['corbaSessionString']))
+                    recoder.u2c(cherrypy.session['corbaSessionString']))
             except CORBA.TRANSIENT, e:
                 debug('Admin.destroySession call failed, backend server '
                       'is not running.\n%s' % e)
@@ -518,10 +518,7 @@ class Registrar(AdifPage, ListTableMixin):
                 self._fill_registrar_struct_from_form(
                     registrar, form.cleaned_data, log_request)
                 try:
-                    for zone in registrar.zones:
-                        zone.fromDate = str(zone.fromDate)
-                        zone.toDate = str(zone.toDate)
-                    get_corba_session().updateRegistrar(u2c(registrar))
+                    utils.get_corba_session().updateRegistrar(recoder.u2c(registrar))
                 except (ccReg.Admin.UpdateFailed, ccReg.Admin.ObjectNotFound):
                     form.non_field_errors().append(
                         "Updating registrar failed. Perhaps you tried to "
@@ -669,9 +666,9 @@ class File(AdifPage, ListTableMixin):
         if handle:
             response = cherrypy.response
             filemanager = cherrypy.session.get('FileManager')
-            info = filemanager.info(u2c(handle))
+            info = filemanager.info(recoder.u2c(handle))
             try:
-                f = filemanager.load(u2c(handle))
+                f = filemanager.load(recoder.u2c(handle))
                 body = ""
                 while 1:
                     part = f.download(102400) # 100kBytes
@@ -740,13 +737,13 @@ class Invoice(AdifPage, ListTableMixin):
 
 
 class BankStatement(AdifPage, ListTableMixin):
-    def _pair_payment_with_registrar(self, payment_id, registrar_handle):
+    def _pair_payment_with_registrar(self, context, payment_id, registrar_handle):
         """ Links the payment with registrar. """
         log_req = cherrypy.session['Logger'].create_request(
             cherrypy.request.remote.ip, cherrypy.request.body, "PaymentPair")
-        invoicing = get_corba_session().getBankingInvoicing()
+        invoicing = utils.get_corba_session().getBankingInvoicing()
         success = invoicing.pairPaymentRegistrarHandle(
-            payment_id, u2c(registrar_handle))
+            payment_id, recoder.u2c(registrar_handle))
         if not success:
             context['main'] = _("Unable to pair payment with registrar.")
             return self._render('pair_payment', context)
@@ -768,26 +765,30 @@ class BankStatement(AdifPage, ListTableMixin):
         # detail again, but this time we receive registrar_handle in kwd
         # => pair the payment with the registrar.
         if registrar_handle is not None and obj_id is not None:
-            self._pair_payment_with_registrar(obj_id, registrar_handle)
+            self._pair_payment_with_registrar(context, obj_id, registrar_handle)
 
         log_req = cherrypy.session['Logger'].create_request(
             cherrypy.request.remote.ip, cherrypy.request.body, 
             f_name_actiondetailname[self.__class__.__name__.lower()])
         
-        detail = get_detail(self.classname, obj_id)
-        corba_session = get_corba_session()
-        c_any = corba_session.getDetail(f_name_enum[self.classname], u2c(obj_id))
-        corba_obj = from_any(c_any, True)
-        result = c2u(corba_obj)
+        import pdb; pdb.set_trace()
+        result = utils.get_detail(self.classname, obj_id)
 
         log_req.update('object_id', kwd.get('id'))
         
         context['result'] = result 
         log_req.commit("")
 
-        # If invoiceId == 0, we have to show the payment pairing edit form
-        # (so that the user can link the payment with a registrar).
-        action = 'detail' if result.invoiceId != 0 else 'pair_payment'
+        if result.invoiceId != 0:
+            action = 'detail'
+        else:
+            # Payment not paired => show the payment pairing edit form
+            action = 'pair_payment'
+            # invoiceId is a link to detail, but for id == 0 this detail does
+            # not exist => hide invoiceId value so the link is not "clickable".
+            # Note: No information is lost, because id == 0 semantically means 
+            # that there is no id.
+            context['result'].invoiceId = ""
         return self._render(action, context)
 
     def _template(self, action = ''):
@@ -887,7 +888,7 @@ class Smaz(Page):
 class Detail41(AdifPage):
     def index(self):
         #return 'muj index'
-        result = get_detail('domain', 41)
+        result = utils.get_detail('domain', 41)
         from fred_webadmin.webwidgets.details.adifdetails import DomainDetail as NewDomainDetail
         context = DictLookup({'main': NewDomainDetail(result, cherrypy.session.get('history'))})
         return self._render('base', ctx=context)

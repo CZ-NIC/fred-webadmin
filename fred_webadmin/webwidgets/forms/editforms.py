@@ -28,7 +28,12 @@ class EditForm(Form):
     
     def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None,
                  initial=None, error_class=ErrorList, label_suffix=':', layout_class=EditFormLayout, *content, **kwd):
-        super(EditForm, self).__init__(data, files, auto_id, prefix, initial, error_class, label_suffix, layout_class=EditFormLayout, *content, **kwd)
+        super(EditForm, self).__init__(
+            data, files, auto_id, prefix, initial, error_class, label_suffix, 
+            layout_class=EditFormLayout, 
+            *content, **kwd)
+        self.media_files = ['/js/scw.js', 
+                            '/js/scwLanguages.js']
     
     def filter_base_fields(self):
         pass # viz. XXX: poznamky nahore
@@ -56,8 +61,8 @@ class ZoneEditForm(EditForm):
     id = HiddenIntegerField(initial=0)
 
     name = CharField(label=_('Name'))
-    fromDate = CharField(label=_('From'))
-    toDate = CharField(label=_('To'), required=False)
+    fromDate = DateField(label=_('From'))
+    toDate = DateField(label=_('To'), required=False)
 
 
 class RegistrarEditForm(EditForm):
@@ -98,7 +103,7 @@ class RegistrarEditForm(EditForm):
 
 class BankStatementPairingEditForm(EditForm):
     handle = CharField(label=_('Pair with Registrar Handle'))
-    statementId = HiddenIntegerField()
     id = HiddenIntegerField()
     
-form_classes = [AccessEditForm, RegistrarEditForm, BankStatementPairingEditForm]
+form_classes = [AccessEditForm, RegistrarEditForm,
+                BankStatementPairingEditForm, ZoneEditForm]

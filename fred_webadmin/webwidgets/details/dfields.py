@@ -8,17 +8,17 @@ from omniORB import CORBA
 from datetime import datetime
 import time
 
+import fred_webadmin.corbarecoder as recoder
+
 from fred_webadmin import config
 from fred_webadmin.webwidgets.gpyweb.gpyweb import WebWidget, tagid, attr, noesc, a, img, strong, div, span, pre, table, thead, tbody, tr, th, td
 from fred_webadmin.mappings import f_urls
 from detaillayouts import SectionDetailLayout, TableRowDetailLayout, TableColumnsDetailLayout
-from fred_webadmin.utils import get_detail_from_oid
+from fred_webadmin.utils import get_detail_from_oid, LateBindingProperty
 from fred_webadmin.translation import _
-from fred_webadmin.utils import corba_to_datetime, datetime_to_corba, LateBindingProperty
 from fred_webadmin.corba import ccReg, Registry
 from fred_webadmin.webwidgets.xml_prettyprint import xml_prettify_webwidget
 from fred_webadmin.mappings import f_enum_name, f_name_detailname
-#import fred_webadmin.webwidgets.details.adifdetails# as details_module
 from fred_webadmin.corbalazy import CorbaLazyRequestIter
 
 def resolve_object(obj_data):
@@ -101,6 +101,16 @@ class CharDField(DField):
         if value is not None:
             value = unicode(value)
         return value
+
+#TODO(tom): Really convert here? Or is it already converted when
+# converting corba detail?
+class DateDField(DField):
+    enclose_content = True
+    def resolve_value(self, value):
+        if value is not None:
+            value = recoder.corba_to_date(value)
+        return value
+
 
 class LongCharDField(DField):
     enclose_content = True
@@ -454,8 +464,8 @@ class HistoryDField(DField):
                 val = from_any(history_rec.value, True)
                 inner_field_copy = copy(self.inner_field)
                 inner_field_copy.value = val
-                date_from = corba_to_datetime(history_rec._from)
-                date_to = corba_to_datetime(history_rec.to)
+                date_from = recoder.corba_to_datetime(history_rec._from)
+                date_to = recoder.corba_to_datetime(history_rec.to)
                 action_url = f_urls['action'] + 'detail/?id=%s' % history_rec.actionId
                 
                 history_tr = tr()
@@ -521,8 +531,8 @@ class HistoryObjectDField(HistoryDField):
             self.add(tbody(tagid('tbody')))
             for i, detail in enumerate(self.inner_details):
                 history_rec = self.value[i]
-                date_from = corba_to_datetime(history_rec._from)
-                date_to = corba_to_datetime(history_rec.to)
+                date_from = recoder.corba_to_datetime(history_rec._from)
+                date_to = recoder.corba_to_datetime(history_rec.to)
                 action_url = f_urls['action'] + 'detail/?id=%s' % history_rec.actionId
                 
                 history_tr = tr()
@@ -617,8 +627,8 @@ class HistoryListObjectDField(HistoryDField):
             self.add(tbody(tagid('tbody')))
             for i in range(len(self.inner_details)):
                 history_rec = self.value[i]
-                date_from = corba_to_datetime(history_rec._from)
-                date_to = corba_to_datetime(history_rec.to)
+                date_from = recoder.corba_to_datetime(history_rec._from)
+                date_to = recoder.corba_to_datetime(history_rec.to)
                 action_url = f_urls['action'] + 'detail/?id=%s' % history_rec.actionId
                 
                 if self.inner_details[i]:
@@ -654,8 +664,8 @@ class HistoryStateDField(DField):
             for state in value:
                 new_state = {}
                 new_state['id'] = state.id
-                new_state['from'] = corba_to_datetime(state._from)
-                new_state['to'] = corba_to_datetime(state.to)
+                new_state['from'] = recoder.corba_to_datetime(state._from)
+                new_state['to'] = recoder.corba_to_datetime(state.to)
                 new_state['linked'] = state.linked
                 new_states.append(new_state)
         return new_states
@@ -878,7 +888,7 @@ class DiscloseCharNHDField(NHDField):
         
         for hist_num, hist in enumerate([hist1, hist2]):
             for rec in hist:
-                from_date = corba_to_datetime(rec._from)
+                from_date = recoder.corba_to_datetime(rec._from)
                 if from_date: # from/to date can be empty, in that case we ignore it
                     key = (from_date, rec.actionId)
                     val = [hist_num, rec]
@@ -896,19 +906,22 @@ class DiscloseCharNHDField(NHDField):
         for key, rec_list in sorted(all_dates.items()):
             for hist_num, rec in rec_list:
                 last_hist_vals[hist_num] = from_any(rec.value, True)
-                last_hist_tos[hist_num] = corba_to_datetime(rec.to)
+                last_hist_tos[hist_num] = recoder.corba_to_datetime(rec.to)
             value = to_any([last_hist_vals[0], last_hist_vals[1]])
             action_id = rec_list[0][1].actionId
             _from = rec_list[0][1]._from
             
-            to_dict = dict([(hist_num, corba_to_datetime(rec.to)) for hist_num, rec in rec_list if corba_to_datetime(rec.to)])
+            to_dict = dict(
+                [(hist_num, recoder.corba_to_datetime(rec.to)) for 
+                    hist_num, rec in rec_list if 
+                        recoder.corba_to_datetime(rec.to)])
             for hist_num in (0, 1):
                 if not to_dict.has_key(hist_num):
                     to_dict[hist_num] = last_hist_tos[hist_num]
                 if to_dict[hist_num] is None: # remove None
                     to_dict.pop(hist_num)
             if to_dict:
-                to = datetime_to_corba(min(to_dict.values()))
+                to = recoder.datetime_to_corba(min(to_dict.values()))
             else: # all are NULL dates, take one of them
                 to = rec_list[0][1].to
             new_rec = Registry.HistoryRecord(_from=_from, to=to, value=value, actionId = action_id)

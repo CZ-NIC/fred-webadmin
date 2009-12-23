@@ -16,8 +16,8 @@ class AccessDetail(Detail):
 class ZoneDetail(Detail):
     name = CharDField(label=_('Name'))
     credit = CharDField(label=_('Credit'))
-    fromDate = CharDField(label=_('From'))
-    toDate = CharDField(label=_('To'))
+    fromDate = DateDField(label=_('From'))
+    toDate = DateDField(label=_('To'))
 
 
 class RegistrarDetail(Detail):
@@ -410,7 +410,9 @@ class BankStatementDetail(Detail):
     accountEvid = CharDField(label=_('Account Evid.'))
     accountMemo = CharDField(label=_('Account Memo'))
     accountName = CharDField(label=_('Account Name'))
-    invoiceId = CharDField(label=_('Invoice ID'))
+    invoiceId =  ObjectHandleURLDField(
+        label=_('Invoice Id'), object_type_name="invoice", id_name="invoiceId",
+        handle_name="invoiceId")
     crTime = CharDField(label=_('crTime'))
 
 

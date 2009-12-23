@@ -10,17 +10,15 @@ import config
 import cherrypy
 from logging import debug
 import sys
-from corbarecoder import CorbaRecode
-recoder = CorbaRecode('utf-8')
-c2u = recoder.decode # recode from corba string to unicode
-u2c = recoder.encode # recode from unicode to strings
+from corbarecoder import DaphneCorbaRecode
+import fred_webadmin.corbarecoder as recoder
 
 class CorbaLazyRequest(object):
     def __init__(self, object_name, function_name, *args, **kwargs):
         self.object_name = object_name
         self.function_name = function_name
-        self.c_args = u2c(args) or []
-        self.c_kwargs = u2c(kwargs) or {}
+        self.c_args = recoder.u2c(args) or []
+        self.c_kwargs = recoder.u2c(kwargs) or {}
         self.data = None
     
     def _convert_data(self, data):
@@ -33,9 +31,8 @@ class CorbaLazyRequest(object):
             debug('CorbaLazyRequest getting data')
             corba_object = cherrypy.session.get(self.object_name)
             corba_func = getattr(corba_object, self.function_name)
-            data = c2u(corba_func(*self.c_args, **self.c_kwargs))
+            data = recoder.c2u(corba_func(*self.c_args, **self.c_kwargs))
             self.data = self._convert_data(data)
-            #debug('Data are(after conversion): %s' % self.data)
         
     def __str__(self):
         self._get_data()

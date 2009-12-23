@@ -9,8 +9,9 @@ import omniORB
 import logging
 import traceback
 
+import fred_webadmin.corbarecoder as recoder
+
 from fred_webadmin.corba import ccReg
-from fred_webadmin.utils import u2c
 
 __all__ = ["SessionLogger", "LogRequest", 
             "LoggingException", "service_type_webadmin"]
@@ -90,7 +91,7 @@ class SessionLogger(object):
         if not isinstance(name, basestring):
             name = str(name)
         else:
-            name = u2c(name)
+            name = recoder.u2c(name)
 
         try:
             lang_code = languages[lang.lower()]
@@ -117,7 +118,7 @@ class SessionLogger(object):
             Arguments:
                 See LogRequest.update.
         """
-        name = u2c(name)
+        name = recoder.u2c(name)
         self.common_properties[name] = (name, value, output, child)
 
     def create_request(self, source_ip, content, action_type, properties=None):
@@ -233,8 +234,8 @@ class LogRequest(object):
             name = str(name)
         if not isinstance(value, basestring):
             value = str(self._convert_nested_to_str(value))
-        name = u2c(name)
-        value = u2c(value)
+        name = recoder.u2c(name)
+        value = recoder.u2c(value)
         prop = [ccReg.RequestProperty(name, value, output, child)]
         success = self.dao.UpdateRequest(self.request_id, prop)
         if not success:
