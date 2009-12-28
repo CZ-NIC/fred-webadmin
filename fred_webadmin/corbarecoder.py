@@ -2,7 +2,9 @@ import types
 import codecs
 import exceptions
 import datetime
+import fred_webadmin.nulltype as fredtypes
 from corba import ccReg, Registry
+
 
 class UnsupportedEncodingError(Exception):
     pass
@@ -170,17 +172,29 @@ class DaphneCorbaRecode(CorbaRecode):
                   type(item) == datetime.datetime:
                     answer.__dict__[name] = self.encode(item)
                     continue
-                #TODO(tom): Ugly hack with NullDate (because DateField
-                # must not return None for empty date, becuase I wouldn't
-                # be able to convert None (I wouldn't know what to convert it
-                # to...) => Refactor Recoder to know about IDL types!
-                if isinstance(item, NullDate):
-                    answer.__dict__[name] = ccReg.DateType(0,0,0)
+                suc, val = _encode_null_type(item, answer)
+                if suc:
+                    answer.__dict__[name] = val
                     continue
                 raise ValueError(
                     "%s attribute in %s is not convertable to Corba type." % (
                         name, answer))
             return answer
+
+null_encoding_rules = {
+    fredtypes.NullDate : ccReg.DateType(0, 0, 0),
+    fredtypes.NullDateTime : ccReg.DateTimeType(0, 0, 0, 0),
+    fredtypes.NullInt : 0,
+    fredtypes.NullDecimal : 0,
+    fredtypes.NullFloat : 0.0,
+}
+
+def _encode_null_type(item, objref):
+    if type(item) in null_encoding_rules:
+        return (True, null_encoding_rules[type(item)])
+    if isinstance(item, fredtypes.Null):
+        return (True, "")
+    return (False, None)
 
 
 class NullDate(object):

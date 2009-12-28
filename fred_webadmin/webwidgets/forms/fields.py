@@ -8,6 +8,7 @@ from decimal import Decimal, DecimalException
 from logging import debug
 
 import fred_webadmin.corbarecoder as recoder
+import fred_webadmin.nulltype as fredtypes
 
 from fred_webadmin.webwidgets.gpyweb.gpyweb import WebWidget, attr, select, option, span, input
 from fred_webadmin.webwidgets.utils import ValidationError, ErrorList, isiterable
@@ -143,7 +144,8 @@ class FloatField(Field):
         """
         super(FloatField, self).clean()
         if self.is_empty():
-            return None
+#            return None
+            return fredtypes.NullFloat()
         try:
             value = float(self.value)
         except (ValueError, TypeError):
@@ -173,7 +175,7 @@ class DecimalField(Field):
         """
         super(DecimalField, self).clean()
         if self.is_empty():
-            return None
+            return fredtypes.NullDecimal()
         value = unicode(self.value).strip()
         try:
             value = Decimal(value)
@@ -202,7 +204,7 @@ class IntegerField(DecimalField):
         super(IntegerField, self).__init__(name='', value='', max_value=max_value, min_value=min_value, decimal_places=0, *args, **kwargs)
     def clean(self):
         if self.is_empty():
-            return None
+            return fredtypes.NullInt() 
         return int(super(IntegerField, self).clean())
 
 DEFAULT_DATE_INPUT_FORMATS = (
@@ -231,9 +233,7 @@ class DateField(CharField):
         """
         super(DateField, self).clean()
         if self.is_empty():
-            #TODO(tom): NullDate is a hack!
-            return recoder.NullDate()
-            #return None:
+            return fredtypes.NullDate()
         if isinstance(self.value, datetime.datetime):
             return self.value.date()
         if isinstance(self.value, datetime.date):
@@ -271,7 +271,7 @@ class TimeField(CharField):
         """
         super(TimeField, self).clean()
         if self.is_empty():
-            return None
+            return fredtypes.NullDateTime()
         if isinstance(self.value, datetime.time):
             return self.value
         for format in self.input_formats:
@@ -314,9 +314,7 @@ class DateTimeField(Field):
         """
         super(DateTimeField, self).clean()
         if self.is_empty():
-            #TODO(tom): NullDate is a hack!
-            return recoder.NullDate()
-#            return None
+            return fredtypes.NullDateTime()
         if isinstance(self.value, datetime.datetime):
             return self.value
         if isinstance(self.value, datetime.date):
@@ -409,7 +407,7 @@ class FileField(Field):
     def clean(self, data):
         super(FileField, self).clean(data)
         if not self.required and data in EMPTY_VALUES:
-            return None
+            return fredtypes.NullFile()
         try:
             f = UploadedFile(data['filename'], data['content'])
         except TypeError:
@@ -428,7 +426,7 @@ class ImageField(FileField):
         """
         f = super(ImageField, self).clean(data)
         if f is None:
-            return None
+            return fredtypes.NullImage()
         from PIL import Image
         from cStringIO import StringIO
         try:
@@ -881,6 +879,7 @@ class SplitDateTimeField(MultiValueField):
             if data_list[1] in EMPTY_VALUES:
                 raise ValidationError(_(u'Enter a valid time.'))
             return datetime.datetime.combine(*data_list)
+        #TODO(tom): Should we return a Null type here?
         return None
 
     def decompress(self, value):
@@ -889,6 +888,7 @@ class SplitDateTimeField(MultiValueField):
             t = value.time()
             the_time = datetime.time(t.hour,t.minute,t.second)
             return [value.date(), the_time]
+        #TODO(tom): Should we return a Null type here?
         return [None, None]
     
     

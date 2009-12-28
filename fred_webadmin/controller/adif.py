@@ -518,6 +518,7 @@ class Registrar(AdifPage, ListTableMixin):
                 self._fill_registrar_struct_from_form(
                     registrar, form.cleaned_data, log_request)
                 try:
+#                    import pdb; pdb.set_trace()
                     utils.get_corba_session().updateRegistrar(recoder.u2c(registrar))
                 except (ccReg.Admin.UpdateFailed, ccReg.Admin.ObjectNotFound):
                     form.non_field_errors().append(
@@ -617,6 +618,7 @@ class Domain(AdifPage, ListTableMixin):
         if hasattr(admin, "setInZoneStatus"):
             try:
                 context['success'] = admin.setInZoneStatus(int(domain_id))
+            # TODO(tom): Do not catch generic exception here!
             except Exception, e:
                 context['error'] = e
         else:
