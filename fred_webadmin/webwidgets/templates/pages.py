@@ -213,7 +213,6 @@ class DomainDetail(DetailPage):
         c = self.context
         if c.get('result'):
             self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
-            #self.main.add(DomainDetailDiv(context))
             self.main.add(adifdetails.DomainDetail(c.result, c.history))
             if config.debug:
                 self.main.add('DOMAINDETAIL:', div(attr(style='width: 1024px; overflow: auto;'), pre(unicode(c.result).replace(u', ', u',\n'))))
@@ -225,7 +224,6 @@ class ContactDetail(DetailPage):
         c = self.context
         if c.get('result'):
             self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
-            #self.main.add(ContactDetailDiv(context))
             self.main.add(adifdetails.ContactDetail(c.result, c.history))
             if config.debug:
                 self.main.add('ContactDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
@@ -236,7 +234,6 @@ class NSSetDetail(DetailPage):
         c = self.context
         if c.get('result'):
             self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
-            #self.main.add(NSSetDetailDiv(context))
             self.main.add(adifdetails.NSSetDetail(c.result, c.history))
             if config.debug:
                 self.main.add('NSSetDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))

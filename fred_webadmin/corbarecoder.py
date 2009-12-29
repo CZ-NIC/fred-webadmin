@@ -205,13 +205,21 @@ c2u = recoder.decode # recode from corba string to unicode
 u2c = recoder.encode # recode from unicode to strings
 
 def date_to_corba(date):
-    'parametr date is datetime.date() or None, and is converted to ccReg.DateType. If date is None, then ccReg.DateType(0, 0, 0) is returned' 
+    """ onverted to ccReg.DateType. If date is None, then 
+        ccReg.DateType(0, 0, 0) is returned.
+
+        Arguments:
+            date: 
+                datetime.date() or fredtypes.NullDate. 
+    """
     return date and ccReg.DateType(*reversed(date.timetuple()[:3])) or ccReg.DateType(0, 0, 0)
 
 
 def corba_to_date(corba_date):
+    if corba_date == fredtypes.NullDate():
+        return corba_date
     if corba_date.year == 0: # empty date is in corba = DateType(0, 0, 0)
-        return None
+        return fredtypes.NullDate() 
     return datetime.date(corba_date.year, corba_date.month, corba_date.day)
 
 
@@ -224,9 +232,11 @@ def datetime_to_corba(date_time):
 
 
 def corba_to_datetime(corba_date_time):
+    if corba_date_time == fredtypes.NullDateTime():
+        return corba_date_time
     corba_date = corba_date_time.date
     if corba_date.year == 0: # empty date is in corba = DateType(0, 0, 0)
-        return None
+        return fredtypes.NullDateTime()
     return datetime.datetime(corba_date.year, corba_date.month, corba_date.day, 
                              corba_date_time.hour, corba_date_time.minute, corba_date_time.second)
 

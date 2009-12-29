@@ -40,7 +40,14 @@ class Null(Singleton):
             >>> a is b
             True
     """
-    pass
+    def __nonzero__(self):
+        return False
+
+    def __eq__(self, obj):
+        return isinstance(obj, Null)
+
+    def __ne__(self, obj):
+        return not self.__eq__(obj)
 
 
 class NullDate(Null):

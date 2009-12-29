@@ -9,6 +9,7 @@ from datetime import datetime
 import time
 
 import fred_webadmin.corbarecoder as recoder
+import fred_webadmin.nulltype as fredtypes
 
 from fred_webadmin import config
 from fred_webadmin.webwidgets.gpyweb.gpyweb import WebWidget, tagid, attr, noesc, a, img, strong, div, span, pre, table, thead, tbody, tr, th, td
@@ -22,8 +23,9 @@ from fred_webadmin.mappings import f_enum_name, f_name_detailname
 from fred_webadmin.corbalazy import CorbaLazyRequestIter
 
 def resolve_object(obj_data):
-    ''' Returns object from data, where data could be OID, OID in CORBA.Any, or just data isself
-    '''
+    """ Returns object from data, where data could be OID, OID in CORBA.Any, 
+        or just data itself
+    """
     if isinstance(obj_data, CORBA.Any):
         obj_data = from_any(obj_data, True)
 
@@ -33,7 +35,10 @@ def resolve_object(obj_data):
         else:
             return None
     else:
-        return obj_data
+        if obj_data is None:
+            return fredtypes.Null()
+        else:
+            return obj_data
     
 class DField(WebWidget):
     ''' Base class for detail fields '''
@@ -46,7 +51,7 @@ class DField(WebWidget):
         self.label = label
         self._nperm = nperm
         self.owner_form = None
-        self._value = None
+        self._value = fredtypes.Null() #None
         self.access = True # if user have nperm for this field, then this will be set to False in Detail.build_fields()
         self.no_access_content = div(attr(cssc='no_access'), _('CENSORED'))
         
@@ -70,21 +75,27 @@ class DField(WebWidget):
         self.add(self.no_access_content)
     
     def resolve_value(self, value):
-        return value    
+        if value is None:
+            return fredtypes.Null()
+        else:
+            return value    
     
     def _set_value(self, value):
         if self.access:
             self._value = self.resolve_value(value)
             self.make_content()
         else:
-            self._value = None
+            self._value = fredtypes.Null() #None
             self.make_content_no_access()
     def _get_value(self):
         return self._value
     value = LateBindingProperty(_get_value, _set_value)
     
     def value_from_data(self, data):
-        return data.get(self.name)
+        if data.get(self.name) is None:
+            return fredtypes.Null()
+        else:
+            return data.get(self.name)
     
     def render(self, indent_level=0):
         return super(DField, self).render(indent_level)
@@ -98,7 +109,7 @@ class DField(WebWidget):
 class CharDField(DField):
     enclose_content = True
     def resolve_value(self, value):
-        if value is not None:
+        if value != fredtypes.Null():
             value = unicode(value)
         return value
 
@@ -107,9 +118,9 @@ class CharDField(DField):
 class DateDField(DField):
     enclose_content = True
     def resolve_value(self, value):
-        if value is not None:
+        if value != fredtypes.Null():
             value = recoder.corba_to_date(value)
-        return value
+        return fredtypes.NullDate()
 
 
 class LongCharDField(DField):
@@ -143,7 +154,7 @@ class XMLDField(CharDField):
 class EmailDField(CharDField):
     def make_content(self):
         self.content = []
-        if self._value == '':
+        if self._value == '' or isinstance(self._value, fredtypes.Null):
             self.add(div(attr(cssc='field_empty')))
         if self._value:
             self.add(a(attr(href='mailto:' + self._value), self._value))
@@ -156,7 +167,7 @@ class ListCharDField(CharDField):
 
 class CorbaEnumDField(CharDField):
     def resolve_value(self, value):
-        if value is not None:
+        if value != fredtypes.Null():
             value = _(value._n)
         value = super(CorbaEnumDField, self).resolve_value(value)
         return value
@@ -168,53 +179,43 @@ class RequestPropertyDField(DField):
     """
     def __init__(self, name='', label=None, *content, **kwd):
         DField.__init__(self, name, label, *content, **kwd)
+
+
+    def _separate_properties(self, props):
+        """
+            >>> props = [\
+                    ccReg.RequestProperty(name='foo', value='0', \
+                        output=True, child=False), \
+                    ccReg.RequestProperty(\
+                        name='bar', value='4', \
+                        output=False, child=False)]
+            >>> inp, out = RequestPropertyDField()._separate_properties(props)
+            >>> len(inp) == 1
+            True
+            >>> len(out) == 1
+            True
+        """
+        inp, out = [], []
+        for prop in props:
+            if prop.output:
+                inp.append(prop)
+            else:
+                out.append(prop)
+        return (inp, out)
         
     def resolve_value(self, value):
         """ Handles displayed value formatting.
 
             Args:
                 value: List of ccReg.RequestProperty objects.
-
-            Returns: 
-                The formatted value.
-
-            Doctests:
-                Correct nonempty input gives correct output.
-                >>> value = [\
-                    ccReg.RequestProperty(name='result_size', value='0', \
-                        output=False, child=False), \
-                    ccReg.RequestProperty(\
-                        name='filter_Service', value='4', \
-                        output=False, child=False)]
-                >>> result = RequestPropertyDField().resolve_value(value)
-                >>> result.value
-                'result_size: 0<br />filter_Service: 4'
-
-                Correct empty input gives correct empty output.
-                >>> value = []
-                >>> result = RequestPropertyDField().resolve_value(value)
-                >>> result.value
-                ''
-
-                Invalid input type raises AttributeError.
-                >>> value = "invalid value"
-                >>> result = RequestPropertyDField().resolve_value(value)
-                Traceback (most recent call last):
-                ...
-                AttributeError: 'str' object has no attribute 'child'
         """
-        break_char = '<br />'
-        return noesc(
-            break_char.join([self._format_property(prop) for prop in value]))
+        inprops, outprops = self._separate_properties(value)
+        return div(
+            table([self._format_property(prop) for prop in inprops]),
+            table([self._format_property(prop) for prop in outprops]))
 
     def _format_property(self, prop):
-        """ Creates a formatted string from prop.
-            
-            Args:
-                prop: Type ccReg.RequestProperty.
-        """
-        indent = "   " if prop.child else ""
-        return "%s%s: %s" % (indent, prop.name, prop.value)
+        return tr(td("%s:" % prop.name), td("%s" % prop.value))
 
     
 class ObjectHandleDField(DField):
@@ -223,7 +224,6 @@ class ObjectHandleDField(DField):
         oid = self._value
         if oid is not None:
             self.add(a(attr(href=f_urls[f_enum_name[oid.type]] + u'detail/?id=' + unicode(oid.id)), 
-#                       strong(oid.handle)))
                        oid.handle))            
         else:
             self.add(div(attr(cssc='field_empty')))
@@ -406,11 +406,6 @@ class ListObjectDField(DField):
             self.add(tbody(tagid('tbody')))
             for detail in self.inner_details:
                 self.tbody.add(detail)
-#                print "pridavam dtail detail"
-#                for field in detail.fields:
-#                    print 'adding field field.name'
-#                    row.add(td(field))
-#                self.add(row)
         else:
             self.add(div(attr(cssc='field_empty')))
 
@@ -506,6 +501,8 @@ class HistoryObjectDField(HistoryDField):
         if value:
             for history_row in value:
                 history_row.value = resolve_object(history_row.value)
+        if value is None:
+            return fredtypes.Null()
         return value
     
     def create_inner_details(self):
@@ -570,6 +567,8 @@ class HistoryListObjectDField(HistoryDField):
                 for obj in object_list:
                     new_obj_list.append(resolve_object(obj))
                 history_row.value = new_obj_list
+        if value is None():
+            return fredtypes.Null()
         return value
     
     def create_inner_details(self):
@@ -665,6 +664,8 @@ class HistoryStateDField(DField):
                 new_state = {}
                 new_state['id'] = state.id
                 new_state['from'] = recoder.corba_to_datetime(state._from)
+                if state.to is None:
+                    import pdb; pdb.set_trace()
                 new_state['to'] = recoder.corba_to_datetime(state.to)
                 new_state['linked'] = state.linked
                 new_states.append(new_state)
@@ -799,7 +800,6 @@ class BaseNHDField(DField):
         
     def _assign_current_field(self, new_current_field):
         self.current_field = new_current_field
-        #self.media_files.extend(self.current_field.media_files)
         
     def value_from_data(self, data):
         value = data.get(self.name)
@@ -820,7 +820,7 @@ class BaseNHDField(DField):
         if self.current_field:
             return self.current_field._value
         else:
-            return None
+            return fredtypes.Null()
     
     def _set_owner_detail(self, value):
         self._owner_detail = self.normal_field.owner_detail = self.history_field.owner_detail = value
@@ -844,12 +844,6 @@ class NHDField(BaseNHDField):
     ''' Normal and History field combined in one. Depending of history flag of detail,
         one of them is used for render.
     '''
-#    def get_current_field(self):
-#        if self.owner_detail.history and len(self._value) > 1:
-#            return self.history_field
-#        else:
-#            return self.normal_field
-    
     def value_from_data(self, data):
         value = data.get(self.name)
         
@@ -866,8 +860,7 @@ class NHDField(BaseNHDField):
         else:
             self.normal_field.owner_detail = self.owner_detail
             self._assign_current_field(self.normal_field)
-            
-        
+            return fredtypes.Null()
     
     
 class CharNHDField(NHDField):
@@ -931,7 +924,6 @@ class DiscloseCharNHDField(NHDField):
     
     def value_from_data(self, data):
         # this 'if' cannot be in __init__ becouse name is not known in construction time:
-        
         if self.disclose_name is None:
             self.disclose_name = 'disclose' + self.name[0].upper() + self.name[1:]
 
@@ -943,14 +935,3 @@ class DiscloseCharNHDField(NHDField):
             return super(DiscloseCharNHDField, self).value_from_data({self.name: value})
         else:
             return super(DiscloseCharNHDField, self).value_from_data({})
-#        
-#        if self.owner_detail.history and len(value) > 1 and not self.owner_detail.is_nested:
-#            self.displaying_history = True
-#            self.history_field.owner_detail = self.owner_detail
-#            self._assign_current_field(self.history_field)
-#            return value
-#        elif value:
-#            self.normal_field.owner_detail = self.owner_detail
-#            self._assign_current_field(self.normal_field)
-#            return from_any(value[0].value, True)
-    

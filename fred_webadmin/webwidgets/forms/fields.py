@@ -556,11 +556,8 @@ class HiddenIntegerField(IntegerField):
     
 
 class ChoiceField(Field):
-    #widget = Select
     tattr_list = select.tattr_list
     def __init__(self, name='', value='', choices=None, required=True, label=None, initial=None, help_text=None, *arg, **kwargs):
-#        self._choices = None
-#        self._value = None
         super(ChoiceField, self).__init__(name, value, required, label, initial, help_text, *arg, **kwargs)
         self.tag = 'select'
         self.empty_choice = ['', '']
@@ -680,7 +677,6 @@ class MultipleChoiceField(ChoiceField):
         return value
     
     def value_from_datadict(self, data):
-#        debug('Jsem %s a beru si data %s' % (self.name, data.get(self.name, None)))
         value = data.get(self.name, None)
         if value is None:
             value = []

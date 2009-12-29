@@ -398,7 +398,6 @@ class LoggerDetail(Detail):
 
 
 class BankStatementDetail(Detail):
-
     accountNumber = CharDField(label=_('Account Number'))
     bankCodeId = CharDField(label=_('Bank Code'))
     code = CharDField(label=_('Code'))

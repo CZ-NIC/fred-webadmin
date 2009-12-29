@@ -3,6 +3,7 @@
 
 import sys, os, types, time
 from cgi import escape
+import fred_webadmin.nulltype as fredtypes
 
 class GPyWebError(Exception):
     pass
@@ -168,7 +169,7 @@ class WebWidget(object):
     def __setattr__(self, name, value):
         #print "setting %s %s" % (name, repr(self))
         if name == 'content':
-            if value == None:
+            if value == None or value == fredtypes.Null():
                 super(WebWidget, self).__setattr__('content', [])
             else:
                 super(WebWidget, self).__setattr__('content', list(value))
@@ -258,12 +259,6 @@ class WebWidget(object):
             
 
     def render(self, indent_level = 0):
-        
-#        print "%d WW RENDER %s, %s" % (indent_level, self.tag, self.__class__.__name__)
-#        if self.parent_widget and self.parent_widget.root_widget:
-#            self.root_widget = self.parent_widget.root_widget
-#        else:
-#            self.root_widget = self
         if self.media_files and self.root_widget and isinstance(self.root_widget, HTMLPage):
             self.root_widget.add_media_files(self.media_files)
             
@@ -289,7 +284,6 @@ class WebWidget(object):
             rstr += u'</' + self.tag + u'>'
             if self.parent_widget:
                 if not self.parent_widget.enclose_content :
-                    #if not self.enclose_content:# or self == self.parent_widget.content[-1:][0]:
                     rstr += self.delimiter_char
             else:
                 rstr += self.delimiter_char

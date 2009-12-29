@@ -50,7 +50,6 @@ class DomainsNSSetDetailLayout(TableDetailLayout):
             self.add(row)
         
     def create_layout(self):
-        #if not self.detail.fields.get('nsset').displaying_history: # history is displayed only if history is on AND there is more than one history record in nsset historyRecordList
         nsset_detail = self.detail
         self._render_nsset(nsset_detail)
 
@@ -112,8 +111,6 @@ class DomainsKeySetDetailLayout(TableDetailLayout):
                            dnskeys_label))
             
             cell = td(attr(enclose_content=True))
-            #cell.add(dnskey_detail.fields['flags'])
-            #cell.add(', ')
             cell.add(dnskey_detail.fields['key'])
 
             row.add(cell)

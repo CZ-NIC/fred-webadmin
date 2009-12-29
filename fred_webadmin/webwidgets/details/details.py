@@ -75,7 +75,7 @@ class BaseDetail(div):
             self.sections = None
         if sections is not None:
             self.sections = sections
-        
+
         self.fields = None
         self.filter_base_fields()
         self.build_fields()
@@ -119,7 +119,6 @@ class BaseDetail(div):
             else:
                 field.value = field.value_from_data({}) # emtpy dict as there are no data
                 field.make_content_no_access()
-#                print 'No access field "%s", not setting value' % field.name 
     
     @classmethod
     def get_object_name(cls):
