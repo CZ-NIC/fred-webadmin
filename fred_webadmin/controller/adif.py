@@ -502,7 +502,6 @@ class Registrar(AdifPage, ListTableMixin):
             log_request.update("set_%s" % field_key, field_val)
 
     def _update_registrar(self, registrar, log_request, *params,**kwd):
-        kwd['edit'] = True
         context = {'main': div()}
         form_class = self._get_editform_class()
         initial = registrar.__dict__
@@ -518,8 +517,7 @@ class Registrar(AdifPage, ListTableMixin):
                 self._fill_registrar_struct_from_form(
                     registrar, form.cleaned_data, log_request)
                 try:
-#                    import pdb; pdb.set_trace()
-                    utils.get_corba_session().updateRegistrar(recoder.u2c(registrar))
+                    reg_id = utils.get_corba_session().updateRegistrar(recoder.u2c(registrar))
                 except (ccReg.Admin.UpdateFailed, ccReg.Admin.ObjectNotFound):
                     form.non_field_errors().append(
                         "Updating registrar failed. Perhaps you tried to "
@@ -534,14 +532,9 @@ class Registrar(AdifPage, ListTableMixin):
                     # automatically, not by the user.
                     raise 
 
-                if id == 0:
-                    # No id => we've created a new registrar => No redirect.
-                    raise cherrypy.HTTPRedirect(
-                        get_current_url(cherrypy.request))
-                else:
-                    # Id => It's an update. => Go to detail.
-                    raise cherrypy.HTTPRedirect(
-                        "/registrar/detail/?id=%s" % kwd.get('id'))
+                # Redirect to the registrar's detail.
+                raise cherrypy.HTTPRedirect(
+                    "/registrar/detail/?id=%s" % reg_id)
             else:
                 if debug:
                     context['main'].add('Form is not valid! Errors: %s' % 

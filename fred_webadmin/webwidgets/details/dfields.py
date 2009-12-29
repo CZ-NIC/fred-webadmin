@@ -841,9 +841,9 @@ class BaseNHDField(DField):
 
 
 class NHDField(BaseNHDField):
-    ''' Normal and History field combined in one. Depending of history flag of detail,
+    """ Normal and History field combined in one. Depending of history flag of detail,
         one of them is used for render.
-    '''
+    """
     def value_from_data(self, data):
         value = data.get(self.name)
         
