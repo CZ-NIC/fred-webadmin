@@ -7,6 +7,7 @@ from omniORB.any import from_any, to_any
 from omniORB import CORBA
 from datetime import datetime
 import time
+from logging import debug
 
 import fred_webadmin.corbarecoder as recoder
 import fred_webadmin.nulltype as fredtypes
@@ -132,6 +133,7 @@ class LongCharDField(DField):
         splitted = [val[self.n_break_chars*i:self.n_break_chars*(i+1)] for i in range(len(val)/self.n_break_chars + 1)]
         return noesc(self.break_char.join(splitted))
         
+
 class PreCharDField(CharDField):
     ''' Content text is in <pre> html tag. '''
     def make_content(self):
@@ -140,6 +142,7 @@ class PreCharDField(CharDField):
             self.add(div(attr(cssc='field_empty')))
         else:
             self.add(pre(self._value))
+
 
 class XMLDField(CharDField):
     enclose_content = True
@@ -150,6 +153,14 @@ class XMLDField(CharDField):
         value = super(XMLDField, self).resolve_value(value)
         value = xml_prettify_webwidget(value)
         return value
+
+
+class XMLOrCharDField(XMLDField):
+    def resolve_value(self, value):
+        value = super(XMLDField, self).resolve_value(value)
+        value = xml_prettify_webwidget(value)
+        return value
+
         
 class EmailDField(CharDField):
     def make_content(self):
@@ -209,13 +220,16 @@ class RequestPropertyDField(DField):
             Args:
                 value: List of ccReg.RequestProperty objects.
         """
+        if not value:
+            return u''
         inprops, outprops = self._separate_properties(value)
         return div(
             table([self._format_property(prop) for prop in inprops]),
             table([self._format_property(prop) for prop in outprops]))
 
     def _format_property(self, prop):
-        return tr(td("%s:" % prop.name), td("%s" % prop.value))
+        val = prop.value
+        return tr(td("%s:" % prop.name), td("%s" % val))
 
     
 class ObjectHandleDField(DField):

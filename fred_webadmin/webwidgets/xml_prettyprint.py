@@ -5,6 +5,7 @@ try:
     # formating using PythonXML
     import StringIO
     from xml.dom.ext import PrettyPrint
+    from xml.dom.ext.reader import Sax2
     import xml.dom.minidom
     python_xml_imported = True
 except ImportError:
@@ -21,7 +22,8 @@ except ImportError:
 
 
 def format_xml(xml_string):
-    doc = xml.dom.minidom.parseString(xml_string.encode('utf-8')) # minidom works only with byte string
+    reader = Sax2.Reader()
+    doc = reader.fromString(xml_string)
     doc.normalize()
     f = StringIO.StringIO()
     PrettyPrint(doc, f)
@@ -39,7 +41,6 @@ def xml_highlight(xml_string):
     
 def uglify(xml):
     return '\n'.join('\n<'.join('>\n'.join(xml.split('>')).split('<')).split('\n\n'))
-
 
 
 if python_xml_imported:

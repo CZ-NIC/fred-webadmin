@@ -391,10 +391,12 @@ class LoggerDetail(Detail):
     timeBegin = CharDField(label=_('Start time'))
     timeEnd = CharDField(label=_('End time'))
     action_type = CharDField(label=_('Action type'))
+    service_type = CharDField(label=_('Service type'))
     session_id = CharDField(label=_('Session id'))
+    sourceIp = CharDField(label=_('Source IP'))
     props = RequestPropertyDField(label=_('Properties'))
-    raw_request = CharDField(label=_("Raw request"))
-    raw_response = CharDField(label=_("Raw response"))
+    raw_request = XMLOrCharDField(label=_("Raw request"))
+    raw_response = XMLOrCharDField(label=_("Raw response"))
 
 
 class BankStatementDetail(Detail):
