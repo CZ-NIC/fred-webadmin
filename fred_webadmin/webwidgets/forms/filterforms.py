@@ -22,7 +22,7 @@ __all__ = ['UnionFilterForm', 'RegistrarFilterForm', 'ObjectStateFilterForm',
            'ObjectFilterForm', 'ContactFilterForm', 'NSSetFilterForm', 'KeySetFilterForm', 'DomainFilterForm', 
            'ActionFilterForm', 'FilterFilterForm', 'PublicRequestFilterForm', 
            'InvoiceFilterForm', 'MailFilterForm', 'FileFilterForm',
-           'LoggerFilterForm', 'BankStatementFilterForm', 'ZoneFilterForm',
+           'LoggerFilterForm', 'BankStatementFilterForm',
            'get_filter_forms_javascript']
 
 class FilterFormEmptyValue(object):
@@ -211,13 +211,6 @@ class FilterForm(Form):
                 del self.cleaned_data[name]
 
 
-class ZoneFilterForm(FilterForm):
-    default_fields_names = ['Fqdn']
-
-    Fqdn = CharField(label=_('Name'))
-    EnumZone = BooleanField(label=_('Enum'))
-
-
 class RegistrarFilterForm(FilterForm):
     default_fields_names = ['Handle']
     
@@ -228,8 +221,6 @@ class RegistrarFilterForm(FilterForm):
     CountryCode = CharField(label=_('Country'))
     ZoneFqdn = CharField(label=_('Zone fqdn'))
 
-    ActiveZone = CompoundFilterField(
-        label=_('Active Zone'), form_class=ZoneFilterForm)
 
     
 class ObjectStateFilterForm(FilterForm):
@@ -455,7 +446,6 @@ form_classes = (DomainFilterForm,
                 MailFilterForm,
                 ObjectStateFilterForm,
                 LoggerFilterForm,
-                ZoneFilterForm,
                 BankStatementFilterForm,
                )
 
