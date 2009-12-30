@@ -335,7 +335,6 @@ class BankStatementDetailWithPaymentPairing(DetailPage):
         super(BankStatementDetailWithPaymentPairing, self).__init__(context)
         c = self.context
         if c.get('result'):
-#            import pdb; pdb.set_trace()
             self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
             self.main.add(adifdetails.BankStatementDetail(c.result, c.history))
             self.main.add(editforms.BankStatementPairingEditForm(

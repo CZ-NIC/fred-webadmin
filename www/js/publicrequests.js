@@ -18,3 +18,12 @@ function setInZoneStatus(url) {
         location.href=url;
     }
 }
+
+function confirmAction() {
+    number = Math.floor(Math.random()*1000)
+    if (prompt("Type "+number+" to carry out the action.") == number) {
+        return true
+    }
+    return false
+}
+

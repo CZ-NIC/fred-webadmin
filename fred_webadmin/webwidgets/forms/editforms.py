@@ -14,6 +14,9 @@ from fred_webadmin.translation import _
 from fred_webadmin.corbalazy import CorbaLazyRequest, CorbaLazyRequestIterStruct
 from editformlayouts import EditFormLayout
 
+from fred_webadmin.utils import get_current_url
+import fred_webadmin.mappings as mappings
+
 
 
 class EditForm(Form):
@@ -33,7 +36,8 @@ class EditForm(Form):
             layout_class=EditFormLayout, 
             *content, **kwd)
         self.media_files = ['/js/scw.js', 
-                            '/js/scwLanguages.js']
+                            '/js/scwLanguages.js',
+                            '/js/publicrequests.js']
     
     def filter_base_fields(self):
         pass # viz. XXX: poznamky nahore
@@ -102,6 +106,11 @@ class RegistrarEditForm(EditForm):
 
 
 class BankStatementPairingEditForm(EditForm):
+    def __init__(self, *args, **kwargs):
+        EditForm.__init__(
+            self, 
+            onsubmit='return confirmAction();',
+            method='POST', *args, **kwargs)
     handle = CharField(label=_('Pair with Registrar Handle'))
     id = HiddenIntegerField()
     

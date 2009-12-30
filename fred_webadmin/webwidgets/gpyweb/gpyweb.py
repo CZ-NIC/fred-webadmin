@@ -294,7 +294,6 @@ class WebWidget(object):
         rstr = ''
         
         for con in self.content:
-            #if hasattr(con, '_is_tag_widget'):
             if con is None:
                 continue
             if isinstance(con, WebWidget):
@@ -326,7 +325,6 @@ class WebWidget(object):
         return rstr
     
     def __getitem__(self, content):
-        #if isiterable(content):
         if isinstance(content, (types.TupleType, types.ListType)):
             self.add(*content)
         else:
