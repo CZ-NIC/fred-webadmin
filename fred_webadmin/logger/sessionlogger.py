@@ -246,6 +246,9 @@ class LogRequest(object):
     def update_multiple(self, properties):
         """
             Add multiple rows to the log request.
+            
+            Note: Must be called when I want to use a child property. Calling
+            LogRequest.update(...) erases the child/parent information.
 
             Arguments:
                 properties: List of (name, value, output, child) tuples. See
@@ -253,8 +256,22 @@ class LogRequest(object):
         """
         prop_list = (properties if isinstance(properties, list) else
             [properties])
-        for (name, value, output, child) in prop_list:
-            self.update(name, value, output, child)
+
+        props = []
+        for name, value, output, child in prop_list:
+            if not isinstance(name, basestring):
+                name = str(name)
+            if not isinstance(value, basestring):
+                value = str(self._convert_nested_to_str(value))
+            name = recoder.u2c(name)
+            value = recoder.u2c(value)
+            props.append(ccReg.RequestProperty(name, value, output, child))
+
+        success = self.dao.UpdateRequest(self.request_id, props)
+        if not success:
+            raise LoggingException(
+                "UpdateRequest failed with args: (%s, %s)." % 
+                (self.request_id, props))
 
     def commit(self, content=""):
         """ Close this logging request. Warning: the request cannot be changed
