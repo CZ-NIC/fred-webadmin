@@ -28,7 +28,8 @@ class RegistrarDetail(Detail):
     
     name = CharDField(label=_('Name')) # registrar name
     organization = CharDField(label=_('Organization')) # organization name
-    credit = CharDField(label=_('Credit')) # credit
+    credit = CharDField(label=_('Total credit')) # credit
+    unspec_credit = CharDField(label=_('Unspecified credit'))
 
     street1 = CharDField(label=_('Street')) # address part 1
     street2 = CharDField(label='') # address part 2
@@ -48,12 +49,13 @@ class RegistrarDetail(Detail):
     varSymb = CharDField(label=_('Var. Symbol'))
     vat = CharDField(label=_('DPH'))
     hidden = CharDField(label=_('System registrar')) # hidden in PIF
+
     
     access = ListObjectDField(detail_class=AccessDetail)
     zones = ListObjectDField(detail_class=ZoneDetail)
     
     sections = (
-        (None, ('handle', 'organization', 'name', 'credit')),
+        (None, ('handle', 'organization', 'name', 'credit', 'unspec_credit')),
         (_('Address'), ('street1', 'street2', 'street3', 'city', 'postalcode', 'stateorprovince', 'country')),
         (_('Other_data'), ('telephone', 'fax', 'email', 'url', 'ico', 'dic', 'varSymb', 'vat', 'hidden')),
         (_('Authentication'), ('access', ), DirectSectionLayout),
