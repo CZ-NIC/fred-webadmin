@@ -13,9 +13,12 @@ import fred_webadmin.corbarecoder as recoder
 import fred_webadmin.nulltype as fredtypes
 
 from fred_webadmin import config
-from fred_webadmin.webwidgets.gpyweb.gpyweb import WebWidget, tagid, attr, noesc, a, img, strong, div, span, pre, table, thead, tbody, tr, th, td
+from fred_webadmin.webwidgets.gpyweb.gpyweb import (
+    WebWidget, tagid, attr, noesc, a, img, strong, div, span, pre, table, 
+    thead, tbody, tr, th, td, hr)
 from fred_webadmin.mappings import f_urls
-from detaillayouts import SectionDetailLayout, TableRowDetailLayout, TableColumnsDetailLayout
+from detaillayouts import (
+    SectionDetailLayout, TableRowDetailLayout, TableColumnsDetailLayout)
 from fred_webadmin.utils import get_detail_from_oid, LateBindingProperty
 from fred_webadmin.translation import _
 from fred_webadmin.corba import ccReg, Registry
@@ -208,11 +211,27 @@ class RequestPropertyDField(DField):
         """
         inp, out = [], []
         for prop in props:
-            if prop.output:
+            if prop["out"]:
                 inp.append(prop)
             else:
                 out.append(prop)
         return (inp, out)
+
+    def _process_negations(self, props):
+        res = []
+        last = None
+        for prop in props:
+            tmp = {
+                "name": prop.name, "value": prop.value, 
+                "out": prop.output, "child": prop.child,
+                "neg": False}
+            if last and prop.name == "negation":
+                if prop.value == u'True':
+                    last["neg"] = True
+            else:
+                res.append(tmp)
+            last = tmp
+        return res
         
     def resolve_value(self, value):
         """ Handles displayed value formatting.
@@ -222,14 +241,16 @@ class RequestPropertyDField(DField):
         """
         if not value:
             return u''
-        inprops, outprops = self._separate_properties(value)
+        vals = self._process_negations(value)
+        inprops, outprops = self._separate_properties(vals)
         return div(
-            table([self._format_property(prop) for prop in inprops]),
+            table([self._format_property(prop) for prop in inprops]), hr(),
             table([self._format_property(prop) for prop in outprops]))
 
     def _format_property(self, prop):
-        val = prop.value
-        return tr(td("%s:" % prop.name), td("%s" % val))
+        val = prop["value"]
+        neg = "(neg)" if prop["neg"] else ""
+        return tr(td("%s %s:" % (neg, prop["name"])), td("%s" % val))
 
     
 class ObjectHandleDField(DField):

@@ -217,8 +217,9 @@ class ListTableMixin(object):
                 # TODO(tomas): Log OR operators better...
                 for name, value, neg in form_utils.flatten_form_data(
                     form.cleaned_data):
-                    log_req.update("filter_%s" % name, value)
-                    log_req.update("negation", str(neg), child=True)
+                    filter_req = ("filter_%s" % name, value, False, False)
+                    neg_req = ("negation", str(neg), False, True)
+                    log_req.update_multiple([filter_req, neg_req])
 
                 log_req.commit("")
 
