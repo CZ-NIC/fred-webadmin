@@ -144,7 +144,6 @@ class FloatField(Field):
         """
         super(FloatField, self).clean()
         if self.is_empty():
-#            return None
             return fredtypes.NullFloat()
         try:
             value = float(self.value)

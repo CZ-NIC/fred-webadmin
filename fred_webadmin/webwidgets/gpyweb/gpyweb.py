@@ -248,8 +248,7 @@ class WebWidget(object):
         '''Returns space-separated list of widget's tag attributes'''
         rstr = ''
         for key, val in self.tattr.items():
-            #if val or (val == 0 and type(val) in [type(0), type(0.0)]): #because false == 0
-            if val is not None:
+            if val is not None and val != fredtypes.Null():
                 val = escape(unicode(val), quote=True)
                 if key in self.attr_translation.keys():
                     rstr += u' %s="%s"' % (self.attr_translation[key], val)

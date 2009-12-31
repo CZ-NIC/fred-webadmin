@@ -123,8 +123,9 @@ class DateDField(DField):
     enclose_content = True
     def resolve_value(self, value):
         if value != fredtypes.Null():
-            value = recoder.corba_to_date(value)
-        return fredtypes.NullDate()
+            return recoder.corba_to_date(value)
+        else:
+            return fredtypes.NullDate()
 
 
 class LongCharDField(DField):
