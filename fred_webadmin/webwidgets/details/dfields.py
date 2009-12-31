@@ -700,8 +700,6 @@ class HistoryStateDField(DField):
                 new_state = {}
                 new_state['id'] = state.id
                 new_state['from'] = recoder.corba_to_datetime(state._from)
-                if state.to is None:
-                    import pdb; pdb.set_trace()
                 new_state['to'] = recoder.corba_to_datetime(state.to)
                 new_state['linked'] = state.linked
                 new_states.append(new_state)
