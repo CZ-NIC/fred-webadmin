@@ -15,7 +15,7 @@ import fred_webadmin.nulltype as fredtypes
 from fred_webadmin import config
 from fred_webadmin.webwidgets.gpyweb.gpyweb import (
     WebWidget, tagid, attr, noesc, a, img, strong, div, span, pre, table, 
-    thead, tbody, tr, th, td, hr)
+    thead, tbody, tr, th, td, hr, h4)
 from fred_webadmin.mappings import f_urls
 from detaillayouts import (
     SectionDetailLayout, TableRowDetailLayout, TableColumnsDetailLayout)
@@ -198,6 +198,16 @@ class RequestPropertyDField(DField):
 
     def _separate_properties(self, props):
         """
+            Separate log request properties to input properties and output
+            properties.
+
+            Args:
+                props:
+                    [{name:, out:, neg:}] List of dictionaries with these keys.
+
+            Returns:
+                (input_props, output_props)
+
             >>> props = [\
                     ccReg.RequestProperty(name='foo', value='0', \
                         output=True, child=False), \
@@ -213,12 +223,24 @@ class RequestPropertyDField(DField):
         inp, out = [], []
         for prop in props:
             if prop["out"]:
-                inp.append(prop)
-            else:
                 out.append(prop)
+            else:
+                inp.append(prop)
         return (inp, out)
 
     def _process_negations(self, props):
+        """ Converts ccReg.RequestProperty object to a list of 
+            {name:, out:, neg:} dicts.
+
+            Args:
+                props:
+                    List of ccReg.RequestProperty objects.
+
+            Returns:
+                List of {name:, out:, neg:} dicts, where 
+                neg == True <=> request property describes a filter with
+                negation flag set to true. 
+        """
         res = []
         last = None
         for prop in props:
@@ -239,13 +261,17 @@ class RequestPropertyDField(DField):
 
             Args:
                 value: List of ccReg.RequestProperty objects.
+            Returns:
+                WebWidget subclass representing the HTML content of the field.
         """
         if not value:
             return u''
         vals = self._process_negations(value)
         inprops, outprops = self._separate_properties(vals)
-        return div(
-            table([self._format_property(prop) for prop in inprops]), hr(),
+        return div(h4("input", attr(style="margin: 1px 1px 1px 1px;")),
+            table([self._format_property(prop) for prop in inprops]),
+            hr(),
+            h4("output", attr(style="margin: 1px 1px 1px 1px;")),
             table([self._format_property(prop) for prop in outprops]))
 
     def _format_property(self, prop):
