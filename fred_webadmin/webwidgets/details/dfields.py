@@ -268,11 +268,15 @@ class RequestPropertyDField(DField):
             return u''
         vals = self._process_negations(value)
         inprops, outprops = self._separate_properties(vals)
+        table_in = table([self._format_property(prop) for prop in inprops]) if \
+            inprops else span()
+        table_out = table([self._format_property(prop) for prop in outprops]) if \
+            outprops else span()
         return div(h4("input", attr(style="margin: 1px 1px 1px 1px;")),
-            table([self._format_property(prop) for prop in inprops]),
+            table_in,
             hr(),
             h4("output", attr(style="margin: 1px 1px 1px 1px;")),
-            table([self._format_property(prop) for prop in outprops]))
+            table_out)
 
     def _format_property(self, prop):
         val = prop["value"]
