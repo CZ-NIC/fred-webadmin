@@ -268,6 +268,15 @@ class RequestPropertyDField(DField):
             return u''
         vals = self._process_negations(value)
         inprops, outprops = self._separate_properties(vals)
+        def cmp_props(a, b):
+            if a['name'] > b['name']:
+                return 1
+            elif a['name'] == b['name']:
+                return 0
+            else:
+                return -1
+        inprops.sort(cmp=cmp_props)
+        outprops.sort(cmp=cmp_props)
         table_in = table([self._format_property(prop) for prop in inprops]) if \
             inprops else span()
         table_out = table([self._format_property(prop) for prop in outprops]) if \
