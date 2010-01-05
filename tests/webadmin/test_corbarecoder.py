@@ -79,32 +79,18 @@ class TestDaphneCorbaRecoder(object):
             vat=False, handle='NEW REG', name='name 1', organization='',
             street1='', street2='', street3='', city='', stateorprovince='state',
             postalcode='', country='CZ', telephone='', fax='', email='', url='',
-            credit='0.00', access=[], zones=[], hidden=False)
+            credit='0.00', unspec_credit=u"0.00", access=[], zones=[], hidden=False)
         expected = fredcorba.Registry.Registrar.Detail(
             id=19, ico=u'', dic=u'', varSymb=u'', vat=False, 
             handle=u'NEW REG', name=u'name 1', organization=u'', street1=u'', 
             street2=u'', street3=u'', city=u'', stateorprovince=u'state', 
             postalcode=u'', country=u'CZ', telephone=u'', fax=u'', email=u'', 
-            url=u'', credit=u'0.00', access=[], zones=[], hidden=False)
+            url=u'', credit=u'0.00', unspec_credit=u"0.00", access=[], zones=[], hidden=False)
 
         decoded_reg = rec.decode(reg)
 
         requiring(decoded_reg).is_not_none()
         requiring(decoded_reg.__dict__).equal_to(expected.__dict__)
-
-    def test_decode_inconvertible(self):
-        """ DaphneCorbaRecoder raises ValueError for an inconvertible entity. """
-        rec = recoder.DaphneCorbaRecode("utf-8")
-        reg = fredcorba.Registry.Registrar.Detail(
-            id=19, ico=u'', dic=u'', varSymb=u'', vat=False, handle=u'NEW REG',
-            name=u'name 1', organization=u'', street1=u'', street2=u'', 
-            street3=u'', city=u'', stateorprovince=u'state', postalcode=u'', 
-            country=u'CZ', telephone=u'', fax=u'', email=u'', url=u'', 
-            credit=u'0.00', access=[], zones=[fredcorba.ccReg.ZoneAccess(id=0,
-            name=u'cz', fromDate=datetime.date(2009, 12, 11), toDate=u'')],
-            hidden=False)
-
-        calling(rec.decode).passing(reg).raises(ValueError)
 
     def test_encode(self):
         rec = recoder.DaphneCorbaRecode("utf-8")
@@ -113,13 +99,15 @@ class TestDaphneCorbaRecoder(object):
             handle=u'NEW REG', name=u'name 1', organization=u'', street1=u'', 
             street2=u'', street3=u'', city=u'', stateorprovince=u'state', 
             postalcode=u'', country=u'CZ', telephone=u'', fax=u'', email=u'', 
-            url=u'', credit=u'0.00', access=[], zones=[], hidden=False)
+            url=u'', credit=u'0.00', unspec_credit=u"0.00", access=[], 
+            zones=[], hidden=False)
         expected = fredcorba.Registry.Registrar.Detail(
             id=19, ico='', dic='', varSymb='',
             vat=False, handle='NEW REG', name='name 1', organization='',
             street1='', street2='', street3='', city='', stateorprovince='state',
-            postalcode='', country='CZ', telephone='', fax='', email='', url='',
-            credit='0.00', access=[], zones=[], hidden=False)
+            postalcode='', country='CZ', unspec_credit=u"0.00", telephone='', 
+            fax='', email='', url='', credit='0.00', access=[], zones=[], 
+            hidden=False)
 
         encoded_entity = rec.encode(python_entity)
 
@@ -138,7 +126,7 @@ class TestDaphneCorbaRecoder(object):
     def test_decode_date_type(self):
         rec = recoder.DaphneCorbaRecode("utf-8")
 
-        d = fredcorba.ccReg.DateType(10,10,2009)
+        d = fredcorba.ccReg.DateType(10, 10, 2009)
         res = rec.decode(d)
 
         requiring(res).is_not_none()
@@ -188,7 +176,7 @@ class TestDaphneCorbaRecoder(object):
             handle=u'NEW REG', name=u'name 1', organization=u'', street1=u'', 
             street2=u'', street3=u'', city=u'', stateorprovince=u'state', 
             postalcode=u'', country=u'CZ', telephone=u'', fax=u'', email=u'', 
-            url=u'', credit=u'0.00', access=[], 
+            url=u'', credit=u'0.00', unspec_credit=u"0.00", access=[], 
             zones=[
                 fredcorba.ccReg.ZoneAccess(
                     id=0, name=u'cz', fromDate=datetime.date(2009, 12, 11), 
@@ -199,7 +187,7 @@ class TestDaphneCorbaRecoder(object):
             name='name 1', organization='', street1='', street2='', 
             street3='', city='', stateorprovince='state', 
             postalcode='', country='CZ', telephone='', fax='', 
-            email='', url='', credit='0.00', access=[], 
+            email='', url='', unspec_credit=u"0.00", credit='0.00', access=[], 
             zones=[
                 fredcorba.ccReg.ZoneAccess(
                     id=0, name='cz', fromDate=fredcorba.ccReg.DateType(
@@ -220,13 +208,13 @@ class TestDaphneCorbaRecoder(object):
             vat=False, handle='NEW REG', name='name 1', organization='',
             street1='', street2='', street3='', city='', stateorprovince='state',
             postalcode='', country='CZ', telephone='', fax='', email='', url='',
-            credit='0.00', access=[], zones=[], hidden=False)
+            credit='0.00', unspec_credit=u"0.00", access=[], zones=[], hidden=False)
         expected = fredcorba.Registry.Registrar.Detail(
             id=19, ico=u'', dic=u'', varSymb=u'', vat=False, 
             handle=u'NEW REG', name=u'name 1', organization=u'', street1=u'', 
             street2=u'', street3=u'', city=u'', stateorprovince=u'state', 
             postalcode=u'', country=u'CZ', telephone=u'', fax=u'', email=u'', 
-            url=u'', credit=u'0.00', access=[], zones=[], hidden=False)
+            url=u'', credit=u'0.00', unspec_credit=u"0.00", access=[], zones=[], hidden=False)
 
         decoded_reg = rec.decode(reg)
         encoded_reg = rec.encode(decoded_reg)
