@@ -932,8 +932,7 @@ def runserver():
     root.filter = Filter()
     root.statistic = Statistics()
     root.devel = Development()
-    
-    
+
     cherrypy.quickstart(root, '/', config=config.cherrycfg)
 
 if __name__ == '__main__':

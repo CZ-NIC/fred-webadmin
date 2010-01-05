@@ -122,7 +122,8 @@ class DaphneCorbaRecode(CorbaRecode):
                 item = getattr(answer, name)
                 if name.startswith('__'): 
                     continue # internal python methods / attributes
-                if name.startswith('_'): 
+                if name.startswith('_') and name != "_from": 
+                    # HACK to handle that OMNIOrb mangles 'from' to '_from'
                     continue # internal module defined methods / attributes
                 if type(item) == types.MethodType: 
                     continue # methods - don't call them

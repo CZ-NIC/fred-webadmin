@@ -70,7 +70,7 @@ class DField(WebWidget):
         
     def make_content(self):
         self.content = []
-        if self.value == '':
+        if self._value == '' or self._value == fredtypes.Null():
             self.add(div(attr(cssc='field_empty')))
         else:
             self.add(self._value)
@@ -950,15 +950,15 @@ class DiscloseCharNHDField(NHDField):
         self.disclose_name = disclose_name
     
     def merge_histories(self, hist1, hist2):
-        ''' Merge histories of field and his dislose flag, If time is the same, 
+        """ Merge histories of field and his dislose flag, If time is the same, 
             then histories are sorted/merged according to actionId 
             (if actionId is the same, then they are merged, otherwise sorted):
-        '''
+        """
         all_dates = {} # key is (date, action_id), value is couple list of couple [hist_number, history record]
         
         for hist_num, hist in enumerate([hist1, hist2]):
             for rec in hist:
-                from_date = recoder.corba_to_datetime(rec._from)
+                from_date = rec._from
                 if from_date: # from/to date can be empty, in that case we ignore it
                     key = (from_date, rec.actionId)
                     val = [hist_num, rec]
@@ -976,15 +976,15 @@ class DiscloseCharNHDField(NHDField):
         for key, rec_list in sorted(all_dates.items()):
             for hist_num, rec in rec_list:
                 last_hist_vals[hist_num] = from_any(rec.value, True)
-                last_hist_tos[hist_num] = recoder.corba_to_datetime(rec.to)
+                last_hist_tos[hist_num] = rec.to 
             value = to_any([last_hist_vals[0], last_hist_vals[1]])
             action_id = rec_list[0][1].actionId
             _from = rec_list[0][1]._from
             
             to_dict = dict(
-                [(hist_num, recoder.corba_to_datetime(rec.to)) for 
+                [(hist_num, rec.to) for 
                     hist_num, rec in rec_list if 
-                        recoder.corba_to_datetime(rec.to)])
+                        rec.to])
             for hist_num in (0, 1):
                 if not to_dict.has_key(hist_num):
                     to_dict[hist_num] = last_hist_tos[hist_num]

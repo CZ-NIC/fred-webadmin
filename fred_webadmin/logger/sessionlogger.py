@@ -281,6 +281,46 @@ class LogRequest(object):
             raise LoggingException("CloseRequest failed.")
 
 
+class SessionLoggerNoFail(SessionLogger):
+    """
+        SessionLogger that does not raise exceptions on failure. 
+    """
+    # TODO(tom): How to implement this? The trouble is that CORBA is sort of
+    # omni-present in Daphne, so it can fail almost anywhere. What's worse, if
+    # CORBA logd does not start, we cannot create the logging session and we 
+    # the logger will raise an exception whatever it does.
+
+    def start_session(self, *args, **kwargs):
+        try:
+            res = SessionLogger.start_session(*args, **kwargs)
+        except ValueError, LoggingException:
+            pass
+
+    def set_common_property(self, *args, **kwargs):
+        return
+
+    def create_request(self, *args, **kwargs):
+        return DummyLogRequest()
+
+    def create_request_login(self, *args, **kwargs):
+        return DummyLogRequest()
+        
+    def close_session(self, *args, **kwargs): 
+        return True
+
+
+class LogRequestNoFail(LogRequest):
+    def update(self, *args, **kwargs):
+        return True
+
+    def update_multiple(self, *args, **kwargs):
+        return True
+
+    def commit(self, *args, **kwargs):
+        return True
+
+
+
 class LoggingException(Exception):
     """ Generic exception thrown by this logging framework. """
     def __init__(self, value):
