@@ -8,6 +8,7 @@ from omniORB import CORBA
 from datetime import datetime
 import time
 from logging import debug
+import xml.sax
 
 import fred_webadmin.corbarecoder as recoder
 import fred_webadmin.nulltype as fredtypes
@@ -161,9 +162,12 @@ class XMLDField(CharDField):
 
 class XMLOrCharDField(XMLDField):
     def resolve_value(self, value):
-        value = super(XMLDField, self).resolve_value(value)
-        value = xml_prettify_webwidget(value)
-        return value
+        val = super(XMLDField, self).resolve_value(value)
+        try:
+            val_xml = xml_prettify_webwidget(val)
+        except xml.sax.SAXParseException:
+            return val
+        return val_xml
 
         
 class EmailDField(CharDField):
