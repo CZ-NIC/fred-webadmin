@@ -100,7 +100,10 @@ class CorbaRecode(object):
             return answer
 
 class DaphneCorbaRecode(CorbaRecode):
-    """ TODO(tom): Bad code duplication here, refactor mercilessly! """
+    """ TODO(tom): Bad code duplication here, refactor mercilessly!
+        Used to encode python objects to corba objects and decode corba objects
+        to python objects.
+    """
     def decode(self, answer):
         if type(answer) in types.StringTypes:
             return answer.decode(self.coding)
@@ -112,6 +115,8 @@ class DaphneCorbaRecode(CorbaRecode):
             return corba_to_datetime(answer)
         if isinstance(answer, ccReg.DateType):
             return corba_to_date(answer)
+        # OMNIOrbpy uses old style classes => check whether type is
+        # InstanceType.
         if type(answer) == types.InstanceType:
             for name in dir(answer):
                 item = getattr(answer, name)
@@ -148,6 +153,8 @@ class DaphneCorbaRecode(CorbaRecode):
             return datetime_to_corba(answer)
         if isinstance(answer, datetime.date):
             return date_to_corba(answer)
+        # OMNIOrbpy uses old style classes => check whether type is
+        # InstanceType.
         if type(answer) == types.InstanceType:
             for name in dir(answer):
                 item = getattr(answer, name)
@@ -190,6 +197,8 @@ null_encoding_rules = {
 }
 
 def _encode_null_type(item, objref):
+    """ Transforms the Null subclass object to the respective CORBA type.
+    """
     if type(item) in null_encoding_rules:
         return (True, null_encoding_rules[type(item)])
     if isinstance(item, fredtypes.Null):
@@ -216,8 +225,6 @@ def date_to_corba(date):
 
 
 def corba_to_date(corba_date):
-    if corba_date == fredtypes.NullDate():
-        return corba_date
     if corba_date.year == 0: # empty date is in corba = DateType(0, 0, 0)
         return fredtypes.NullDate() 
     return datetime.date(corba_date.year, corba_date.month, corba_date.day)
@@ -232,8 +239,6 @@ def datetime_to_corba(date_time):
 
 
 def corba_to_datetime(corba_date_time):
-    if corba_date_time == fredtypes.NullDateTime():
-        return corba_date_time
     corba_date = corba_date_time.date
     if corba_date.year == 0: # empty date is in corba = DateType(0, 0, 0)
         return fredtypes.NullDateTime()

@@ -323,24 +323,22 @@ class BankStatementDetail(DetailPage):
     def __init__(self, context = None):
         super(BankStatementDetail, self).__init__(context)
         c = self.context
-        if c.get('result'):
+        if c.get('detail'):
             self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
-            self.main.add(adifdetails.BankStatementDetail(c.result, c.history))
+            self.main.add(adifdetails.BankStatementDetail(c.detail, c.history))
             if config.debug:
-                self.main.add('BankStatementDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
+                self.main.add('BankStatementDETAIL:', pre(unicode(c.detail).replace(u', ', u',\n')))
 
 
 class BankStatementDetailWithPaymentPairing(DetailPage):
     def __init__(self, context = None):
         super(BankStatementDetailWithPaymentPairing, self).__init__(context)
         c = self.context
-        if c.get('result'):
+        if c.get('detail'):
             self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
-            self.main.add(adifdetails.BankStatementDetail(c.result, c.history))
-            self.main.add(editforms.BankStatementPairingEditForm(
-                initial={
-                    'statementId' : c.result.statementId,
-                    'id' : c.result.id}))
+            self.main.add(adifdetails.BankStatementDetail(c.detail, c.history))
+        if c.get('form'):
+            self.main.add(c.form)
 
                 
 class EditPage(BaseSiteMenu):
@@ -352,10 +350,12 @@ class EditPage(BaseSiteMenu):
             lang_code = config.lang[:2]
             if lang_code == 'cs': # conversion between cs and cz identifier of lagnguage
                 lang_code = 'cz'
-            self.head.add(script(attr(type='text/javascript'), 
-                                 'scwLanguage = "%s"; //sets language of js_calendar' % lang_code,
-                                 'scwDateOutputFormat = "%s"; // set output format for js_calendar' % config.js_calendar_date_format_edit))
-
+            self.head.add(
+                script(attr(type='text/javascript'),
+                'scwLanguage = "%s"; //sets language of js_calendar' % \
+                lang_code,
+                """scwDateOutputFormat = "%s"; // set output format for """
+                """js_calendar""" % config.js_calendar_date_format_edit))
 
 class RegistrarEdit(EditPage):
     pass

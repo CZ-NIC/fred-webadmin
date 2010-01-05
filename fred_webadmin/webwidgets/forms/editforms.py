@@ -106,11 +106,6 @@ class RegistrarEditForm(EditForm):
 
 
 class BankStatementPairingEditForm(EditForm):
-    def __init__(self, *args, **kwargs):
-        EditForm.__init__(
-            self, 
-            onsubmit='return confirmAction();',
-            method='POST', *args, **kwargs)
     handle = CharField(label=_('Pair with Registrar Handle'))
     id = HiddenIntegerField()
     

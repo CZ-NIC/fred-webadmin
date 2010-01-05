@@ -255,8 +255,6 @@ class ListTableMixin(object):
         
         result = self._get_detail(obj_id=kwd.get('id'))
 
-        debug(result)
-
         req.update("object_id", kwd.get("id"))
         
         context['edit'] = kwd.get('edit', False)

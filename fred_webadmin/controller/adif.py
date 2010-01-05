@@ -736,44 +736,64 @@ class BankStatement(AdifPage, ListTableMixin):
         """ Links the payment with registrar. """
         log_req = cherrypy.session['Logger'].create_request(
             cherrypy.request.remote.ip, cherrypy.request.body, "PaymentPair")
+        log_req.update("payment_id", payment_id)
+        log_req.update("registrar_handle", registrar_handle)
         invoicing = utils.get_corba_session().getBankingInvoicing()
         success = invoicing.pairPaymentRegistrarHandle(
             payment_id, recoder.u2c(registrar_handle))
-        if not success:
-            context['main'] = _("Unable to pair payment with registrar.")
-            return self._render('pair_payment', context)
-        log_req.commit("")
-    
+        if success:
+            log_req.commit()
+        return success
+
     @check_onperm('read')
     def detail(self, **kwd):
         context = {}
-
+        # Indicator whether the pairing action has been carried out
+        # successfully.
+        pairing_success = False
+        
         registrar_handle = kwd.get('handle')
         obj_id = kwd.get('id')
         try:
             obj_id = int(obj_id)
         except (TypeError, ValueError):
-            context['main'] = _("Requires integer as parameter")
+            context['main'] = _(
+                "Requires integer as parameter (got %s)." % obj_id)
             raise CustomView(self._render('base', ctx=context))
         
         # When the user sends the pairing form we arrive at BankStatement
         # detail again, but this time we receive registrar_handle in kwd
         # => pair the payment with the registrar.
         if registrar_handle is not None and obj_id is not None:
-            self._pair_payment_with_registrar(context, obj_id, registrar_handle)
+            pairing_success = self._pair_payment_with_registrar(
+                context, obj_id, registrar_handle)
 
         log_req = cherrypy.session['Logger'].create_request(
             cherrypy.request.remote.ip, cherrypy.request.body, 
             f_name_actiondetailname[self.__class__.__name__.lower()])
         
-        result = utils.get_detail(self.classname, obj_id)
+        detail = utils.get_detail(self.classname, obj_id)
 
         log_req.update('object_id', kwd.get('id'))
         
-        context['result'] = result 
+        context['detail'] = detail 
+        context['form'] = BankStatementPairingEditForm(
+            method="POST",
+            initial={
+                'handle': kwd.get('handle', None),
+                'statementId': kwd.get('statementId', None),
+                'id': obj_id},
+            onsubmit='return confirmAction();')
+        if registrar_handle is not None and not pairing_success:
+            # Pairing form was submitted, but pairing did not finish
+            # successfully => Show an error.
+            context['form'].non_field_errors().append(
+                """Could not pair. Perhaps you have entered"""
+                """ an invalid handle?""")
+
         log_req.commit("")
 
-        if result.invoiceId != 0:
+        if detail.invoiceId != 0:
             action = 'detail'
         else:
             # Payment not paired => show the payment pairing edit form
@@ -782,8 +802,9 @@ class BankStatement(AdifPage, ListTableMixin):
             # not exist => hide invoiceId value so the link is not "clickable".
             # Note: No information is lost, because id == 0 semantically means 
             # that there is no id.
-            context['result'].invoiceId = ""
-        return self._render(action, context)
+            context['detail'].invoiceId = ""
+        res = self._render(action, context)
+        return res
 
     def _template(self, action = ''):
         if action == "pair_payment":
