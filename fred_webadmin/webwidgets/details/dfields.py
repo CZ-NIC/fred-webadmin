@@ -218,6 +218,8 @@ class RequestPropertyDField(DField):
                     ccReg.RequestProperty(\
                         name='bar', value='4', \
                         output=False, child=False)]
+            >>> field = RequestPropertyDField()
+            >>> props = field._process_negations(props)
             >>> inp, out = RequestPropertyDField()._separate_properties(props)
             >>> len(inp) == 1
             True

@@ -202,7 +202,6 @@ class AdifPage(Page):
             context.update(ctx)
         
         temp_class = self._template(action)(context)
-        debug(u"TAKING TEMPLATE:%s" % repr(temp_class))
         result = temp_class.render()
         
         return result
@@ -459,22 +458,24 @@ class Statistics(AdifPage):
 
 
 class Registrar(AdifPage, ListTableMixin):
-
     def __init__(self):
         AdifPage.__init__(self)
         ListTableMixin.__init__(self)
-        # Some fields must be treated specially (the value must be converted
-        # to corba type first). We use self.type_transformer to map the names
+        # Some fields must be treated specially (their value must be converted
+        # to a corba type first). We use self.type_transformer to map the names
         # of these fields to their respective converting functions.
+        # All the other fields (i.e., those not in the transformer mapping) 
+        # are treated as strings.
         self.type_transformer = {}
         self.type_transformer['zones'] = lambda val: map(
             lambda x: ccReg.ZoneAccess(**x), val)
         self.type_transformer['access'] = lambda val: map(
             lambda x: ccReg.EPPAccess(**x), val)
         self.type_transformer['id'] = lambda val: int(val)
-        # All the other fields (i.e., those not in transformer) are strings.
 
     def _get_empty_corba_struct(self):
+        """ Creates a ccReg.Registrar object representing
+            a new registrar to be created on server side. """
         new = []
         new.append(0) # id
         new.extend(['']*3)
@@ -501,42 +502,54 @@ class Registrar(AdifPage, ListTableMixin):
             # Add this action to the audit log.
             log_request.update("set_%s" % field_key, field_val)
 
+    def _process_valid_form(self, form, registrar, reg_id, 
+                            context, log_request):
+        self._fill_registrar_struct_from_form(
+            registrar, form.cleaned_data, log_request)
+        corba_reg = recoder.u2c(registrar)
+        try:
+            reg_id = utils.get_corba_session().updateRegistrar(corba_reg)
+        except ccReg.Admin.UpdateFailed:
+            form.non_field_errors().append(
+                "Updating registrar failed. Perhaps you tried to "
+                "create a registrar with an already used handle?")
+            context['form'] = form
+            return self._render('edit', context)
+        log_request.commit("")
+        try:
+            id = int(reg_id)
+        except (ValueError, TypeError):
+            # Note that this should never be caught, because id is set
+            # automatically, not by the user. So it should always have
+            # a correct type.
+            raise 
+        # Jump to the registrar's detail.
+        raise cherrypy.HTTPRedirect("/registrar/detail/?id=%s" % reg_id)
+
     def _update_registrar(self, registrar, log_request, *params,**kwd):
+        """ Handles the actual updating/creating of a registrar.
+            Note that registrar create only differs from registrar update in
+            that it create has id == 0.
+
+            Args:
+                registrar:
+                    The ccReg.Registrar object that is being updated or
+                    created.
+                log_request:
+                    The SessionLogger.LogRequest object that keeps log of
+                    this event.
+        """
         context = {'main': div()}
         form_class = self._get_editform_class()
         initial = registrar.__dict__
 
         if cherrypy.request.method == 'POST':
             form = form_class(kwd, initial=initial, method='post')
-            context['main'].add(pre(('KWD: %s' % kwd).replace(',', ',\n')))
             if form.is_valid():
-                if debug:
-                    context['main'].add(pre(unicode(
-                        'Cleaned_data:\n%s' % form.cleaned_data).replace(
-                            ',', ',\n')))
-                self._fill_registrar_struct_from_form(
-                    registrar, form.cleaned_data, log_request)
-                try:
-                    reg_id = utils.get_corba_session().updateRegistrar(recoder.u2c(registrar))
-                except (ccReg.Admin.UpdateFailed, ccReg.Admin.ObjectNotFound):
-                    form.non_field_errors().append(
-                        "Updating registrar failed. Perhaps you tried to "
-                        "create a registrar with an already used handle?")
-                    context['form'] = form
-                    return self._render('edit', context)
-                log_request.commit("")
-                try:
-                    id = int(kwd.get('id'))
-                except (ValueError, TypeError):
-                    # Should never be caught, because id is set
-                    # automatically, not by the user.
-                    raise 
-
-                # Redirect to the registrar's detail.
-                raise cherrypy.HTTPRedirect(
-                    "/registrar/detail/?id=%s" % reg_id)
+                self._process_valid_form(
+                    form, registrar, kwd.get('id'), context, log_request)
             else:
-                if debug:
+                if config.debug:
                     context['main'].add('Form is not valid! Errors: %s' % 
                                          repr(form.errors))
         else:
