@@ -212,7 +212,8 @@ class ListTableMixin(object):
 
                 context['main'].add(u"rows: " + str(
                     self._get_itertable().num_rows))
-                log_req.update("result_size", self._get_itertable().num_rows)
+                log_req.update(
+                    "result_size", self._get_itertable().num_rows, output=True)
                 # Log the selected filters.
                 # TODO(tomas): Log OR operators better...
                 for name, value, neg in form_utils.flatten_form_data(
