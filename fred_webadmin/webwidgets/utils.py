@@ -165,7 +165,6 @@ def isiterable(par):
     # we don't want to iterate over string characters
     if isinstance(par, types.StringTypes):
         return False
-
     try:
         iter(par)
         return True

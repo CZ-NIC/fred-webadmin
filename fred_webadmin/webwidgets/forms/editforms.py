@@ -99,10 +99,11 @@ class RegistrarEditForm(EditForm):
     url = CharField(label=_('URL'), required=False) # URL
     hidden = BooleanField(label=_('System registrar'), required=False) # System registrar
 
-    #access = EPPAccessSeq # list of epp access data
     access = FormSetField(label=_('Authentication'), form_class=AccessEditForm, can_delete=True)
+    # TODO(Tom): zones.can_delete should be False, but that causes problems
+    # BaseFormSet._get_cleaned_data. Fix it!
     zones = FormSetField(
-        label=_('Zones'), form_class=ZoneEditForm, can_delete=False)
+        label=_('Zones'), form_class=ZoneEditForm, can_delete=True)
 
 
 class BankStatementPairingEditForm(EditForm):
