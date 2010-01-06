@@ -3,15 +3,18 @@ import cherrypy
 import fred_webadmin as webadmin
 import fred_webadmin.user as user
 import fred_webadmin.logger.dummylogger as logger
-from fred_webadmin import setuplog
-setuplog.setup_log()
-import logging
-logging.basicConfig(level=logging.ERROR)
 
 test_config = webadmin.config
 test_config.cherrycfg['global']['server.socket_port'] = 8081
 
 class DaphneTestCase(object):
+    """ Serves as a base class for testing Daphne controller layer (that's
+        basically adif).
+        Takes care of mocking admin, session and user corba objects. Also
+        monkey patches the dymamically created cherrypy.session dict.
+        Uses DummyLogger, so that we do not have to care about audit logging
+        (that's SessionLogger).
+    """
     def monkey_patch(self, obj, attr, new_value):
         """ Taken from
             http://lackingrhoticity.blogspot.com/2008/12/
