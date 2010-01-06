@@ -196,9 +196,12 @@ def convert_linear_filter_to_form_output(or_filters):
         for fname, fval in or_filter.items():
             current_filter, last_fname = create_or_get_filter(new_or_filter, fname)
             
-            # negation is expressed by fval==[True, fval] instead on just fval, here could be problem, if some field could return list of 2 booleans or so, 
-            # but it is unlikely, and we gets much clenaer notation of filter (as negation is rarely use) 
-            if isinstance(fval, (types.ListType, types.TupleType)) and len(fval) == 2 and isinstance(fval[0], types.BooleanType):
+            # negation is expressed by fval==[True, fval] instead on just fval,
+            # here could be problem, if some field could return list of 
+            # 2 booleans or so, but it is unlikely, and we get much cleaner 
+            # notation of filter (as negation is rarely used) 
+            if isinstance(fval, (types.ListType, types.TupleType)) and \
+               len(fval) == 2 and isinstance(fval[0], types.BooleanType):
                 negation = True
                 fval = fval[1]
             else:

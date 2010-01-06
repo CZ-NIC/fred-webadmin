@@ -102,7 +102,7 @@ class RegistrarEditForm(EditForm):
     #access = EPPAccessSeq # list of epp access data
     access = FormSetField(label=_('Authentication'), form_class=AccessEditForm, can_delete=True)
     zones = FormSetField(
-        label=_('Zones'), form_class=ZoneEditForm, can_delete=True)
+        label=_('Zones'), form_class=ZoneEditForm, can_delete=False)
 
 
 class BankStatementPairingEditForm(EditForm):
