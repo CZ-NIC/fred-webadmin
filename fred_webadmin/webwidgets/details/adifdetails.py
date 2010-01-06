@@ -424,7 +424,7 @@ class InvoiceDetail(Detail):
     registrar = ObjectHandleDField(label=_('Registrar'))
     credit = CharDField(label=_('Credit'))
     createTime = CharDField(label=_('Create date'))
-    taxDate = CharDField(label=_('Tex date'))
+    taxDate = CharDField(label=_('Tax date'))
     fromDate = CharDField(label=_('From date'))
     toDate = CharDField(label=_('To date'))
     type = CorbaEnumDField(label=_('Type'))

@@ -883,13 +883,6 @@ class Development(object):
         for i in xrange(heap.partition.numrows):
             item = heap[i]
             output += unicode(item).split('\n')[2] + '\n'
-
-#        while suboutput:
-#            output += suboutput + u'\n'
-#            more = more.more
-#            suboutput = unicode(more)
-#            print suboutput
-            
         
         cherrypy.response.headers["Content-Type"] = "text/plain"
         return output
