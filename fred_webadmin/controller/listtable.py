@@ -248,7 +248,7 @@ class ListTableMixin(object):
 
     @check_onperm('read')
     def detail(self, **kwd):
-        req = cherrypy.session['Logger'].create_request(
+        log_req = cherrypy.session['Logger'].create_request(
             cherrypy.request.remote.ip, cherrypy.request.body, 
             f_name_actiondetailname[self.__class__.__name__.lower()])
 
@@ -256,11 +256,11 @@ class ListTableMixin(object):
         
         result = self._get_detail(obj_id=kwd.get('id'))
 
-        req.update("object_id", kwd.get("id"))
+        log_req.update("object_id", kwd.get("id"))
         
         context['edit'] = kwd.get('edit', False)
         context['result'] = result
-        req.commit("")
+        log_req.commit("")
         return self._render('detail', context)
 
     def _get_editform_class(self):

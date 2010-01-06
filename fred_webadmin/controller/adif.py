@@ -346,12 +346,16 @@ class ADIF(AdifPage):
                 raise cherrypy.HTTPRedirect(redir_addr)
             
             except omniORB.CORBA.BAD_PARAM, e:
+                log_req.update("result", str(e))
+                log_req.commit("") 
                 form.non_field_errors().append(_('Bad corba call! ') + '(%s)' %
                                                 (str(e)))
                 if config.debug:
                     form.non_field_errors().append(noesc(escape(unicode(
                         traceback.format_exc())).replace('\n', '<br/>')))
             except ccReg.Admin.AuthFailed, e:
+                log_req.update("result", str(e))
+                log_req.commit("") 
                 form.non_field_errors().append(_('Login error, please enter '
                                                  'correct login and password'))
                 log_req.update("error", logcodes["AuthFailed"])
@@ -362,6 +366,8 @@ class ADIF(AdifPage):
                     form.non_field_errors().append(noesc(escape(unicode(
                         traceback.format_exc())).replace('\n', '<br/>')))
             except Exception, e:
+                log_req.update("result", str(e))
+                log_req.commit("") 
                 if config.auth_method == 'LDAP':
                     if isinstance(e, ldap.INVALID_CREDENTIALS):
                         form.non_field_errors().append(_('Invalid username '
@@ -509,24 +515,28 @@ class Registrar(AdifPage, ListTableMixin):
         corba_reg = recoder.u2c(registrar)
         try:
             reg_id = utils.get_corba_session().updateRegistrar(corba_reg)
-        except ccReg.Admin.UpdateFailed:
+        except ccReg.Admin.UpdateFailed, e:
             form.non_field_errors().append(
                 "Updating registrar failed. Perhaps you tried to "
                 "create a registrar with an already used handle?")
             context['form'] = form
+            log_request.update("result", str(e))
+            log_request.commit("")
             return self._render('edit', context)
         log_request.commit("")
         try:
             id = int(reg_id)
-        except (ValueError, TypeError):
+        except (ValueError, TypeError), e:
             # Note that this should never be caught, because id is set
             # automatically, not by the user. So it should always have
             # a correct type.
+            log_request.update("result", str(e))
+            log_request.commit("")
             raise 
         # Jump to the registrar's detail.
         raise cherrypy.HTTPRedirect("/registrar/detail/?id=%s" % reg_id)
 
-    def _update_registrar(self, registrar, log_request, *params,**kwd):
+    def _update_registrar(self, registrar, log_request_name, *params,**kwd):
         """ Handles the actual updating/creating of a registrar.
             Note that registrar create only differs from registrar update in
             that it create has id == 0.
@@ -539,6 +549,9 @@ class Registrar(AdifPage, ListTableMixin):
                     The SessionLogger.LogRequest object that keeps log of
                     this event.
         """
+        log_request = cherrypy.session['Logger'].create_request(
+            cherrypy.request.remote.ip, cherrypy.request.body, 
+            log_request_name)
         context = {'main': div()}
         form_class = self._get_editform_class()
         initial = registrar.__dict__
@@ -555,26 +568,19 @@ class Registrar(AdifPage, ListTableMixin):
         else:
             form = form_class(method='post', initial=initial) 
         
-        log_request.commit("")
         context['form'] = form
         return self._render('edit', context)
     
     @check_onperm('write')
     def edit(self, *params, **kwd):
         registrar = self._get_detail(obj_id=kwd.get('id'))
-        log_request = cherrypy.session['Logger'].create_request(
-            cherrypy.request.remote.ip, cherrypy.request.body, 
-            "RegistrarUpdate")
-        result = self._update_registrar(registrar, log_request, *params, **kwd)
+        result = self._update_registrar(registrar, "RegistrarUpdate", *params, **kwd)
         return result
 
     @check_onperm('write')
     def create(self, *params, **kwd):
-        log_request = cherrypy.session['Logger'].create_request(
-            cherrypy.request.remote.ip, cherrypy.request.body, 
-            "RegistrarCreate")
         registrar = self._get_empty_corba_struct()
-        result = self._update_registrar(registrar, log_request, *params, **kwd)
+        result = self._update_registrar(registrar, "RegistrarCreate", *params, **kwd)
         return result
 
 
@@ -596,14 +602,16 @@ class Domain(AdifPage, ListTableMixin):
         handle = kwd.get('handle', None)
         log_request.update("handle", handle)
         if not handle:
+            log_request.update("result", "no handle")
             log_request.commit("")
             raise cherrypy.HTTPRedirect(f_urls[self.classname])
         try:
             query = dns.message.make_query(handle, 'ANY')
             resolver = dns.resolver.get_default_resolver().nameservers[0]
             dig = dns.query.udp(query, resolver).to_text()
-        except:
+        except e:
             #TODO(tomas): Log an error?
+            log_request.update("result", str(e))
             context['main'] = _("Object_not_found")
             return self._render('base', ctx=context)
         finally:
@@ -665,10 +673,15 @@ class Mail(AdifPage, ListTableMixin):
 class File(AdifPage, ListTableMixin):
     @check_onperm('read')
     def detail(self, **kwd):
+        log_request = cherrypy.session['Logger'].create_request(
+            cherrypy.request.remote.ip, cherrypy.request.body, 
+            "FileDetail")
         context = {}
         try:
             handle = int(kwd.get('id', None))
-        except (TypeError, ValueError):
+        except (TypeError, ValueError), e:
+            log_request.update("result", str(e))
+            log_request.commit()
             context['main'] = _("Required_integer_as_parameter")
             return self._render('base', ctx=context)
         if handle:
@@ -690,9 +703,11 @@ class File(AdifPage, ListTableMixin):
                 response.headers["Content-Disposition"] = cd
                 response.headers['Content-Length'] = info.size
             except ccReg.FileManager.FileNotFound, e:
+                log_request.update("result", str(e))
+                log_request.commit()
                 context['main'] = _("Object_not_found")
                 return self._render('file', ctx=context)
-
+            log_request.commit()
             return response.body
         
 class PublicRequest(AdifPage, ListTableMixin):
@@ -700,20 +715,24 @@ class PublicRequest(AdifPage, ListTableMixin):
     def resolve(self, **kwd):
         '''Accept and send'''
         context = {}
-        req = cherrypy.session['Logger'].create_request(
+        log_req = cherrypy.session['Logger'].create_request(
             cherrypy.request.remote.ip, cherrypy.request.body,
             "PublicRequestAccept")
         try:
             id_pr = int(kwd.get('id'))
-            req.update("publicrequest_id", id_pr)
-            req.commit()
+            log_req.update("publicrequest_id", id_pr)
+            log_req.commit()
 
         except (TypeError, ValueError):
+            log_request.update("result", str(e))
+            log_request.commit()
             context['main'] = _("Required_integer_as_parameter")
             return self._render('base', ctx=context)
         try:
             cherrypy.session.get('Admin').processPublicRequest(id_pr, False)
-        except ccReg.Admin.REQUEST_BLOCKED:
+        except ccReg.Admin.REQUEST_BLOCKED, e:
+            log_request.update("result", str(e))
+            log_request.commit()
             raise CustomView(self._render('error', {'message':
                                                         [_(u'This object is blocked, request cannot be accepted. You can return back to '), 
                                                          a(attr(href=f_urls[self.classname] + 'detail/?id=%s' % id_pr), _('public request.'))
@@ -733,7 +752,9 @@ class PublicRequest(AdifPage, ListTableMixin):
             id_ai = int(kwd.get('id'))
             req.update("publicrequest_id", id_ai)
             req.commit()
-        except (TypeError, ValueError):
+        except (TypeError, ValueError), e:
+            log_request.update("result", str(e))
+            log_request.commit()
             context['main'] = _("Required_integer_as_parameter")
             return self._render('base', ctx=context)
         cherrypy.session.get('Admin').processPublicRequest(id_ai, True)
@@ -754,8 +775,9 @@ class BankStatement(AdifPage, ListTableMixin):
         invoicing = utils.get_corba_session().getBankingInvoicing()
         success = invoicing.pairPaymentRegistrarHandle(
             payment_id, recoder.u2c(registrar_handle))
-        if success:
-            log_req.commit()
+        if not success:
+            log_req.update("result", "Could not pair payment")
+        log_req.commit()
         return success
 
     @check_onperm('read')
@@ -765,11 +787,17 @@ class BankStatement(AdifPage, ListTableMixin):
         # successfully.
         pairing_success = False
         
+        log_req = cherrypy.session['Logger'].create_request(
+            cherrypy.request.remote.ip, cherrypy.request.body, 
+            f_name_actiondetailname[self.__class__.__name__.lower()])
+        
         registrar_handle = kwd.get('handle')
         obj_id = kwd.get('id')
         try:
             obj_id = int(obj_id)
-        except (TypeError, ValueError):
+        except (TypeError, ValueError), e:
+            log_request.update("result", str(e))
+            log_request.commit()
             context['main'] = _(
                 "Requires integer as parameter (got %s)." % obj_id)
             raise CustomView(self._render('base', ctx=context))
@@ -781,10 +809,6 @@ class BankStatement(AdifPage, ListTableMixin):
             pairing_success = self._pair_payment_with_registrar(
                 context, obj_id, registrar_handle)
 
-        log_req = cherrypy.session['Logger'].create_request(
-            cherrypy.request.remote.ip, cherrypy.request.body, 
-            f_name_actiondetailname[self.__class__.__name__.lower()])
-        
         detail = utils.get_detail(self.classname, obj_id)
 
         log_req.update('object_id', kwd.get('id'))
