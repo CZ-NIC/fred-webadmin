@@ -1,0 +1,8 @@
+In order to run unit tests, you need the following python modules: 
+
+Nose
+Achoo
+Twill
+Mox
+
+Plus optionally Selenium, but those tests are just in "very alpha state" now.
