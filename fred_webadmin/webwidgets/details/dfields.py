@@ -124,7 +124,7 @@ class DateDField(DField):
     enclose_content = True
     def resolve_value(self, value):
         if value != fredtypes.Null():
-            return recoder.corba_to_date(value)
+            return value #recoder.corba_to_date(value)
         else:
             return fredtypes.NullDate()
 
@@ -540,8 +540,8 @@ class HistoryDField(DField):
                 val = from_any(history_rec.value, True)
                 inner_field_copy = copy(self.inner_field)
                 inner_field_copy.value = val
-                date_from = recoder.corba_to_datetime(history_rec._from)
-                date_to = recoder.corba_to_datetime(history_rec.to)
+                date_from = history_rec._from #recoder.corba_to_datetime(history_rec._from)
+                date_to = history_rec.to #recoder.corba_to_datetime(history_rec.to)
                 action_url = f_urls['action'] + 'detail/?id=%s' % history_rec.actionId
                 
                 history_tr = tr()
@@ -609,8 +609,8 @@ class HistoryObjectDField(HistoryDField):
             self.add(tbody(tagid('tbody')))
             for i, detail in enumerate(self.inner_details):
                 history_rec = self.value[i]
-                date_from = recoder.corba_to_datetime(history_rec._from)
-                date_to = recoder.corba_to_datetime(history_rec.to)
+                date_from = history_rec._from #recoder.corba_to_datetime(history_rec._from)
+                date_to = history_rec.to #recoder.corba_to_datetime(history_rec.to)
                 action_url = f_urls['action'] + 'detail/?id=%s' % history_rec.actionId
                 
                 history_tr = tr()
@@ -707,8 +707,8 @@ class HistoryListObjectDField(HistoryDField):
             self.add(tbody(tagid('tbody')))
             for i in range(len(self.inner_details)):
                 history_rec = self.value[i]
-                date_from = recoder.corba_to_datetime(history_rec._from)
-                date_to = recoder.corba_to_datetime(history_rec.to)
+                date_from = history_rec._from #recoder.corba_to_datetime(history_rec._from)
+                date_to = history_rec.to #recoder.corba_to_datetime(history_rec.to)
                 action_url = f_urls['action'] + 'detail/?id=%s' % history_rec.actionId
                 
                 if self.inner_details[i]:
@@ -744,8 +744,8 @@ class HistoryStateDField(DField):
             for state in value:
                 new_state = {}
                 new_state['id'] = state.id
-                new_state['from'] = recoder.corba_to_datetime(state._from)
-                new_state['to'] = recoder.corba_to_datetime(state.to)
+                new_state['from'] = state._from #recoder.corba_to_datetime(state._from)
+                new_state['to'] = state.to #recoder.corba_to_datetime(state.to)
                 new_state['linked'] = state.linked
                 new_states.append(new_state)
         return new_states
@@ -993,7 +993,7 @@ class DiscloseCharNHDField(NHDField):
                 if to_dict[hist_num] is None: # remove None
                     to_dict.pop(hist_num)
             if to_dict:
-                to = recoder.datetime_to_corba(min(to_dict.values()))
+                to = min(to_dict.values()) #recoder.datetime_to_corba(min(to_dict.values()))
             else: # all are NULL dates, take one of them
                 to = rec_list[0][1].to
             new_rec = Registry.HistoryRecord(_from=_from, to=to, value=value, actionId = action_id)
