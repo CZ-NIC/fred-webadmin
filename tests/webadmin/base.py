@@ -4,8 +4,9 @@ import fred_webadmin as webadmin
 import fred_webadmin.user as user
 import fred_webadmin.logger.dummylogger as logger
 from fred_webadmin import setuplog
-
 setuplog.setup_log()
+import logging
+logging.basicConfig(level=logging.ERROR)
 
 test_config = webadmin.config
 test_config.cherrycfg['global']['server.socket_port'] = 8081

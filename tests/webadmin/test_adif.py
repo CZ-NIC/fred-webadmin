@@ -1,29 +1,24 @@
 import mox
-import sys
 import CORBA
 import cherrypy
 import twill
-import base
-import datetime
 
-from achoo import calling, requiring
-from cherrypy.test import helper
 from StringIO import StringIO
 import twill.commands
 
-import fred_webadmin as webadmin
+import tests.webadmin.base as base
 import fred_webadmin.controller.adif
-import fred_webadmin.logger.dummylogger as logger
-import fred_webadmin.user as user
 
 from fred_webadmin.corba import Registry, ccReg
-import fred_webadmin.nulltype as fredtypes
 
 
 class TestRegistrar(base.DaphneTestCase):
 
     def setUp(self):
         base.DaphneTestCase.setUp(self)
+        cherrypy.config.update({ "server.logToScreen" : False })
+        cherrypy.config.update({'log.screen': False})
+
         root = fred_webadmin.controller.adif.ADIF()
         root.registrar = fred_webadmin.controller.adif.Registrar()
         wsgiApp = cherrypy.tree.mount(root)
@@ -170,6 +165,7 @@ class TestBankStatement(base.DaphneTestCase):
         root = fred_webadmin.controller.adif.ADIF()
         root.bankstatement = fred_webadmin.controller.adif.BankStatement()
         wsgiApp = cherrypy.tree.mount(root)
+        cherrypy.config.update({ "server.logToScreen" : False })
         cherrypy.server.start()
         twill.add_wsgi_intercept('localhost', 8080, lambda : wsgiApp)
         
@@ -185,6 +181,8 @@ class TestBankStatement(base.DaphneTestCase):
         cherrypy.server.stop()
 
     def _fabricate_bank_statement_detail(self):
+        """ Create a fake Registry.Banking.BankItem.Detail object for testing
+            purposes. """
         return CORBA.Any(
                 CORBA.TypeCode("IDL:Registry/Banking/BankItem/Detail:1.0"),
                 Registry.Banking.BankItem.Detail(
@@ -196,7 +194,9 @@ class TestBankStatement(base.DaphneTestCase):
                     accountName='CZ.NIC, z.s.p.o.', 
                     crTime='31.07.2007 02:00:00'))
 
-    def test_successfull_statementitem_detail(self):
+    def test_successfull_statementitem_payment_pairing(self):
+        """ Payment pairing works OK when correct registrar handle 
+            is specified. """
         self.admin_mock.getCountryDescList().InAnyOrder().AndReturn(
             [ccReg.CountryDesc(1, 'cz')])
         self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
@@ -218,7 +218,7 @@ class TestBankStatement(base.DaphneTestCase):
 
         # Go to the pairing form 
         twill.commands.go("http://localhost:8080/bankstatement/detail/?id=42")
-        forms = twill.commands.showforms()
+        twill.commands.showforms()
         twill.commands.fv(2, "handle", "test handle")
         twill.commands.submit()
 
@@ -229,6 +229,8 @@ class TestBankStatement(base.DaphneTestCase):
         twill.commands.find("""<a href="/invoice/detail/\?id=11">.*</a>""")
 
     def test_statementitem_detail_unknown_unempty_handle(self):
+        """ Pairing with  unknown registrar handle fails.
+        """
         self.admin_mock.getCountryDescList().InAnyOrder().AndReturn(
             [ccReg.CountryDesc(1, 'cz')])
         self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
@@ -246,7 +248,7 @@ class TestBankStatement(base.DaphneTestCase):
 
         # Go to the pairing form 
         twill.commands.go("http://localhost:8080/bankstatement/detail/?id=42")
-        forms = twill.commands.showforms()
+        twill.commands.showforms()
         twill.commands.fv(2, "handle", "test handle")
         twill.commands.submit()
 
@@ -257,6 +259,8 @@ class TestBankStatement(base.DaphneTestCase):
         twill.commands.notfind("""<a href="/invoice/detail/\?id=11">.*</a>""")
 
     def test_statementitem_detail_empty_handle(self):
+        """ Pairing payment with empty registrar handle fails.
+        """
         self.admin_mock.getCountryDescList().InAnyOrder().AndReturn(
             [ccReg.CountryDesc(1, 'cz')])
         self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
@@ -274,7 +278,7 @@ class TestBankStatement(base.DaphneTestCase):
 
         # Go to the pairing form 
         twill.commands.go("http://localhost:8080/bankstatement/detail/?id=42")
-        forms = twill.commands.showforms()
+        twill.commands.showforms()
         twill.commands.fv(2, "handle", "test handle")
         twill.commands.submit()
 
