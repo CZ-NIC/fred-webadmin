@@ -111,6 +111,7 @@ class TestLoggerCommon(object):
         dao.CreateRequest("127.0.0.1", sessionlogger.service_type_webadmin, 
                           "<foo test='content bar foo'>foofoofoo</foo>", [], 
                           100, 9).AndReturn(42)
+        dao.UpdateRequest(42, []).AndReturn(True)
         
         self.corba_mock.ReplayAll()
         
