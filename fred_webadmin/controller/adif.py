@@ -366,8 +366,8 @@ class ADIF(AdifPage):
                     form.non_field_errors().append(noesc(escape(unicode(
                         traceback.format_exc())).replace('\n', '<br/>')))
             except Exception, e:
-                log_req.update("result", str(e))
-                log_req.commit("") 
+                # log_req.update("result", str(e))
+                # log_req.commit("") 
                 if config.auth_method == 'LDAP':
                     if isinstance(e, ldap.INVALID_CREDENTIALS):
                         form.non_field_errors().append(_('Invalid username '
