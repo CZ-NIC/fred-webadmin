@@ -334,6 +334,7 @@ class LoggerFilterForm(FilterForm):
             (0, u'UNIX Whois'), (1, u'Web Whois'), (2, u'Public Request'), 
             (3, u'EPP'), (4, u'WebAdmin'), (5, u'Intranet')])
         SourceIp = CharField(label=_('Source IP'))
+        UserName = CharField(label=_('UserName'))
         ActionType = IntegerChoiceField(
             label=_('Action type'), 
             choices=CorbaLazyRequestIterStruct(
