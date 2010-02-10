@@ -623,11 +623,17 @@ class Domain(AdifPage, ListTableMixin):
     @check_onperm('write')
     def setinzonestatus(self, **kwd):
         "Call setInzoneStatus(domainID) "
+        log_request = cherrypy.session['Logger'].create_request(
+            cherrypy.request.remote.ip, cherrypy.request.body, 
+            "SetInZoneStatus")
         context = {'error': None}
         domain_id = kwd.get('id', None) # domain ID
         if not domain_id:
-            raise cherrypy.HTTPRedirect(f_urls[self.classname])
-        
+            log_request.update("result", "No domain id.")
+            log_request.commit("")
+            raise cherrypy.HTTPRedirect(f_urls[self.classname])        
+        log_request.update("domainId", domain_id)
+
         admin = cherrypy.session.get('Admin')
         if hasattr(admin, "setInZoneStatus"):
             try:
@@ -640,6 +646,7 @@ class Domain(AdifPage, ListTableMixin):
         
         # if it was succefful, redirect into domain detail
         if context['error'] is None:
+            log_request.commit("")
             # use this URL in trunk version:
             # HTTPRedirect(f_urls[self.classname] + '/detail/?id=%s' % domain_id)
             # this URL is compatible with branche 3.1
@@ -650,6 +657,8 @@ class Domain(AdifPage, ListTableMixin):
             context['handle'] = admin.getDomainById(int(domain_id)).fqdn
         except Exception, e:
             context['error'] = e
+        log_request.update("result", "An error has occured.")
+        log_request.commit("")
         # display page with error message
         return self._render('setinzonestatus', context)
 

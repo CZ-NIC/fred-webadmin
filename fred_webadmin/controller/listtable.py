@@ -208,8 +208,14 @@ class ListTableMixin(object):
                     context['main'].add(u'cleaned_data:' + unicode(
                         form.cleaned_data), br())
                 debug(u'cleaned_data:' + unicode(form.cleaned_data))
-                context = self._get_list(context, form.cleaned_data, **kwd)
-
+                try:
+                    context = self._get_list(context, form.cleaned_data, **kwd)
+                except cherrypy.HTTPRedirect:
+                    # When there is only one item in the result, we jump right
+                    # onto it without showing the table. Close the log_request 
+                    # here and let the redirect happen.
+                    log_req.commit("")
+                    raise
                 context['main'].add(u"rows: " + str(
                     self._get_itertable().num_rows))
                 log_req.update(
