@@ -66,14 +66,30 @@ class ListTableMixin(object):
         if cleaned_filters is not None:
             table.set_filter(cleaned_filters)
             if kwd.get('save_input'): # save filter
+                log_req = cherrypy.session['Logger'].create_request(
+                    cherrypy.request.remote.ip, cherrypy.request.body,
+                    "SaveFilter")
+                log_req.update("name", kwd['save_input'])
+                log_req.update(
+                    "type", 
+                    f_name_actionfiltername[self.__class__.__name__.lower()])
                 table.save_filter(kwd['save_input'])
+                log_req.commit("")
                 context['main'].add(_(
                     'Filter saved as "%s"') % kwd['save_input'])
                 show_result = False
             else: # normal setting filter
                 table.reload()
         if kwd.get('filter_id'): # load filter
+            log_req = cherrypy.session['Logger'].create_request(
+                    cherrypy.request.remote.ip, cherrypy.request.body,
+                    "LoadFilter")
+            log_req.update("name", kwd['filter_id'])
+            log_req.update(
+                "type",
+                f_name_actionfiltername[self.__class__.__name__.lower()])
             table.load_filter(int(kwd.get('filter_id')))
+            log_req.commit("")
             if kwd.get('show_form') or not table.all_fields_filled():
                 show_result = False
                 filter_data = table.get_filter_data()
