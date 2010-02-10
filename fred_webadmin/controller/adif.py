@@ -549,9 +549,6 @@ class Registrar(AdifPage, ListTableMixin):
                     The SessionLogger.LogRequest object that keeps log of
                     this event.
         """
-        log_request = cherrypy.session['Logger'].create_request(
-            cherrypy.request.remote.ip, cherrypy.request.body, 
-            log_request_name)
         context = {'main': div()}
         form_class = self._get_editform_class()
         initial = registrar.__dict__
@@ -559,6 +556,9 @@ class Registrar(AdifPage, ListTableMixin):
         if cherrypy.request.method == 'POST':
             form = form_class(kwd, initial=initial, method='post')
             if form.is_valid():
+                log_request = cherrypy.session['Logger'].create_request(
+                    cherrypy.request.remote.ip, cherrypy.request.body, 
+                    log_request_name)
                 self._process_valid_form(
                     form, registrar, kwd.get('id'), context, log_request)
             else:
