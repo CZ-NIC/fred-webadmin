@@ -527,8 +527,8 @@ class Registrar(AdifPage, ListTableMixin):
         try:
             id = int(reg_id)
         except (ValueError, TypeError), e:
-            # Note that this should never be caught, because id is set
-            # automatically, not by the user. So it should always have
+            # Paranoid. Note that this should never be caught, because id is 
+            # set automatically, not by the user. So it should always have
             # a correct type.
             log_request.update("result", str(e))
             log_request.commit("")

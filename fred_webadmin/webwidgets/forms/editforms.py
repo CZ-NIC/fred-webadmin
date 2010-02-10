@@ -103,7 +103,7 @@ class RegistrarEditForm(EditForm):
     # TODO(Tom): zones.can_delete should be False, but that causes problems
     # BaseFormSet._get_cleaned_data. Fix it!
     zones = FormSetField(
-        label=_('Zones'), form_class=ZoneEditForm, can_delete=True)
+        label=_('Zones'), form_class=ZoneEditForm, can_delete=False)
 
 
 class BankStatementPairingEditForm(EditForm):

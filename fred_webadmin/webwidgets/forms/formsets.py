@@ -130,6 +130,8 @@ class BaseFormSet(WebWidget):
                             cleaned_data_list.append(data)
                         else:
                             debug('Form %s was marked for deletion, and so it is not include to formsets cleaned_data' % form)
+                    else:
+                        cleaned_data_list.append(data)
             return cleaned_data_list
         except AttributeError:
             raise RuntimeError('Camouflaged AttributeError from _get_cleaned_data of formset, original error: \n %s' % unicode(traceback.format_exc()))
