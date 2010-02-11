@@ -81,15 +81,9 @@ class ListTableMixin(object):
             else: # normal setting filter
                 table.reload()
         if kwd.get('filter_id'): # load filter
-            log_req = cherrypy.session['Logger'].create_request(
-                    cherrypy.request.remote.ip, cherrypy.request.body,
-                    "LoadFilter")
-            log_req.update("id", kwd['filter_id'])
-            log_req.update(
-                "type",
-                f_name_actionfiltername[self.__class__.__name__.lower()])
+            # Do not log filter load (Jara's decision - it would just clutter
+            # the log output).
             table.load_filter(int(kwd.get('filter_id')))
-            log_req.commit("")
             if kwd.get('show_form') or not table.all_fields_filled():
                 show_result = False
                 filter_data = table.get_filter_data()
