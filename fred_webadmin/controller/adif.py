@@ -365,9 +365,10 @@ class ADIF(AdifPage):
                                                    unicode(e)))
                     form.non_field_errors().append(noesc(escape(unicode(
                         traceback.format_exc())).replace('\n', '<br/>')))
+            except cherrypy.HTTPRedirect, e:
+                raise
             except Exception, e:
-                # log_req.update("result", str(e))
-                # log_req.commit("") 
+                log_req.update("result", str(e))
                 if config.auth_method == 'LDAP':
                     if isinstance(e, ldap.INVALID_CREDENTIALS):
                         form.non_field_errors().append(_('Invalid username '
@@ -379,6 +380,7 @@ class ADIF(AdifPage):
                     elif isinstance(e, ldap.SERVER_DOWN):
                         form.non_field_errors().append(_('LDAP server is '
                                                          'unavailable!'))
+                        log_req.commit();
                     else:
                         raise
                 else:

@@ -84,7 +84,7 @@ class ListTableMixin(object):
             log_req = cherrypy.session['Logger'].create_request(
                     cherrypy.request.remote.ip, cherrypy.request.body,
                     "LoadFilter")
-            log_req.update("name", kwd['filter_id'])
+            log_req.update("id", kwd['filter_id'])
             log_req.update(
                 "type",
                 f_name_actionfiltername[self.__class__.__name__.lower()])
