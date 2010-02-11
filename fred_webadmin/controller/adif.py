@@ -793,6 +793,7 @@ class BankStatement(AdifPage, ListTableMixin):
 
     @check_onperm('read')
     def detail(self, **kwd):
+#        import pdb; pdb.set_trace()
         context = {}
         # Indicator whether the pairing action has been carried out
         # successfully.
@@ -820,7 +821,8 @@ class BankStatement(AdifPage, ListTableMixin):
             pairing_success = self._pair_payment_with_registrar(
                 context, obj_id, registrar_handle)
 
-        detail = utils.get_detail(self.classname, obj_id)
+        # Do not use cache - we want the updated BankStatementItem.
+        detail = utils.get_detail(self.classname, obj_id, use_cache=False)
 
         log_req.update('object_id', kwd.get('id'))
         
@@ -954,7 +956,7 @@ class Detail41(AdifPage):
 
 def runserver():
     print "-----====### STARTING ADIF ###====-----"
-
+    
     root = ADIF()
     root.detail41 = Detail41()
     root.summary = Summary()

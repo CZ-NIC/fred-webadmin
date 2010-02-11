@@ -105,11 +105,14 @@ def get_corba_session():
 
 
 details_cache = {}
-def get_detail(obj_type_name, obj_id):
-    result_from_cache = details_cache.get((obj_type_name, obj_id))
-    if result_from_cache is not None:
-        debug('Cache hit (%s, %s)' % (obj_type_name, obj_id))
-        return result_from_cache
+def get_detail(obj_type_name, obj_id, use_cache=True):
+    """ If use_cache == False, we always get the object from
+        server. """
+    if use_cache:
+        result_from_cache = details_cache.get((obj_type_name, obj_id))
+        if result_from_cache is not None:
+            debug('Cache hit (%s, %s)' % (obj_type_name, obj_id))
+            return result_from_cache
 
     debug('Getting detail %s id %s' % (obj_type_name, obj_id))
     corba_session = get_corba_session()
