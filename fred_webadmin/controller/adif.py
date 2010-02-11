@@ -148,7 +148,9 @@ class AdifPage(Page):
         elif action == 'setinzonestatus':
             return SetInZoneStatusPage
         else:
-            # returns ClassName + Action (e.g. DomainDetail) class from module of this class, if there is no such, then it returns BaseSiteMenu: 
+            # returns ClassName + Action (e.g. DomainDetail) class from 
+            # module of this class, if there is no such, then it returns 
+            # BaseSiteMenu: 
             template_name = self.__class__.__name__ + action.capitalize()
             debug('Snazim se vzit templatu jmenem:' + template_name)
             template = getattr(sys.modules[self.__module__], template_name, None)
@@ -257,7 +259,19 @@ class ADIF(AdifPage):
                 return json_response(new_history)
         return super(ADIF, self).default(*args, **kwd)
         
-        
+    def _create_session_logger(self):
+        if not config.session_logging_enabled:
+            # DummyLogger provides correct interface, but does
+            # not log anything
+            logger = DummyLogger()
+        else:
+            # Add corba logger to the cherrypy session object, so that
+            # it can be found by CorbaLazyRequest.
+            corba_logd = corba.getObject("Logger", "Logger")
+            cherrypy.session['corba_logd'] = corba_logd
+            logger = SessionLogger(dao=corba_logd)
+        return logger
+
     def login(self, *args, **kwd):
         if cherrypy.session.get('corbaSessionString'): # already logged in
             debug('Already logged in, corbaSessionString = %s' % 
@@ -290,17 +304,7 @@ class ADIF(AdifPage):
                 corba.connect(ior, nscontext)
                 admin = corba.getObject('Admin', 'Admin')
 
-                if not config.session_logging_enabled:
-                    # DummyLogger provides correct interface, but does
-                    # not log anything
-                    logger = DummyLogger()
-                else:
-                    # Add corba logger to the cherrypy session object, so that
-                    # it can be found by CorbaLazyRequest.
-                    corba_logd = corba.getObject("Logger", "Logger")
-                    cherrypy.session['corba_logd'] = corba_logd
-                    logger = SessionLogger(dao=corba_logd)
-                    
+                logger = self._create_session_logger()
                 logger.start_session("en", login)
                 cherrypy.session['Logger'] = logger
                 log_req = logger.create_request(cherrypy.request.remote.ip, 
@@ -793,7 +797,6 @@ class BankStatement(AdifPage, ListTableMixin):
 
     @check_onperm('read')
     def detail(self, **kwd):
-#        import pdb; pdb.set_trace()
         context = {}
         # Indicator whether the pairing action has been carried out
         # successfully.
