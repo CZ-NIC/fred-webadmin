@@ -12,8 +12,32 @@ import fred_webadmin.controller.adif
 from fred_webadmin.corba import Registry, ccReg
 
 
-class TestRegistrar(base.DaphneTestCase):
+class TestADIF(base.DaphneTestCase):
+    def setUp(self):
+        base.DaphneTestCase.setUp(self)
+        # Create the application, mount it and start the server.
+        root = fred_webadmin.controller.adif.ADIF()
+        wsgiApp = cherrypy.tree.mount(root)
+        cherrypy.server.start()
+        # Redirect HTTP requests.
+        twill.add_wsgi_intercept('localhost', 8080, lambda : wsgiApp)
+        
+        # Keep Twill quiet (suppress normal Twill output).
+        self.outp = StringIO()
+        twill.set_output(self.outp)
 
+    def tearDown(self):
+        base.DaphneTestCase.tearDown(self)
+        # Remove the intercept.
+        twill.remove_wsgi_intercept('localhost', 8080) 
+        # Shut down Cherrypy server.
+        cherrypy.server.stop()
+
+    def test_login(self):
+        pass
+
+
+class TestRegistrar(base.DaphneTestCase):
     def setUp(self):
         base.DaphneTestCase.setUp(self)
         cherrypy.config.update({ "server.logToScreen" : False })
@@ -94,7 +118,8 @@ class TestRegistrar(base.DaphneTestCase):
         twill.commands.find("test handle")
 
     def test_edit_incorrect_zone_date_arg(self):
-        """ Registrar editation passes. """
+        """ Registrar editation does not pass when invalid zone date 
+            provided. """
         def _get_reg_detail():
             return self.corba_session_mock.getDetail(
                 ccReg.FT_REGISTRAR, 42).AndReturn(
@@ -149,6 +174,45 @@ class TestRegistrar(base.DaphneTestCase):
 
         self.corba_mock.ReplayAll()
 
+        # Create the registrar.
+        twill.commands.go("http://localhost:8080/registrar/create")
+        twill.commands.showforms()
+        twill.commands.fv(2, "handle", "test handle")
+        twill.commands.submit()
+
+        # Test that we've jumped to the detail page (i.e., creation has
+        # completed successfully).
+        twill.commands.code(200)
+        twill.commands.url("http://localhost:8080/registrar/detail/\?id=42")
+        twill.commands.find("test handle")
+
+    def test_create_two_registrars_with_same_name(self):
+        """ Creating second registrar with the same name fails.
+            Ticket #3079. """
+        self.admin_mock.getCountryDescList().InAnyOrder().AndReturn(
+            [ccReg.CountryDesc(1, 'cz')])
+        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
+        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
+        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
+        self.admin_mock.getCountryDescList().InAnyOrder().AndReturn(
+            [ccReg.CountryDesc(1, 'cz')])
+        self.corba_session_mock.updateRegistrar(
+            mox.IsA(ccReg.Registrar)).AndReturn(42)
+        self.corba_session_mock.getDetail(ccReg.FT_REGISTRAR, 42).AndReturn(
+            CORBA.Any(
+                CORBA.TypeCode("IDL:Registry/Registrar/Detail:1.0"), 
+                Registry.Registrar.Detail(
+                    id=3L, ico='', dic='', varSymb='', vat=True, 
+                    handle='test handle', name='', 
+                    organization='', street1='', 
+                    street2='', street3='', city='', stateorprovince='', 
+                    postalcode='', country='', telephone='', fax='', 
+                    email='', url='', credit='', 
+                    unspec_credit=u'', access=[], zones=[], hidden=False)))
+
+        self.corba_mock.ReplayAll()
+
+        # Create the first registrar.
         twill.commands.go("http://localhost:8080/registrar/create")
         twill.commands.showforms()
         twill.commands.fv(2, "handle", "test handle")
@@ -157,6 +221,30 @@ class TestRegistrar(base.DaphneTestCase):
         twill.commands.code(200)
         twill.commands.url("http://localhost:8080/registrar/detail/\?id=42")
         twill.commands.find("test handle")
+
+        self.corba_mock.ResetAll()
+
+        # Now create the second one with the same name.
+        self.admin_mock.getCountryDescList().InAnyOrder().AndReturn(
+            [ccReg.CountryDesc(1, 'cz')])
+        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
+        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
+        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
+        self.admin_mock.getCountryDescList().InAnyOrder().AndReturn(
+            [ccReg.CountryDesc(1, 'cz')])
+        self.corba_session_mock.updateRegistrar(
+            mox.IsA(ccReg.Registrar)).AndRaise(ccReg.Admin.UpdateFailed)
+
+        self.corba_mock.ReplayAll()
+
+        twill.commands.go("http://localhost:8080/registrar/create")
+        twill.commands.showforms()
+        twill.commands.fv(2, "handle", "test handle")
+        twill.commands.submit()
+
+        # Test that we've stayed at the 'create' page (i.e., creation has
+        # failed).
+        twill.commands.url("http://localhost:8080/registrar/create")
 
 
 class TestBankStatement(base.DaphneTestCase):
@@ -171,7 +259,6 @@ class TestBankStatement(base.DaphneTestCase):
         
         self.outp = StringIO()
         twill.set_output(self.outp)
-
 
     def tearDown(self):
         base.DaphneTestCase.tearDown(self)
@@ -229,7 +316,7 @@ class TestBankStatement(base.DaphneTestCase):
         twill.commands.find("""<a href="/invoice/detail/\?id=11">.*</a>""")
 
     def test_statementitem_detail_unknown_unempty_handle(self):
-        """ Pairing with  unknown registrar handle fails.
+        """ Pairing with unknown registrar handle fails.
         """
         self.admin_mock.getCountryDescList().InAnyOrder().AndReturn(
             [ccReg.CountryDesc(1, 'cz')])

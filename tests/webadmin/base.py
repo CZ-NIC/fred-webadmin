@@ -6,6 +6,7 @@ import fred_webadmin.logger.dummylogger as logger
 
 test_config = webadmin.config
 test_config.cherrycfg['global']['server.socket_port'] = 8081
+test_config.cherrycfg['global']['environment'] = 'embedded'
 
 class DaphneTestCase(object):
     """ Serves as a base class for testing Daphne controller layer (that's
