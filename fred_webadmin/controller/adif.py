@@ -7,9 +7,7 @@ setuplog.setup_log()
 
 
 import time
-import pprint
 import traceback
-import types
 
 from logging import debug, error
 
@@ -17,7 +15,6 @@ from cgi import escape
 
 import omniORB
 from omniORB import CORBA
-from omniORB.any import from_any
 
 # DNS lib imports
 import dns.message
@@ -34,7 +31,6 @@ import cherrypy
 from cherrypy.lib import http
 import simplejson
 
-import fred_webadmin.webwidgets.forms.utils as form_utils
 import fred_webadmin.corbarecoder as recoder
 import fred_webadmin.utils as utils
 
@@ -51,10 +47,10 @@ from fred_webadmin import exposed
 from fred_webadmin.corba import Corba, CorbaServerDisconnectedException
 corba = Corba()
 
-from fred_webadmin.corba import ccReg, Registry
+from fred_webadmin.corba import ccReg
 from fred_webadmin.translation import _
 
-
+# This must all be imported because of the way templates are dealt with.
 from fred_webadmin.webwidgets.templates.pages import (
     BaseSite, BaseSiteMenu, LoginPage, DisconnectedPage, NotFound404Page, 
     AllFiltersPage, FilterPage, ErrorPage, DigPage, SetInZoneStatusPage, 
@@ -64,32 +60,26 @@ from fred_webadmin.webwidgets.templates.pages import (
     BankStatementDetailWithPaymentPairing
 )
 from fred_webadmin.webwidgets.gpyweb.gpyweb import WebWidget
-from fred_webadmin.webwidgets.gpyweb.gpyweb import DictLookup, noesc, attr, ul, li, a, div, span, p, br, pre
-from fred_webadmin.webwidgets.utils import isiterable, convert_linear_filter_to_form_output
+from fred_webadmin.webwidgets.gpyweb.gpyweb import DictLookup, noesc, attr, ul, li, a, div, span, p
 from fred_webadmin.webwidgets.menu import MenuHoriz
-from fred_webadmin.webwidgets.adifwidgets import FilterList, FilterListUnpacked, FilterListCustomUnpacked, FilterPanel
 from fred_webadmin.menunode import menu_tree
 from fred_webadmin.webwidgets.forms.adifforms import LoginForm
-from fred_webadmin.webwidgets.forms.editforms import RegistrarEditForm, BankStatementPairingEditForm
+from fred_webadmin.webwidgets.forms.editforms import (
+    BankStatementPairingEditForm)
 from fred_webadmin.webwidgets.forms.filterforms import *
-from fred_webadmin.webwidgets.forms.filterforms import get_filter_forms_javascript
+from fred_webadmin.webwidgets.forms.filterforms import (
+    get_filter_forms_javascript)
 
-from fred_webadmin.itertable import IterTable, fileGenerator, CorbaFilterIterator
-from fred_webadmin.utils import json_response, get_current_url
+from fred_webadmin.utils import json_response
 
-from fred_webadmin.mappings import (f_name_enum, 
-                      f_name_id, 
-                      f_name_get_by_handle, 
-                      f_name_filterformname,
-                      f_name_editformname, 
+from fred_webadmin.mappings import ( 
                       f_urls, 
-                      f_name_actionfiltername, 
                       f_name_actiondetailname)
 from fred_webadmin.user import User
 
 from fred_webadmin.customview import CustomView
 
-from fred_webadmin.controller.perms import check_onperm, check_nperm, login_required
+from fred_webadmin.controller.perms import check_onperm, login_required
 
 
 class AdifError(Exception):
@@ -153,14 +143,18 @@ class AdifPage(Page):
             # BaseSiteMenu: 
             template_name = self.__class__.__name__ + action.capitalize()
             debug('Snazim se vzit templatu jmenem:' + template_name)
-            template = getattr(sys.modules[self.__module__], template_name, None)
+            template = getattr(
+                sys.modules[self.__module__], template_name, None)
             if template is None:
-                error("TEMPLATE %s IN MODULE %s NOT FOUND, USING DEFAULT: BaseSiteMenu" % (template_name, sys.modules[self.__module__]))
+                error("TEMPLATE %s IN MODULE %s NOT FOUND, USING DEFAULT: "
+                      "BaseSiteMenu" % (template_name, 
+                      sys.modules[self.__module__]))
                 template = BaseSiteMenu 
             else:
                 debug('...OK, template %s taken' % template_name)
             if not issubclass(template, WebWidget):
-                raise RuntimeError('%s is not derived from WebWidget - it cannot be template!' % repr(template))
+                raise RuntimeError("%s is not derived from WebWidget - it "
+                                   "cannot be template!" % repr(template))
             return template
         
     def _get_menu(self, action):
@@ -378,13 +372,13 @@ class ADIF(AdifPage):
                         form.non_field_errors().append(_('Invalid username '
                                                          'and/or password!'))
                         log_req.update("warning", logcodes["InvalidLogin"])
-                        log_req.commit();
+                        log_req.commit()
                         if config.debug:
                             form.non_field_errors().append('(%s)' % str(e))
                     elif isinstance(e, ldap.SERVER_DOWN):
                         form.non_field_errors().append(_('LDAP server is '
                                                          'unavailable!'))
-                        log_req.commit();
+                        log_req.commit()
                     else:
                         raise
                 else:
@@ -621,13 +615,13 @@ class Domain(AdifPage, ListTableMixin):
             query = dns.message.make_query(handle, 'ANY')
             resolver = dns.resolver.get_default_resolver().nameservers[0]
             dig = dns.query.udp(query, resolver).to_text()
-        except e:
+        except Exception, e:
             #TODO(tomas): Log an error?
             log_request.update("result", str(e))
             context['main'] = _("Object_not_found")
             return self._render('base', ctx=context)
         finally:
-            log_request.commit("");
+            log_request.commit("")
         context['handle'] = handle
         context['dig'] = dig
         return self._render('dig', context)
@@ -741,7 +735,7 @@ class PublicRequest(AdifPage, ListTableMixin):
             log_req.update("publicrequest_id", id_pr)
             log_req.commit()
 
-        except (TypeError, ValueError):
+        except (TypeError, ValueError), e:
             log_req.update("result", str(e))
             log_req.commit()
             context['main'] = _("Required_integer_as_parameter")
@@ -929,7 +923,7 @@ class Development(object):
             from guppy import hpy
         except ImportError:
             return 'guppy module not found'
-        h=hpy()
+        h = hpy()
         heap = h.heap()
         output = _(u'''This page displays memory consumption by python object on server.
             It propably cause server threads to not work properly!!! 
