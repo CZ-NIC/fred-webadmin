@@ -529,7 +529,6 @@ class Registrar(AdifPage, ListTableMixin):
             log_request.update("result", str(e))
             log_request.commit("")
             return self._render('edit', context)
-        log_request.commit("")
         try:
             id = int(reg_id)
         except (ValueError, TypeError), e:
@@ -539,6 +538,7 @@ class Registrar(AdifPage, ListTableMixin):
             log_request.update("result", str(e))
             log_request.commit("")
             raise 
+        log_request.commit("")
         # Jump to the registrar's detail.
         raise cherrypy.HTTPRedirect("/registrar/detail/?id=%s" % reg_id)
 
@@ -551,9 +551,8 @@ class Registrar(AdifPage, ListTableMixin):
                 registrar:
                     The ccReg.Registrar object that is being updated or
                     created.
-                log_request:
-                    The SessionLogger.LogRequest object that keeps log of
-                    this event.
+                log_request_name:
+                    The type of log request that keeps log of this event.
         """
         context = {'main': div()}
         form_class = self._get_editform_class()
@@ -562,6 +561,9 @@ class Registrar(AdifPage, ListTableMixin):
         if cherrypy.request.method == 'POST':
             form = form_class(kwd, initial=initial, method='post')
             if form.is_valid():
+                # Create the log request only after the user has clicked on
+                # "save" (we only care about contacting the server, not about 
+                # user entering the edit page).
                 log_request = cherrypy.session['Logger'].create_request(
                     cherrypy.request.remote.ip, cherrypy.request.body, 
                     log_request_name)
@@ -572,7 +574,11 @@ class Registrar(AdifPage, ListTableMixin):
                     context['main'].add('Form is not valid! Errors: %s' % 
                                          repr(form.errors))
         else:
-            form = form_class(method='post', initial=initial) 
+            form = form_class(method='post', initial=initial)
+            # Ticket #3530 not yet implemented (checking whether toDate is
+            # bigger than from Date).
+            # form = form_class(method='post', initial=initial, 
+            #    onsubmit="return checkToDate();") 
         
         context['form'] = form
         return self._render('edit', context)
@@ -672,9 +678,6 @@ class Domain(AdifPage, ListTableMixin):
 
 class Contact(AdifPage, ListTableMixin):
     pass
-#    def __init__(self):
-#        AdifPage.__init__(self)
-#        ListTableMixin.__init__(self)
 
 class NSSet(AdifPage, ListTableMixin):
     pass
