@@ -742,15 +742,15 @@ class PublicRequest(AdifPage, ListTableMixin):
             log_req.commit()
 
         except (TypeError, ValueError):
-            log_request.update("result", str(e))
-            log_request.commit()
+            log_req.update("result", str(e))
+            log_req.commit()
             context['main'] = _("Required_integer_as_parameter")
             return self._render('base', ctx=context)
         try:
             cherrypy.session.get('Admin').processPublicRequest(id_pr, False)
         except ccReg.Admin.REQUEST_BLOCKED, e:
-            log_request.update("result", str(e))
-            log_request.commit()
+            log_req.update("result", str(e))
+            log_req.commit()
             raise CustomView(self._render('error', {'message':
                                                         [_(u'This object is blocked, request cannot be accepted. You can return back to '), 
                                                          a(attr(href=f_urls[self.classname] + 'detail/?id=%s' % id_pr), _('public request.'))
@@ -763,16 +763,16 @@ class PublicRequest(AdifPage, ListTableMixin):
     def close(self, **kwd):
         '''Close and invalidate'''
         context = {}
-        req = cherrypy.session['Logger'].create_request(
+        log_req = cherrypy.session['Logger'].create_request(
             cherrypy.request.remote.ip, cherrypy.request.body,
             "PublicRequestInvalidate")
         try:
             id_ai = int(kwd.get('id'))
-            req.update("publicrequest_id", id_ai)
-            req.commit()
+            log_req.update("publicrequest_id", id_ai)
+            log_req.commit()
         except (TypeError, ValueError), e:
-            log_request.update("result", str(e))
-            log_request.commit()
+            log_req.update("result", str(e))
+            log_req.commit()
             context['main'] = _("Required_integer_as_parameter")
             return self._render('base', ctx=context)
         cherrypy.session.get('Admin').processPublicRequest(id_ai, True)
@@ -814,8 +814,8 @@ class BankStatement(AdifPage, ListTableMixin):
         try:
             obj_id = int(obj_id)
         except (TypeError, ValueError), e:
-            log_request.update("result", str(e))
-            log_request.commit()
+            log_req.update("result", str(e))
+            log_req.commit()
             context['main'] = _(
                 "Requires integer as parameter (got %s)." % obj_id)
             raise CustomView(self._render('base', ctx=context))
