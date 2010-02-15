@@ -16,18 +16,13 @@ class attr(object):
         self.kwd = kwd
         
 class tagid(object):
-    #_is_tag_tagid = True
-    
     def __init__(self, name):
         '''To mark tag to be accesible through parenttag.name or parenttag[name]'''
         self.name = name
 
 class save(object):
     '''To save widget into another widget under a specified name.'''
-    #_is_tag_save = True
-    
     def __init__(self, parent_widget, name):
-#        if hasattr(parent_widget, '_is_tag_widget') and 
         if type(name) in types.StringTypes:
             self.parent_widget = parent_widget #this doesn't have to be widget
             self.name = name
@@ -52,8 +47,6 @@ class WebWidget(object):
     '''Base class for all web widgets'''
     
     __metaclass__ = SubscriptableType
-    
-    #_is_tag_widget = True
     
 #    # normal attributes are not rendered to html output
     # normal (class) attributes, that can be passed through attr object or as kwd argument (normally only tag attributes can be passed using attr object)
@@ -84,7 +77,6 @@ class WebWidget(object):
     
     
     def __init__(self, *content, **kwd):
-#        self.__dict__['normal_attrs'] = ['normal_attrs', 'tag', '    ', 'parent_widget', 'delimiter_char', 'indent_char', 'tagid', 'enclose_content']    
         self.__dict__['tattr'] = {} # attributes, that will be rendered into tag as attribute (eg. <a href="/">...)
         self.__dict__['content'] = [] # To not pydev(or pylint) complain about assigning to undefined membet 'attr'
         self.parent_widget = None
@@ -117,8 +109,6 @@ class WebWidget(object):
         for key, val in kwd.items():
             if key in self.tattr_list:
                 self.tattr[key] = val
-#            if key in self.normal_attrs:
-#                self.__setattr__(key, val)
                 kwd.pop(key)
             elif key in self.normal_attrs:
                 self.__setattr__(key, val)
@@ -127,12 +117,8 @@ class WebWidget(object):
         if kwd:
             raise GPyWebError(u'Attributes "%s" are not allowed in tag %s (class %s)' % (kwd, self.tag, self.__class__.__name__))
 
-#        # all other attribute save as tag attributes
-#        for attr in kwd:
-#            self.tattr = kwd
     def _set_root_widget(self, value):
         "Set root_widget and recursively for all descendants (only if value is changed)"
-#        print "SETTING ROOT WIDGET TO", repr(value)
         if self._root_widget != value:
             for con in self.content:
                 if isinstance(con, WebWidget): 
@@ -144,7 +130,6 @@ class WebWidget(object):
         
         
     def __getattr__(self, name):
-        #print 'getting "%s" of "%s"' % (name, repr(self))
         if name in ['__reduce__', '__getstate__', '__setstate__', '__module__', '__getinitargs__', '__getnewargs__', '__deepcopy__', 
                     'tatr' 'content']:
             raise AttributeError, name
@@ -154,7 +139,6 @@ class WebWidget(object):
             # must be using __dict__ because if descendant of WebWidget overrides __getattr__ method,
             # there would be maximum recursion depth exceeded error raised
             for con in self.__dict__['content']: 
-                #if hasattr(con, '_is_tag_widget'):
                 if isinstance(con, WebWidget):
                     try:
                         tname = getattr(con, 'tagid')
@@ -162,12 +146,9 @@ class WebWidget(object):
                             return con
                     except AttributeError:
                         pass
-#        print "DIDN'T GET %s" % name
-#        print self.__dict__
         raise AttributeError(u'__getattr__ try to access non-existend attribute "%s" of object "%s"' % (name, unicode(self.__repr__())))
 
     def __setattr__(self, name, value):
-        #print "setting %s %s" % (name, repr(self))
         if name == 'content':
             if value == None or value == fredtypes.Null():
                 super(WebWidget, self).__setattr__('content', [])
@@ -178,12 +159,6 @@ class WebWidget(object):
         else:
             super(WebWidget, self).__setattr__(name, value)
     
-#    def __len__(self):
-#        return len(self.content)
-        
-#    def __nonzero__(self):
-#        return len(self.content) > 0
-        
     def __str__(self):
         return self.render()
     
@@ -198,23 +173,20 @@ class WebWidget(object):
         
     def add(self, *content, **kwd):
         for con in content:
-            #if hasattr(con, '_is_tag_widget'):
             if isinstance(con, WebWidget):
                 con.parent_widget = self
                 con.root_widget = self.root_widget
                 con.on_add()
                 self.content.append(con)
-            #elif hasattr(con, '_is_tag_save'):
             elif isinstance(con, save):
-#                setattr(con.parent_widget, con.name, self)
-                con.parent_widget.__setattr__(con.name, self) # this must be done over __dict__, because if it would use __setattr__, it whould become tattr attribute
-            #elif hasattr(con, '_is_tag_tagid'):
+                # this must be done over __dict__, because if it would use
+                #__setattr__, it would become tattr attribute
+                con.parent_widget.__setattr__(con.name, self) 
             elif isinstance(con, tagid):
                 self.__setattr__('tagid', con.name)
             elif isiterable(con):
                 for inner_con in con:
                     self.add(inner_con)
-            #elif hasattr(con, '_is_tag_attr'):
             elif isinstance(con, attr):
                 for key, val in con.kwd.items():
                     if key in self.tattr_list:
@@ -222,16 +194,15 @@ class WebWidget(object):
                     elif key in self.normal_attrs:
                         self.__setattr__(key, val)
                     else:
-                        raise GPyWebError(u'Attribute %s is not allowed for element %s (class %s)' % (key, self.tag, self.__class__.__name__))
-#                self.tattr.update(con.kwd)
+                        raise GPyWebError(
+                            u"""Attribute %s is not allowed for element"""
+                            """ %s (class %s)""" % (key, self.tag, 
+                            self.__class__.__name__))
             elif con != None:
                 self.content.append(con)
-            
-            
                 
     def set_tattr(self, *talist, **kwd):
         for tag_attr in talist:
-            #if hasattr(tag_attr, '_is_tag_attr'):
             if isinstance(tag_attr, attr):
                 kwd.update(tag_attr.kwd)
             elif isinstance(tag_attr, types.DictType):
@@ -258,7 +229,8 @@ class WebWidget(object):
             
 
     def render(self, indent_level = 0):
-        if self.media_files and self.root_widget and isinstance(self.root_widget, HTMLPage):
+        if self.media_files and self.root_widget and \
+          isinstance(self.root_widget, HTMLPage):
             self.root_widget.add_media_files(self.media_files)
             
         rstr = ''
@@ -617,7 +589,6 @@ class Media(WebWidget):
     def render(self, indent_level = 0):
         self.indent_level = indent_level
         return GPYWEB_REPLACE_ME_WITH_MEDIA
-        #print "RENDERUJU MEDIA %s" % self.media_files
         rstr = ''
         for media_file in self.media_files:
             if media_file.endswith('.css'):
@@ -676,29 +647,12 @@ class HTMLPage(html):
                      ),
                  body(save(self, 'body'))
                  )
-              
-
-#        if isiterable(css_files):
-#            for css_file in self.css_files:
-#                #self.head.add(link(attr(href = css_file, rel="stylesheet", type="text/css")))
-#                self.head.add(CSSInclude(css_file))
-#        elif isinstance(css_files, types.StringTypes):
-#            #self.head.add(link(attr(href = css_files, rel="stylesheet", type="text/css")))
-#            self.head.add(CSSInclude(css_files))
-#        #import pdb; pdb.set_trace()
-#        if isiterable(js_files):
-#            for js_file in self.js_files:
-#                self.head.add(JSInclude(js_file))
-#        elif isinstance(js_files, types.StringTypes):
-#            self.head.add(JSInclude(js_files))
                 
     def render(self, indent_level = 0):
         return self.doctype + super(HTMLPage, self).render(indent_level).replace(GPYWEB_REPLACE_ME_WITH_MEDIA, self._media.render_after(), 1)    
     def add_media_files(self, media_files):
         if isinstance(media_files, types.StringTypes):
             media_files = [media_files]
-        #self._media.media_files.update(set(media_files))
-        
         for media_file in media_files:
             if media_file not in self._media.media_files:
                 self._media.media_files.append(media_file)

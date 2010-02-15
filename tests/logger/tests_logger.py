@@ -8,13 +8,11 @@ from fred_webadmin.logger.sessionlogger import LoggingException
 from fred_webadmin.corba import ccReg
 
 
-class TestLoggerCommon(object):
-
+class LoggerCommonTests(object):
     def setup(self):
         """ Creates mock corba object. """
         self.corba_mock = mox.Mox()
 
-
     @with_setup(setup)
     def test_start_session(self):
         """ Logger gets created OK when all's OK. """
@@ -27,28 +25,7 @@ class TestLoggerCommon(object):
 
         self.corba_mock.ReplayAll()
 
-        logger = sessionlogger.SessionLogger(dao)
-        logger.start_session("EN", "test_name")
-        
-        assert logger is not None
-        
-        self.corba_mock.VerifyAll()
-
-
-
-    @with_setup(setup)
-    def test_start_session(self):
-        """ Logger gets created OK when all's OK. """
-        dao = self.corba_mock.CreateMockAnything()
-
-        dao.CreateSession(ccReg.EN, "test_name").AndReturn(9)
-        dao.GetServiceActions(sessionlogger.service_type_webadmin).AndReturn(
-                    [ccReg.RequestActionListItem(1, "a"), 
-                     ccReg.RequestActionListItem(2, "b")])
-
-        self.corba_mock.ReplayAll()
-
-        logger = sessionlogger.SessionLogger(dao)
+        logger = self.logger(dao)
         logger.start_session("EN", "test_name")
         
         assert logger is not None
@@ -68,7 +45,7 @@ class TestLoggerCommon(object):
 
         self.corba_mock.ReplayAll()
 
-        logger = sessionlogger.SessionLogger(dao)
+        logger = self.logger(dao)
         rc = logger.start_session("EN", u"test_name")
         
         assert logger is not None
@@ -89,7 +66,7 @@ class TestLoggerCommon(object):
 
         self.corba_mock.ReplayAll()
 
-        logger = sessionlogger.SessionLogger(dao)
+        logger = self.logger(dao)
         logger.start_session(lang="EN", name="test_name")
         logger.close_session()
 
@@ -115,7 +92,7 @@ class TestLoggerCommon(object):
         
         self.corba_mock.ReplayAll()
         
-        logger = sessionlogger.SessionLogger(dao)
+        logger = self.logger(dao)
         logger.start_session(lang="EN", name="test_name")
         request = logger.create_request("127.0.0.1", 
             """<foo test='content bar foo'>foofoofoo</foo>""", "ClientLogin")
@@ -142,7 +119,7 @@ class TestLoggerCommon(object):
         
         self.corba_mock.ReplayAll()
         
-        logger = sessionlogger.SessionLogger(dao)
+        logger = self.logger(dao)
         logger.start_session(lang="EN", name="test_name")
         logger.set_common_property("session_id", "foobarfooid")
         request = logger.create_request("127.0.0.1", 
@@ -152,6 +129,16 @@ class TestLoggerCommon(object):
         assert request is not None
 
         self.corba_mock.VerifyAll()
+
+
+class TestLoggerCommonRegular(LoggerCommonTests):
+    def __init__(self):
+        self.logger = sessionlogger.SessionLogger
+
+
+class TestLoggerCommonIgnoreFailure(LoggerCommonTests):
+    def __init__(self):
+        self.logger = sessionlogger.SessionLoggerFailSilent
 
 
 class TestLoggerWithExceptions(object):
@@ -300,4 +287,23 @@ class TestLogRequest(object):
         request = sessionlogger.LogRequest(self.dao, 42)
         rc = request.update("test name", "test value", False, False)
         
+        self.corba_mock.VerifyAll()
+
+class TestSessionLoggerIgnoreFailure(object):
+    def setup(self):
+        """ Creates mock corba object. """
+        self.corba_mock = mox.Mox()
+
+    @with_setup(setup)
+    def test_create_logger_for_session_invalid_lang(self):
+        """ LoggingException thrown when invalid langauge is provided. """
+        dao = self.corba_mock.CreateMockAnything()
+
+        self.corba_mock.ReplayAll()
+
+        logger = sessionlogger.SessionLoggerFailSilent(dao)
+        logger.start_session("test_invalid_lang", "test_name")
+
+        assert logger is not None
+
         self.corba_mock.VerifyAll()

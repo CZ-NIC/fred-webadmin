@@ -94,17 +94,16 @@ class TestRegistrar(base.DaphneTestCase):
             return self.corba_session_mock.getDetail(
                 ccReg.FT_REGISTRAR, 42).AndReturn(
                     self._fabricate_registrar())
-        self.admin_mock.getCountryDescList().InAnyOrder().AndReturn(
+        self.admin_mock.getCountryDescList().AndReturn(
             [ccReg.CountryDesc(1, 'cz')])
-        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
-        _get_reg_detail()
-        _get_reg_detail()
-        self.admin_mock.getCountryDescList().InAnyOrder().AndReturn(
+        self.admin_mock.getDefaultCountry().AndReturn(1)
+        _get_reg_detail() # Display the detail.
+        _get_reg_detail() # Page reloaded after clicking 'save'.
+        self.admin_mock.getCountryDescList().AndReturn(
             [ccReg.CountryDesc(1, 'cz')])
-        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
         self.corba_session_mock.updateRegistrar(
             mox.IsA(Registry.Registrar.Detail)).AndReturn(42)
-        _get_reg_detail()
+        _get_reg_detail() # Jump to detail after updating.
 
         self.corba_mock.ReplayAll()
 
@@ -234,6 +233,7 @@ class TestRegistrar(base.DaphneTestCase):
             [ccReg.CountryDesc(1, 'cz')])
         self.corba_session_mock.updateRegistrar(
             mox.IsA(ccReg.Registrar)).AndRaise(ccReg.Admin.UpdateFailed)
+        self.admin_mock.getDefaultCountry().AndReturn(1)
 
         self.corba_mock.ReplayAll()
 

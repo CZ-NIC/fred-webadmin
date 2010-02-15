@@ -34,7 +34,8 @@ import simplejson
 import fred_webadmin.corbarecoder as recoder
 import fred_webadmin.utils as utils
 
-from fred_webadmin.logger.sessionlogger import SessionLogger
+from fred_webadmin.logger.sessionlogger import (
+    SessionLogger, SessionLoggerFailSilent)
 from fred_webadmin.logger.dummylogger import DummyLogger
 from fred_webadmin.logger.codes import logcodes
 
@@ -64,7 +65,7 @@ from fred_webadmin.webwidgets.gpyweb.gpyweb import DictLookup, noesc, attr, ul, 
 from fred_webadmin.webwidgets.menu import MenuHoriz
 from fred_webadmin.menunode import menu_tree
 from fred_webadmin.webwidgets.forms.adifforms import LoginForm
-from fred_webadmin.webwidgets.forms.editforms import (
+from fred_webadmin.webwidgets.forms.editforms import (RegistrarEditForm,
     BankStatementPairingEditForm)
 from fred_webadmin.webwidgets.forms.filterforms import *
 from fred_webadmin.webwidgets.forms.filterforms import (
@@ -263,7 +264,12 @@ class ADIF(AdifPage):
             # it can be found by CorbaLazyRequest.
             corba_logd = corba.getObject("Logger", "Logger")
             cherrypy.session['corba_logd'] = corba_logd
-            logger = SessionLogger(dao=corba_logd)
+            if config.logging_mandatory:
+                # Logging must work => throw exceptions on error.
+                logger = SessionLogger(dao=corba_logd)
+            else:
+                # Non-critical logging => ignore logging errors.
+                logger = SessionLoggerFailSilent(dao=corba_logd)
         return logger
 
     def login(self, *args, **kwd):
@@ -339,8 +345,6 @@ class ADIF(AdifPage):
 
                 redir_addr = form.cleaned_data.get('next')
                 
-                log_req.commit("") 
-
                 raise cherrypy.HTTPRedirect(redir_addr)
             
             except omniORB.CORBA.BAD_PARAM, e:
@@ -364,6 +368,7 @@ class ADIF(AdifPage):
                     form.non_field_errors().append(noesc(escape(unicode(
                         traceback.format_exc())).replace('\n', '<br/>')))
             except cherrypy.HTTPRedirect, e:
+                log_req.commit("") 
                 raise
             except Exception, e:
                 log_req.update("result", str(e))

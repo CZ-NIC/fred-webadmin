@@ -5,11 +5,10 @@
     Logging framework.
 """
 
-import omniORB
-import logging
 import traceback
 
 import fred_webadmin.corbarecoder as recoder
+import fred_webadmin.logger.dummylogger
 
 from fred_webadmin.corba import ccReg
 
@@ -23,7 +22,7 @@ service_type_webadmin = 4
 *** Module initialization section. ***
 """
 
-# Initilize (lowercase lang code string -> lang code int) mapping from
+# Initialize (lowercase lang code string -> lang code int) mapping from
 # corba IDL (e.g. {'cs' : ccReg.CS, 'en' : ccReg.EN}).
 languages = dict((code._n.lower(), code) for code in ccReg.Languages._items)
 
@@ -95,7 +94,7 @@ class SessionLogger(object):
 
         try:
             lang_code = languages[lang.lower()]
-        except KeyError, exc:
+        except KeyError:
             raise ValueError("Invalid language provided to SessionLogger."
                              "Original exception: %s." %
                              traceback.format_exc())
@@ -105,7 +104,7 @@ class SessionLogger(object):
             raise LoggingException(
                 """Logging session failed to start with args: (%s, %s).""" %
                 (lang_code, name))
-        self.__load_action_codes(service_type)
+        self._load_action_codes(service_type)
 
     def set_common_property(self, name, value, output=False, child=False):
         """Set a property that will automatically be logged in every request.
@@ -127,7 +126,7 @@ class SessionLogger(object):
             Returns a new LogRequest object or None on error.
         """
         properties = properties or []
-        request_id = self.__server_create_request(
+        request_id = self._server_create_request(
             source_ip, content, action_type, properties)
         log_request = LogRequest(self.dao, request_id)
         log_request.update_multiple(self.common_properties.values())
@@ -142,7 +141,7 @@ class SessionLogger(object):
         if ret_code == 0:
             raise LoggingException("CloseSession failed.")
 
-    def __load_action_codes(self, service_type):
+    def _load_action_codes(self, service_type):
         """
             Request (action string code -> action int code) mapping from
             the server. 
@@ -152,7 +151,7 @@ class SessionLogger(object):
         for action in action_list:
             self.actions[action.status] = action.id
 
-    def __server_create_request(self, source_ip, content, action_type, 
+    def _server_create_request(self, source_ip, content, action_type, 
                                 properties):
         """
             Ask the server to create a new logging request.
@@ -162,14 +161,14 @@ class SessionLogger(object):
             content = ""
         try:
             action = self.actions[action_type]
-        except KeyError, exc:
+        except KeyError:
             raise ValueError(
                 "Invalid action type %s. Original exception: %s." %
                 (action_type, traceback.format_exc()))
 
         request_id = self.dao.CreateRequest(
             source_ip, service_type_webadmin, content, properties, 
-            self.actions[action_type], self.logging_session_id)
+            action, self.logging_session_id)
         if request_id == 0:
             raise LoggingException(
                 "Failed to create a request with args: (%s, %s, %s, %s)." % 
@@ -205,6 +204,8 @@ class LogRequest(object):
         self.request_id = request_id
 
     def _convert_nested_to_str(self, value):
+        """ Converts nested lists (or tuples) of objects to nested lists of
+            strings. """
         if not isinstance(value, list) and not isinstance(value, tuple):
             return str(value)
         return [self._convert_nested_to_str(item) for item in value]
@@ -281,44 +282,65 @@ class LogRequest(object):
             raise LoggingException("CloseRequest failed.")
 
 
-class SessionLoggerNoFail(SessionLogger):
+class SessionLoggerFailSilent(SessionLogger):
+    """ SessionLogger that does not raise exceptions on failure. 
     """
-        SessionLogger that does not raise exceptions on failure. 
-    """
-    # TODO(tom): How to implement this? The trouble is that CORBA is sort of
-    # omni-present in Daphne, so it can fail almost anywhere. What's worse, if
-    # CORBA logd does not start, we cannot create the logging session and we 
-    # the logger will raise an exception whatever it does.
+    def __init__(self, *args, **kwargs):
+        SessionLogger.__init__(self, *args, **kwargs)
 
     def start_session(self, *args, **kwargs):
         try:
-            res = SessionLogger.start_session(*args, **kwargs)
-        except ValueError, LoggingException:
+            SessionLogger.start_session(self, *args, **kwargs)
+        except Exception:
             pass
 
     def set_common_property(self, *args, **kwargs):
-        return
+        try:
+            SessionLogger.set_common_property(self, *args, **kwargs)
+        except Exception:
+            pass
 
-    def create_request(self, *args, **kwargs):
-        return DummyLogRequest()
+    def create_request(self, source_ip, content, action_type, properties=None):
+        try:
+            properties = properties or []
+            request_id = self._server_create_request(
+                source_ip, content, action_type, properties)
+            log_request = LogRequestFailSilent(self.dao, request_id)
+            log_request.update_multiple(self.common_properties.values())
+            return log_request
+        except Exception:
+            return fred_webadmin.logger.dummylogger.DummyLogRequest()
 
-    def create_request_login(self, *args, **kwargs):
-        return DummyLogRequest()
-        
     def close_session(self, *args, **kwargs): 
-        return True
+        try:
+            SessionLogger.close_session(self, *args, **kwargs)
+        except Exception:
+            pass
 
 
-class LogRequestNoFail(LogRequest):
+class LogRequestFailSilent(LogRequest):
+    """ LogRequest that does not raise exceptions on failure (to be used with
+        SessionLoggerFailSilent). """
+    def __init__(self, *args, **kwargs):
+        LogRequest.__init__(self, *args, **kwargs)
+
     def update(self, *args, **kwargs):
-        return True
+        try:
+            LogRequest.update(self, *args, **kwargs)
+        except Exception:
+            pass
 
     def update_multiple(self, *args, **kwargs):
-        return True
+        try:
+            LogRequest.update_multiple(self, *args, **kwargs)
+        except Exception:
+            pass
 
     def commit(self, *args, **kwargs):
-        return True
-
+        try:
+            LogRequest.commit(self, *args, **kwargs)
+        except Exception:
+            pass
 
 
 class LoggingException(Exception):
