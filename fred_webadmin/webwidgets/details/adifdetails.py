@@ -288,6 +288,14 @@ class DomainDetail(ObjectDetail):
         HistoryListObjectDField(
                 detail_class=ContactDetail, 
                 display_only=['handle_url', 'organization', 'name', 'email']))
+
+    temps = NHDField(
+        ListObjectDField(
+            detail_class=ContactDetail, 
+            display_only=['handle_url', 'organization', 'name', 'email']),
+        HistoryListObjectDField(
+                detail_class=ContactDetail, 
+                display_only=['handle_url', 'organization', 'name', 'email']))
     
     sections = (
         (None, ('handleEPPId', 'authInfo')),
@@ -295,6 +303,7 @@ class DomainDetail(ObjectDetail):
         (_('Owner'), ('registrant', ), DirectSectionLayout),
         (_('Selected registrar'), ('registrar', ), DirectSectionLayout),
         (_('Admin contacts'), ('admins', ), DirectSectionLayout),
+        (_('Temporary contacts'), ('temps', ), DirectSectionLayout),
         (_('NSSet'), ('nsset', ), DirectSectionLayout),
         (_('KeySet'), ('keyset', ), DirectSectionLayout),
         (_('States'), ('states', ), DirectSectionLayout),
