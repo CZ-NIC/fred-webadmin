@@ -13,7 +13,12 @@ log_dir = 'DU_LOCALSTATEDIR/log/fred-webadmin/'
 log_level = logging.ERROR
 
 # Session logger settings
+# If False, use dummy logger (just pretend to log, do not send anything to the 
+# server)
 session_logging_enabled = True
+# If False, no exceptions are thrown by the logger (if logging fails, it fails
+# silently).
+logging_mandatory = True
 
 
 idl = 'DU_IDL_DIR/ccReg.idl' #'/usr/share/idl/fred/ccReg.idl'
