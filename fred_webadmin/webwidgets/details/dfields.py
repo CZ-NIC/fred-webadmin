@@ -648,7 +648,7 @@ class HistoryListObjectDField(HistoryDField):
                 for obj in object_list:
                     new_obj_list.append(resolve_object(obj))
                 history_row.value = new_obj_list
-        if value is None():
+        if value is None:
             return fredtypes.Null()
         return value
     
