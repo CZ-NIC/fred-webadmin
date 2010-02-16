@@ -272,6 +272,8 @@ class WebWidget(object):
             elif isinstance(con, types.StringTypes):
                 if not self.enclose_content:
                     rstr += indent_level * self.indent_char
+                if not isinstance(con, unicode):
+                    con = unicode(con, 'utf-8')
                 rstr += escape(con)
                 if not self.enclose_content:
                     rstr += self.delimiter_char
