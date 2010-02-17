@@ -128,8 +128,8 @@ class FormSetField(Field):
         # of formsets can access them.
         return dict([[key, val] for key, val in data.items() 
             if key.startswith(self.name)])  
-    
-    
+
+
 class CorbaEnumChoiceField(ChoiceField):
     """
     A field created from corba enum type

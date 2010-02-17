@@ -2,6 +2,7 @@ import mox
 import CORBA
 import cherrypy
 import twill
+import datetime
 
 from StringIO import StringIO
 import twill.commands
@@ -184,6 +185,99 @@ class TestRegistrar(base.DaphneTestCase):
         twill.commands.code(200)
         twill.commands.url("http://localhost:8080/registrar/detail/\?id=42")
         twill.commands.find("test handle")
+
+    def test_create_registrar_zone_to_date_smaller_than_zone_from_date(self):
+        """ Registrar creation fails when zone 'To' date is smaller than zone
+            'From' date (ticket #3530)."""
+        self.admin_mock.getCountryDescList().InAnyOrder().AndReturn(
+            [ccReg.CountryDesc(1, 'cz')])
+        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
+        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
+        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
+        self.admin_mock.getCountryDescList().InAnyOrder().AndReturn(
+            [ccReg.CountryDesc(1, 'cz')])
+        self.corba_session_mock.updateRegistrar(
+            mox.IsA(ccReg.Registrar)).AndReturn(42)
+        self.corba_session_mock.getDetail(ccReg.FT_REGISTRAR, 42).AndReturn(
+            CORBA.Any(
+                CORBA.TypeCode("IDL:Registry/Registrar/Detail:1.0"), 
+                Registry.Registrar.Detail(
+                    id=3L, ico='', dic='', varSymb='', vat=True, 
+                    handle='test handle', name='', 
+                    organization='', street1='', 
+                    street2='', street3='', city='', stateorprovince='', 
+                    postalcode='', country='', telephone='', fax='', 
+                    email='', url='', credit='', 
+                    unspec_credit=u'', access=[], zones=[], hidden=False)))
+        self.admin_mock.getDefaultCountry().AndReturn(1)
+
+        self.corba_mock.ReplayAll()
+
+        # Create the registrar.
+        twill.commands.go("http://localhost:8080/registrar/create")
+        twill.commands.showforms()
+        twill.commands.fv(2, "handle", "test handle")
+        # Fill in the zone name (mandatory field).
+        twill.commands.fv(2, "zones-0-name", "test zone")
+        # 'To' date is smaller than 'From' date.
+        twill.commands.fv(2, "zones-0-fromDate", "2010-02-01")
+        twill.commands.fv(2, "zones-0-toDate", "2010-01-01")
+        twill.commands.submit()
+
+        # Check that we're still at the 'create' page (i.e., the registrar has
+        # not been created.
+        twill.commands.code(200)
+        twill.commands.url("http://localhost:8080/registrar/create")
+
+    def test_create_registrar_zone_to_date_smaller_than_zone_from_date(self):
+        """ Registrar creation passes when zone 'To' date is bigger than zone
+            'From' date."""
+        self.admin_mock.getCountryDescList().InAnyOrder().AndReturn(
+            [ccReg.CountryDesc(1, 'cz')])
+        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
+        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
+        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
+        self.admin_mock.getCountryDescList().InAnyOrder().AndReturn(
+            [ccReg.CountryDesc(1, 'cz')])
+        self.corba_session_mock.updateRegistrar(
+            mox.IsA(ccReg.Registrar)).AndReturn(42)
+        self.corba_session_mock.getDetail(ccReg.FT_REGISTRAR, 42).AndReturn(
+            CORBA.Any(
+                CORBA.TypeCode("IDL:Registry/Registrar/Detail:1.0"), 
+                Registry.Registrar.Detail(
+                    id=3L, ico='', dic='', varSymb='', vat=True, 
+                    handle='test handle', name='', 
+                    organization='', street1='', 
+                    street2='', street3='', city='', stateorprovince='', 
+                    postalcode='', country='', telephone='', fax='', 
+                    email='', url='', credit='', 
+                    unspec_credit=u'', access=[], 
+                    zones=[Registry.Registrar.ZoneAccess(
+                        id=5L, name='cz', credit='9453375', 
+                        fromDate=ccReg.DateType(day=1, month=2, year=2010), 
+                        toDate=ccReg.DateType(day=10, month=2, year=2010))], 
+                    hidden=False)))
+        self.admin_mock.getDefaultCountry().AndReturn(1)
+
+        self.corba_mock.ReplayAll()
+
+        # Create the registrar.
+        twill.commands.go("http://localhost:8080/registrar/create")
+        twill.commands.showforms()
+        twill.commands.fv(2, "handle", "test handle")
+        # Fill in the zone name (mandatory field).
+        twill.commands.fv(2, "zones-0-name", "test zone")
+        # 'To' date is bigger than 'From' date.
+        twill.commands.fv(2, "zones-0-fromDate", "2010-02-01")
+        twill.commands.fv(2, "zones-0-toDate", "2010-02-10")
+        twill.commands.submit()
+
+        # Test that we've jumped to the detail page (i.e., creation has
+        # completed successfully).
+        twill.commands.code(200)
+        twill.commands.url("http://localhost:8080/registrar/detail/\?id=42")
+        twill.commands.find("test handle")
+
 
     def test_create_two_registrars_with_same_name(self):
         """ Creating second registrar with the same name fails.

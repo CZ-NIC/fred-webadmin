@@ -68,6 +68,16 @@ class ZoneEditForm(EditForm):
     fromDate = DateField(label=_('From'))
     toDate = DateField(label=_('To'), required=False)
 
+    def clean(self):
+        """ Check that To' date is bigger than 'From' date. """
+        toDate = self.fields['toDate'].value
+        fromDate = self.fields['fromDate'].value
+        if fromDate and toDate:
+            if toDate < fromDate:
+                raise ValidationError(
+                    "'To' date must be bigger than 'From' date.")
+        return self.cleaned_data
+
 
 class RegistrarEditForm(EditForm):
     id = HiddenDecimalField()
@@ -99,11 +109,11 @@ class RegistrarEditForm(EditForm):
     url = CharField(label=_('URL'), required=False) # URL
     hidden = BooleanField(label=_('System registrar'), required=False) # System registrar
 
-    access = FormSetField(label=_('Authentication'), form_class=AccessEditForm, can_delete=True)
-    # TODO(Tom): zones.can_delete should be False, but that causes problems
-    # BaseFormSet._get_cleaned_data. Fix it!
+    access = FormSetField(
+        label=_('Authentication'), form_class=AccessEditForm, can_delete=True)
     zones = FormSetField(
-        label=_('Zones'), form_class=ZoneEditForm, can_delete=False)
+        label=_('Zones'), form_class=ZoneEditForm, 
+        can_delete=False)
 
 
 class BankStatementPairingEditForm(EditForm):

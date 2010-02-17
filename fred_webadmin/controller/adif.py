@@ -337,8 +337,8 @@ class ADIF(AdifPage):
                 cherrypy.session['user'] = User(utils.get_corba_session().getUser())
                 
                 cherrypy.session['Mailer'] = corba.getObject('Mailer', 'Mailer')
-                cherrypy.session['FileManager'] = corba.getObject('FileManager',
-                                                                  'FileManager')
+                cherrypy.session['FileManager'] = corba.getObject(
+                    'FileManager', 'FileManager')
                 
                 cherrypy.session['history'] = False
                 utils.get_corba_session().setHistory(False)
