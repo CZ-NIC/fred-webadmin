@@ -3,6 +3,7 @@ import CORBA
 import cherrypy
 import twill
 import datetime
+import ldap
 
 from StringIO import StringIO
 import twill.commands
@@ -11,6 +12,7 @@ import tests.webadmin.base as base
 import fred_webadmin.controller.adif
 
 from fred_webadmin.corba import Registry, ccReg
+import fred_webadmin.logger.dummylogger as logger
 
 
 class TestADIF(base.DaphneTestCase):
@@ -18,6 +20,7 @@ class TestADIF(base.DaphneTestCase):
         base.DaphneTestCase.setUp(self)
         # Create the application, mount it and start the server.
         root = fred_webadmin.controller.adif.ADIF()
+        root.summary = fred_webadmin.controller.adif.Summary()
         wsgiApp = cherrypy.tree.mount(root)
         cherrypy.server.start()
         # Redirect HTTP requests.
@@ -34,8 +37,158 @@ class TestADIF(base.DaphneTestCase):
         # Shut down Cherrypy server.
         cherrypy.server.stop()
 
-    def test_login(self):
-        pass
+    def test_login_valid_corba_auth(self):
+        """ Login passes when using valid corba authentication.
+        """
+        fred_webadmin.config.auth_method = 'CORBA'
+        self.corba_conn_mock.connect("localhost_test", "fredtest")
+        # Create corba objects in any order (prevent boilerplate code).
+        for obj, ret in (("Admin", self.admin_mock), ("Logger",
+                logger.DummyLogger()), ("Mailer", None), 
+                ("FileManager", None)):
+            self.corba_conn_mock.getObject(obj, obj).InAnyOrder("corba_obj").AndReturn(ret)
+        self.admin_mock.authenticateUser("test", "test pwd")
+        self.admin_mock.createSession("test").AndReturn(self.corba_session_mock)
+        self.corba_session_mock.getUser().AndReturn(self.corba_user_mock)
+        self.corba_session_mock.setHistory(False)
+        self.corba_mock.ReplayAll()
+
+        twill.commands.go("http://localhost:8080/login")
+        twill.commands.showforms()
+        twill.commands.fv(1, "login", "test")
+        twill.commands.fv(1, "password", "test pwd")
+        twill.commands.fv(1, "corba_server", "0")
+        twill.commands.submit()
+        twill.commands.url("http://localhost:8080/summary/")
+        twill.commands.code(200)
+
+    def test_login_invalid_corba_auth(self):
+        """ Login fails when using invalid corba authentication.
+        """
+        fred_webadmin.config.auth_method = 'CORBA'
+        self.corba_conn_mock.connect("localhost_test", "fredtest")
+        # Create corba objects in any order (prevent boilerplate code).
+        for obj, ret in (("Admin", self.admin_mock), ("Logger",
+                logger.DummyLogger()), ("Mailer", None), 
+                ("FileManager", None)):
+            self.corba_conn_mock.getObject(obj, obj).InAnyOrder("corba_obj").AndReturn(ret)
+        self.admin_mock.authenticateUser(
+            "test", "test pwd").AndRaise(ccReg.Admin.AuthFailed)
+        self.corba_mock.ReplayAll()
+
+        twill.commands.go("http://localhost:8080/login")
+        twill.commands.showforms()
+        twill.commands.fv(1, "login", "test")
+        twill.commands.fv(1, "password", "test pwd")
+        twill.commands.fv(1, "corba_server", "0")
+        twill.commands.submit()
+        twill.commands.url("http://localhost:8080/login/")
+        twill.commands.code(403)
+
+
+    def test_login_ldap_valid_credentials(self):
+        """ Login passes when invalid credentials are supplied when using LDAP.
+        """
+        fred_webadmin.config.auth_method = 'LDAP'
+        self.corba_conn_mock.connect("localhost_test", "fredtest")
+        # Create corba objects in any order (prevent boilerplate code).
+        for obj, ret in (("Admin", self.admin_mock), ("Logger",
+                logger.DummyLogger()), ("Mailer", None), 
+                ("FileManager", None)):
+            self.corba_conn_mock.getObject(obj, obj).InAnyOrder("corba_obj").AndReturn(ret)
+        self.ldap_backend_mock.__call__().AndReturn(self.ldap_backend_mock)
+        self.ldap_backend_mock.authenticate(
+            "test", "test pwd")
+        self.admin_mock.createSession("test").AndReturn(self.corba_session_mock)
+        self.corba_session_mock.getUser().AndReturn(self.corba_user_mock)
+        self.corba_session_mock.setHistory(False)
+        self.corba_mock.ReplayAll()
+
+        twill.commands.go("http://localhost:8080/login")
+        twill.commands.showforms()
+        twill.commands.fv(1, "login", "test")
+        twill.commands.fv(1, "password", "test pwd")
+        twill.commands.fv(1, "corba_server", "0")
+        twill.commands.submit()
+        # Invalid credentials => stay at login page.
+        twill.commands.url("http://localhost:8080/summary/")
+        twill.commands.code(200)
+
+
+    def test_login_ldap_invalid_credentials(self):
+        """ Login fails when invalid credentials are supplied when using LDAP.
+        """
+        # Use LDAP for authenication.
+        fred_webadmin.config.auth_method = 'LDAP'
+        self.corba_conn_mock.connect("localhost_test", "fredtest")
+        # Create corba objects in any order (prevent boilerplate code).
+        for obj, ret in (("Admin", self.admin_mock), ("Logger",
+                logger.DummyLogger()), ("Mailer", None), 
+                ("FileManager", None)):
+            self.corba_conn_mock.getObject(obj, obj).InAnyOrder("corba_obj").AndReturn(ret)
+        # Mock ldap backend's __call__ method (that is LDAPBackend creation).
+        self.ldap_backend_mock.__call__().AndReturn(self.ldap_backend_mock)
+        self.ldap_backend_mock.authenticate(
+            "test", "test pwd").AndRaise(ldap.INVALID_CREDENTIALS)
+        self.corba_mock.ReplayAll()
+
+        twill.commands.go("http://localhost:8080/login")
+        twill.commands.showforms()
+        twill.commands.fv(1, "login", "test")
+        twill.commands.fv(1, "password", "test pwd")
+        twill.commands.fv(1, "corba_server", "0")
+        twill.commands.submit()
+        # Invalid credentials => stay at login page.
+        twill.commands.url("http://localhost:8080/login/")
+        twill.commands.code(403)
+
+    def test_login_ldap_server_down(self):
+        """ Login fails when using LDAP and LDAP server is down.
+        """
+        # Use LDAP for authenication.
+        fred_webadmin.config.auth_method = 'LDAP'
+        self.corba_conn_mock.connect("localhost_test", "fredtest")
+        # Create corba objects in any order (prevent boilerplate code).
+        for obj, ret in (("Admin", self.admin_mock), ("Logger",
+                logger.DummyLogger()), ("Mailer", None), 
+                ("FileManager", None)):
+            self.corba_conn_mock.getObject(obj, obj).InAnyOrder("corba_obj").AndReturn(ret)
+        self.ldap_backend_mock.__call__().AndReturn(self.ldap_backend_mock)
+        self.ldap_backend_mock.authenticate(
+            "test", "test pwd").AndRaise(ldap.SERVER_DOWN)
+        self.corba_mock.ReplayAll()
+
+        twill.commands.go("http://localhost:8080/login")
+        twill.commands.showforms()
+        twill.commands.fv(1, "login", "test")
+        twill.commands.fv(1, "password", "test pwd")
+        twill.commands.fv(1, "corba_server", "0")
+        twill.commands.submit()
+        # Invalid credentials => stay at login page.
+        twill.commands.url("http://localhost:8080/login/")
+
+
+
+    def test_double_login(self):
+        """ Loging in when already loged in redirects to /summary. 
+        """
+        self.web_session_mock['corbaSessionString'] = "test session string"
+        self.corba_mock.ReplayAll()
+        twill.commands.go("http://localhost:8080/login/")
+        twill.commands.code(200)
+        twill.commands.url("http://localhost:8080/summary/")
+
+    def test_login_invalid_form(self):
+        """ Login fails when submitting invalid form.
+        """
+        self.corba_mock.ReplayAll()
+        twill.commands.go("http://localhost:8080/login/")
+        twill.commands.showforms()
+        twill.commands.fv(1, "login", "")
+        twill.commands.fv(1, "password", "")
+        twill.commands.code(200)
+        # Check that we did not leave the login page.
+        twill.commands.url("http://localhost:8080/login/")
 
 
 class TestRegistrar(base.DaphneTestCase):
@@ -229,7 +382,7 @@ class TestRegistrar(base.DaphneTestCase):
         twill.commands.code(200)
         twill.commands.url("http://localhost:8080/registrar/create")
 
-    def test_create_registrar_zone_to_date_smaller_than_zone_from_date(self):
+    def test_create_registrar_zone_to_date_bigger_than_zone_from_date(self):
         """ Registrar creation passes when zone 'To' date is bigger than zone
             'From' date."""
         self.admin_mock.getCountryDescList().InAnyOrder().AndReturn(
@@ -268,8 +421,8 @@ class TestRegistrar(base.DaphneTestCase):
         # Fill in the zone name (mandatory field).
         twill.commands.fv(2, "zones-0-name", "test zone")
         # 'To' date is bigger than 'From' date.
-        twill.commands.fv(2, "zones-0-fromDate", "2010-02-01")
-        twill.commands.fv(2, "zones-0-toDate", "2010-02-10")
+        twill.commands.fv(2, "zones-0-fromDate", "2011-02-01")
+        twill.commands.fv(2, "zones-0-toDate", "2011-02-10")
         twill.commands.submit()
 
         # Test that we've jumped to the detail page (i.e., creation has

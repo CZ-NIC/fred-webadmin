@@ -6,7 +6,11 @@ import fred_webadmin.logger.dummylogger as logger
 
 test_config = webadmin.config
 test_config.cherrycfg['global']['server.socket_port'] = 8081
-test_config.cherrycfg['global']['environment'] = 'embedded'
+test_config.cherrycfg['environment'] = 'embedded'
+test_config.iors = (
+    #(label, nshost, nscontext),
+    ('test', 'localhost_test', 'fredtest'),)
+
 
 class DaphneTestCase(object):
     """ Serves as a base class for testing Daphne controller layer (that's
@@ -45,8 +49,9 @@ class DaphneTestCase(object):
         for func in reversed(self._on_teardown):
             func()
         
-    def setUp(self):
+    def setUp(self, ldap=True):
         self.corba_mock = mox.Mox()
+        self.corba_conn_mock = self.corba_mock.CreateMockAnything()
         self.corba_session_mock = self.corba_mock.CreateMockAnything()
 
         self.corba_user_mock = self.corba_mock.CreateMockAnything()
@@ -60,11 +65,19 @@ class DaphneTestCase(object):
         self.web_session_mock['Logger'] = logger.DummyLogger()
         self.web_session_mock['Admin'] = self.admin_mock
 
+        self.ldap_backend_mock = self.corba_mock.CreateMockAnything()
+        self.ldap_backend_mock.__str__ = lambda : "ldap backend mock"
+
         self._on_teardown = []
         self.monkey_patch(
             webadmin.utils, 'get_corba_session',  
             lambda : self.corba_session_mock)
         self.monkey_patch(cherrypy, 'session', self.web_session_mock)
         self.monkey_patch(webadmin, 'config', test_config)
+        self.monkey_patch(
+            webadmin.controller.adif, 'corba_obj', self.corba_conn_mock)
+        self.monkey_patch(
+            webadmin.controller.adif, 'LDAPBackend', self.ldap_backend_mock)
 
+        cherrypy.config.update({ "environment": "embedded" })
 

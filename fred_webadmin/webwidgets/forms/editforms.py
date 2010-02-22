@@ -76,6 +76,10 @@ class ZoneEditForm(EditForm):
             if toDate < fromDate:
                 raise ValidationError(
                     "'To' date must be bigger than 'From' date.")
+#        Uncomment to implement ticket #3537.
+#        if 'fromDate' in self.changed_data:
+#            if fromDate < datetime.date.today().isoformat():
+#                raise ValidationError("'From' date must be in future.")
         return self.cleaned_data
 
 
