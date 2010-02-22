@@ -2,25 +2,28 @@
 
 import logging
 
-debug = True
-#debug = False
+#debug = True
+debug = False
 caching_filter_form_javascript = True # if this settings is on, then when doing changes to filter form, you should erase all sessions, because old filter forms are still in session
 
-www_dir = '/home/tomas/fred/root/share/fred-webadmin/www/'
-locale_dir = '/home/tomas/fred/root/share/fred-webadmin/locale/'
-sessions_dir = '/home/tomas/fred/root/var/lib/fred-webadmin/sessions/'
-log_dir = '/home/tomas/fred/root/var/log/fred-webadmin/'
-log_level = logging.DEBUG
+www_dir = '/usr/local/share/fred-webadmin/www/'
+locale_dir = '/usr/local/share/fred-webadmin/locale/'
+sessions_dir = '/usr/local/var/lib/fred-webadmin/sessions/'
+log_dir = '/usr/local/var/log/fred-webadmin/'
+log_level = logging.ERROR
 
-# SessionLogger settings
+# Session logger settings
+# If False, use dummy logger (just pretend to log, do not send anything to the 
+# server)
 session_logging_enabled = True
-#session_logging_enabled = False
+# If False, no exceptions are thrown by the logger (if logging fails, it fails
+# silently).
+logging_mandatory = True
 
 
-idl = '/home/tomas/code/enum/idl/trunk/idl/ccReg.idl' #'/usr/share/idl/fred/ccReg.idl'
+idl = '/usr/local/share/idl/fred/ccReg.idl' #'/usr/share/idl/fred/ccReg.idl'
 iors = (#(label, nshost, nscontext),
-	#	('Test', 'localhost:22346', 'fred'),
-        ('Test', 'localhost', 'fred'),
+		('Test', 'localhost:2809', 'fred'),
 	   )
 
 tablesize = 45
@@ -36,11 +39,13 @@ localepath = locale_dir
 lang = 'en_US'
 
 js_calendar_date_format = 'D.M.YYYY'
+# Date format for edit fields
+js_calendar_date_format_edit = 'YYYY-MM-DD'
 
 cherrycfg = {
     'global': {
-        'server.socket_port': 22353,
-        'server.socket_host': '0.0.0.0',
+        'server.socket_port': 18456,
+        'server.socket_host': "0.0.0.0",
         'server.thread_pool': 10,
         'server.environment': 'production',
         'tools.decode.on': True,
