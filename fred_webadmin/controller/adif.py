@@ -335,7 +335,8 @@ class ADIF(AdifPage):
                 cherrypy.session['filter_forms_javascript'] = None
                 cherrypy.session['user'] = User(
                     utils.get_corba_session().getUser())
-                cherrypy.session['Mailer'] = corba_obj.getObject('Mailer', 'Mailer')
+                cherrypy.session['Mailer'] = corba_obj.getObject(
+                    'Mailer', 'Mailer')
                 cherrypy.session['FileManager'] = corba_obj.getObject(
                     'FileManager', 'FileManager')
                 
@@ -349,41 +350,24 @@ class ADIF(AdifPage):
             except omniORB.CORBA.BAD_PARAM, e:
                 if log_req:
                     log_req.update("result", str(e))
-                form.non_field_errors().append(_('Bad corba call! ') + '(%s)' %
-                                                (str(e)))
+                form.non_field_errors().append(
+                    _('Bad corba call! ') + '(%s)' % (str(e)))
                 if config.debug:
                     form.non_field_errors().append(noesc(escape(unicode(
                         traceback.format_exc())).replace('\n', '<br/>')))
-            except ccReg.Admin.AuthFailed, e:
+            except (ldap.INVALID_CREDENTIALS, ccReg.Admin.AuthFailed), e:
+                if log_req:
+                    log_req.update("result", str(e))
                 cherrypy.response.status = 403
-                if log_req:
-                    log_req.update("result", str(e))
-                form.non_field_errors().append(_('Login error, please enter '
-                                                 'correct login and password'))
-                log_req.update("error", logcodes["AuthFailed"])
+                form.non_field_errors().append(
+                    _('Invalid username and/or password!'))
                 if config.debug:
-                    form.non_field_errors().append('(type: %s, exception: %s)' %
-                                                   (escape(unicode(type(e))), 
-                                                   unicode(e)))
-                    form.non_field_errors().append(noesc(escape(unicode(
-                        traceback.format_exc())).replace('\n', '<br/>')))
-            except Exception, e:
+                    form.non_field_errors().append('(%s)' % str(e))
+            except ldap.SERVER_DOWN, e:
                 if log_req:
                     log_req.update("result", str(e))
-                if config.auth_method == 'LDAP':
-                    if isinstance(e, ldap.INVALID_CREDENTIALS):
-                        cherrypy.response.status = 403
-                        form.non_field_errors().append(
-                            _('Invalid username and/or password!'))
-                        if config.debug:
-                            form.non_field_errors().append('(%s)' % str(e))
-                    elif isinstance(e, ldap.SERVER_DOWN):
-                        form.non_field_errors().append(
+                form.non_field_errors().append(
                             _('LDAP server is unavailable!'))
-                    else:
-                        raise
-                else:
-                    raise
             finally:
                 if log_req:
                     log_req.commit()
