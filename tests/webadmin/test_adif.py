@@ -4,6 +4,7 @@ import cherrypy
 import twill
 import datetime
 import ldap
+#from fred_webadmin import config
 
 from StringIO import StringIO
 import twill.commands
@@ -87,7 +88,7 @@ class TestADIF(base.DaphneTestCase):
 
 
     def test_login_ldap_valid_credentials(self):
-        """ Login passes when invalid credentials are supplied when using LDAP.
+        """ Login passes when valid credentials are supplied when using LDAP.
         """
         fred_webadmin.config.auth_method = 'LDAP'
         self.corba_conn_mock.connect("localhost_test", "fredtest")
@@ -95,7 +96,8 @@ class TestADIF(base.DaphneTestCase):
         for obj, ret in (("Admin", self.admin_mock), ("Logger",
                 logger.DummyLogger()), ("Mailer", None), 
                 ("FileManager", None)):
-            self.corba_conn_mock.getObject(obj, obj).InAnyOrder("corba_obj").AndReturn(ret)
+            self.corba_conn_mock.getObject(obj, obj).InAnyOrder(
+                "corba_obj").AndReturn(ret)
         self.ldap_backend_mock.__call__().AndReturn(self.ldap_backend_mock)
         self.ldap_backend_mock.authenticate(
             "test", "test pwd")
@@ -125,11 +127,13 @@ class TestADIF(base.DaphneTestCase):
         for obj, ret in (("Admin", self.admin_mock), ("Logger",
                 logger.DummyLogger()), ("Mailer", None), 
                 ("FileManager", None)):
-            self.corba_conn_mock.getObject(obj, obj).InAnyOrder("corba_obj").AndReturn(ret)
+            self.corba_conn_mock.getObject(obj, obj).InAnyOrder(
+                "corba_obj").AndReturn(ret)
         # Mock ldap backend's __call__ method (that is LDAPBackend creation).
         self.ldap_backend_mock.__call__().AndReturn(self.ldap_backend_mock)
         self.ldap_backend_mock.authenticate(
-            "test", "test pwd").AndRaise(ldap.INVALID_CREDENTIALS)
+            "test", "test pwd").AndRaise(
+                fred_webadmin.controller.adif.AuthenticationError)
         self.corba_mock.ReplayAll()
 
         twill.commands.go("http://localhost:8080/login")
@@ -152,10 +156,12 @@ class TestADIF(base.DaphneTestCase):
         for obj, ret in (("Admin", self.admin_mock), ("Logger",
                 logger.DummyLogger()), ("Mailer", None), 
                 ("FileManager", None)):
-            self.corba_conn_mock.getObject(obj, obj).InAnyOrder("corba_obj").AndReturn(ret)
+            self.corba_conn_mock.getObject(obj, obj).InAnyOrder(
+                "corba_obj").AndReturn(ret)
         self.ldap_backend_mock.__call__().AndReturn(self.ldap_backend_mock)
         self.ldap_backend_mock.authenticate(
-            "test", "test pwd").AndRaise(ldap.SERVER_DOWN)
+            "test", "test pwd").AndRaise(
+                fred_webadmin.controller.adif.AuthenticationError)
         self.corba_mock.ReplayAll()
 
         twill.commands.go("http://localhost:8080/login")
@@ -166,8 +172,6 @@ class TestADIF(base.DaphneTestCase):
         twill.commands.submit()
         # Invalid credentials => stay at login page.
         twill.commands.url("http://localhost:8080/login/")
-
-
 
     def test_double_login(self):
         """ Loging in when already loged in redirects to /summary. 

@@ -23,8 +23,10 @@ import dns.query
 
 from fred_webadmin import config
  
-#if config.auth_method == 'LDAP':
-import ldap
+# Conditional import. Business decision. User should not be forced to import
+# ldap if he does not wish to use ldap authentication.
+if config.auth_method == 'LDAP':
+    import ldap
 
 # CherryPy main import
 import cherrypy
@@ -90,14 +92,24 @@ class PermissionDeniedError(AdifError):
 class IorNotFoundError(AdifError):
     pass
 
+
+class AuthenticationError(AdifError):
+    pass
+
+
 class LDAPBackend:
     def __init__(self):
         self.ldap_scope = config.LDAP_scope
         self.ldap_server = config.LDAP_server
         
     def authenticate(self, username=None, password=None):
-        l = ldap.open(config.LDAP_server)
-        l.simple_bind_s(self.ldap_scope % username, password)
+        try:
+            l = ldap.open(config.LDAP_server)
+            l.simple_bind_s(self.ldap_scope % username, password)
+        except ldap.SERVER_DOWN:
+            raise AuthenticationError(_('LDAP server is unavailable!'))
+        except ldap.INVALID_CREDENTIALS:
+            raise AuthenticationError(_('Invalid username and/or password!'))
 
 
 class Page(object):
@@ -255,6 +267,13 @@ class ADIF(AdifPage):
         return super(ADIF, self).default(*args, **kwd)
         
     def _create_session_logger(self):
+        """ Creates logger object to send log requests to the server.
+            Returns:
+                Logger object. Either DummyLogger when nothing should be
+                logged, or SessionLogger (normal logging with exceptions on
+                failure), or SessionLoggerFailSilent (logging that fails
+                silently without exceptions).
+        """
         if not config.session_logging_enabled:
             # DummyLogger provides the interface, but does
             # not log anything.
@@ -273,22 +292,106 @@ class ADIF(AdifPage):
         return logger
 
     def _authenticate_user(self, admin, login, pwd):
-        """ Tries to authenticate user with LDAP server.
+        """ Authenticate user.
+            Raises:
+                AuthenticationError: When cannot connect to the authentication
+                server or invalid credentials are supplied.
         """
         if config.auth_method == 'LDAP':
-            # Throws ldap.INVALID_CREDENTIALS if user is not valid.
+            # Throws AuthenticationError if user is not valid or server is
+            # down.
             LDAPBackend().authenticate(login, pwd) 
         else:
-            admin.authenticateUser(recoder.u2c(login), recoder.u2c(pwd)) 
+            try:
+                admin.authenticateUser(recoder.u2c(login), recoder.u2c(pwd)) 
+            except ccReg.Admin.AuthFailed:
+                raise AuthenticationError(_('Invalid username and/or password!'))
 
     def _handle_double_login(self):
         debug('Already logged in, corbaSessionString = %s' % 
             cherrypy.session.get('corbaSessionString'))
 
+    def _corba_connect(self, corba_server):
+        """ Connect to corba. 
+        """
+        ior = config.iors[corba_server][1]
+        nscontext = config.iors[corba_server][2]
+        corba_obj.connect(ior, nscontext)
+
+    def _login_process_valid_form(self, form):
+        """ Attempt to login to Daphne.
+        """
+        login = form.cleaned_data.get('login', '')
+        password = form.cleaned_data.get('password', '')
+        corba_server = int(form.cleaned_data.get('corba_server', 0))
+
+        try:
+            log_req = None
+            self._corba_connect(corba_server)
+
+            logger = self._create_session_logger()
+            cherrypy.session['Logger'] = logger
+            logger.start_session("en", login)
+            log_req = logger.create_request(
+                cherrypy.request.remote.ip, cherrypy.request.body, "Login")
+            log_req.update("username", login)
+
+            admin = corba_obj.getObject('Admin', 'Admin')
+            try:
+                self._authenticate_user(admin, login, password)
+            except AuthenticationError, e:
+                cherrypy.response.status = 403
+                log_req.update("result", str(e))
+                form.non_field_errors().append(str(e))
+                if config.debug:
+                    form.non_field_errors().append('(%s)' % str(e))
+                return None
+
+            corbaSessionString = admin.createSession(recoder.u2c(login))
+            logger.set_common_property("session_id", corbaSessionString)
+
+            # I have to log the session_id now because this logging request 
+            # has been created before setting the session_id as a common
+            # property.
+            log_req.update("session_id", corbaSessionString)
+
+            cherrypy.session['corbaSessionString'] = corbaSessionString
+            cherrypy.session['corba_server_name'] = \
+                form.fields['corba_server'].choices[corba_server][1]
+            cherrypy.session['Admin'] = admin
+            cherrypy.session['filter_forms_javascript'] = None
+            cherrypy.session['user'] = User(
+                utils.get_corba_session().getUser())
+            cherrypy.session['Mailer'] = corba_obj.getObject(
+                'Mailer', 'Mailer')
+            cherrypy.session['FileManager'] = corba_obj.getObject(
+                'FileManager', 'FileManager')
+            
+            cherrypy.session['history'] = False
+            utils.get_corba_session().setHistory(False)
+
+            redir_addr = form.cleaned_data.get('next')
+            return redir_addr
+
+        except omniORB.CORBA.BAD_PARAM, e:
+            if log_req:
+                log_req.update("result", str(e))
+            form.non_field_errors().append(
+                _('Bad corba call! ') + '(%s)' % (str(e)))
+            if config.debug:
+                form.non_field_errors().append(noesc(escape(unicode(
+                    traceback.format_exc())).replace('\n', '<br/>')))
+        finally:
+            if log_req:
+                log_req.commit()
+        return None
+
     def login(self, *args, **kwd):
-        log_req = None
-        if cherrypy.session.get('corbaSessionString'): # already logged in
-            # Redirect to /summary.
+        """ The 'gateway' to the rest of Daphne. Handles authentication and 
+            login form processing."
+        """
+        if cherrypy.session.get('corbaSessionString'): 
+            # Already logged in, redirect to /summary.
             self._handle_double_login()
             raise cherrypy.HTTPRedirect('/summary/')
         if kwd:
@@ -301,76 +404,12 @@ class ADIF(AdifPage):
             form = LoginForm(action='/login/', method='post')
         
         if form.is_valid():
-            login = form.cleaned_data.get('login', '')
-            password = form.cleaned_data.get('password', '')
-
-            corba_server = int(form.cleaned_data.get('corba_server', 0))
-            try:
-                ior = config.iors[corba_server][1]
-                nscontext = config.iors[corba_server][2]
-                corba_obj.connect(ior, nscontext)
-                admin = corba_obj.getObject('Admin', 'Admin')
-
-                logger = self._create_session_logger()
-                logger.start_session("en", login)
-                cherrypy.session['Logger'] = logger
-                log_req = logger.create_request(
-                    cherrypy.request.remote.ip, cherrypy.request.body, "Login")
-                log_req.update("username", login)
-
-                self._authenticate_user(admin, login, password)
-                                
-                corbaSessionString = admin.createSession(recoder.u2c(login))
-                logger.set_common_property("session_id", corbaSessionString)
-
-                # I have to log the session_id now because this logging request 
-                # has been created before setting the session_id as a common
-                # property.
-                log_req.update("session_id", corbaSessionString)
-
-                cherrypy.session['corbaSessionString'] = corbaSessionString
-                cherrypy.session['corba_server_name'] = \
-                    form.fields['corba_server'].choices[corba_server][1]
-                cherrypy.session['Admin'] = admin
-                cherrypy.session['filter_forms_javascript'] = None
-                cherrypy.session['user'] = User(
-                    utils.get_corba_session().getUser())
-                cherrypy.session['Mailer'] = corba_obj.getObject(
-                    'Mailer', 'Mailer')
-                cherrypy.session['FileManager'] = corba_obj.getObject(
-                    'FileManager', 'FileManager')
-                
-                cherrypy.session['history'] = False
-                utils.get_corba_session().setHistory(False)
-
-                redir_addr = form.cleaned_data.get('next')
-                
+            # Attempt to enter Daphne. :-) Connect to Corba, authenticate 
+            # user, create corba objects such as admin and logger...
+            redir_addr = self._login_process_valid_form(form)
+            if redir_addr:
                 raise cherrypy.HTTPRedirect(redir_addr)
 
-            except omniORB.CORBA.BAD_PARAM, e:
-                if log_req:
-                    log_req.update("result", str(e))
-                form.non_field_errors().append(
-                    _('Bad corba call! ') + '(%s)' % (str(e)))
-                if config.debug:
-                    form.non_field_errors().append(noesc(escape(unicode(
-                        traceback.format_exc())).replace('\n', '<br/>')))
-            except (ldap.INVALID_CREDENTIALS, ccReg.Admin.AuthFailed), e:
-                if log_req:
-                    log_req.update("result", str(e))
-                cherrypy.response.status = 403
-                form.non_field_errors().append(
-                    _('Invalid username and/or password!'))
-                if config.debug:
-                    form.non_field_errors().append('(%s)' % str(e))
-            except ldap.SERVER_DOWN, e:
-                if log_req:
-                    log_req.update("result", str(e))
-                form.non_field_errors().append(
-                            _('LDAP server is unavailable!'))
-            finally:
-                if log_req:
-                    log_req.commit()
         form.action = '/login/'
         return self._render('login', {'form': form})
       
@@ -510,15 +549,6 @@ class Registrar(AdifPage, ListTableMixin):
             log_request.update("result", str(e))
             log_request.commit("")
             return self._render('edit', context)
-        try:
-            id = int(reg_id)
-        except (ValueError, TypeError), e:
-            # Paranoid. Note that this should never be caught, because id is 
-            # set automatically, not by the user. So it should always have
-            # a correct type.
-            log_request.update("result", str(e))
-            log_request.commit("")
-            raise 
         log_request.commit("")
         # Jump to the registrar's detail.
         raise cherrypy.HTTPRedirect("/registrar/detail/?id=%s" % reg_id)
@@ -604,6 +634,7 @@ class Domain(AdifPage, ListTableMixin):
             dig = dns.query.udp(query, resolver).to_text()
         except Exception, e:
             #TODO(tomas): Log an error?
+            #TODO(tomas): Remove ugly legacy general exception handling.
             log_request.update("result", str(e))
             context['main'] = _("Object_not_found")
             return self._render('base', ctx=context)
