@@ -9,6 +9,8 @@ import ldap
 from StringIO import StringIO
 import twill.commands
 
+from fred_webadmin import ldap_auth
+
 import tests.webadmin.base as base
 import fred_webadmin.controller.adif
 
@@ -91,6 +93,15 @@ class TestADIF(base.DaphneTestCase):
         """ Login passes when valid credentials are supplied when using LDAP.
         """
         fred_webadmin.config.auth_method = 'LDAP'
+        fred_webadmin.config.LDAP_scope = "test ldap scope %s %s"
+        fred_webadmin.config.LDAP_server = "test ldap server"
+        # Replace fred_webadmin.controller.adif.auth module with ldap
+        # module.
+        self.monkey_patch(
+            fred_webadmin.controller.adif, 'auth', ldap_auth)
+        # Mock out ldap.open method.
+        self.monkey_patch(
+            fred_webadmin.ldap_auth.ldap, 'open', self.ldap_mock)
         self.corba_conn_mock.connect("localhost_test", "fredtest")
         # Create corba objects in any order (prevent boilerplate code).
         for obj, ret in (("Admin", self.admin_mock), ("Logger",
@@ -98,9 +109,9 @@ class TestADIF(base.DaphneTestCase):
                 ("FileManager", None)):
             self.corba_conn_mock.getObject(obj, obj).InAnyOrder(
                 "corba_obj").AndReturn(ret)
-        self.ldap_backend_mock.__call__().AndReturn(self.ldap_backend_mock)
-        self.ldap_backend_mock.authenticate(
-            "test", "test pwd")
+        fred_webadmin.ldap_auth.ldap.open.__call__(
+            "test ldap server").AndReturn(self.ldap_mock)
+        self.ldap_mock.simple_bind_s("test ldap scope test test pwd")
         self.admin_mock.createSession("test").AndReturn(self.corba_session_mock)
         self.corba_session_mock.getUser().AndReturn(self.corba_user_mock)
         self.corba_session_mock.setHistory(False)
@@ -122,6 +133,15 @@ class TestADIF(base.DaphneTestCase):
         """
         # Use LDAP for authenication.
         fred_webadmin.config.auth_method = 'LDAP'
+        fred_webadmin.config.LDAP_scope = "test ldap scope %s %s"
+        fred_webadmin.config.LDAP_server = "test ldap server"
+        # Replace fred_webadmin.controller.adif.auth module with ldap
+        # module.
+        self.monkey_patch(
+            fred_webadmin.controller.adif, 'auth', ldap_auth)
+        # Mock out ldap.open method.
+        self.monkey_patch(
+            fred_webadmin.ldap_auth.ldap, 'open', self.ldap_mock)
         self.corba_conn_mock.connect("localhost_test", "fredtest")
         # Create corba objects in any order (prevent boilerplate code).
         for obj, ret in (("Admin", self.admin_mock), ("Logger",
@@ -129,11 +149,11 @@ class TestADIF(base.DaphneTestCase):
                 ("FileManager", None)):
             self.corba_conn_mock.getObject(obj, obj).InAnyOrder(
                 "corba_obj").AndReturn(ret)
-        # Mock ldap backend's __call__ method (that is LDAPBackend creation).
-        self.ldap_backend_mock.__call__().AndReturn(self.ldap_backend_mock)
-        self.ldap_backend_mock.authenticate(
-            "test", "test pwd").AndRaise(
-                fred_webadmin.controller.adif.AuthenticationError)
+        fred_webadmin.ldap_auth.ldap.open.__call__(
+            "test ldap server").AndReturn(self.ldap_mock)
+        self.ldap_mock.simple_bind_s(
+            "test ldap scope test test pwd").AndRaise(
+                ldap.INVALID_CREDENTIALS)
         self.corba_mock.ReplayAll()
 
         twill.commands.go("http://localhost:8080/login")
@@ -151,6 +171,15 @@ class TestADIF(base.DaphneTestCase):
         """
         # Use LDAP for authenication.
         fred_webadmin.config.auth_method = 'LDAP'
+        fred_webadmin.config.LDAP_scope = "test ldap scope %s %s"
+        fred_webadmin.config.LDAP_server = "test ldap server"
+        # Replace fred_webadmin.controller.adif.auth module with ldap
+        # module.
+        self.monkey_patch(
+            fred_webadmin.controller.adif, 'auth', ldap_auth)
+        # Mock out ldap.open method.
+        self.monkey_patch(
+            fred_webadmin.ldap_auth.ldap, 'open', self.ldap_mock)
         self.corba_conn_mock.connect("localhost_test", "fredtest")
         # Create corba objects in any order (prevent boilerplate code).
         for obj, ret in (("Admin", self.admin_mock), ("Logger",
@@ -158,10 +187,8 @@ class TestADIF(base.DaphneTestCase):
                 ("FileManager", None)):
             self.corba_conn_mock.getObject(obj, obj).InAnyOrder(
                 "corba_obj").AndReturn(ret)
-        self.ldap_backend_mock.__call__().AndReturn(self.ldap_backend_mock)
-        self.ldap_backend_mock.authenticate(
-            "test", "test pwd").AndRaise(
-                fred_webadmin.controller.adif.AuthenticationError)
+        fred_webadmin.ldap_auth.ldap.open.__call__(
+            "test ldap server").AndRaise(ldap.SERVER_DOWN)
         self.corba_mock.ReplayAll()
 
         twill.commands.go("http://localhost:8080/login")

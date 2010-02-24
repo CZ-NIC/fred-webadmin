@@ -26,7 +26,11 @@ from fred_webadmin import config
 # Conditional import. Business decision. User should not be forced to import
 # ldap if he does not wish to use ldap authentication.
 if config.auth_method == 'LDAP':
-    import ldap
+    import fred_webadmin.ldap_auth as auth
+elif config.auth_method == 'CORBA':
+    import fred_webadmin.corba_auth as auth
+else:
+    raise Exception("No valid authentication module has been configured.")
 
 # CherryPy main import
 import cherrypy
@@ -39,7 +43,6 @@ import fred_webadmin.utils as utils
 from fred_webadmin.logger.sessionlogger import (
     SessionLogger, SessionLoggerFailSilent)
 from fred_webadmin.logger.dummylogger import DummyLogger
-from fred_webadmin.logger.codes import logcodes
 
 from fred_webadmin.controller.listtable import ListTableMixin
 
@@ -47,7 +50,7 @@ from fred_webadmin.controller.listtable import ListTableMixin
 from fred_webadmin import exposed
 
 # CORBA objects
-from fred_webadmin.corba import Corba, CorbaServerDisconnectedException
+from fred_webadmin.corba import Corba
 corba_obj = Corba()
 
 from fred_webadmin.corba import ccReg
@@ -63,10 +66,13 @@ from fred_webadmin.webwidgets.templates.pages import (
     BankStatementDetailWithPaymentPairing
 )
 from fred_webadmin.webwidgets.gpyweb.gpyweb import WebWidget
-from fred_webadmin.webwidgets.gpyweb.gpyweb import DictLookup, noesc, attr, ul, li, a, div, span, p
+from fred_webadmin.webwidgets.gpyweb.gpyweb import (
+    DictLookup, noesc, attr, ul, li, a, div, p)
 from fred_webadmin.webwidgets.menu import MenuHoriz
 from fred_webadmin.menunode import menu_tree
 from fred_webadmin.webwidgets.forms.adifforms import LoginForm
+
+# Must be imported because of template magic stuff. I think.
 from fred_webadmin.webwidgets.forms.editforms import (RegistrarEditForm,
     BankStatementPairingEditForm)
 from fred_webadmin.webwidgets.forms.filterforms import *
@@ -87,29 +93,18 @@ from fred_webadmin.controller.perms import check_onperm, login_required
 
 class AdifError(Exception):
     pass
+
+
 class PermissionDeniedError(AdifError):
     pass
+
+
 class IorNotFoundError(AdifError):
     pass
 
 
 class AuthenticationError(AdifError):
     pass
-
-
-class LDAPBackend:
-    def __init__(self):
-        self.ldap_scope = config.LDAP_scope
-        self.ldap_server = config.LDAP_server
-        
-    def authenticate(self, username=None, password=None):
-        try:
-            l = ldap.open(config.LDAP_server)
-            l.simple_bind_s(self.ldap_scope % username, password)
-        except ldap.SERVER_DOWN:
-            raise AuthenticationError(_('LDAP server is unavailable!'))
-        except ldap.INVALID_CREDENTIALS:
-            raise AuthenticationError(_('Invalid username and/or password!'))
 
 
 class Page(object):
@@ -189,7 +184,6 @@ class AdifPage(Page):
         menu_node = self.menu_tree.get_menu_by_handle(handle)
         if menu_node is None:
             return ''
-            #raise MenuDoesNotExistsError(handle)
         return menu_node.body_id
     
     def _render(self, action='', ctx=None):
@@ -291,22 +285,6 @@ class ADIF(AdifPage):
                 logger = SessionLoggerFailSilent(dao=corba_logd)
         return logger
 
-    def _authenticate_user(self, admin, login, pwd):
-        """ Authenticate user.
-            Raises:
-                AuthenticationError: When cannot connect to the authentication
-                server or invalid credentials are supplied.
-        """
-        if config.auth_method == 'LDAP':
-            # Throws AuthenticationError if user is not valid or server is
-            # down.
-            LDAPBackend().authenticate(login, pwd) 
-        else:
-            try:
-                admin.authenticateUser(recoder.u2c(login), recoder.u2c(pwd)) 
-            except ccReg.Admin.AuthFailed:
-                raise AuthenticationError(_('Invalid username and/or password!'))
-
     def _handle_double_login(self):
         debug('Already logged in, corbaSessionString = %s' % 
             cherrypy.session.get('corbaSessionString'))
@@ -338,7 +316,7 @@ class ADIF(AdifPage):
 
             admin = corba_obj.getObject('Admin', 'Admin')
             try:
-                self._authenticate_user(admin, login, password)
+                auth.authenticate_user(admin, login, password)
             except AuthenticationError, e:
                 cherrypy.response.status = 403
                 log_req.update("result", str(e))
@@ -422,20 +400,16 @@ class ADIF(AdifPage):
             except CORBA.TRANSIENT, e:
                 debug('Admin.destroySession call failed, backend server '
                       'is not running.\n%s' % e)
-
         if cherrypy.session.get('Logger'):
             req = cherrypy.session['Logger'].create_request(
                 cherrypy.request.remote.ip, cherrypy.request.body, "Logout")
             req.commit("") 
             cherrypy.session['Logger'].close_session()
-        
         self.remove_session_data()
-        
         raise cherrypy.HTTPRedirect('/')
 
 
 class Summary(AdifPage):
-
     def _template(self, action=''):
         if action == 'summary':
             return BaseSiteMenu
@@ -685,7 +659,6 @@ class Domain(AdifPage, ListTableMixin):
         log_request.commit("")
         # display page with error message
         return self._render('setinzonestatus', context)
-
 
 
 class Contact(AdifPage, ListTableMixin):

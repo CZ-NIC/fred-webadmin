@@ -65,8 +65,8 @@ class DaphneTestCase(object):
         self.web_session_mock['Logger'] = logger.DummyLogger()
         self.web_session_mock['Admin'] = self.admin_mock
 
-        self.ldap_backend_mock = self.corba_mock.CreateMockAnything()
-        self.ldap_backend_mock.__str__ = lambda : "ldap backend mock"
+        self.ldap_mock = self.corba_mock.CreateMockAnything()
+        self.ldap_mock.__str__ = lambda : "ldap backend mock"
 
         self._on_teardown = []
         self.monkey_patch(
@@ -76,8 +76,6 @@ class DaphneTestCase(object):
         self.monkey_patch(webadmin, 'config', test_config)
         self.monkey_patch(
             webadmin.controller.adif, 'corba_obj', self.corba_conn_mock)
-        self.monkey_patch(
-            webadmin.controller.adif, 'LDAPBackend', self.ldap_backend_mock)
 
         cherrypy.config.update({ "environment": "embedded" })
 
