@@ -315,6 +315,7 @@ class ADIF(AdifPage):
             log_req.update("username", login)
 
             admin = corba_obj.getObject('Admin', 'Admin')
+            cherrypy.session['Admin'] = admin
             try:
                 auth.authenticate_user(admin, login, password)
             except AuthenticationError, e:
@@ -336,7 +337,6 @@ class ADIF(AdifPage):
             cherrypy.session['corbaSessionString'] = corbaSessionString
             cherrypy.session['corba_server_name'] = \
                 form.fields['corba_server'].choices[corba_server][1]
-            cherrypy.session['Admin'] = admin
             cherrypy.session['filter_forms_javascript'] = None
             cherrypy.session['user'] = User(
                 utils.get_corba_session().getUser())
@@ -382,7 +382,7 @@ class ADIF(AdifPage):
             form = LoginForm(action='/login/', method='post')
         
         if form.is_valid():
-            # Attempt to enter Daphne. :-) Connect to Corba, authenticate 
+            # Attempt to enter Daphne. Connect to Corba, authenticate 
             # user, create corba objects such as admin and logger...
             redir_addr = self._login_process_valid_form(form)
             if redir_addr:
@@ -893,13 +893,11 @@ class Development(object):
             "request.base: '%s'" % cherrypy.request.base,
             "request.query_string: '%s'" % cherrypy.request.query_string,
             "request.request_line: '%s'" % cherrypy.request.request_line,
-            #"request.object_path: '%s'" % cherrypy.request.object_path,
             "request.params: '%s'" % cherrypy.request.params,
             "request.wsgi_environ: '%s'" % cherrypy.request.wsgi_environ,
             "params: %s" % str(params),
             "kwd: %s" % str(kwd),
             "config: '%s'" % cherrypy.config,
-            #"request.headers['Cherry-Location]: '%s'" % cherrypy.request.headers.get(cfg.get('html', 'header'), '/'),
             "session: '%s'" % cherrypy.session
         ]
         

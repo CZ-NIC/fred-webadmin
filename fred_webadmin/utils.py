@@ -116,10 +116,10 @@ def get_detail(obj_type_name, obj_id, use_cache=True):
 
     debug('Getting detail %s id %s' % (obj_type_name, obj_id))
     corba_session = get_corba_session()
-    c_any = corba_session.getDetail(f_name_enum[obj_type_name], recoder.u2c(obj_id))
+    c_any = corba_session.getDetail(
+        f_name_enum[obj_type_name], recoder.u2c(obj_id))
     corba_obj = from_any(c_any, True)
     result = recoder.c2u(corba_obj)
-    debug('Getting detail %s id %s done' % (obj_type_name, obj_id))
     
     details_cache[(obj_type_name, obj_id)] = result
     return result
