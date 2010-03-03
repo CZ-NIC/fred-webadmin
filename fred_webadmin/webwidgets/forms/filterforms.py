@@ -22,7 +22,7 @@ __all__ = ['UnionFilterForm', 'RegistrarFilterForm', 'ObjectStateFilterForm',
            'ObjectFilterForm', 'ContactFilterForm', 'NSSetFilterForm', 'KeySetFilterForm', 'DomainFilterForm', 
            'ActionFilterForm', 'FilterFilterForm', 'PublicRequestFilterForm', 
            'InvoiceFilterForm', 'MailFilterForm', 'FileFilterForm',
-           'LoggerFilterForm', 'BankStatementFilterForm',
+           'LoggerFilterForm', 'BankStatementFilterForm', 'PropertyFilterForm',
            'get_filter_forms_javascript']
 
 class FilterFormEmptyValue(object):
@@ -321,6 +321,12 @@ class ActionFilterForm(FilterForm):
     SvTRID = CharField(label=_('SvTRID'))
     ClTRID = CharField(label=_('ClTRID'))
 
+class PropertyFilterForm(FilterForm):
+    default_fields_names = ['Name']
+    Name = CharField(label=_('Name'))
+    Value = CharField(label=_('Value'))
+    OutputFlag = BooleanField(label=_('Output Flag'))
+
 
 class LoggerFilterForm(FilterForm):
     # Only create & show the fields, if session logging is enabled (otherwise
@@ -334,13 +340,15 @@ class LoggerFilterForm(FilterForm):
             (0, u'UNIX Whois'), (1, u'Web Whois'), (2, u'Public Request'), 
             (3, u'EPP'), (4, u'WebAdmin'), (5, u'Intranet')])
         SourceIp = CharField(label=_('Source IP'))
-        UserName = CharField(label=_('UserName'))
+        UserName = CharField(label=_('Username'))
         ActionType = IntegerChoiceField(
             label=_('Action type'), 
             choices=CorbaLazyRequestIterStruct(
                 'corba_logd', 'GetServiceActions', ['id', 'status'], 4))
         TimeBegin = DateTimeIntervalField(label=_('Begin time'))
         TimeEnd = DateTimeIntervalField(label=_('End time'))
+        RequestPropertyValue = CompoundFilterField(
+            label=_('Property'), form_class=PropertyFilterForm)
 
 
 class BankStatementFilterForm(FilterForm):
@@ -448,6 +456,7 @@ form_classes = (DomainFilterForm,
                 ObjectStateFilterForm,
                 LoggerFilterForm,
                 BankStatementFilterForm,
+                PropertyFilterForm,
                )
 
 def get_filter_forms_javascript():
