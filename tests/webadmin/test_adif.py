@@ -33,6 +33,11 @@ class TestADIF(base.DaphneTestCase):
         self.outp = StringIO()
         twill.set_output(self.outp)
 
+        # Corba objects requested from server at login time.
+        self.corba_objs_created_at_login = (
+            ("Admin", self.admin_mock), ("Logger", logger.DummyLogger()), 
+            ("Mailer", None), ("FileManager", None))
+
     def tearDown(self):
         base.DaphneTestCase.tearDown(self)
         # Remove the intercept.
@@ -46,9 +51,7 @@ class TestADIF(base.DaphneTestCase):
         fred_webadmin.config.auth_method = 'CORBA'
         self.corba_conn_mock.connect("localhost_test", "fredtest")
         # Create corba objects in any order (prevent boilerplate code).
-        for obj, ret in (("Admin", self.admin_mock), ("Logger",
-                logger.DummyLogger()), ("Mailer", None), 
-                ("FileManager", None)):
+        for obj, ret in self.corba_objs_created_at_login:
             self.corba_conn_mock.getObject(obj, obj).InAnyOrder("corba_obj").AndReturn(ret)
         self.admin_mock.authenticateUser("test", "test pwd")
         self.admin_mock.createSession("test").AndReturn(self.corba_session_mock)
@@ -71,9 +74,7 @@ class TestADIF(base.DaphneTestCase):
         fred_webadmin.config.auth_method = 'CORBA'
         self.corba_conn_mock.connect("localhost_test", "fredtest")
         # Create corba objects in any order (prevent boilerplate code).
-        for obj, ret in (("Admin", self.admin_mock), ("Logger",
-                logger.DummyLogger()), ("Mailer", None), 
-                ("FileManager", None)):
+        for obj, ret in self.corba_objs_created_at_login:
             self.corba_conn_mock.getObject(obj, obj).InAnyOrder("corba_obj").AndReturn(ret)
         self.admin_mock.authenticateUser(
             "test", "test pwd").AndRaise(ccReg.Admin.AuthFailed)
@@ -99,14 +100,13 @@ class TestADIF(base.DaphneTestCase):
         # module.
         self.monkey_patch(
             fred_webadmin.controller.adif, 'auth', ldap_auth)
-        # Mock out ldap.open method.
+        # Mock out ldap.open method. We must not mock the whole ldap package,
+        # because ldap_auth uses ldap exceptions.
         self.monkey_patch(
             fred_webadmin.ldap_auth.ldap, 'open', self.ldap_mock)
         self.corba_conn_mock.connect("localhost_test", "fredtest")
         # Create corba objects in any order (prevent boilerplate code).
-        for obj, ret in (("Admin", self.admin_mock), ("Logger",
-                logger.DummyLogger()), ("Mailer", None), 
-                ("FileManager", None)):
+        for obj, ret in self.corba_objs_created_at_login:
             self.corba_conn_mock.getObject(obj, obj).InAnyOrder(
                 "corba_obj").AndReturn(ret)
         fred_webadmin.ldap_auth.ldap.open.__call__(
@@ -144,9 +144,7 @@ class TestADIF(base.DaphneTestCase):
             fred_webadmin.ldap_auth.ldap, 'open', self.ldap_mock)
         self.corba_conn_mock.connect("localhost_test", "fredtest")
         # Create corba objects in any order (prevent boilerplate code).
-        for obj, ret in (("Admin", self.admin_mock), ("Logger",
-                logger.DummyLogger()), ("Mailer", None), 
-                ("FileManager", None)):
+        for obj, ret in self.corba_objs_created_at_login:
             self.corba_conn_mock.getObject(obj, obj).InAnyOrder(
                 "corba_obj").AndReturn(ret)
         fred_webadmin.ldap_auth.ldap.open.__call__(
@@ -182,9 +180,7 @@ class TestADIF(base.DaphneTestCase):
             fred_webadmin.ldap_auth.ldap, 'open', self.ldap_mock)
         self.corba_conn_mock.connect("localhost_test", "fredtest")
         # Create corba objects in any order (prevent boilerplate code).
-        for obj, ret in (("Admin", self.admin_mock), ("Logger",
-                logger.DummyLogger()), ("Mailer", None), 
-                ("FileManager", None)):
+        for obj, ret in self.corba_objs_created_at_login:
             self.corba_conn_mock.getObject(obj, obj).InAnyOrder(
                 "corba_obj").AndReturn(ret)
         fred_webadmin.ldap_auth.ldap.open.__call__(
