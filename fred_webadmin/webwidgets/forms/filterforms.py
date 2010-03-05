@@ -321,6 +321,7 @@ class ActionFilterForm(FilterForm):
     SvTRID = CharField(label=_('SvTRID'))
     ClTRID = CharField(label=_('ClTRID'))
 
+
 class PropertyFilterForm(FilterForm):
     default_fields_names = ['Name']
     Name = CharField(label=_('Name'))

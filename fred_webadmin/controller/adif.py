@@ -46,6 +46,8 @@ from fred_webadmin.logger.dummylogger import DummyLogger
 
 from fred_webadmin.controller.listtable import ListTableMixin
 
+from fred_webadmin.controller.adiferrors import AuthenticationError
+
 # decorator for exposing methods
 from fred_webadmin import exposed
 
@@ -89,22 +91,6 @@ from fred_webadmin.user import User
 from fred_webadmin.customview import CustomView
 
 from fred_webadmin.controller.perms import check_onperm, login_required
-
-
-class AdifError(Exception):
-    pass
-
-
-class PermissionDeniedError(AdifError):
-    pass
-
-
-class IorNotFoundError(AdifError):
-    pass
-
-
-class AuthenticationError(AdifError):
-    pass
 
 
 class Page(object):

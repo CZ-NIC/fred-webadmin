@@ -4,12 +4,11 @@ import cherrypy
 import twill
 import datetime
 import ldap
-#from fred_webadmin import config
 
 from StringIO import StringIO
 import twill.commands
 
-from fred_webadmin import ldap_auth
+from fred_webadmin import ldap_auth, corba_auth
 
 import tests.webadmin.base as base
 import fred_webadmin.controller.adif
@@ -49,6 +48,10 @@ class TestADIF(base.DaphneTestCase):
         """ Login passes when using valid corba authentication.
         """
         fred_webadmin.config.auth_method = 'CORBA'
+        # Replace fred_webadmin.controller.adif.auth module with CORBA
+        # module.
+        self.monkey_patch(
+            fred_webadmin.controller.adif, 'auth', corba_auth)
         self.corba_conn_mock.connect("localhost_test", "fredtest")
         # Create corba objects in any order (prevent boilerplate code).
         for obj, ret in self.corba_objs_created_at_login:
@@ -94,7 +97,7 @@ class TestADIF(base.DaphneTestCase):
         """ Login passes when valid credentials are supplied when using LDAP.
         """
         fred_webadmin.config.auth_method = 'LDAP'
-        fred_webadmin.config.LDAP_scope = "test ldap scope %s %s"
+        fred_webadmin.config.LDAP_scope = "test ldap scope %s"
         fred_webadmin.config.LDAP_server = "test ldap server"
         # Replace fred_webadmin.controller.adif.auth module with ldap
         # module.
@@ -111,7 +114,7 @@ class TestADIF(base.DaphneTestCase):
                 "corba_obj").AndReturn(ret)
         fred_webadmin.ldap_auth.ldap.open.__call__(
             "test ldap server").AndReturn(self.ldap_mock)
-        self.ldap_mock.simple_bind_s("test ldap scope test test pwd")
+        self.ldap_mock.simple_bind_s("test ldap scope test", "test pwd")
         self.admin_mock.createSession("test").AndReturn(self.corba_session_mock)
         self.corba_session_mock.getUser().AndReturn(self.corba_user_mock)
         self.corba_session_mock.setHistory(False)
@@ -133,7 +136,7 @@ class TestADIF(base.DaphneTestCase):
         """
         # Use LDAP for authenication.
         fred_webadmin.config.auth_method = 'LDAP'
-        fred_webadmin.config.LDAP_scope = "test ldap scope %s %s"
+        fred_webadmin.config.LDAP_scope = "test ldap scope %s"
         fred_webadmin.config.LDAP_server = "test ldap server"
         # Replace fred_webadmin.controller.adif.auth module with ldap
         # module.
@@ -150,7 +153,7 @@ class TestADIF(base.DaphneTestCase):
         fred_webadmin.ldap_auth.ldap.open.__call__(
             "test ldap server").AndReturn(self.ldap_mock)
         self.ldap_mock.simple_bind_s(
-            "test ldap scope test test pwd").AndRaise(
+            "test ldap scope test", "test pwd").AndRaise(
                 ldap.INVALID_CREDENTIALS)
         self.corba_mock.ReplayAll()
 
@@ -169,7 +172,7 @@ class TestADIF(base.DaphneTestCase):
         """
         # Use LDAP for authenication.
         fred_webadmin.config.auth_method = 'LDAP'
-        fred_webadmin.config.LDAP_scope = "test ldap scope %s %s"
+        fred_webadmin.config.LDAP_scope = "test ldap scope %s"
         fred_webadmin.config.LDAP_server = "test ldap server"
         # Replace fred_webadmin.controller.adif.auth module with ldap
         # module.
