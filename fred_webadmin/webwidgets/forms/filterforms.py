@@ -350,6 +350,7 @@ class LoggerFilterForm(FilterForm):
         TimeEnd = DateTimeIntervalField(label=_('End time'))
         RequestPropertyValue = CompoundFilterField(
             label=_('Property'), form_class=PropertyFilterForm)
+        IsMonitoring = BooleanField(label=_("Monitoring"))
 
 
 class BankStatementFilterForm(FilterForm):
