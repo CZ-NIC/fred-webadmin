@@ -26,6 +26,9 @@ from fred_webadmin.customview import CustomView
 from fred_webadmin.corba import ccReg
 from fred_webadmin.utils import get_detail
 
+from fred_webadmin.corbalazy import ServerNotAvailableError
+
+
 msg_server_unavailable = ("Uh oh. We apologize, but the backend for %s "
     "filter seems not to be working. Please check " 
     "that logd is running and then log out and log in " 
@@ -229,7 +232,14 @@ class ListTableMixin(object):
             context['form'] = form
             if form.is_bound and config.debug:
                 context['main'].add(p(u'kwd:' + unicode(kwd)))
-            if form.is_valid():
+            try:
+                valid = form.is_valid()
+            except ServerNotAvailableError:
+                # form.is_valid connects to CORBA too. So we need to catch
+                # this.
+                context['main'] = _(msg_server_unavailable % self.classname)
+                raise CustomView(self._render('base', ctx=context))
+            if valid:
                 if config.debug:
                     context['main'].add(p(u'Jsem validni'))
                     context['main'].add(u'cleaned_data:' + unicode(
