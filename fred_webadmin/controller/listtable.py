@@ -237,6 +237,7 @@ class ListTableMixin(object):
             except ServerNotAvailableError:
                 # form.is_valid connects to CORBA too. So we need to catch
                 # this.
+                log_req.commit("")
                 context['main'] = _(msg_server_unavailable % self.classname)
                 raise CustomView(self._render('base', ctx=context))
             if valid:
@@ -248,11 +249,13 @@ class ListTableMixin(object):
                 try:
                     context = self._get_list(context, form.cleaned_data, **kwd)
                 except cherrypy.HTTPRedirect:
+                    log_req.commit("")
                     # When there is only one item in the result, we jump right
                     # onto it without showing the table. Close the log_request 
                     # here and let the redirect happen.
                     raise
                 except omniORB.CORBA.SystemException, e:
+                    log_req.commit("")
                     import traceback
                     msg = ("Uh oh. We apologize, but the backend for %s " 
                         "filter seems not to be working. Please check " 
@@ -266,8 +269,6 @@ class ListTableMixin(object):
                     else:
                         raise CustomView(self._render(
                             "error", {"message": [_(msg)]}))
-                finally:
-                    log_req.commit("")
 
                 context['main'].add(u"rows: " + str(
                     self._get_itertable().num_rows))
@@ -285,11 +286,11 @@ class ListTableMixin(object):
 
                 return self._render('filter', context)
             else:
-                
                 if form.is_bound and config.debug:
                     context['main'].add(u'Jsem nevalidni, errors:' + unicode(
                         form.errors.items()))
                 context['headline'] = '%s filter' % self.__class__.__name__
+                log_req.commit("")
         
         return self._render(action, context)
 
