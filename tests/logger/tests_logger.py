@@ -158,11 +158,6 @@ class TestLoggerWithExceptions(object):
         logger = sessionlogger.SessionLogger(dao)
         logger.start_session("test_invalid_lang", "test_name")
 
-        assert logger is not None
-
-        self.corba_mock.VerifyAll()
-
-
     @with_setup(setup)
     @raises(ValueError)
     def test_create_request_invalid_action_type(self):
@@ -179,9 +174,9 @@ class TestLoggerWithExceptions(object):
 
         logger = sessionlogger.SessionLogger(dao)
         logger.start_session(lang="EN", name="test_name")
-        request = logger.create_request("127.0.0.1", """<foo test='content bar 
-                                        foo'>foofoofoo</foo>""", 
-                                        "Invalid action type")
+        request = logger.create_request(
+            "127.0.0.1", """<foo test='content bar "
+            "foo'>foofoofoo</foo>""", "Invalid action type")
 
         assert logger is not None
 

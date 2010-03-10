@@ -5,6 +5,7 @@ import fred_webadmin.user as user
 import fred_webadmin.logger.dummylogger as logger
 
 test_config = webadmin.config
+test_config.audit_log['logging_actions_enabled'] = False
 test_config.cherrycfg['global']['server.socket_port'] = 8081
 test_config.cherrycfg['environment'] = 'embedded'
 test_config.iors = (
@@ -53,6 +54,7 @@ class DaphneTestCase(object):
         self.corba_mock = mox.Mox()
         self.corba_conn_mock = self.corba_mock.CreateMockAnything()
         self.corba_session_mock = self.corba_mock.CreateMockAnything()
+        self.corba_session_mock.__str__ = lambda : "corba session mock"
 
         self.corba_user_mock = self.corba_mock.CreateMockAnything()
         self.corba_user_mock.__str__ = lambda : "corba user mock"

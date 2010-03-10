@@ -193,7 +193,6 @@ class BaseForm(form):
             # value_from_datadict() gets the data from the dictionary.
             # Each widget type knows how to retrieve its own data, because some
             # widgets split data over several HTML fields.
-#            value = field.value_from_datadict(self.data, self.files)
             # HACK: ['', ''] and [None, None] deal with SplitDateTimeWidget. This should be more robust.
             if field.value not in (None, '', ['', ''], [None, None]):
                 return False
@@ -290,7 +289,9 @@ class BaseForm(form):
             nperms = []
             for field in cls.base_fields.values():
                 field_nperm = field.get_nperm()
-                field_nperms = ['%s.%s.%s' % (nperm_name, cls.get_object_name(), field_nperm) for nperm_name in cls.nperm_names]
+                field_nperms = ['%s.%s.%s' % (
+                    nperm_name, cls.get_object_name(), field_nperm) for \
+                    nperm_name in cls.nperm_names]
                 nperms.extend(field_nperms)
             return nperms
         else:

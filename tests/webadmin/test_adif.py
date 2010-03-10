@@ -651,3 +651,66 @@ class TestBankStatement(base.DaphneTestCase):
         # Check that we do not display a link to the invoice after
         #an unsuccessful payment attempt.
         twill.commands.notfind("""<a href="/invoice/detail/\?id=11">.*</a>""")
+
+
+class TestLogger(base.DaphneTestCase):
+    def setUp(self):
+        base.DaphneTestCase.setUp(self)
+        root = fred_webadmin.controller.adif.ADIF()
+        root.logger = fred_webadmin.controller.adif.Logger()
+        wsgiApp = cherrypy.tree.mount(root)
+        cherrypy.config.update({ "server.logToScreen" : False })
+        cherrypy.server.start()
+        twill.add_wsgi_intercept('localhost', 8080, lambda : wsgiApp)
+        
+        self.outp = StringIO()
+        twill.set_output(self.outp)
+
+        # Corba objects requested from server at login time.
+        self.corba_objs_created_at_login = (
+            ("Admin", self.admin_mock), ("Logger", logger.DummyLogger()), 
+            ("Mailer", None), ("FileManager", None))
+
+
+    def tearDown(self):
+        base.DaphneTestCase.tearDown(self)
+        # Remove intercept.
+        twill.remove_wsgi_intercept('localhost', 8080)
+        # Stop the server.
+        cherrypy.server.stop()
+
+    def mock_create_logger(self):
+        return logger.DummyLogger()
+
+    """def test_logger_hidden_when_log_view_is_disabled_in_config(self):
+        fred_webadmin.config.auth_method = 'CORBA'
+        # Replace fred_webadmin.controller.adif.auth module with CORBA
+        # module.
+        self.monkey_patch(
+            fred_webadmin.controller.adif, 'auth', corba_auth)
+        self.monkey_patch(
+            fred_webadmin.controller.adif.ADIF, '_create_session_logger',
+            self.mock_create_logger)
+        self.monkey_patch(
+            fred_webadmin.controller.adif, 'auth', corba_auth)
+        self.corba_conn_mock.connect("localhost_test", "fredtest")
+        # Create corba objects in any order (prevent boilerplate code).
+        for obj, ret in self.corba_objs_created_at_login:
+            self.corba_conn_mock.getObject(obj, obj).InAnyOrder("corba_obj").AndReturn(ret)
+        self.admin_mock.authenticateUser("test", "test pwd")
+        self.admin_mock.createSession("test").AndReturn(self.corba_session_mock)
+        self.corba_session_mock.getUser().AndReturn(self.corba_user_mock)
+        self.corba_session_mock.setHistory(False)
+
+        self.admin_mock.getSession("sss")
+
+        self.corba_mock.ReplayAll()
+
+        twill.commands.go("http://localhost:8080/login")
+        twill.commands.showforms()
+        twill.commands.fv(1, "login", "test")
+        twill.commands.fv(1, "password", "test pwd")
+        twill.commands.fv(1, "corba_server", "0")
+        twill.commands.submit()
+
+        twill.commands.go("http://localhost:8080/logger")"""

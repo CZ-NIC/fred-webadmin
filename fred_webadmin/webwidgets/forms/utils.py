@@ -133,8 +133,6 @@ u'Type': [True, 1]}, {u'Type': [False, 1]}]
 (u'TaxDate', [None, None, datetime.date(2009, 10, 14), 1, 0], False), \
 ('or', '', 'False'), (u'Type', 1, False)]
 
-
-
         Try simple form field.
 
         >>> flatten_form_data([{u'first' : [True, "val"]}])

@@ -6,6 +6,7 @@
 """
 
 import traceback
+import omniORB
 
 import fred_webadmin.corbarecoder as recoder
 import fred_webadmin.logger.dummylogger
@@ -95,9 +96,7 @@ class SessionLogger(object):
         try:
             lang_code = languages[lang.lower()]
         except KeyError:
-            raise ValueError("Invalid language provided to SessionLogger."
-                             "Original exception: %s." %
-                             traceback.format_exc())
+            raise ValueError("Invalid language provided to SessionLogger.")
         
         self.logging_session_id = self.dao.CreateSession(lang_code, name)
         if self.logging_session_id == 0:
@@ -291,8 +290,13 @@ class SessionLoggerFailSilent(SessionLogger):
     def start_session(self, *args, **kwargs):
         try:
             SessionLogger.start_session(self, *args, **kwargs)
-        except Exception:
+        except LoggingException:
             pass
+        except omniORB.CORBA.SystemException:
+            #TODO: Re-think somehow?
+            # I have to reraise it, so that I know in ADIF.login that I should
+            # hide away the logger...
+            raise
 
     def set_common_property(self, *args, **kwargs):
         try:

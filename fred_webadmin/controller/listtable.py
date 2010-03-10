@@ -1,6 +1,8 @@
 import cherrypy
 import time
 import sys
+import omniORB
+
 from logging import debug 
 
 from fred_webadmin import exposed
@@ -24,6 +26,10 @@ from fred_webadmin.customview import CustomView
 from fred_webadmin.corba import ccReg
 from fred_webadmin.utils import get_detail
 
+msg_server_unavailable = ("Uh oh. We apologize, but the backend for %s "
+    "filter seems not to be working. Please check " 
+    "that logd is running and then log out and log in " 
+    "again.")
 
 class ListTableMixin(object):
 
@@ -189,14 +195,25 @@ class ListTableMixin(object):
             action = 'list'
 
         if kwd.get('txt') or kwd.get('csv'):
-            log_req.commit("")
-            return self._get_list(context, **kwd)
+            try:
+                res = self._get_list(context, **kwd)
+            except omniORB.CORBA.SystemException:
+                context['main'] = _(msg_server_unavailable % self.classname)
+                raise CustomView(self._render('base', ctx=context))
+            finally:
+                log_req.commit("")
+            return res
         elif (kwd.get('cf') or kwd.get('page') or kwd.get('load') or 
               kwd.get('list_all') or kwd.get('filter_id') or
               kwd.get('sort_col')): 
                 # clear filter - whole list of objects without using filter form
-            context = self._get_list(context, **kwd)
-            log_req.commit("")
+            try:
+                context = self._get_list(context, **kwd)
+            except omniORB.CORBA.SystemException:
+                context['main'] = _(msg_server_unavailable % self.classname)
+                raise CustomView(self._render('base', ctx=context))
+            finally:
+                log_req.commit("")
         else:
             form_class = self._get_filterform_class()
             # bound form with data
@@ -224,8 +241,24 @@ class ListTableMixin(object):
                     # When there is only one item in the result, we jump right
                     # onto it without showing the table. Close the log_request 
                     # here and let the redirect happen.
-                    log_req.commit("")
                     raise
+                except omniORB.CORBA.SystemException, e:
+                    import traceback
+                    msg = ("Uh oh. We apologize, but the backend for %s " 
+                        "filter seems not to be working. Please check " 
+                        "that logd is running and then log out and log in " 
+                        "again." % self.classname)
+                    if config.debug:
+                        # Append traceback.
+                        raise CustomView(self._render(
+                            "error", {"message": [_(msg), br(br()),
+                                traceback.format_exc()]}))
+                    else:
+                        raise CustomView(self._render(
+                            "error", {"message": [_(msg)]}))
+                finally:
+                    log_req.commit("")
+
                 context['main'].add(u"rows: " + str(
                     self._get_itertable().num_rows))
                 log_req.update(
@@ -317,4 +350,6 @@ class ListTableMixin(object):
         except (ccReg.Admin.ObjectNotFound,):
             context['main'] = _("Object_not_found")
             raise CustomView(self._render('base', ctx=context))
-
+        except omniORB.CORBA.SystemException:
+            context['main'] = _(msg_server_unavailable % self.classname)
+            raise CustomView(self._render('base', ctx=context))

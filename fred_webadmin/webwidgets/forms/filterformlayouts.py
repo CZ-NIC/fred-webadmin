@@ -152,7 +152,6 @@ class FilterTableFormLayout(TableFormLayout):
             label_str = self.get_label_name(field)
         
         negation_field = BooleanField('negation|' + field.name, field.negation)
-        #del_row_td = td(a(attr(cssc='pointer_cursor', onclick=u"delRow(this, '%s', '%s')" % (field_name, label_str)), img(src='/img/icons/purple_minus.gif')))
         if for_javascript:
             presention_field = HiddenField('presention|' + field.name, 'on') # needed for detecting presention of fields as checkboxes and multiple selects, because they do not send data if nonchecket or selected no option
         else: 
@@ -163,30 +162,11 @@ class FilterTableFormLayout(TableFormLayout):
             return notag(td(label_str),
                          td(presention_field, errors, field),
                          td(negation_field, 'NOT')
-                        )
-        
+                        )        
             
     def build_fields_button(self): 
         pass
-    
-#    def build_and_row(self):
-#        field_chooser = self.get_field_chooser()
-#        
-#        if not field_chooser.choices:
-#            style = 'visibility: hidden'
-#        else:
-#            style = ''
-#        
-#        return tr(attr(cssc='and_row'),
-#                  td(attr(colspan=self.columns_count), 
-##                     ChoiceField(choices=(('AND', 'AND'), ('OR', 'OR'))),
-#                     strong('AND'),
-##                     a(attr(href=u'javascript:addRow(this)'), u'+')))
-#                     field_chooser,
-#                     a(attr(cssc='pointer_cursor', onclick="addRow(this, '%s')" % self.form.__class__.__name__), img(src='/img/icons/green_plus.gif'))))
-    
 
-        
     def get_javascript_gener_field(self):
         # --- function createRow and variable allFieldsDict---
         
@@ -205,7 +185,7 @@ class FilterTableFormLayout(TableFormLayout):
             output += u"    row += '%s';\n" % rendered_field
             if isinstance(field, CompoundFilterField):
                 output += u"    row = row.replace(/%s/g, getEmpty%s());\n" % (REPLACE_ME_WITH_EMPTY_FORM, field.form_class.__name__)
-                fields_js_dict[name] = {'label': field.label, 'fieldNum': field_num, 'formName': field.form_class.get_object_name()}#, 'createRowFunction': 'createRow%s' % self.form.get_object_name()}
+                fields_js_dict[name] = {'label': field.label, 'fieldNum': field_num, 'formName': field.form_class.get_object_name()}
             else:
                 fields_js_dict[name] = {'label': field.label, 'fieldNum': field_num}
             output += u"    break;\n"
@@ -213,12 +193,6 @@ class FilterTableFormLayout(TableFormLayout):
         output += u'row = row.replace(/%s/g, fieldLabel);\n' % REPLACE_ME_WITH_LABEL
         output += u'return row;\n'
         output += u'}\n' # end of createRow function
-        
-        
-        # replaces field counter value with row num in form (it is there to be able to sort form field in order that user created them:
-#        output += u'row = row.replace(/%s/g, fieldNum);\n' % FIELD_COUNTER_VALUE
-#        output += u'return row;\n'
-#        output += u'}\n\n'
         
         return (output, fields_js_dict)
     

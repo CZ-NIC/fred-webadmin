@@ -1,13 +1,14 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import sys
 import types
 from translation import _
 from mappings import f_urls
+from fred_webadmin import config
 
 class MenuNode(object):
     _menudict = {}
-    def __init__(self, handle, caption, body_id=None, cssc=None, url=None, submenu=None, nperm=None, nperm_type='all', default=False):
+    def __init__(self, handle, caption, body_id=None, cssc=None, url=None,
+        submenu=None, nperm=None, nperm_type='all', default=False, disabled=False):
         ''' nperm defines negative permssion(s) - can be string or list of strings
             nperm type: if nperm is list, then nperm_type determinates whether to hide permission it is needed 'all' of them, or just 'one' of them (default is 'all')
             nperms of submenus are appended to self.nperm
@@ -28,6 +29,8 @@ class MenuNode(object):
         self.url = url
         
         self.default = default
+
+        self.disabled = disabled
         
         self.nperm = []
         if isinstance(nperm, types.StringTypes):
@@ -98,12 +101,11 @@ class MenuNode(object):
         return output
     
     
-    
-menu_tree = MenuNode('root', '', '', 'menu-item', '#', [
-    MenuNode(
-        'summary', _('Summary'), 'body-summary', 'menu-item menu-summary', 
-        url='/summary/'), 
-    MenuNode(
+summary_node = MenuNode(
+    'summary', _('Summary'), 'body-summary', 'menu-item menu-summary',
+    url='/summary/')
+
+objects_node = MenuNode(
         'object', _('Objects'), 'body-objects', 'menu-item menu-objects', 
         submenu=[
             MenuNode(
@@ -117,9 +119,9 @@ menu_tree = MenuNode('root', '', '', 'menu-item', '#', [
                 url=f_urls['nsset'] + 'allfilters/', nperm='read.nsset'),
             MenuNode(
                 'keyset', _('Search keysets'), cssc='menu-item', 
-                url=f_urls['keyset'] + 'allfilters/', nperm='read.keyset'),
-    ]), 
-    MenuNode(
+                url=f_urls['keyset'] + 'allfilters/', nperm='read.keyset')])
+
+registrars_node = MenuNode(
         'registrar', _('Registrars'), 'body-registrars', 
         'menu-item menu-registrars', nperm='read.registrar', 
         submenu=[
@@ -134,32 +136,46 @@ menu_tree = MenuNode('root', '', '', 'menu-item', '#', [
             MenuNode(
                 'registrarcreate', _('Create new'), cssc='menu-item', 
                 url=f_urls['registrar'] + 'create/', 
-                nperm=['read.registrar', 'write.registrar'], nperm_type='one'),
+                nperm=['read.registrar', 'change.registrar'], 
+                nperm_type='one'),
             MenuNode(
                 'invoice', _('Invoices'), cssc='menu-item', 
-                url=f_urls['invoice'] + 'allfilters/', nperm='read.invoice'),
+                url=f_urls['invoice'] + 'allfilters/', 
+                nperm='read.invoice'),
             MenuNode(
                 'bankstatement', _('Payments'), cssc='menu-item',
-                url=f_urls['bankstatement'] + 'allfilters/', nperm='read.payment')
-    ]), 
+                url=f_urls['bankstatement'] + 'allfilters/', 
+                nperm='read.payment')])
+
+# This is just a deliberately complex but staggeringly pythonic way to say 
+# that if we disable viewing the log screen in config, we also want to hide 
+# it in the menu. :-)
+log_submenu = [
+    [],
+    [MenuNode(
+        'logger', _('Logs'), cssc='menu-item', 
+        url=f_urls['logger'] + 'allfilters/', nperm='read.logger')]
+][config.audit_log['viewing_actions_enabled']] + \
+[
     MenuNode(
+        'action', _('Actions'), cssc='menu-item', 
+        url=f_urls['action'] + 'allfilters/', nperm='read.action'),
+    MenuNode(
+        'publicrequest', _('PublicRequests'), cssc='menu-item', 
+        url=f_urls['publicrequest'] + 'allfilters/', 
+        nperm='read.publicrequest'),
+    MenuNode(
+        'mail', _('Emails'), cssc='menu-item', 
+        url=f_urls['mail'] + 'allfilters/', nperm='read.email')
+]
+
+logs_node = MenuNode(
         'logs', _('Logs'), 'body-logs', 'menu-item menu-logs', 
-        submenu=[
-                MenuNode(
-                    'logger', _('Logs'), cssc='menu-item', 
-                    url=f_urls['logger'] + 'allfilters/', nperm='read.logger'),
-                MenuNode(
-                    'action', _('Actions'), cssc='menu-item', 
-                    url=f_urls['action'] + 'allfilters/', nperm='read.action'),
-                MenuNode(
-                    'publicrequest', _('PublicRequests'), cssc='menu-item', 
-                    url=f_urls['publicrequest'] + 'allfilters/', 
-                    nperm='read.publicrequest'),
-                MenuNode(
-                    'mail', _('Emails'), cssc='menu-item', 
-                    url=f_urls['mail'] + 'allfilters/', nperm='read.email'),
-    ]), 
-])
+        submenu=log_submenu)
+    
+menu_tree = MenuNode(
+    'root', '', '', 'menu-item', '#', 
+    [summary_node, objects_node, registrars_node, logs_node])
 
 
 if __name__ == '__main__':

@@ -8,10 +8,16 @@ at least for given version of server (all servers shoud be same version).
 
 import config
 import cherrypy
+import omniORB
 from logging import debug
 import sys
 from corbarecoder import DaphneCorbaRecode
 import fred_webadmin.corbarecoder as recoder
+
+class ServerNotAvailableError(Exception):
+    """ CORBA server could not be connected to. 
+    """
+    pass
 
 class CorbaLazyRequest(object):
     def __init__(self, object_name, function_name, *args, **kwargs):
@@ -31,7 +37,10 @@ class CorbaLazyRequest(object):
             debug('CorbaLazyRequest getting data')
             corba_object = cherrypy.session.get(self.object_name)
             corba_func = getattr(corba_object, self.function_name)
-            data = recoder.c2u(corba_func(*self.c_args, **self.c_kwargs))
+            try:
+                data = recoder.c2u(corba_func(*self.c_args, **self.c_kwargs))
+            except omniORB.CORBA.SystemException, e:
+                raise ServerNotAvailableError(e)
             self.data = self._convert_data(data)
         
     def __str__(self):

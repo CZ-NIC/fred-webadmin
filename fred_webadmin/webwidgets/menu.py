@@ -8,13 +8,14 @@ from fred_webadmin.menunode import MenuNode
 from utils import isiterable
 
 class Menu(ul):
-    def __init__(self, menutree, selected_menu_handle, user, *content, **kwd):
+    def __init__(self, menutree, selected_menu_handle, user, disabled=False, *content, **kwd):
         '''nperms are negaive permissions of currently logged user'''
         super(Menu, self).__init__(*content, **kwd)
         self.tag = 'ul'
         self.menutree = menutree
         self.selected_menu_handle = selected_menu_handle
         self.user = user
+#        self.disabled = disabled
         
         self.open_nodes = [] 
         self.set_open_nodes()
@@ -77,9 +78,12 @@ class MenuHoriz(Menu):
 
             menu_open = menu in self.open_nodes
             cssc = menu.cssc
+#            disabled = menu.disabled
                 
             if menu_open:
                 cssc += ' selected-menu'
+#                if disabled:
+#                    cssc += ' disabled-menu'
                 if menu.submenus:
                     self.submenu = MenuHoriz(menu, self.selected_menu_handle, self.user)
             
@@ -88,5 +92,5 @@ class MenuHoriz(Menu):
             self._menu1.add(li(attr(cssc=cssc), a(attr(href=url), menu.caption)))
         self.add(div(attr(cssc='cleaner'), ''))
         if self.submenu:
-            self.add(div(attr(cssc='submenu'), self.submenu, div(attr(cssc='cleaner'), '')))#, div(attr(cssc='cleaner'), 'wtf??')))
+            self.add(div(attr(cssc='submenu'), self.submenu, div(attr(cssc='cleaner'), '')))
     

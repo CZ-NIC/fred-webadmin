@@ -12,14 +12,20 @@ sessions_dir = 'DU_LOCALSTATEDIR/lib/fred-webadmin/sessions/'
 log_dir = 'DU_LOCALSTATEDIR/log/fred-webadmin/'
 log_level = logging.ERROR
 
-# Session logger settings
-# If False, use dummy logger (just pretend to log, do not send anything to the 
-# server)
-session_logging_enabled = True
-# If False, no exceptions are thrown by the logger (if logging fails, it fails
-# silently).
-logging_mandatory = True
+# logging_actions_enabled: Iff false no user actions are logged to logd.
+# viewing_actions_enabled: Iff false, users cannot display log screen in
+#                          Daphne.
+# force_critical_logging: Iff False, any logger-related failure will silently
+#                         be ignored. Iff True, failures will shoot Daphne
+#                         down.
+audit_log = {
+    'logging_actions_enabled': True,
+    'viewing_actions_enabled': True,
+    'force_critical_logging' : False 
+}
 
+# Iff false, no security policy is enforced (there is no authorization).
+enable_perms_checking = False
 
 idl = 'DU_IDL_DIR/ccReg.idl' #'/usr/share/idl/fred/ccReg.idl'
 iors = (#(label, nshost, nscontext),

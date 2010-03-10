@@ -1,10 +1,14 @@
 import sys
 import types
 
+import config
+if config.enable_perms_checking:
+    import apps.nicauth.models.user as auth_user
+
 from logging import debug
 
-import config
 from fred_webadmin.webwidgets.utils import isiterable
+from fred_webadmin.controller.adiferrors import AuthorizationError
 
 class User(object):
     def __init__(self, user):
@@ -15,11 +19,15 @@ class User(object):
         self.firstname = user._get_firstname()
         self.surname = user._get_surname()
         self.table_page_size = config.tablesize
-        
-        if self.login == 'helpdesk':
-            self.nperms = ['write.registrar', 'read.invoice']
+
+        if config.enable_perms_checking:
+            try:
+                self._auth_user = auth_user.User.objects.get(username=self.login)
+            except auth_user.User.DoesNotExist:
+                raise AuthorizationError(
+                    "Authorization record for user %s does not exist!" % self.login)
         else:
-            self.nperms = []
+            self._auth_user = None
         
     def has_nperm(self, nperm):
         ''' Return True, if nperm in self.nperms or any of its shorter versions created
@@ -28,12 +36,13 @@ class User(object):
              if nperm is 'read.domain.authinfo' function returns True if one of following strings are in self.nperms:
                  'read', 'read.domain', 'read.domain.authinfo'
         '''
+        if not config.enable_perms_checking:
+            # No checking => user is permitted to do anything.
+            return False
         parts = nperm.split('.')
-        for i in range(len(parts)):
-            tmp_nperm = '.'.join(parts[:i+1])
-            if tmp_nperm.lower() in self.nperms:
-                return True
-        return False 
+        has_perm = self._auth_user.has_permission("daphne", parts[1], parts[0])
+        return not has_perm
+
     
     def has_all_nperms(self, nperms):
         if not nperms: # nprems are empty
@@ -54,7 +63,5 @@ class User(object):
         result = ((isinstance(nperms, types.StringTypes) and self.has_nperm(nperms)) or 
                   (isiterable(nperms) and 
                    (check_type == 'all' and self.has_all_nperms(nperms) or
-                    check_type == 'one' and self.has_one_nperm(nperms))
-                  )
-                 )
+                    check_type == 'one' and self.has_one_nperm(nperms))))
         return result 

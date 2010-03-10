@@ -46,7 +46,8 @@ from fred_webadmin.logger.dummylogger import DummyLogger
 
 from fred_webadmin.controller.listtable import ListTableMixin
 
-from fred_webadmin.controller.adiferrors import AuthenticationError
+from fred_webadmin.controller.adiferrors import (
+    AuthenticationError, AuthorizationError)
 
 # decorator for exposing methods
 from fred_webadmin import exposed
@@ -254,7 +255,7 @@ class ADIF(AdifPage):
                 failure), or SessionLoggerFailSilent (logging that fails
                 silently without exceptions).
         """
-        if not config.session_logging_enabled:
+        if not config.audit_log['logging_actions_enabled']:
             # DummyLogger provides the interface, but does
             # not log anything.
             logger = DummyLogger()
@@ -263,7 +264,7 @@ class ADIF(AdifPage):
             # it can be found by CorbaLazyRequest.
             corba_logd = corba_obj.getObject("Logger", "Logger")
             cherrypy.session['corba_logd'] = corba_logd
-            if config.logging_mandatory:
+            if config.audit_log['force_critical_logging']:
                 # Logging must work => raise exceptions on error.
                 logger = SessionLogger(dao=corba_logd)
             else:
@@ -292,10 +293,19 @@ class ADIF(AdifPage):
         try:
             log_req = None
             self._corba_connect(corba_server)
-
+            
             logger = self._create_session_logger()
+            try:
+                logger.start_session("en", login)
+            except omniORB.CORBA.SystemException:
+                if config.audit_log['force_critical_logging']:
+                    raise
+                # Hide everything in the app that related to logging 
+                # (it cannot be used, there is no data source).
+                # TODO(tom): Why is there '' here?
+                logger = DummyLogger()
+
             cherrypy.session['Logger'] = logger
-            logger.start_session("en", login)
             log_req = logger.create_request(
                 cherrypy.request.remote.ip, cherrypy.request.body, "Login")
             log_req.update("username", login)
@@ -324,8 +334,20 @@ class ADIF(AdifPage):
             cherrypy.session['corba_server_name'] = \
                 form.fields['corba_server'].choices[corba_server][1]
             cherrypy.session['filter_forms_javascript'] = None
-            cherrypy.session['user'] = User(
-                utils.get_corba_session().getUser())
+
+            try:
+                cherrypy.session['user'] = User(
+                       utils.get_corba_session().getUser())
+            except AuthorizationError, e:
+                admin.destroySession(corbaSessionString)
+                del(cherrypy.session['corbaSessionString'])
+                cherrypy.response.status = 403
+                log_req.update("result", str(e))
+                form.non_field_errors().append(str(e))
+                if config.debug:
+                    form.non_field_errors().append('(%s)' % str(e))
+                return None
+
             cherrypy.session['Mailer'] = corba_obj.getObject(
                 'Mailer', 'Mailer')
             cherrypy.session['FileManager'] = corba_obj.getObject(
@@ -408,40 +430,33 @@ class Summary(AdifPage):
         context.main = ul(li(a(attr(href='''/file/filter/?json_data=[{%22presention|CreateTime%22:%22on%22,%22CreateTime/3%22:%2210%22,%22CreateTime/0/0%22:%22%22,%22CreateTime/0/1/0%22:%220%22,%22CreateTime/0/1/1%22:%220%22,%22CreateTime/1/0%22:%22%22,%22CreateTime/1/1/0%22:%220%22,%22CreateTime/1/1/1%22:%220%22,%22CreateTime/4%22:%22-2%22,%22CreateTime/2%22:%22%22,%22presention|Type%22:%22000%22,%22Type%22:%225%22}]'''), _('Domain expiration letters'))))
         return self._render('summary', ctx=context)
     
-    
-class Logger(AdifPage, ListTableMixin):
-    """ If cherrypy.session.get("corba_logd") is not None, then we know that
-        corba logger is present, so we should be able to display the logged
-        events.
-        Otherwise just print a warning (that's kind of the best we can do).
-    """
 
+class Logger(AdifPage, ListTableMixin):
+    pass
+
+
+class LoggerDisabled(Logger):
+    """ Substitute class used instead of normal Logger when the application 
+        cannot connect to CORBA logd. 
+        We need to disable access to the logger from the menu. Hiding the menu
+        item is not enough (the user could still use the logger URL).
+
+        TODO: Perhaps we should rather hide the logger menu item and delete 
+        the logger item from the app tree."""
     def filter(self, *args, **kwd):
-        if config.session_logging_enabled:
-            return ListTableMixin.filter(self, *args, **kwd)
-        else:
-            return self.index()
+        return self.index()
 
     def allfilters(self, *args, **kwd):
-        if config.session_logging_enabled:
-            return ListTableMixin.allfilters(self, *args, **kwd)
-        else:
-            return self.index()
+        return self.index()
 
     def detail(self, **kwd):
-        if config.session_logging_enabled:
-            return ListTableMixin.detail(self, **kwd)
-        else:
-            return self.index()
+        return self.index()
 
     def index(self):
-        if config.session_logging_enabled:
-            return ListTableMixin.index(self)
-        else:
-            context = DictLookup()
-            context.main = p(
-                "Session logging disabled (see your webadmin_cfg.py).")
-            return self._render('base', ctx=context)
+        context = DictLookup()
+        context.main = p(
+            "Logging disabled (could not connect to CORBA logd).") 
+        return self._render('base', ctx=context)
 
 
 class Statistics(AdifPage):
@@ -554,13 +569,13 @@ class Registrar(AdifPage, ListTableMixin):
         context['form'] = form
         return self._render('edit', context)
     
-    @check_onperm('write')
+    @check_onperm('change')
     def edit(self, *params, **kwd):
         registrar = self._get_detail(obj_id=kwd.get('id'))
         result = self._update_registrar(registrar, "RegistrarUpdate", *params, **kwd)
         return result
 
-    @check_onperm('write')
+    @check_onperm('change')
     def create(self, *params, **kwd):
         registrar = self._get_empty_corba_struct()
         result = self._update_registrar(registrar, "RegistrarCreate", *params, **kwd)
@@ -604,7 +619,7 @@ class Domain(AdifPage, ListTableMixin):
         context['dig'] = dig
         return self._render('dig', context)
 
-    @check_onperm('write')
+    @check_onperm('change')
     def setinzonestatus(self, **kwd):
         "Call setInzoneStatus(domainID) "
         log_request = cherrypy.session['Logger'].create_request(
@@ -700,7 +715,7 @@ class File(AdifPage, ListTableMixin):
             return response.body
         
 class PublicRequest(AdifPage, ListTableMixin):
-    @check_onperm('write')
+    @check_onperm('change')
     def resolve(self, **kwd):
         '''Accept and send'''
         context = {}
@@ -731,7 +746,7 @@ class PublicRequest(AdifPage, ListTableMixin):
             
         raise cherrypy.HTTPRedirect(f_urls[self.classname] + 'filter/?reload=1&load=1')
 
-    @check_onperm('write')
+    @check_onperm('change')
     def close(self, **kwd):
         '''Close and invalidate'''
         context = {}
@@ -936,7 +951,8 @@ def runserver():
     root = ADIF()
     root.detail41 = Detail41()
     root.summary = Summary()
-    root.logger = Logger()
+    if config.audit_log['viewing_actions_enabled']:
+        root.logger = Logger()
     root.registrar = Registrar()
     root.action = Action()
     root.domain = Domain()

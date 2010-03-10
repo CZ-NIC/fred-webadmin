@@ -16,15 +16,6 @@ from fred_webadmin.mappings import (
     f_name_enum, f_enum_name, f_urls, f_name_default_sort)
 from fred_webadmin.corba import (
     ccReg, Registry, CorbaServerDisconnectedException)
-#
-#def fileGenerator(source, separator = '|'):
-#    "Generates CSV stream from IterTable object"
-#    data = separator.join(source.rawheader)
-#    yield "%s\n" % (data)
-#    for i in xrange(source.num_rows):
-#        row = source[i]
-#        data = separator.join([col['value'] for col in row])
-#        yield "%s\n" % (data)
 
 def fileGenerator(source, separator = '|'):
     "Generates CSV stream from IterTable object"
@@ -251,7 +242,6 @@ class IterTable(object):
     def next(self):
         """ To make IterTable iterable. """
         while self._row_index < (self.page_start + self.page_rows):
-#            import pdb; pdb.set_trace()
             row = self._get_row(self._row_index)
             self._row_index += 1
             yield row

@@ -6,7 +6,7 @@ from copy import deepcopy
 import simplejson
 import cherrypy
 
-from logging import debug
+from logging import debug, error
 from fred_webadmin import config
 from forms import Form
 from fields import *
@@ -14,7 +14,9 @@ from adiffields import *
 from filterformlayouts import FilterTableFormLayout, UnionFilterFormLayout
 from fred_webadmin.translation import _
 from fred_webadmin.webwidgets.utils import SortedDict, ErrorDict, escape_js_literal
-from fred_webadmin.corbalazy import CorbaLazyRequest, CorbaLazyRequest1V2L, CorbaLazyRequestIterStruct
+from fred_webadmin.corbalazy import (
+    CorbaLazyRequest, CorbaLazyRequest1V2L, CorbaLazyRequestIterStruct, 
+    ServerNotAvailableError)
 from fred_webadmin.corba import ccReg
 from fred_webadmin.mappings import f_urls
 
@@ -221,7 +223,6 @@ class RegistrarFilterForm(FilterForm):
     CountryCode = CharField(label=_('Country'))
     ZoneFqdn = CharField(label=_('Zone fqdn'))
 
-
     
 class ObjectStateFilterForm(FilterForm):
     default_field_names = ['StateId']
@@ -330,27 +331,22 @@ class PropertyFilterForm(FilterForm):
 
 
 class LoggerFilterForm(FilterForm):
-    # Only create & show the fields, if session logging is enabled (otherwise
-    # corba logger is not running and CorbaLazyRequestIterStruct would cause
-    # trouble. Plus it does not really make sense to show these fields when the
-    # corba logger is not running, thus cannot return any values.
-    if config.session_logging_enabled:
-        default_fields_names = ['Service']
+    default_fields_names = ['Service']
 
-        Service = IntegerChoiceField(label=_('Service type'), choices=[
-            (0, u'UNIX Whois'), (1, u'Web Whois'), (2, u'Public Request'), 
-            (3, u'EPP'), (4, u'WebAdmin'), (5, u'Intranet')])
-        SourceIp = CharField(label=_('Source IP'))
-        UserName = CharField(label=_('Username'))
-        ActionType = IntegerChoiceField(
-            label=_('Action type'), 
-            choices=CorbaLazyRequestIterStruct(
-                'corba_logd', 'GetServiceActions', ['id', 'status'], 4))
-        TimeBegin = DateTimeIntervalField(label=_('Begin time'))
-        TimeEnd = DateTimeIntervalField(label=_('End time'))
-        RequestPropertyValue = CompoundFilterField(
-            label=_('Property'), form_class=PropertyFilterForm)
-        IsMonitoring = BooleanField(label=_("Monitoring"))
+    Service = IntegerChoiceField(label=_('Service type'), choices=[
+        (0, u'UNIX Whois'), (1, u'Web Whois'), (2, u'Public Request'), 
+        (3, u'EPP'), (4, u'WebAdmin'), (5, u'Intranet')])
+    SourceIp = CharField(label=_('Source IP'))
+    UserName = CharField(label=_('Username'))
+    ActionType = IntegerChoiceField(
+        label=_('Action type'), 
+        choices=CorbaLazyRequestIterStruct(
+            'corba_logd', 'GetServiceActions', ['id', 'status'], 4))
+    TimeBegin = DateTimeIntervalField(label=_('Begin time'))
+    TimeEnd = DateTimeIntervalField(label=_('End time'))
+    RequestPropertyValue = CompoundFilterField(
+        label=_('Property'), form_class=PropertyFilterForm)
+    IsMonitoring = BooleanField(label=_("Monitoring"))
 
 
 class BankStatementFilterForm(FilterForm):
@@ -433,9 +429,6 @@ class MailFilterForm(FilterForm):
     Handle = CharField(label=_('Handle'))
     CreateTime = DateTimeIntervalField(label=_('Create time'))
     ModifyTime = DateTimeIntervalField(label=_('Modify time'))
-#    Status = ChoiceField(label=_('Status'), 
-#        choices=CorbaLazyRequestIterStruct(
-#            'Admin', 'getMailStatus', ['id', 'name']))
     Status = IntegerField(label=_('Status')) # docasny, az bude v corba tak smazat
     Attempt = IntegerField(label=_('Attempt'))
     Message = CharField(label=_('Message'))
@@ -470,7 +463,14 @@ def get_filter_forms_javascript():
     for form_class in form_classes: 
         form = form_class()
         # Function for generating field of form
-        output_part, fields_js_dict = form.layout_class(form).get_javascript_gener_field()
+        try:
+            output_part, fields_js_dict = form.layout_class(form).get_javascript_gener_field()
+        except ServerNotAvailableError:
+            # We need to connect to a CORBA server to get field values for some
+            # filters. If the connection attempt fails, skip the filter.
+            # TODO(tom): Should we really just skip it?
+            error("Could not get filter for object %s!" % form_class)
+            continue
         output += output_part
         
         all_fields_dict[form.get_object_name()] = fields_js_dict
