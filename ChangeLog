@@ -1,4 +1,12 @@
-2010-02-19 Tomas Brambora (3.2.0)
+2010-03-05 Tomas Brambora (3.3.2)
+    * Choosing LDAP as auth method caused Daphne to crash at startup. Fixed.
+
+2010-03-03 Tomas Brambora (3.3.1)
+    * Refactored adif.py (mostly login and authentication code).
+    * Added new unit tests, refactored old ones to reflect changes.
+    * Fixed the bug at login time (log_req variable not initialized).
+
+2010-02-19 Tomas Brambora (3.3.0)
 
     * Audit (Logger) component integration
 
