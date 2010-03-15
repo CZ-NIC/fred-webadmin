@@ -247,6 +247,11 @@ class ADIF(AdifPage):
                 debug('History set to %s' % new_history)
                 return json_response(new_history)
         return super(ADIF, self).default(*args, **kwd)
+
+    def _remove_logger_from_apps(self):
+        """ Remove logger from cherrypy apps tree.
+        """
+        cherrypy.tree.apps[''].root.logger = LoggerDisabled()
         
     def _create_session_logger(self):
         """ Creates logger object to send log requests to the server.
@@ -270,7 +275,7 @@ class ADIF(AdifPage):
                     raise
                 else:
                     logger = DummyLogger()
-                    cherrypy.tree.apps[''].root.logger = LoggerDisabled()
+                    self._remove_logger_from_apps()
             else:
                 cherrypy.session['corba_logd'] = corba_logd
                 if config.audit_log['force_critical_logging']:
@@ -309,7 +314,6 @@ class ADIF(AdifPage):
                     raise
                 else:
                     logger = DummyLogger()
-#                    cherrypy.tree.apps
             try:
                 logger.start_session("en", login)
             except omniORB.CORBA.SystemException:
