@@ -27,6 +27,7 @@ if __name__ == '__main__':
         from fred_webadmin.info import print_nperms_for_class
         print_nperms_for_class(options.nperms_for_class)
     else:
-        adif.runserver()
+        root = adif.prepare_root()
+        adif.runserver(root)
 
 

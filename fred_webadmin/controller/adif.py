@@ -299,6 +299,7 @@ class ADIF(AdifPage):
 
     def _login_process_valid_form(self, form):
         """ Attempt to login to Daphne.
+            Returns: Address to redirect to, if all's OK. None otherwise.
         """
         login = form.cleaned_data.get('login', '')
         password = form.cleaned_data.get('password', '')
@@ -972,9 +973,7 @@ class Detail41(AdifPage):
         return 'muj default'
 
 
-def runserver():
-    print "-----====### STARTING ADIF ###====-----"
-    
+def prepare_root():
     root = ADIF()
     root.detail41 = Detail41()
     root.summary = Summary()
@@ -995,7 +994,12 @@ def runserver():
     root.statistic = Statistics()
     root.devel = Development()
 
+    return root
+
+def runserver(root):
+    print "-----====### STARTING ADIF ###====-----"
     cherrypy.quickstart(root, '/', config=config.cherrycfg)
 
 if __name__ == '__main__':
-    runserver()
+    root = prepare_root()
+    runserver(root)
