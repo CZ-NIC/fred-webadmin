@@ -5,6 +5,7 @@ import twill
 import datetime
 import ldap
 
+from nose import with_setup
 from StringIO import StringIO
 import twill.commands
 
@@ -15,27 +16,20 @@ import fred_webadmin.controller.adif
 
 from fred_webadmin.corba import Registry, ccReg
 import fred_webadmin.logger.dummylogger as logger
+from logging import error
 
-
-class TestADIF(base.DaphneTestCase):
+class BaseADIFTestCase(base.DaphneTestCase):
     def setUp(self):
         base.DaphneTestCase.setUp(self)
         # Create the application, mount it and start the server.
-        root = fred_webadmin.controller.adif.ADIF()
-        root.summary = fred_webadmin.controller.adif.Summary()
+        root = fred_webadmin.controller.adif.prepare_root()
         wsgiApp = cherrypy.tree.mount(root)
         cherrypy.server.start()
         # Redirect HTTP requests.
         twill.add_wsgi_intercept('localhost', 8080, lambda : wsgiApp)
-        
         # Keep Twill quiet (suppress normal Twill output).
         self.outp = StringIO()
         twill.set_output(self.outp)
-
-        # Corba objects requested from server at login time.
-        self.corba_objs_created_at_login = (
-            ("Admin", self.admin_mock), ("Logger", logger.DummyLogger()), 
-            ("Mailer", None), ("FileManager", None))
 
     def tearDown(self):
         base.DaphneTestCase.tearDown(self)
@@ -44,6 +38,15 @@ class TestADIF(base.DaphneTestCase):
         # Shut down Cherrypy server.
         cherrypy.server.stop()
 
+
+class TestADIF(BaseADIFTestCase):
+    def setUp(self):
+        BaseADIFTestCase.setUp(self)
+        # Corba objects requested from server at login time.
+        self.corba_objs_created_at_login = (
+            ("Admin", self.admin_mock), ("Logger", logger.DummyLogger()), 
+            ("Mailer", None), ("FileManager", None))
+   
     def test_login_valid_corba_auth(self):
         """ Login passes when using valid corba authentication.
         """
@@ -221,28 +224,7 @@ class TestADIF(base.DaphneTestCase):
         twill.commands.url("http://localhost:8080/login/")
 
 
-class TestRegistrar(base.DaphneTestCase):
-    def setUp(self):
-        base.DaphneTestCase.setUp(self)
-        cherrypy.config.update({ "server.logToScreen" : False })
-        cherrypy.config.update({'log.screen': False})
-
-        root = fred_webadmin.controller.adif.ADIF()
-        root.registrar = fred_webadmin.controller.adif.Registrar()
-        wsgiApp = cherrypy.tree.mount(root)
-        cherrypy.server.start()
-        twill.add_wsgi_intercept('localhost', 8080, lambda : wsgiApp)
-        
-        self.outp = StringIO()
-        twill.set_output(self.outp)
-
-    def tearDown(self):
-        base.DaphneTestCase.tearDown(self)
-        # remove intercept.
-        twill.remove_wsgi_intercept('localhost', 8080) 
-        # shut down the cherrypy server.
-        cherrypy.server.stop()
-
+class TestRegistrar(BaseADIFTestCase):
     def _fabricate_registrar(self):
         """ Returns a fake Registrar object. """ 
         return (
@@ -524,26 +506,7 @@ class TestRegistrar(base.DaphneTestCase):
         twill.commands.url("http://localhost:8080/registrar/create")
 
 
-class TestBankStatement(base.DaphneTestCase):
-    def setUp(self):
-        base.DaphneTestCase.setUp(self)
-        root = fred_webadmin.controller.adif.ADIF()
-        root.bankstatement = fred_webadmin.controller.adif.BankStatement()
-        wsgiApp = cherrypy.tree.mount(root)
-        cherrypy.config.update({ "server.logToScreen" : False })
-        cherrypy.server.start()
-        twill.add_wsgi_intercept('localhost', 8080, lambda : wsgiApp)
-        
-        self.outp = StringIO()
-        twill.set_output(self.outp)
-
-    def tearDown(self):
-        base.DaphneTestCase.tearDown(self)
-        # Remove intercept.
-        twill.remove_wsgi_intercept('localhost', 8080)
-        # Stop the server.
-        cherrypy.server.stop()
-
+class TestBankStatement(BaseADIFTestCase):
     def _fabricate_bank_statement_detail(self):
         """ Create a fake Registry.Banking.BankItem.Detail object for testing
             purposes. """
@@ -653,44 +616,30 @@ class TestBankStatement(base.DaphneTestCase):
         twill.commands.notfind("""<a href="/invoice/detail/\?id=11">.*</a>""")
 
 
-class TestLogger(base.DaphneTestCase):
-    def setUp(self):
-        base.DaphneTestCase.setUp(self)
-        root = fred_webadmin.controller.adif.ADIF()
-        root.logger = fred_webadmin.controller.adif.Logger()
-        wsgiApp = cherrypy.tree.mount(root)
-        cherrypy.config.update({ "server.logToScreen" : False })
-        cherrypy.server.start()
-        twill.add_wsgi_intercept('localhost', 8080, lambda : wsgiApp)
-        
-        self.outp = StringIO()
-        twill.set_output(self.outp)
+class TestLoggerNoLogView(BaseADIFTestCase):
+    def setUpConfig(self):
+        fred_webadmin.config.auth_method = 'CORBA'
+        fred_webadmin.config.audit_log['viewing_actions_enabled'] = False
 
+    def setUp(self):
+        self.setUpConfig()
+        BaseADIFTestCase.setUp(self)
         # Corba objects requested from server at login time.
         self.corba_objs_created_at_login = (
-            ("Admin", self.admin_mock), ("Logger", logger.DummyLogger()), 
-            ("Mailer", None), ("FileManager", None))
+            ("Admin", self.admin_mock), ("Mailer", None), 
+            ("FileManager", None))
 
-
-    def tearDown(self):
-        base.DaphneTestCase.tearDown(self)
-        # Remove intercept.
-        twill.remove_wsgi_intercept('localhost', 8080)
-        # Stop the server.
-        cherrypy.server.stop()
-
-    def mock_create_logger(self):
-        return logger.DummyLogger()
-
-    """def test_logger_hidden_when_log_view_is_disabled_in_config(self):
-        fred_webadmin.config.auth_method = 'CORBA'
+    def test_logger_hidden_when_log_view_is_disabled_in_config(self):
         # Replace fred_webadmin.controller.adif.auth module with CORBA
         # module.
         self.monkey_patch(
             fred_webadmin.controller.adif, 'auth', corba_auth)
         self.monkey_patch(
-            fred_webadmin.controller.adif.ADIF, '_create_session_logger',
-            self.mock_create_logger)
+            fred_webadmin.controller.adif, 'SessionLogger',
+            fred_webadmin.logger.dummylogger.DummyLogger)
+        self.monkey_patch(
+            fred_webadmin.controller.adif, 'SessionLoggerFailSilent',
+            fred_webadmin.logger.dummylogger.DummyLogger)
         self.monkey_patch(
             fred_webadmin.controller.adif, 'auth', corba_auth)
         self.corba_conn_mock.connect("localhost_test", "fredtest")
@@ -702,8 +651,6 @@ class TestLogger(base.DaphneTestCase):
         self.corba_session_mock.getUser().AndReturn(self.corba_user_mock)
         self.corba_session_mock.setHistory(False)
 
-        self.admin_mock.getSession("sss")
-
         self.corba_mock.ReplayAll()
 
         twill.commands.go("http://localhost:8080/login")
@@ -713,4 +660,14 @@ class TestLogger(base.DaphneTestCase):
         twill.commands.fv(1, "corba_server", "0")
         twill.commands.submit()
 
-        twill.commands.go("http://localhost:8080/logger")"""
+        twill.commands.go("http://localhost:8080/logger")
+        twill.commands.url("http://localhost:8080/logger")
+        # Test that the page has not been found.
+        twill.commands.code(404)
+
+        self.corba_mock.VerifyAll()
+
+
+class TestLoggerLogView(TestLoggerNoLogView):
+   pass 
+    
