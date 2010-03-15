@@ -13,6 +13,7 @@ from logging import debug, error
 
 from cgi import escape
 
+import CosNaming
 import omniORB
 from omniORB import CORBA
 
@@ -41,7 +42,7 @@ import fred_webadmin.corbarecoder as recoder
 import fred_webadmin.utils as utils
 
 from fred_webadmin.logger.sessionlogger import (
-    SessionLogger, SessionLoggerFailSilent)
+    SessionLogger, SessionLoggerFailSilent, LoggingException)
 from fred_webadmin.logger.dummylogger import DummyLogger
 
 from fred_webadmin.controller.listtable import ListTableMixin
@@ -262,14 +263,22 @@ class ADIF(AdifPage):
         else:
             # Add corba logger to the cherrypy session object, so that
             # it can be found by CorbaLazyRequest.
-            corba_logd = corba_obj.getObject("Logger", "Logger")
-            cherrypy.session['corba_logd'] = corba_logd
-            if config.audit_log['force_critical_logging']:
-                # Logging must work => raise exceptions on error.
-                logger = SessionLogger(dao=corba_logd)
+            try:
+                corba_logd = corba_obj.getObject("Logger", "Logger")
+            except CosNaming.NamingContext.NotFound:
+                if config.audit_log['force_critical_logging']:
+                    raise
+                else:
+                    logger = DummyLogger()
+                    cherrypy.tree.apps[''].root.logger = LoggerDisabled()
             else:
-                # Non-critical logging => ignore logging errors.
-                logger = SessionLoggerFailSilent(dao=corba_logd)
+                cherrypy.session['corba_logd'] = corba_logd
+                if config.audit_log['force_critical_logging']:
+                    # Logging must work => raise exceptions on error.
+                    logger = SessionLogger(dao=corba_logd)
+                else:
+                    # Non-critical logging => ignore logging errors.
+                    logger = SessionLoggerFailSilent(dao=corba_logd)
         return logger
 
     def _handle_double_login(self):
@@ -293,8 +302,14 @@ class ADIF(AdifPage):
         try:
             log_req = None
             self._corba_connect(corba_server)
-            
-            logger = self._create_session_logger()
+            try:
+                logger = self._create_session_logger()
+            except CosNaming.NamingContext.NotFound:
+                if config.audit_log['force_critical_logging']:
+                    raise
+                else:
+                    logger = DummyLogger()
+#                    cherrypy.tree.apps
             try:
                 logger.start_session("en", login)
             except omniORB.CORBA.SystemException:
@@ -409,10 +424,18 @@ class ADIF(AdifPage):
                 debug('Admin.destroySession call failed, backend server '
                       'is not running.\n%s' % e)
         if cherrypy.session.get('Logger'):
-            req = cherrypy.session['Logger'].create_request(
-                cherrypy.request.remote.ip, cherrypy.request.body, "Logout")
-            req.commit("") 
-            cherrypy.session['Logger'].close_session()
+            try:
+                req = cherrypy.session['Logger'].create_request(
+                    cherrypy.request.remote.ip, cherrypy.request.body, "Logout")
+                req.commit("") 
+                cherrypy.session['Logger'].close_session()
+            except (omniORB.CORBA.SystemException,
+                LoggingException):
+                # Let the user logout even when logging is critical (otherwise
+                # they're stuck in Daphne and they have to manually delete the
+                # session).
+                error("Failed to log logout action!")
+                pass
         self.remove_session_data()
         raise cherrypy.HTTPRedirect('/')
 
@@ -455,7 +478,7 @@ class LoggerDisabled(Logger):
     def index(self):
         context = DictLookup()
         context.main = p(
-            "Logging disabled (could not connect to CORBA logd).") 
+            "Logging has been disabled, Daphne could not connect to CORBA logd.") 
         return self._render('base', ctx=context)
 
 

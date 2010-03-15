@@ -257,10 +257,7 @@ class ListTableMixin(object):
                 except omniORB.CORBA.SystemException, e:
                     log_req.commit("")
                     import traceback
-                    msg = ("Uh oh. We apologize, but the backend for %s " 
-                        "filter seems not to be working. Please check " 
-                        "that logd is running and then log out and log in " 
-                        "again." % self.classname)
+                    msg = msg_server_unavailable % self.classname
                     if config.debug:
                         # Append traceback.
                         raise CustomView(self._render(
