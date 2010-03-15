@@ -620,6 +620,8 @@ class TestLoggerNoLogView(BaseADIFTestCase):
     def setUpConfig(self):
         fred_webadmin.config.auth_method = 'CORBA'
         fred_webadmin.config.audit_log['viewing_actions_enabled'] = False
+        fred_webadmin.config.audit_log['logging_actions_enabled'] = False
+        fred_webadmin.config.audit_log['force_critical_logging'] = False
 
     def setUp(self):
         self.setUpConfig()
@@ -668,6 +670,8 @@ class TestLoggerNoLogView(BaseADIFTestCase):
         self.corba_mock.VerifyAll()
 
 
-class TestLoggerLogView(TestLoggerNoLogView):
-   pass 
+class TestLoggerLogView(BaseADIFTestCase):
+    def setUpConfig(self):
+        fred_webadmin.config.auth_method = 'CORBA'
+        fred_webadmin.config.audit_log['viewing_actions_enabled'] = True
     
