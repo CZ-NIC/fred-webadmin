@@ -13,6 +13,7 @@ from logging import debug
 import sys
 from corbarecoder import DaphneCorbaRecode
 import fred_webadmin.corbarecoder as recoder
+from fred_webadmin.corba import ccReg
 
 class ServerNotAvailableError(Exception):
     """ CORBA server could not be connected to. 
@@ -39,7 +40,8 @@ class CorbaLazyRequest(object):
             corba_func = getattr(corba_object, self.function_name)
             try:
                 data = recoder.c2u(corba_func(*self.c_args, **self.c_kwargs))
-            except omniORB.CORBA.SystemException, e:
+            except (omniORB.CORBA.SystemException,
+                ccReg.Admin.ServiceUnavailable), e:
                 raise ServerNotAvailableError(e)
             self.data = self._convert_data(data)
         
