@@ -275,7 +275,7 @@ class ADIF(AdifPage):
                     raise
                 else:
                     logger = DummyLogger()
-                    self._remove_logger_from_apps()
+#                    self._remove_logger_from_apps()
             else:
                 cherrypy.session['corba_logd'] = corba_logd
                 if config.audit_log['force_critical_logging']:
