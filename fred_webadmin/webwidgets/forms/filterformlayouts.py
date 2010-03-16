@@ -17,7 +17,6 @@ from fred_webadmin.webwidgets.utils import SortedDict
 from fred_webadmin.webwidgets.utils import escape_js_literal
 from formlayouts import TableFormLayout
 
-#FIELD_COUNTER_VALUE = 'FIELD_COUNTER_VALUE'
 REPLACE_ME_WITH_LABEL = 'REPLACE_ME_WITH_LABEL'
 REPLACE_ME_WITH_EMPTY_FORM = 'REPLACE_ME_WITH_EMPTY_FORM'
 
@@ -36,22 +35,12 @@ class UnionFilterFormLayout(TableFormLayout):
         
     def create_layout(self):
         self.add(tbody(tagid('tbody')))
-        
         form_count = len(self.form.forms)
         for i, inner_form in enumerate(self.form.forms):
             if i > 0 and i < form_count:
                 self.tbody.add(tr(attr(cssc='or_row'), self.build_or_row()))
             self.tbody.add(tr(td(inner_form)))
-#        self.tbody.add(tr(#attr(cssc='filtertable_row'),
-#                    td(attr(cssc='add_or_cell'),
-#                       strong('OR'),
-#                       a(attr(cssc='pointer_cursor', onclick='addOrForm(this)'), 
-#                         img(src='/img/icons/green_plus.gif')))
-#                   )
-#                )
         self.tbody.add(self.get_submit_row())
-        #self.add(script(attr(type='text/javascript'), 'Ext.onReady(function () {addFieldsButtons()})')) 
-
         self.tbody.add(script(attr(type='text/javascript'), noesc(self.union_form_js())))
         debug('After create unionlayout')
             
@@ -63,9 +52,8 @@ class UnionFilterFormLayout(TableFormLayout):
         
         output += u'function buildForm() {\n'
         output += u"var row = '<td>';\n"
-        output += u"row += getEmpty%s();\n" % self.form.form_class.__name__  # % unicode(self.form.form_class()).replace('\n', '\\n\\\n')
+        output += u"row += getEmpty%s();\n" % self.form.form_class.__name__
         output += u"row += '</td>';\n"
-#        output += u"var row = '<td>ahoj</td>';\n"
         output += u'return row;\n'
         output += u'}\n\n'
         
@@ -73,8 +61,6 @@ class UnionFilterFormLayout(TableFormLayout):
         return output
             
     def build_or_row(self):
-        #return tr(attr(cssc='or_row'), td(attr(colspan=self.columns_count), 'OR'))
-        #return td(attr(cssc='or_cell', colspan=self.columns_count), 'OR')
         return td(attr(cssc='or_cell', colspan=self.columns_count), input(attr(type="button", value="OR-", onclick="removeOr(this)", style="float: left;")), div(attr(style="padding-top: 0.3em"), 'OR'))
             
     def get_submit_row(self, hidden_fields=None):
@@ -82,7 +68,6 @@ class UnionFilterFormLayout(TableFormLayout):
         save_input = input(attr(id='save_input', type="text", name="save_input", value=_('name'), disabled='disabled', style="float: left; margin-left: 0.4em; display:none;"))
         save_button = input(attr(type="button", value="Save", onclick="saveUnionForm(this)", style="float: left; margin-left: 0.4em"))
         submit_button = input(attr(type=u'button', value=u'OK', onclick='sendUnionForm(this)', style="float: right;"))
-#        submit_button = input(attr(type=u'submit', value=u'OK', style="float: right;"))
         return tr(attr(cssc='submit_row'), 
                   td(or_plus_button, save_input, save_button, hidden_fields, submit_button),
                  )
@@ -101,13 +86,14 @@ class FilterTableFormLayout(TableFormLayout):
         form = self.form
         self.add(tbody(tagid('tbody')))
 
-        # following block creates self.all_fields, self.errors and non_field_errors from fields and their forms (if they are compound fields) recursively
-        # (obtaining linear structure from tree structure)
+        # Following block creates self.all_fields, self.errors and 
+        # non_field_errors from fields and their forms (if they are 
+        # compound fields) recursively (obtaining linear structure 
+        # from tree structure).
         non_field_errors = []
         open_nodes = [[[], [], self.form]] # [names, labels, form or field], it is stack (depth-first-search) 
         
         while open_nodes:
-#            import pdb; pdb.set_trace()
             names, labels, tmp_node = open_nodes.pop()
             
             #add errors from this tmp_node - for fields using composed name and join all non_field_errors together
@@ -133,9 +119,10 @@ class FilterTableFormLayout(TableFormLayout):
         if non_field_errors:
             self.tbody.add(tr(td(attr(colspan=self.columns_count), 'Errors:', form.non_field_errors())))
         
-        self.tbody.add(tr(attr(cssc='filtertable_header'), 
-                          th(attr(colspan='2'), _(self.form.__class__.__name__[:-len('FilterForm')] + 's')), 
-                          th(div(attr(cssc='for_fields_button extjs')))))
+        self.tbody.add(tr(
+            attr(cssc='filtertable_header'), th(attr(colspan='2'),
+            self.form._get_header_title()),
+            th(div(attr(cssc='for_fields_button extjs')))))
 
         for composed_name, field in self.all_fields:
             errors = self.all_errors.get(composed_name, None)
@@ -153,9 +140,13 @@ class FilterTableFormLayout(TableFormLayout):
         
         negation_field = BooleanField('negation|' + field.name, field.negation)
         if for_javascript:
-            presention_field = HiddenField('presention|' + field.name, 'on') # needed for detecting presention of fields as checkboxes and multiple selects, because they do not send data if nonchecket or selected no option
+            # Needed for detecting presence of fields such as checkboxes 
+            # and multiple selects, because they do not send data if they 
+            # are not checked or no option is selected.
+            presention_field = HiddenField('presention|' + field.name, 'on') 
         else: 
-            presention_field = HiddenField('presention|' + field.name, '%03d' % self.field_counter) # needed for detecting presention of fileds as checkboxes and multiple selects, because they do not send data if nonchecket or selected no option 
+            # Dtto.
+            presention_field = HiddenField('presention|' + field.name, '%03d' % self.field_counter) 
             self.field_counter += 1
 
         if not isinstance(field,  CompoundFilterField):

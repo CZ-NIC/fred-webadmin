@@ -133,6 +133,9 @@ class FilterForm(Form):
         self.data_cleaned = data_cleaned
         super(FilterForm, self).__init__(data, files, auto_id, prefix, initial, error_class, label_suffix, layout_class, *content, **kwd)
         self.tag = None
+
+    def _get_header_title(self):
+        return _(self.__class__.__name__[:-len('FilterForm')] + 's')
     
     def filter_base_fields(self):
         super(FilterForm, self).filter_base_fields()
@@ -331,6 +334,9 @@ class PropertyFilterForm(FilterForm):
 
 
 class LoggerFilterForm(FilterForm):
+    def _get_header_title(self):
+        return _("Logged Actions")
+
     default_fields_names = ['Service']
 
     Service = IntegerChoiceField(label=_('Service type'), choices=[
@@ -350,6 +356,9 @@ class LoggerFilterForm(FilterForm):
 
 
 class BankStatementFilterForm(FilterForm):
+    def _get_header_title(self):
+        return _("Payments")
+
     default_fields_names = ['Type']
     
     Type = CorbaEnumChoiceField(label=_('Type'), 
