@@ -317,7 +317,8 @@ class ADIF(AdifPage):
                     logger = DummyLogger()
             try:
                 logger.start_session("en", login)
-            except omniORB.CORBA.SystemException:
+            except (omniORB.CORBA.SystemException,
+                ccReg.Admin.ServiceUnavailable):
                 if config.audit_log['force_critical_logging']:
                     raise
                 # Hide everything in the app that related to logging 
@@ -434,7 +435,8 @@ class ADIF(AdifPage):
                     cherrypy.request.remote.ip, cherrypy.request.body, "Logout")
                 req.commit("") 
                 cherrypy.session['Logger'].close_session()
-            except (omniORB.CORBA.SystemException,
+            except (omniORB.CORBA.SystemException, 
+                ccReg.Admin.ServiceUnavailable,
                 LoggingException):
                 # Let the user logout even when logging is critical (otherwise
                 # they're stuck in Daphne and they have to manually delete the

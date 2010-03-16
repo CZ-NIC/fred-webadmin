@@ -200,7 +200,8 @@ class ListTableMixin(object):
         if kwd.get('txt') or kwd.get('csv'):
             try:
                 res = self._get_list(context, **kwd)
-            except omniORB.CORBA.SystemException:
+            except (omniORB.CORBA.SystemException,
+                ccReg.Admin.ServiceUnavailable):
                 context['main'] = _(msg_server_unavailable % self.classname)
                 raise CustomView(self._render('base', ctx=context))
             finally:
@@ -212,7 +213,8 @@ class ListTableMixin(object):
                 # clear filter - whole list of objects without using filter form
             try:
                 context = self._get_list(context, **kwd)
-            except omniORB.CORBA.SystemException:
+            except (omniORB.CORBA.SystemException,
+                ccReg.Admin.ServiceUnavailable):
                 context['main'] = _(msg_server_unavailable % self.classname)
                 raise CustomView(self._render('base', ctx=context))
             finally:
@@ -254,7 +256,8 @@ class ListTableMixin(object):
                     # onto it without showing the table. Close the log_request 
                     # here and let the redirect happen.
                     raise
-                except omniORB.CORBA.SystemException, e:
+                except (omniORB.CORBA.SystemException, 
+                    ccReg.Admin.ServiceUnavailable), e:
                     log_req.commit("")
                     import traceback
                     msg = msg_server_unavailable % self.classname
@@ -358,6 +361,6 @@ class ListTableMixin(object):
         except (ccReg.Admin.ObjectNotFound,):
             context['main'] = _("Object_not_found")
             raise CustomView(self._render('base', ctx=context))
-        except omniORB.CORBA.SystemException:
+        except (omniORB.CORBA.SystemException, ccReg.Admin.ServiceUnavailable):
             context['main'] = _(msg_server_unavailable % self.classname)
             raise CustomView(self._render('base', ctx=context))
