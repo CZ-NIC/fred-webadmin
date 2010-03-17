@@ -332,6 +332,7 @@ class ListTableMixin(object):
     
     def _get_filterform_class(self):
         form_name = f_name_filterformname[self.classname]
+#        import ipdb; ipdb.set_trace()
         form_class = getattr(sys.modules[self.__module__], form_name, None)
         if not form_class:
             raise RuntimeError('No such formclass in modules "%s"' % form_name)

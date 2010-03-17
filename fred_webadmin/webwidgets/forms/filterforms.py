@@ -445,7 +445,7 @@ class MailFilterForm(FilterForm):
         label=_('Attachment'), form_class=FileFilterForm)
 
       
-form_classes = (DomainFilterForm, 
+form_classes = [DomainFilterForm, 
                 NSSetFilterForm, 
                 KeySetFilterForm,                 
                 ObjectFilterForm, 
@@ -461,15 +461,15 @@ form_classes = (DomainFilterForm,
                 LoggerFilterForm,
                 BankStatementFilterForm,
                 PropertyFilterForm,
-               )
+               ]
 
-def get_filter_forms_javascript():
+def get_filter_forms_javascript(filter_form_classes):
     """ Javascript is cached in user session (must be there, beucause each user 
         can have other forms, because of different permissions. 
     """
     output = u''
     all_fields_dict = {}
-    for form_class in form_classes: 
+    for form_class in filter_form_classes: 
         form = form_class()
         # Function for generating field of form
         try:

@@ -10,8 +10,8 @@ import time
 import traceback
 
 from logging import debug, error
-
 from cgi import escape
+from copy import copy
 
 import CosNaming
 import omniORB
@@ -79,9 +79,11 @@ from fred_webadmin.webwidgets.forms.adifforms import LoginForm
 # Must be imported because of template magic stuff. I think.
 from fred_webadmin.webwidgets.forms.editforms import (RegistrarEditForm,
     BankStatementPairingEditForm)
+
+import fred_webadmin.webwidgets.forms.filterforms as filterforms
 from fred_webadmin.webwidgets.forms.filterforms import *
-from fred_webadmin.webwidgets.forms.filterforms import (
-    get_filter_forms_javascript)
+#from fred_webadmin.webwidgets.forms.filterforms import (
+#    get_filter_forms_javascript)
 
 from fred_webadmin.utils import json_response
 
@@ -198,7 +200,6 @@ class AdifPage(Page):
         return result
 
     def default(self, *params, **kwd):
-        #raise cherrypy.HTTPRedirect('/%s' % (self.classname))
         if config.debug:
             return '%s<br/>%s' % (str(kwd), str(params))
         else:
@@ -213,6 +214,8 @@ class AdifPage(Page):
         cherrypy.session['Mailer'] = None
         cherrypy.session['FileManager'] = None
         cherrypy.session['filter_forms_javascript'] = None
+        cherrypy.session['corba_logd'] = None
+        cherrypy.session['filterforms'] = None
         
 
 class ADIF(AdifPage):
@@ -237,7 +240,8 @@ class ADIF(AdifPage):
                             raise cherrypy.HTTPRedirect("", 304)
                     cherrypy.response.headers['Last-Modified'] = http.HTTPDate(time.time())
                 
-                result = get_filter_forms_javascript()
+                result = filterforms.get_filter_forms_javascript(
+                    cherrypy.session['filterforms'])
                 cherrypy.session['filter_forms_javascript'] = result 
                 return result
             elif args[0] == 'set_history':
@@ -262,27 +266,30 @@ class ADIF(AdifPage):
                 silently without exceptions).
         """
         if not config.audit_log['logging_actions_enabled']:
-            # DummyLogger provides the interface, but does
-            # not log anything.
+            # We have to provide an object with the correct interface.
             logger = DummyLogger()
         else:
-            # Add corba logger to the cherrypy session object, so that
-            # it can be found by CorbaLazyRequest.
             try:
                 corba_logd = corba_obj.getObject("Logger", "Logger")
             except CosNaming.NamingContext.NotFound:
                 if config.audit_log['force_critical_logging']:
                     raise
-                else:
-                    logger = DummyLogger()
-#                    self._remove_logger_from_apps()
+                log_filter_form = filterforms.LoggerFilterForm 
+                if log_filter_form in cherrypy.session['filterforms']:
+                    # No connection to logd server => remove 
+                    # LoggerFilterForm from filterforms.
+                    cherrypy.session['filterforms'].remove(log_filter_form)
+                self._remove_logger_from_apps()
+                logger = DummyLogger()
             else:
+                # CorbaLazyRequest needs to have the CORBA logd object in
+                # cherrypy.session
                 cherrypy.session['corba_logd'] = corba_logd
                 if config.audit_log['force_critical_logging']:
-                    # Logging must work => raise exceptions on error.
+                    # Logger raises exceptions on error.
                     logger = SessionLogger(dao=corba_logd)
                 else:
-                    # Non-critical logging => ignore logging errors.
+                    # Logger ignores logging errors.
                     logger = SessionLoggerFailSilent(dao=corba_logd)
         return logger
 
@@ -304,28 +311,19 @@ class ADIF(AdifPage):
         login = form.cleaned_data.get('login', '')
         password = form.cleaned_data.get('password', '')
         corba_server = int(form.cleaned_data.get('corba_server', 0))
-
+        cherrypy.session['filterforms'] = copy(filterforms.form_classes)
+        
         try:
             log_req = None
             self._corba_connect(corba_server)
-            try:
-                logger = self._create_session_logger()
-            except CosNaming.NamingContext.NotFound:
-                if config.audit_log['force_critical_logging']:
-                    raise
-                else:
-                    logger = DummyLogger()
+            logger = self._create_session_logger()
             try:
                 logger.start_session("en", login)
             except (omniORB.CORBA.SystemException,
                 ccReg.Admin.ServiceUnavailable):
                 if config.audit_log['force_critical_logging']:
                     raise
-                # Hide everything in the app that related to logging 
-                # (it cannot be used, there is no data source).
-                # TODO(tom): Why is there '' here?
                 logger = DummyLogger()
-
             cherrypy.session['Logger'] = logger
             log_req = logger.create_request(
                 cherrypy.request.remote.ip, cherrypy.request.body, "Login")
@@ -472,7 +470,14 @@ class LoggerDisabled(Logger):
         item is not enough (the user could still use the logger URL).
 
         TODO: Perhaps we should rather hide the logger menu item and delete 
-        the logger item from the app tree."""
+        the logger item from the app tree.
+    """
+    def __init__(self, *args, **kwargs):
+        Logger.__init__(self, *args, **kwargs)
+
+    def _get_menu_handle(self, action):
+        return "logger"
+        
     def filter(self, *args, **kwd):
         return self.index()
 

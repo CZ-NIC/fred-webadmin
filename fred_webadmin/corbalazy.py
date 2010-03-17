@@ -32,8 +32,9 @@ class CorbaLazyRequest(object):
         return data
     
     def _get_data(self):
-        ''' Get data from CORBA and cache it to self.data, next call is ignored,
-            because data are already cached.  '''
+        """ Get data from CORBA and cache it to self.data, next call is ignored,
+            because data are already cached.
+        """
         if self.data is None:
             debug('CorbaLazyRequest getting data')
             corba_object = cherrypy.session.get(self.object_name)
