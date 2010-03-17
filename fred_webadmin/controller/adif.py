@@ -252,10 +252,10 @@ class ADIF(AdifPage):
                 return json_response(new_history)
         return super(ADIF, self).default(*args, **kwd)
 
-    def _remove_logger_from_apps(self):
+    def _replace_logger_page(self, logger_page_class):
         """ Remove logger from cherrypy apps tree.
         """
-        cherrypy.tree.apps[''].root.logger = LoggerDisabled()
+        cherrypy.tree.apps[''].root.logger = logger_page_class()
         
     def _create_session_logger(self):
         """ Creates logger object to send log requests to the server.
@@ -279,9 +279,10 @@ class ADIF(AdifPage):
                     # No connection to logd server => remove 
                     # LoggerFilterForm from filterforms.
                     cherrypy.session['filterforms'].remove(log_filter_form)
-                self._remove_logger_from_apps()
+                self._replace_logger_page(LoggerDisabled)
                 logger = DummyLogger()
             else:
+                self._replace_logger_page(Logger)
                 # CorbaLazyRequest needs to have the CORBA logd object in
                 # cherrypy.session
                 cherrypy.session['corba_logd'] = corba_logd
