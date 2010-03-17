@@ -148,6 +148,8 @@ registrars_node = MenuNode(
                 nperm='read.payment')])
 
 log_submenu = []
+
+# Leave logger out, if we do not want to view log actions.
 if config.audit_log['viewing_actions_enabled']:
     log_submenu.append(
         MenuNode(
@@ -166,27 +168,6 @@ log_submenu.extend(
             'mail', _('Emails'), cssc='menu-item', 
             url=f_urls['mail'] + 'allfilters/', nperm='read.email')])
 
-# This is just a deliberately complex but staggeringly pythonic way to say 
-# that if we disable viewing the log screen in config, we also want to hide 
-# it in the menu. :-)
-"""log_submenu = [
-    [],
-    [MenuNode(
-        'logger', _('Logs'), cssc='menu-item', 
-        url=f_urls['logger'] + 'allfilters/', nperm='read.logger')]
-][config.audit_log['viewing_actions_enabled']] + \
-[
-    MenuNode(
-        'action', _('Actions'), cssc='menu-item', 
-        url=f_urls['action'] + 'allfilters/', nperm='read.action'),
-    MenuNode(
-        'publicrequest', _('PublicRequests'), cssc='menu-item', 
-        url=f_urls['publicrequest'] + 'allfilters/', 
-        nperm='read.publicrequest'),
-    MenuNode(
-        'mail', _('Emails'), cssc='menu-item', 
-        url=f_urls['mail'] + 'allfilters/', nperm='read.email')
-]"""
 
 logs_node = MenuNode(
         'logs', _('Logs'), 'body-logs', 'menu-item menu-logs', 

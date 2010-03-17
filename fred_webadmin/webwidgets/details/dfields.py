@@ -983,17 +983,20 @@ class DiscloseCharNHDField(NHDField):
             action_id = rec_list[0][1].actionId
             _from = rec_list[0][1]._from
             
+            # Do not add subclasses of Null (they represent empty fields).
             to_dict = dict(
                 [(hist_num, rec.to) for 
                     hist_num, rec in rec_list if 
-                        rec.to])
+                        rec.to and not isinstance(rec.to, fredtypes.Null)])
             for hist_num in (0, 1):
                 if not to_dict.has_key(hist_num):
                     to_dict[hist_num] = last_hist_tos[hist_num]
-                if to_dict[hist_num] is None: # remove None
+                if to_dict[hist_num] is None or \
+                    isinstance(to_dict[hist_num], fredtypes.Null): # remove None
                     to_dict.pop(hist_num)
-            if to_dict:
-                to = min(to_dict.values()) #recoder.datetime_to_corba(min(to_dict.values()))
+            all_are_null = all(isinstance(i.fredtypes.Null) for i in to_dict)
+            if to_dict and not all_are_null:
+                to = min(to_dict.values())
             else: # all are NULL dates, take one of them
                 to = rec_list[0][1].to
             new_rec = Registry.HistoryRecord(_from=_from, to=to, value=value, actionId = action_id)

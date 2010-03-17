@@ -49,6 +49,12 @@ class Null(Singleton):
     def __ne__(self, obj):
         return not self.__eq__(obj)
 
+    def __cmp__(self, obj):
+        if self.__eq__(obj):
+            return 0
+        else:
+            return -1
+
 
 class NullDate(Null):
     pass
