@@ -1,3 +1,11 @@
+2010-03-17 Tomas Brambora (3.3.3)
+    * Fixed bugs related to CORBA logd not available in omninames service /
+      logd server not running / logd server crashing.
+    * Renamed BankStatements filter header to Payments.
+    * Fixed a bug, where KeySetDetail crashed sometimes when history was on.
+    * Fixed a bug, where we were hiding the whole log menu when CORBA logd was
+      not available.
+
 2010-03-05 Tomas Brambora (3.3.2)
     * Choosing LDAP as auth method caused Daphne to crash at startup. Fixed.
 
