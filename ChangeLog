@@ -1,3 +1,7 @@
+2010-03-19 Jiri Sadek (3.3.4)
+
+    * import order fix (CosNaming, omniORB)
+
 2010-03-17 Tomas Brambora (3.3.3)
     * Fixed bugs related to CORBA logd not available in omninames service /
       logd server not running / logd server crashing.

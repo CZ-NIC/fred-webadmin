@@ -13,9 +13,9 @@ from logging import debug, error
 from cgi import escape
 from copy import copy
 
-import CosNaming
 import omniORB
 from omniORB import CORBA
+import CosNaming
 
 # DNS lib imports
 import dns.message
