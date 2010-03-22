@@ -96,7 +96,8 @@ class FilterTableFormLayout(TableFormLayout):
         while open_nodes:
             names, labels, tmp_node = open_nodes.pop()
             
-            #add errors from this tmp_node - for fields using composed name and join all non_field_errors together
+            # Add errors from this tmp_node - for fields using composed name 
+            # and join all non_field_errors together.
             if isinstance(tmp_node, filterforms.FilterForm):
                 if tmp_node.is_bound:
                     non_field_errors.extend(tmp_node.non_field_errors())
@@ -105,11 +106,14 @@ class FilterTableFormLayout(TableFormLayout):
                             continue
                         self.all_errors['-'.join(names + [error_name])] = error
             
-                for field in reversed(tmp_node.fields.values()): # 'reversed': because order in stack will be reversed, so to companzate it
+                # 'reversed': compensation for the reverse order onstack 
+                for field in reversed(tmp_node.fields.values()): 
                     if not isinstance(field,  CompoundFilterField):
                         open_nodes.append([names, labels, field])
                     else:
-                        open_nodes.append([names + [field.name], labels + [field.label], field.form])
+                        open_nodes.append([
+                            names + [field.name], 
+                            labels + [field.label], field.form])
             else:
                 filter_name = tmp_node.name
                 composed_name = '-'.join(names + [filter_name])
@@ -117,7 +121,9 @@ class FilterTableFormLayout(TableFormLayout):
                 self.all_fields.append([composed_name, tmp_node])
         
         if non_field_errors:
-            self.tbody.add(tr(td(attr(colspan=self.columns_count), 'Errors:', form.non_field_errors())))
+            self.tbody.add(tr(td(
+                attr(colspan=self.columns_count), 
+                'Errors:', form.non_field_errors())))
         
         self.tbody.add(tr(
             attr(cssc='filtertable_header'), th(attr(colspan='2'),
@@ -126,8 +132,12 @@ class FilterTableFormLayout(TableFormLayout):
 
         for composed_name, field in self.all_fields:
             errors = self.all_errors.get(composed_name, None)
-            self.tbody.add(tr(attr(cssc='field_row ' + composed_name), self.build_field_row(field, errors)))
-        self.add(script(attr(type='text/javascript'), 'filterObjectName = "%s"' % self.form.get_object_name())) # global javascript variable
+            self.tbody.add(tr(
+                attr(cssc='field_row ' + composed_name), 
+                self.build_field_row(field, errors)))
+        self.add(script(
+            attr(type='text/javascript'), 
+            'filterObjectName = "%s"' % self.form.get_object_name())) # global javascript variable
         self.tbody.add(self.build_fields_button())
         
     def build_field_row(self, field, errors = None, for_javascript=False):
@@ -150,10 +160,9 @@ class FilterTableFormLayout(TableFormLayout):
             self.field_counter += 1
 
         if not isinstance(field,  CompoundFilterField):
-            return notag(td(label_str),
-                         td(presention_field, errors, field),
-                         td(negation_field, 'NOT')
-                        )        
+            return notag(
+                td(label_str), td(presention_field, errors, field),
+                td(negation_field, 'NOT'))
             
     def build_fields_button(self): 
         pass

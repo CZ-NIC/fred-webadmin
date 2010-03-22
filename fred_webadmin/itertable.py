@@ -121,7 +121,6 @@ class IterTable(object):
         self._row_index = self.page_start
             
     def __len__(self):
-        debug("Itertable.LEN = %s" % self.page_rows)
         return self.page_rows
 
     def __getitem__(self, index):
@@ -213,11 +212,9 @@ class IterTable(object):
             rows.append(row)
             index += 1
         return rows
-    
 
     def get_absolute_row(self, index):
-        """
-            Returns the specified row.
+        """ Returns the specified row.
 
             Args:
                 index: index of the row.
@@ -236,11 +233,13 @@ class IterTable(object):
                 (index, traceback.format_exc()))
 
     def __iter__(self):
-        """ To make IterTable iterable. """
+        """ To make IterTable iterable. 
+        """
         return self.next()
 
     def next(self):
-        """ To make IterTable iterable. """
+        """ To make IterTable iterable.
+        """
         while self._row_index < (self.page_start + self.page_rows):
             row = self._get_row(self._row_index)
             self._row_index += 1
@@ -385,7 +384,9 @@ class FilterLoader(object):
                     elif isinstance(sub_filter, ccReg.Filters._objref_DateTime):
                         value = recoder.date_time_interval_to_corba(
                             val, recoder.datetime_to_corba)
-                    elif isinstance(sub_filter, (ccReg.Filters._objref_Int, ccReg.Filters._objref_Id)):
+                    elif isinstance(
+                        sub_filter, 
+                        (ccReg.Filters._objref_Int, ccReg.Filters._objref_Id)):
                         value = int(val)
                     else:
                         value = val
@@ -396,7 +397,8 @@ class FilterLoader(object):
     def get_filter_data(cls, itertable):
         filter_data = []
         for compound_filter in CorbaFilterIterator(itertable._table):
-            filter_data.append(cls._get_one_compound_filter_data(compound_filter))
+            filter_data.append(
+                cls._get_one_compound_filter_data(compound_filter))
         return filter_data
 
     @classmethod
@@ -428,9 +430,10 @@ class FilterLoader(object):
     
     @classmethod
     def all_fields_filled(cls, itertable):
-        ''' Return true when all fields are filled in (filter isActive of all fields is True
-            It ignores isActive() method in CompoundFilter and so recursively goes inside it. 
-        '''
+        """ Return true when all fields are filled in (filter isActive of all 
+            fields is True). It ignores isActive() method in CompoundFilter 
+            and so recursively goes inside it. 
+        """
         for compound_filter in CorbaFilterIterator(itertable._table):
             if not cls._one_compound_all_fields_filled(compound_filter):
                 return False
@@ -439,7 +442,7 @@ class FilterLoader(object):
     @classmethod
     def _one_compound_all_fields_filled(cls, compound_filter):
         for sub_filter in CorbaFilterIterator(compound_filter):
-            if isinstance(sub_filter, ccReg.Filters._objref_Compound):#Compound):
+            if isinstance(sub_filter, ccReg.Filters._objref_Compound):
                 if not cls._one_compound_all_fields_filled(sub_filter):
                     return False
             else:

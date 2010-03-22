@@ -361,8 +361,11 @@ class BankStatementFilterForm(FilterForm):
 
     default_fields_names = ['Type']
     
-    Type = CorbaEnumChoiceField(label=_('Type'), 
-                                corba_enum=ccReg.BankingInvoicing.OperationType)
+    Type = IntegerChoiceField(label=_('Type'), choices=[
+        (1, u'Not paired'), (2, u'From/to registrar'),
+        (3, u"From/to bank"), (4, u'Between our own accounts'), 
+        (4, u'Related to Academia'), (5, u'Other transfers')])
+
     AccountDate = DateTimeIntervalField(label=_('Account date'))
     
     AccountNumber = CharField(label=_('Account number'))
@@ -445,6 +448,8 @@ class MailFilterForm(FilterForm):
         label=_('Attachment'), form_class=FileFilterForm)
 
       
+# This has to be a list and not a tuple, because ADIF can remove e.g. logger
+# filter during login when logging is disabled.
 form_classes = [DomainFilterForm, 
                 NSSetFilterForm, 
                 KeySetFilterForm,                 
@@ -460,8 +465,7 @@ form_classes = [DomainFilterForm,
                 ObjectStateFilterForm,
                 LoggerFilterForm,
                 BankStatementFilterForm,
-                PropertyFilterForm,
-               ]
+                PropertyFilterForm]
 
 def get_filter_forms_javascript(filter_form_classes):
     """ Javascript is cached in user session (must be there, beucause each user 

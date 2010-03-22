@@ -593,15 +593,11 @@ class Registrar(AdifPage, ListTableMixin):
                     form, registrar, kwd.get('id'), context, log_request)
             else:
                 if config.debug:
-                    context['main'].add('Form is not valid! Errors: %s' % 
-                                         repr(form.errors))
+                    context['main'].add(
+                        'Form is not valid! Errors: %s' % repr(form.errors))
         else:
             form = form_class(method='post', initial=initial)
-            # Ticket #3530 not yet implemented (checking whether toDate is
-            # bigger than from Date).
-            # form = form_class(method='post', initial=initial, 
-            #    onsubmit="return checkToDate();") 
-        
+
         context['form'] = form
         return self._render('edit', context)
     
@@ -807,7 +803,8 @@ class Invoice(AdifPage, ListTableMixin):
 
 
 class BankStatement(AdifPage, ListTableMixin):
-    def _pair_payment_with_registrar(self, context, payment_id, registrar_handle):
+    def _pair_payment_with_registrar(self, context, payment_id, payment_type,
+            registrar_handle):
         """ Links the payment with registrar. """
         log_req = cherrypy.session['Logger'].create_request(
             cherrypy.request.remote.ip, cherrypy.request.body, "PaymentPair")
@@ -816,6 +813,7 @@ class BankStatement(AdifPage, ListTableMixin):
         invoicing = utils.get_corba_session().getBankingInvoicing()
         success = invoicing.pairPaymentRegistrarHandle(
             payment_id, recoder.u2c(registrar_handle))
+        success = success and invoicing.setPaymentType(payment_id, payment_type)
         if not success:
             log_req.update("result", "Could not pair payment")
         log_req.commit()
@@ -823,6 +821,9 @@ class BankStatement(AdifPage, ListTableMixin):
 
     @check_onperm('read')
     def detail(self, **kwd):
+        """ Detail for Payment. If the payment is not paired with any
+            Registrar, we display a pairing form too.
+        """
         context = {}
         # Indicator whether the pairing action has been carried out
         # successfully.
@@ -831,8 +832,7 @@ class BankStatement(AdifPage, ListTableMixin):
         log_req = cherrypy.session['Logger'].create_request(
             cherrypy.request.remote.ip, cherrypy.request.body, 
             f_name_actiondetailname[self.__class__.__name__.lower()])
-        
-        registrar_handle = kwd.get('handle')
+
         obj_id = kwd.get('id')
         try:
             obj_id = int(obj_id)
@@ -846,9 +846,19 @@ class BankStatement(AdifPage, ListTableMixin):
         # When the user sends the pairing form we arrive at BankStatement
         # detail again, but this time we receive registrar_handle in kwd
         # => pair the payment with the registrar.
-        if registrar_handle is not None and obj_id is not None:
+        if cherrypy.request.method == 'POST':
+            registrar_handle = kwd.get('handle', None)
+            payment_type = kwd.get('type', None)
+            try:
+                payment_type = int(payment_type)
+            except (TypeError, ValueError), e:
+                log_req.update("result", str(e))
+                log_req.commit()
+                context['main'] = _(
+                    "Requires integer as parameter (got %s)." % payment_type)
+                raise CustomView(self._render('base', ctx=context))
             pairing_success = self._pair_payment_with_registrar(
-                context, obj_id, registrar_handle)
+                context, obj_id, payment_type, registrar_handle)
 
         # Do not use cache - we want the updated BankStatementItem.
         detail = utils.get_detail(self.classname, obj_id, use_cache=False)
@@ -861,9 +871,10 @@ class BankStatement(AdifPage, ListTableMixin):
             initial={
                 'handle': kwd.get('handle', None),
                 'statementId': kwd.get('statementId', None),
+                'type': kwd.get('type', 2),
                 'id': obj_id},
             onsubmit='return confirmAction();')
-        if registrar_handle is not None and not pairing_success:
+        if cherrypy.request.method == 'POST' and not pairing_success:
             # Pairing form was submitted, but pairing did not finish
             # successfully => Show an error.
             context['form'].non_field_errors().append(
@@ -872,7 +883,8 @@ class BankStatement(AdifPage, ListTableMixin):
 
         log_req.commit("")
 
-        if detail.invoiceId != 0:
+        # type == 1 means "not paired".
+        if detail.type != 1:
             action = 'detail'
         else:
             # Payment not paired => show the payment pairing edit form
@@ -897,21 +909,18 @@ class BankStatement(AdifPage, ListTableMixin):
             error("TEMPLATE %s IN MODULE %s NOT FOUND, USING DEFAULT: BaseSiteMenu" % (template_name, sys.modules[self.__module__]))
             template = BaseSiteMenu 
         if not issubclass(template, WebWidget):
-            raise RuntimeError('%s is not derived from WebWidget - it cannot be template!' % repr(template))
+            raise RuntimeError(
+                "%s is not derived from WebWidget - it "
+                "cannot be a template!" % repr(template))
         return template
 
 
 class Filter(AdifPage, ListTableMixin):
     def _get_menu_handle(self, action):
         return 'summary'
-        if action in ('detail', 'filter'):
-            return 'summary'
-        else:
-            return super(Filter, self)._get_menu_handle(action)
 
    
 class Development(object):
-
     __metaclass__ = exposed.AdifPageMetaClass
 
     def __init__(self):

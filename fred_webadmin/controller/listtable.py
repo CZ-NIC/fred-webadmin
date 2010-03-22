@@ -35,6 +35,9 @@ msg_server_unavailable = ("Uh oh. We apologize, but the backend for %s "
     "again.")
 
 class ListTableMixin(object):
+    """ Implements common functionality for all the classes that support
+        filtering and detail displaying.
+    """
 
     __metaclass__ = exposed.AdifPageMetaClass
 
@@ -52,10 +55,12 @@ class ListTableMixin(object):
 
         return itertable
 
+#    def _set_filter(self table):
+        
+
     def _get_list(self, context, cleaned_filters=None, **kwd):
         table = self._get_itertable()
         show_result = True
-        
         try:
             page = int(kwd.get('page', 1))
         except (ValueError, TypeError):
@@ -70,7 +75,6 @@ class ListTableMixin(object):
             sort_dir = bool(int(kwd.get('sort_dir', 1)))
         except (ValueError, TypeError):
             sort_dir = True
-        
         
         if cleaned_filters is not None:
             table.set_filter(cleaned_filters)
@@ -89,6 +93,7 @@ class ListTableMixin(object):
                 show_result = False
             else: # normal setting filter
                 table.reload()
+
         if kwd.get('filter_id'): # load filter
             # Do not log filter load (Jara's decision - it would just clutter
             # the log output).
@@ -101,7 +106,6 @@ class ListTableMixin(object):
                     filter_data, data_cleaned=True, form_class=form_class)
             else:
                 table.reload()
-
                 
         if kwd.get('cf'):
             table.clear_filter()
@@ -148,7 +152,6 @@ class ListTableMixin(object):
             context['itertable'] = table
         return context
 
-   
     @check_onperm('read')
     def _filter_json_header(self):
         itertable = self._get_itertable()
