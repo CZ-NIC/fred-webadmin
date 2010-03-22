@@ -124,7 +124,7 @@ class BankStatementPairingEditForm(EditForm):
     type = IntegerChoiceField(label=_('Type'), choices=[
         (2, u'From/to registrar'),
         (3, u"From/to bank"), (4, u'Between our own accounts'), 
-        (4, u'Related to Academia'), (5, u'Other transfers')])
+        (5, u'Related to Academia'), (6, u'Other transfers')])
     id = HiddenIntegerField()
     
 form_classes = [AccessEditForm, RegistrarEditForm,

@@ -55,9 +55,6 @@ class ListTableMixin(object):
 
         return itertable
 
-#    def _set_filter(self table):
-        
-
     def _get_list(self, context, cleaned_filters=None, **kwd):
         table = self._get_itertable()
         show_result = True
