@@ -30,8 +30,8 @@ from fred_webadmin.corbalazy import ServerNotAvailableError
 
 
 msg_server_unavailable = ("Uh oh. We apologize, but the backend for %s "
-    "filter seems not to be working. Please check " 
-    "that logd is running and then log out and log in " 
+    "filter seems not to be working. Please check "
+    "that the appropriate server is running and then log out and log in "
     "again.")
 
 class ListTableMixin(object):

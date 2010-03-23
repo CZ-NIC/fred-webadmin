@@ -16,7 +16,8 @@ from fred_webadmin.webwidgets.forms.fields import (
 from fred_webadmin.webwidgets.forms.adiffields import (
     DateTimeIntervalField, CompoundFilterField, 
     CorbaEnumChoiceField, DateIntervalField)
-from fred_webadmin.webwidgets.forms.filterformlayouts import FilterTableFormLayout, UnionFilterFormLayout
+from fred_webadmin.webwidgets.forms.filterformlayouts import (
+    FilterTableFormLayout, UnionFilterFormLayout)
 from fred_webadmin.translation import _
 from fred_webadmin.webwidgets.utils import (
     SortedDict, ErrorDict, escape_js_literal)
