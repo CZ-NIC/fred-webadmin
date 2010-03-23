@@ -514,7 +514,7 @@ class TestBankStatement(BaseADIFTestCase):
                 CORBA.TypeCode("IDL:Registry/Banking/BankItem/Detail:1.0"),
                 Registry.Banking.BankItem.Detail(
                     id=16319L, statementId=5106L, accountNumber='756', 
-                    bankCodeId='2400', code=2, type=2, konstSym='598', 
+                    bankCodeId='2400', code=2, type=1, konstSym='598', 
                     varSymb='', specSymb='', price='1.62', 
                     accountEvid='07-14-2-756/2400', accountDate='31.07.2007',
                     accountMemo='Urok 07/2007', invoiceId=0L, 
@@ -534,10 +534,12 @@ class TestBankStatement(BaseADIFTestCase):
         self.corba_session_mock.getBankingInvoicing().AndReturn(invoicing_mock)
         invoicing_mock.pairPaymentRegistrarHandle(
             42, "test handle").AndReturn(True)
+        invoicing_mock.setPaymentType(42, 2).AndReturn(True)
         # Create a new bank statement detail with a non-zero invoiceId value 
         # to simulate successfull payment pairing.
         statement_after_pairing = self._fabricate_bank_statement_detail()
         statement_after_pairing.value().invoiceId = 11L
+        statement_after_pairing.value().type = 2
         self.corba_session_mock.getDetail(
             ccReg.FT_STATEMENTITEM, 42).AndReturn(statement_after_pairing)
 
@@ -545,14 +547,16 @@ class TestBankStatement(BaseADIFTestCase):
 
         # Go to the pairing form 
         twill.commands.go("http://localhost:8080/bankstatement/detail/?id=42")
-        twill.commands.showforms()
+        fs = twill.commands.showforms()
         twill.commands.fv(2, "handle", "test handle")
+        twill.commands.fv(2, "type", "2")
         twill.commands.submit()
 
         twill.commands.code(200)
         twill.commands.url("http://localhost:8080/bankstatement/detail/\?id=42")
         # Check that we display a link to the invoice after a successfull
         # payment.
+        twill.commands.code(200)
         twill.commands.find("""<a href="/invoice/detail/\?id=11">.*</a>""")
 
     def test_statementitem_detail_unknown_unempty_handle(self):
@@ -577,6 +581,7 @@ class TestBankStatement(BaseADIFTestCase):
         twill.commands.go("http://localhost:8080/bankstatement/detail/?id=42")
         twill.commands.showforms()
         twill.commands.fv(2, "handle", "test handle")
+        twill.commands.fv(2, "type", "2")
         twill.commands.submit()
 
         twill.commands.code(200)
@@ -607,6 +612,7 @@ class TestBankStatement(BaseADIFTestCase):
         twill.commands.go("http://localhost:8080/bankstatement/detail/?id=42")
         twill.commands.showforms()
         twill.commands.fv(2, "handle", "test handle")
+        twill.commands.fv(2, "type", "2")
         twill.commands.submit()
 
         twill.commands.code(200)

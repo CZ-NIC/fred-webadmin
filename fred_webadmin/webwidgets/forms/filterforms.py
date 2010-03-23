@@ -8,20 +8,26 @@ import cherrypy
 
 from logging import debug, error
 from fred_webadmin import config
-from forms import Form
-from fields import *
-from adiffields import *
-from filterformlayouts import FilterTableFormLayout, UnionFilterFormLayout
+from fred_webadmin.webwidgets.forms.forms import Form
+from fred_webadmin.webwidgets.utils import (
+    ErrorList, ValidationError)
+from fred_webadmin.webwidgets.forms.fields import (
+    CharField, ChoiceField, BooleanField, IntegerChoiceField, IntegerField) 
+from fred_webadmin.webwidgets.forms.adiffields import (
+    DateTimeIntervalField, CompoundFilterField, 
+    CorbaEnumChoiceField, DateIntervalField)
+from fred_webadmin.webwidgets.forms.filterformlayouts import FilterTableFormLayout, UnionFilterFormLayout
 from fred_webadmin.translation import _
-from fred_webadmin.webwidgets.utils import SortedDict, ErrorDict, escape_js_literal
+from fred_webadmin.webwidgets.utils import (
+    SortedDict, ErrorDict, escape_js_literal)
 from fred_webadmin.corbalazy import (
-    CorbaLazyRequest, CorbaLazyRequest1V2L, CorbaLazyRequestIterStruct, 
-    ServerNotAvailableError)
+    CorbaLazyRequestIterStruct, ServerNotAvailableError)
 from fred_webadmin.corba import ccReg
 from fred_webadmin.mappings import f_urls
 
 __all__ = ['UnionFilterForm', 'RegistrarFilterForm', 'ObjectStateFilterForm', 
-           'ObjectFilterForm', 'ContactFilterForm', 'NSSetFilterForm', 'KeySetFilterForm', 'DomainFilterForm', 
+           'ObjectFilterForm', 'ContactFilterForm', 'NSSetFilterForm',
+           'KeySetFilterForm', 'DomainFilterForm', 
            'ActionFilterForm', 'FilterFilterForm', 'PublicRequestFilterForm', 
            'InvoiceFilterForm', 'MailFilterForm', 'FileFilterForm',
            'LoggerFilterForm', 'BankStatementFilterForm', 'PropertyFilterForm',
@@ -36,15 +42,19 @@ class FilterFormEmptyValue(object):
 class UnionFilterForm(Form):
     ''' Form that contains more Filter Forms, data for this form is list of data
         for its Filter Forms. '''
-    def __init__(self, data=None, data_cleaned=False, initial=None, layout_class=UnionFilterFormLayout, form_class=None, *content, **kwd):
-        '''
-        Form containting CompoundFilterForms (class FilterForms), between them is logical OR.
-        Can be initilalize using data parametr data - normal form data, or if data_cleaned=True, then data parametr is considered
-        to be cleaned_data (used when loaded from corba backend)
-        ''' 
+    def __init__(self, data=None, data_cleaned=False, initial=None, 
+                 layout_class=UnionFilterFormLayout, form_class=None, 
+                 *content, **kwd):
+        """ Form containting CompoundFilterForms (class FilterForms), between 
+            them is logical OR. 
+            Can be initilalized using data parametr data - normal form data, or 
+            if data_cleaned=True, then data parametr is considered to be 
+            cleaned_data (used when loaded from corba backend).
+        """ 
         debug('CREATING UNIONFORM')
         if not form_class:
-            raise RuntimeError('You have to specify form_class for UnionFilterForm!')
+            raise RuntimeError(
+                "You have to specify form_class for UnionFilterForm!")
 
         if data:
             debug('data:%s' % data)
@@ -56,10 +66,10 @@ class UnionFilterForm(Form):
         self.form_class = form_class
         self.forms = []
         self.data_cleaned = data_cleaned
-        super(UnionFilterForm, self).__init__(data, initial=initial, layout_class=layout_class, *content, **kwd)
+        super(UnionFilterForm, self).__init__(
+            data, initial=initial, layout_class=layout_class, *content, **kwd)
         self.set_tattr(action = kwd.get('action') or self.get_default_url())
         self.media_files = ['/js/filtertable.js', 
-                            #'/js/MochiKit/MochiKit.js', 
                             '/js/scw.js', 
                             '/js/interval_fields.js', 
                             '/js/scwLanguages.js',
@@ -67,7 +77,8 @@ class UnionFilterForm(Form):
                             '/filter_forms_javascript.js',
                             '/js/check_filter_forms_javascript.js',
                            ]
-        self.onkeypress = 'if (event.keyCode == 13) {sendUnionForm(this);}' # submit on enter
+        # Submit on enter.
+        self.onkeypress = 'if (event.keyCode == 13) {sendUnionForm(this);}'
     
     def set_fields_values(self):
         if not self.is_bound: # if not bound, then create one empty dictionary
@@ -76,7 +87,8 @@ class UnionFilterForm(Form):
             for form_data in self.data:
                 debug('Creating form in unionu with data: %s' % form_data)
                 debug('a that data are data_cleaned=%s' % self.data_cleaned)
-                form = self.form_class(form_data, data_cleaned=self.data_cleaned)
+                form = self.form_class(
+                    form_data, data_cleaned=self.data_cleaned)
                 self.forms.append(form)
     
         
@@ -122,16 +134,19 @@ class FilterForm(Form):
     name_postfix = 'FilterForm'
     nperm_names = ['read']
     
-    def __init__(self, data=None, data_cleaned=False, files=None, auto_id='id_%s', prefix=None,
-                 initial=None, error_class=ErrorList, label_suffix=':', layout_class=FilterTableFormLayout,
-                     *content, **kwd):
+    def __init__(self, data=None, data_cleaned=False, files=None, 
+                 auto_id='id_%s', prefix=None, initial=None, 
+                 error_class=ErrorList, label_suffix=':', 
+                 layout_class=FilterTableFormLayout, *content, **kwd):
 
         for field in self.base_fields.values():
             field.required = False
             field.negation = False
         
         self.data_cleaned = data_cleaned
-        super(FilterForm, self).__init__(data, files, auto_id, prefix, initial, error_class, label_suffix, layout_class, *content, **kwd)
+        super(FilterForm, self).__init__(
+            data, files, auto_id, prefix, initial, error_class, label_suffix, 
+            layout_class, *content, **kwd)
         self.tag = None
 
     def _get_header_title(self):
@@ -143,26 +158,27 @@ class FilterForm(Form):
         if user is None:
             self.default_fields_names = []
         else:
-            self.default_fields_names = [field_name for field_name in self.default_fields_names if field_name in self.base_fields.keys()]
+            self.default_fields_names = [field_name for field_name in \
+                self.default_fields_names \
+                if field_name in self.base_fields.keys()]
             
     def set_fields_values(self):
         pass # setting values is done in build_fields()
     
     def build_fields(self):
-        '''
-        Creates self.fields from given data or set default field (if not is_bound)
-        Data for filter forms are in following format: list of dictionaries, 
-        where between each dictionary is OR. In dictionary, key is name of field and 
-        value is value of that field. If field is compound filter, then value is again
-        dictionary.
-        '''
-        base_fields = self.base_fields # self.fields are deepcopied from self.base_fields (in BaseForm) 
+        """ Creates self.fields from given data or set default field (if not 
+           is_bound).
+            Data for filter forms are in following format: list of dictionaries, 
+            where between each dictionary is OR. In dictionary, key is name of 
+            field and value is value of that field. If field is compound filter, 
+            then value is dictionary again.
+        """
+        # self.fields are deepcopied from self.base_fields (in BaseForm) 
+        base_fields = self.base_fields 
         self.fields = SortedDict()
         
         fields_for_sort = []  
         if self.is_bound:
-            debug('DATA %s' % self.data)
-            debug("SELF>data_cleaned %s" % self.data_cleaned)
             if not self.data_cleaned:
                 for name_str in self.data.keys():
                     name = name_str.split('|')
@@ -174,15 +190,20 @@ class FilterForm(Form):
                         field.name = filter_name
                         field.value = field.value_from_datadict(self.data)
                         
-                        negation = (self.data.get('%s|%s' % ('negation', filter_name)) is not None)
+                        negation = (self.data.get(
+                            '%s|%s' % ('negation', filter_name)) is not None)
                         field.negation = negation
                         fields_for_sort.append(field)
-            else: # data passed to form in constructor are cleaned_data (e.g. from itertable.get_filter)
+            else: 
+                # Data passed to t6he form in constructor are cleaned_data 
+                # (e.g. from itertable.get_filter).
                 for field_name, [neg, value] in self.data.items():
                     debug('field %s, setting value %s' % (field_name, value))
                     if not base_fields.get(field_name):
                         debug('field %s is in npermission -> skiping')
-                        break # when field is in npermissions, it can still be here if user loads saved filter -> 
+                        break 
+                    # When field is in npermissions, it can still be here 
+                    # if user loads saved filter -> 
                     field = deepcopy(base_fields[field_name])
                     if isinstance(field, CompoundFilterField):
                         field.parent_form = self
@@ -197,7 +218,8 @@ class FilterForm(Form):
                 fields_for_sort.append(field)
         
         # adding fields in order according to field.order
-        for pos, field in sorted([[field.order, field] for field in fields_for_sort]):  
+        for pos, field in sorted(
+                [[field.order, field] for field in fields_for_sort]):
             self.fields[field.name] = field
             field.owner_form = self
     
@@ -209,7 +231,8 @@ class FilterForm(Form):
             self.cleaned_data[name] = [field.negation, value]
             if hasattr(self, 'clean_%s' % name):
                 value = getattr(self, 'clean_%s' % name)()
-                self.cleaned_data[name] = [field.negation, value] # cleaned data of filterform is couple [negation, value]
+                # Cleaned data of filterform is couple [negation, value].
+                self.cleaned_data[name] = [field.negation, value] 
         except ValidationError, e:
             self._errors[name] = e.messages
             if name in self.cleaned_data:
@@ -362,7 +385,7 @@ class BankStatementFilterForm(FilterForm):
     default_fields_names = ['Type']
     
     Type = IntegerChoiceField(label=_('Type'), choices=[
-        (1, u'Not paired'), (2, u'From/to registrar'),
+        (1, u'Not assigned'), (2, u'From/to registrar'),
         (3, u"From/to bank"), (4, u'Between our own accounts'), 
         (5, u'Related to Academia'), (6, u'Other transfers')])
 
@@ -441,7 +464,8 @@ class MailFilterForm(FilterForm):
     Handle = CharField(label=_('Handle'))
     CreateTime = DateTimeIntervalField(label=_('Create time'))
     ModifyTime = DateTimeIntervalField(label=_('Modify time'))
-    Status = IntegerField(label=_('Status')) # docasny, az bude v corba tak smazat
+    # docasny, az bude v corba tak smazat
+    Status = IntegerField(label=_('Status'))
     Attempt = IntegerField(label=_('Attempt'))
     Message = CharField(label=_('Message'))
     Attachment = CompoundFilterField(

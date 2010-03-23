@@ -61,16 +61,30 @@ class UnionFilterFormLayout(TableFormLayout):
         return output
             
     def build_or_row(self):
-        return td(attr(cssc='or_cell', colspan=self.columns_count), input(attr(type="button", value="OR-", onclick="removeOr(this)", style="float: left;")), div(attr(style="padding-top: 0.3em"), 'OR'))
+        return td(
+            attr(cssc='or_cell', colspan=self.columns_count), 
+            input(attr(
+                type="button", value="OR-", onclick="removeOr(this)", 
+                style="float: left;")), 
+            div(attr(style="padding-top: 0.3em"), 'OR'))
             
     def get_submit_row(self, hidden_fields=None):
-        or_plus_button = input(attr(type="button", value="OR+", onclick="addOrForm(this)", style="float: left;"))
-        save_input = input(attr(id='save_input', type="text", name="save_input", value=_('name'), disabled='disabled', style="float: left; margin-left: 0.4em; display:none;"))
-        save_button = input(attr(type="button", value="Save", onclick="saveUnionForm(this)", style="float: left; margin-left: 0.4em"))
-        submit_button = input(attr(type=u'button', value=u'OK', onclick='sendUnionForm(this)', style="float: right;"))
-        return tr(attr(cssc='submit_row'), 
-                  td(or_plus_button, save_input, save_button, hidden_fields, submit_button),
-                 )
+        or_plus_button = input(attr(
+            type="button", value="OR+", onclick="addOrForm(this)", 
+            style="float: left;"))
+        save_input = input(attr(
+            id='save_input', type="text", name="save_input", 
+            value=_('name'), disabled='disabled', 
+            style="float: left; margin-left: 0.4em; display:none;"))
+        save_button = input(attr(
+            type="button", value="Save", onclick="saveUnionForm(this)", 
+            style="float: left; margin-left: 0.4em"))
+        submit_button = input(attr(
+            type=u'button', value=u'OK', onclick='sendUnionForm(this)', 
+            style="float: right;"))
+        return tr(attr(cssc='submit_row'), td(
+            or_plus_button, save_input, save_button, hidden_fields, 
+            submit_button),)
 
         
 class FilterTableFormLayout(TableFormLayout):
@@ -91,7 +105,8 @@ class FilterTableFormLayout(TableFormLayout):
         # compound fields) recursively (obtaining linear structure 
         # from tree structure).
         non_field_errors = []
-        open_nodes = [[[], [], self.form]] # [names, labels, form or field], it is stack (depth-first-search) 
+        # [names, labels, form or field], it is stack (depth-first-search)
+        open_nodes = [[[], [], self.form]] 
         
         while open_nodes:
             names, labels, tmp_node = open_nodes.pop()

@@ -297,6 +297,8 @@ class SessionLoggerFailSilent(SessionLogger):
             # I have to reraise it, so that I know in ADIF.login that I should
             # hide away the logger...
             raise
+        except Exception:
+            pass
 
     def set_common_property(self, *args, **kwargs):
         try:
