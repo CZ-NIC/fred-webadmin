@@ -26,6 +26,7 @@ from fred_webadmin.corba import ccReg, Registry
 from fred_webadmin.webwidgets.xml_prettyprint import xml_prettify_webwidget
 from fred_webadmin.mappings import f_enum_name, f_name_detailname
 from fred_webadmin.corbalazy import CorbaLazyRequestIter
+import fred_webadmin.webwidgets.forms.editforms as editforms
 
 def resolve_object(obj_data):
     """ Returns object from data, where data could be OID, OID in CORBA.Any, 
@@ -117,6 +118,13 @@ class CharDField(DField):
         if value != fredtypes.Null():
             value = unicode(value)
         return value
+
+class PaymentTypeDField(CharDField):
+    def resolve_value(self, value):
+        if value != fredtypes.Null():
+            value = editforms.payment_map[value]
+        return value
+
 
 #TODO(tom): Really convert here? Or is it already converted when
 # converting corba detail?

@@ -414,7 +414,7 @@ class BankStatementDetail(Detail):
     accountNumber = CharDField(label=_('Account Number'))
     bankCodeId = CharDField(label=_('Bank Code'))
     code = CharDField(label=_('Code'))
-    type = CharDField(label=_('Type'))
+    type = PaymentTypeDField(label=_('Type'))
     konstSym = CharDField(label=_('Constant Symbol'))
     varSymb = CharDField(label=_('Variable Symbol'))
     specSymb = CharDField(label=_('Specific Symbol'))

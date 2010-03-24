@@ -371,6 +371,9 @@ class TestIteration(Initializer):
         for i, row in enumerate(table):
             assert row is not None
             assert len(row) == 3
-            assert row[0].get(u'value') == str(i)
+            if i == 0:
+                assert row[0].get(u'value') == ""
+            else:    
+                assert row[0].get(u'value') == str(i)
 
         self.corba_mock.VerifyAll()

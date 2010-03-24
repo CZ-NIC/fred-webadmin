@@ -25,6 +25,7 @@ from fred_webadmin.corbalazy import (
     CorbaLazyRequestIterStruct, ServerNotAvailableError)
 from fred_webadmin.corba import ccReg
 from fred_webadmin.mappings import f_urls
+import fred_webadmin.webwidgets.forms.editforms as editforms
 
 __all__ = ['UnionFilterForm', 'RegistrarFilterForm', 'ObjectStateFilterForm', 
            'ObjectFilterForm', 'ContactFilterForm', 'NSSetFilterForm',
@@ -386,9 +387,18 @@ class BankStatementFilterForm(FilterForm):
     default_fields_names = ['Type']
     
     Type = IntegerChoiceField(label=_('Type'), choices=[
-        (1, u'Not assigned'), (2, u'From/to registrar'),
-        (3, u"From/to bank"), (4, u'Between our own accounts'), 
-        (5, u'Related to Academia'), (6, u'Other transfers')])
+        (editforms.PAYMENT_UNASSIGNED,
+            editforms.payment_map[editforms.PAYMENT_UNASSIGNED]),
+        (editforms.PAYMENT_REGISTRAR, 
+            editforms.payment_map[editforms.PAYMENT_REGISTRAR]),
+        (editforms.PAYMENT_BANK, 
+            editforms.payment_map[editforms.PAYMENT_BANK]), 
+        (editforms.PAYMENT_ACCOUNTS, 
+            editforms.payment_map[editforms.PAYMENT_ACCOUNTS]), 
+        (editforms.PAYMENT_ACADEMIA,
+            editforms.payment_map[editforms.PAYMENT_ACADEMIA]), 
+        (editforms.PAYMENT_OTHER, 
+            editforms.payment_map[editforms.PAYMENT_OTHER])])
 
     AccountDate = DateTimeIntervalField(label=_('Account date'))
     

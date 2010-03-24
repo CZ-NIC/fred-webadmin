@@ -79,6 +79,7 @@ from fred_webadmin.webwidgets.forms.adifforms import LoginForm
 # Must be imported because of template magic stuff. I think.
 from fred_webadmin.webwidgets.forms.editforms import (RegistrarEditForm,
     BankStatementPairingEditForm)
+import fred_webadmin.webwidgets.forms.editforms as editforms
 
 import fred_webadmin.webwidgets.forms.filterforms as filterforms
 from fred_webadmin.webwidgets.forms.filterforms import *
@@ -887,8 +888,10 @@ class BankStatement(AdifPage, ListTableMixin):
         log_req.commit("")
 
         # type == 1 means "not paired".
-        if detail.type != 1:
+        if detail.type != editforms.PAYMENT_UNASSIGNED:
             action = 'detail'
+            if detail.type != editforms.PAYMENT_REGISTRAR:
+                context['detail'].invoiceId = ""
         else:
             # Payment not paired => show the payment pairing edit form
             action = 'pair_payment'

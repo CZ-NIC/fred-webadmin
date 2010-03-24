@@ -17,6 +17,19 @@ from editformlayouts import EditFormLayout
 from fred_webadmin.utils import get_current_url
 import fred_webadmin.mappings as mappings
 
+PAYMENT_UNASSIGNED = 1
+PAYMENT_REGISTRAR = 2
+PAYMENT_BANK = 3
+PAYMENT_ACCOUNTS = 4
+PAYMENT_ACADEMIA = 5
+PAYMENT_OTHER = 6
+
+payment_map = dict([(PAYMENT_UNASSIGNED, u'Not assigned'),
+(PAYMENT_REGISTRAR, u'From/to registrar'),
+(PAYMENT_BANK, u"From/to bank"), 
+(PAYMENT_ACCOUNTS, u'Between our own accounts'), 
+(PAYMENT_ACADEMIA, u'Related to Academia'), 
+(PAYMENT_OTHER, u'Other transfers')])
 
 
 class EditForm(Form):
@@ -118,12 +131,14 @@ class RegistrarEditForm(EditForm):
         label=_('Zones'), form_class=ZoneEditForm, 
         can_delete=False)
 
-
 class BankStatementPairingEditForm(EditForm):
-    type = IntegerChoiceField(label=_('Type'), choices=[
-        (2, u'From/to registrar'), (3, u"From/to bank"), 
-        (4, u'Between our own accounts'), (5, u'Related to Academia'), 
-        (6, u'Other transfers')],
+    type = IntegerChoiceField(
+        label=_('Type'), choices=[
+            (PAYMENT_REGISTRAR, payment_map[PAYMENT_REGISTRAR]),
+            (PAYMENT_BANK, payment_map[PAYMENT_BANK]), 
+            (PAYMENT_ACCOUNTS, payment_map[PAYMENT_ACCOUNTS]), 
+            (PAYMENT_ACADEMIA, payment_map[PAYMENT_ACADEMIA]), 
+            (PAYMENT_OTHER, payment_map[PAYMENT_OTHER])],
         onchange="disableRegistrarHandle();")#, onload="disableRegistrarHandle();")
     handle = CharField(
         label=_('Pair with Registrar Handle'), name="registrar_handle_input")
