@@ -1002,7 +1002,7 @@ class DiscloseCharNHDField(NHDField):
                 if to_dict[hist_num] is None or \
                     isinstance(to_dict[hist_num], fredtypes.Null): # remove None
                     to_dict.pop(hist_num)
-            all_are_null = all(isinstance(i.fredtypes.Null) for i in to_dict)
+            all_are_null = all(isinstance(i, fredtypes.Null) for i in to_dict)
             if to_dict and not all_are_null:
                 to = min(to_dict.values())
             else: # all are NULL dates, take one of them
