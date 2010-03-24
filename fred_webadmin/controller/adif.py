@@ -813,7 +813,7 @@ class BankStatement(AdifPage, ListTableMixin):
         log_req.update("registrar_handle", registrar_handle)
         invoicing = utils.get_corba_session().getBankingInvoicing()
         success = True
-        if registrar_handle:
+        if payment_type == editforms.PAYMENT_REGISTRAR:
             success = invoicing.pairPaymentRegistrarHandle(
                 payment_id, recoder.u2c(registrar_handle))
         success = success and invoicing.setPaymentType(
@@ -866,9 +866,7 @@ class BankStatement(AdifPage, ListTableMixin):
 
         # Do not use cache - we want the updated BankStatementItem.
         detail = utils.get_detail(self.classname, obj_id, use_cache=False)
-
         log_req.update('object_id', kwd.get('id'))
-        
         context['detail'] = detail 
         context['form'] = BankStatementPairingEditForm(
             method="POST",
@@ -884,7 +882,6 @@ class BankStatement(AdifPage, ListTableMixin):
             context['form'].non_field_errors().append(
                 """Could not pair. Perhaps you have entered"""
                 """ an invalid handle?""")
-
         log_req.commit("")
 
         # type == 1 means "not paired".

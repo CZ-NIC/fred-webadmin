@@ -3,9 +3,12 @@ import CORBA
 import cherrypy
 import twill
 import datetime
-import ldap
+from logging import error
+try:
+    import ldap
+except:
+    error("Could not import ldap, some test will probably fail...")
 
-from nose import with_setup
 from StringIO import StringIO
 import twill.commands
 
@@ -16,7 +19,6 @@ import fred_webadmin.controller.adif
 
 from fred_webadmin.corba import Registry, ccReg
 import fred_webadmin.logger.dummylogger as logger
-from logging import error
 
 class BaseADIFTestCase(base.DaphneTestCase):
     def setUp(self):
@@ -132,7 +134,6 @@ class TestADIF(BaseADIFTestCase):
         # Invalid credentials => stay at login page.
         twill.commands.url("http://localhost:8080/summary/")
         twill.commands.code(200)
-
 
     def test_login_ldap_invalid_credentials(self):
         """ Login fails when invalid credentials are supplied when using LDAP.
@@ -558,6 +559,78 @@ class TestBankStatement(BaseADIFTestCase):
         # payment.
         twill.commands.code(200)
         twill.commands.find("""<a href="/invoice/detail/\?id=11">.*</a>""")
+
+    def test_successfull_statementitem_payment_pairing_no_reg_handle(self):
+        """ Payment pairing works OK when correct registrar handle 
+            is not specified, but type != "from/to registrar". """
+        self.admin_mock.getCountryDescList().InAnyOrder().AndReturn(
+            [ccReg.CountryDesc(1, 'cz')])
+        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
+        statement = self._fabricate_bank_statement_detail()
+        self.corba_session_mock.getDetail(
+            ccReg.FT_STATEMENTITEM, 42).AndReturn(statement)
+        invoicing_mock = self.corba_mock.CreateMockAnything()
+        self.corba_session_mock.getBankingInvoicing().AndReturn(invoicing_mock)
+        invoicing_mock.setPaymentType(42, 3).AndReturn(True)
+        # Create a new bank statement detail with a non-zero invoiceId value 
+        # to simulate successfull payment pairing.
+        statement_after_pairing = self._fabricate_bank_statement_detail()
+        statement_after_pairing.value().invoiceId = 11L
+        statement_after_pairing.value().type = 3
+        self.corba_session_mock.getDetail(
+            ccReg.FT_STATEMENTITEM, 42).AndReturn(statement_after_pairing)
+
+        self.corba_mock.ReplayAll()
+
+        # Go to the pairing form 
+        twill.commands.go("http://localhost:8080/bankstatement/detail/?id=42")
+        fs = twill.commands.showforms()
+        twill.commands.fv(2, "type", "3")
+        twill.commands.submit()
+
+        twill.commands.code(200)
+        twill.commands.url("http://localhost:8080/bankstatement/detail/\?id=42")
+        # Check that we do not display a link to the invoice after a successfull
+        # payment (because it's not paired with a registrar).
+        twill.commands.code(200)
+        twill.commands.notfind("""<a href="/invoice/detail/\?id=11">.*</a>""")
+
+    def test_successfull_statementitem_payment_pairing_incorrect_reg_handle(self):
+        """ Payment pairing works OK when an invalid registrar handle 
+            is specified, but type != "from/to registrar". """
+        self.admin_mock.getCountryDescList().InAnyOrder().AndReturn(
+            [ccReg.CountryDesc(1, 'cz')])
+        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
+        statement = self._fabricate_bank_statement_detail()
+        self.corba_session_mock.getDetail(
+            ccReg.FT_STATEMENTITEM, 42).AndReturn(statement)
+        invoicing_mock = self.corba_mock.CreateMockAnything()
+        self.corba_session_mock.getBankingInvoicing().AndReturn(invoicing_mock)
+        invoicing_mock.setPaymentType(42, 3).AndReturn(True)
+        # Create a new bank statement detail with a non-zero invoiceId value 
+        # to simulate successfull payment pairing.
+        statement_after_pairing = self._fabricate_bank_statement_detail()
+        statement_after_pairing.value().invoiceId = 11L
+        statement_after_pairing.value().type = 3
+        self.corba_session_mock.getDetail(
+            ccReg.FT_STATEMENTITEM, 42).AndReturn(statement_after_pairing)
+
+        self.corba_mock.ReplayAll()
+
+        # Go to the pairing form 
+        twill.commands.go("http://localhost:8080/bankstatement/detail/?id=42")
+        fs = twill.commands.showforms()
+        twill.commands.fv(2, "handle", "invalid handle")
+        twill.commands.fv(2, "type", "3")
+        twill.commands.submit()
+
+        twill.commands.code(200)
+        twill.commands.url("http://localhost:8080/bankstatement/detail/\?id=42")
+        # Check that we do not display a link to the invoice after a successfull
+        # payment (because it's not paired with a registrar).
+        twill.commands.code(200)
+        twill.commands.notfind("""<a href="/invoice/detail/\?id=11">.*</a>""")
+
 
     def test_statementitem_detail_unknown_unempty_handle(self):
         """ Pairing with unknown registrar handle fails.
