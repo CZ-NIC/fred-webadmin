@@ -120,11 +120,13 @@ class RegistrarEditForm(EditForm):
 
 
 class BankStatementPairingEditForm(EditForm):
-    handle = CharField(label=_('Pair with Registrar Handle'))
     type = IntegerChoiceField(label=_('Type'), choices=[
-        (2, u'From/to registrar'),
-        (3, u"From/to bank"), (4, u'Between our own accounts'), 
-        (5, u'Related to Academia'), (6, u'Other transfers')])
+        (2, u'From/to registrar'), (3, u"From/to bank"), 
+        (4, u'Between our own accounts'), (5, u'Related to Academia'), 
+        (6, u'Other transfers')],
+        onchange="disableRegistrarHandle();")#, onload="disableRegistrarHandle();")
+    handle = CharField(
+        label=_('Pair with Registrar Handle'), name="registrar_handle_input")
     id = HiddenIntegerField()
     
 form_classes = [AccessEditForm, RegistrarEditForm,

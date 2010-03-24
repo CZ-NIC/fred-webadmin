@@ -68,8 +68,7 @@ class Field(WebWidget):
         return self.value in EMPTY_VALUES
     
     def _has_changed(self, initial, data):
-        """
-        Return True if data differs from initial.
+        """ Returns True if data differs from initial.
         """
         # For purposes of seeing whether something has changed, None is
         # the same as an empty string, if the data or inital value we get
@@ -138,9 +137,8 @@ class FloatField(Field):
         
         
     def clean(self):
-        """
-        Validates that float() can be called on the input. Returns a float.
-        Returns None for empty values.
+        """Validates that float() can be called on the input. Returns a float.
+            Returns None for empty values.
         """
         super(FloatField, self).clean()
         if self.is_empty():

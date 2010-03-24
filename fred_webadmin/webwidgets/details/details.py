@@ -131,11 +131,9 @@ class BaseDetail(div):
     
     def render(self, indent_level=0):
         self.content = [] # empty previous content (if render would be called moretimes, there would be multiple forms instead one )
-        debug('Adding layout %s to %s' % (self.layout_class, self.__class__.__name__))
         self.add(self.layout_class(self))
         if not self.is_nested:
             self.add_to_bottom()
-        debug('After adding layout %s to %s' % (self.layout_class, self.__class__.__name__))
         return super(BaseDetail, self).render(indent_level)        
     
     @classmethod

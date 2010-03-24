@@ -811,9 +811,12 @@ class BankStatement(AdifPage, ListTableMixin):
         log_req.update("payment_id", payment_id)
         log_req.update("registrar_handle", registrar_handle)
         invoicing = utils.get_corba_session().getBankingInvoicing()
-        success = invoicing.pairPaymentRegistrarHandle(
-            payment_id, recoder.u2c(registrar_handle))
-        success = success and invoicing.setPaymentType(payment_id, payment_type)
+        success = True
+        if registrar_handle:
+            success = invoicing.pairPaymentRegistrarHandle(
+                payment_id, recoder.u2c(registrar_handle))
+        success = success and invoicing.setPaymentType(
+            payment_id, payment_type)
         if not success:
             log_req.update("result", "Could not pair payment")
         log_req.commit()

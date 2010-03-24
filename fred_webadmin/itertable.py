@@ -261,7 +261,7 @@ class IterTable(object):
             cell['icon'] = rewrite_rules[contentType]['icon']
         if rewrite_rules[contentType].has_key('oid_url'):
             val = cell['value']
-            if val.id is not None:
+            if val.id is not None and val.id != 0:
                 cell['url'] = rewrite_rules[contentType]['oid_url'] % \
                     (f_urls[f_enum_name[val.type]], val.id)
                 cell['value'] = val.handle

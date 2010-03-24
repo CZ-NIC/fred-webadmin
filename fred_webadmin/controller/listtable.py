@@ -177,8 +177,6 @@ class ListTableMixin(object):
     
     @check_onperm('read')
     def filter(self, *args, **kwd):
-        debug('filter ARGS:%s' % unicode(args))
-
         log_req = cherrypy.session['Logger'].create_request(
             cherrypy.request.remote.ip, cherrypy.request.body, 
             f_name_actionfiltername[self.__class__.__name__.lower()])

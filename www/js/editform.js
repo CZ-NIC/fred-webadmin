@@ -75,4 +75,17 @@ function setSpecialBehaviourToFields() {
     });
 }
 
+/** Disables registrar handle field when associating a Payment with 
+ *  a different type than "to/from registrar". **/
+function disableRegistrarHandle() {
+    registrar_handle_input_array = document.getElementsByName("handle");
+    registrar_handle_input = registrar_handle_input_array[0];
+    type_array = document.getElementsByName("type");
+    type = type_array[0];
+    if (type.selectedIndex == 0)
+        registrar_handle_input.disabled = false;
+    else
+        registrar_handle_input.disabled = true;
+}
+
 Ext.onReady(setSpecialBehaviourToFields);
