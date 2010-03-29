@@ -27,9 +27,9 @@ from fred_webadmin import config
 # Conditional import. Business decision. User should not be forced to import
 # ldap if he does not wish to use ldap authentication.
 if config.auth_method == 'LDAP':
-    import fred_webadmin.ldap_auth as auth
+    import fred_webadmin.auth.ldap_auth as auth
 elif config.auth_method == 'CORBA':
-    import fred_webadmin.corba_auth as auth
+    import fred_webadmin.auth.corba_auth as auth
 else:
     raise Exception("No valid authentication module has been configured.")
 
@@ -832,6 +832,9 @@ class BankStatement(AdifPage, ListTableMixin):
         # Indicator whether the pairing action has been carried out
         # successfully.
         pairing_success = False
+
+        user = cherrypy.session['user']
+        user_has_change_perms = not user.check_nperms("process.payment")
         
         log_req = cherrypy.session['Logger'].create_request(
             cherrypy.request.remote.ip, cherrypy.request.body, 
@@ -850,7 +853,7 @@ class BankStatement(AdifPage, ListTableMixin):
         # When the user sends the pairing form we arrive at BankStatement
         # detail again, but this time we receive registrar_handle in kwd
         # => pair the payment with the registrar.
-        if cherrypy.request.method == 'POST':
+        if cherrypy.request.method == 'POST' and user_has_change_perms:
             registrar_handle = kwd.get('handle', None)
             payment_type = kwd.get('type', None)
             try:
@@ -883,13 +886,8 @@ class BankStatement(AdifPage, ListTableMixin):
                 """Could not pair. Perhaps you have entered"""
                 """ an invalid handle?""")
         log_req.commit("")
-
-        # type == 1 means "not paired".
-        if detail.type != editforms.PAYMENT_UNASSIGNED:
-            action = 'detail'
-            if detail.type != editforms.PAYMENT_REGISTRAR:
-                context['detail'].invoiceId = ""
-        else:
+        
+        if detail.type == editforms.PAYMENT_UNASSIGNED and user_has_change_perms:
             # Payment not paired => show the payment pairing edit form
             action = 'pair_payment'
             # invoiceId is a link to detail, but for id == 0 this detail does
@@ -897,6 +895,10 @@ class BankStatement(AdifPage, ListTableMixin):
             # Note: No information is lost, because id == 0 semantically means 
             # that there is no id.
             context['detail'].invoiceId = ""
+        else:
+            action = 'detail'
+            if detail.type != editforms.PAYMENT_REGISTRAR:
+                context['detail'].invoiceId = ""
         res = self._render(action, context)
         return res
 

@@ -3,12 +3,13 @@ import types
 
 import config
 if config.enable_perms_checking:
-    import apps.nicauth.models.user as auth_user
+    import fred_webadmin.perms.nicauth as auth_user
+else:
+    import fred_webadmin.perms.dummy as auth_user
 
 from logging import debug
 
 from fred_webadmin.webwidgets.utils import isiterable
-from fred_webadmin.controller.adiferrors import AuthorizationError
 
 class User(object):
     def __init__(self, user):
@@ -19,15 +20,8 @@ class User(object):
         self.firstname = user._get_firstname()
         self.surname = user._get_surname()
         self.table_page_size = config.tablesize
-
-        if config.enable_perms_checking:
-            try:
-                self._auth_user = auth_user.User.objects.get(username=self.login)
-            except auth_user.User.DoesNotExist:
-                raise AuthorizationError(
-                    "Authorization record for user %s does not exist!" % self.login)
-        else:
-            self._auth_user = None
+        
+        self._authorizer = auth_user.Authorizer(self.login)
         
     def has_nperm(self, nperm):
         ''' Return True, if nperm in self.nperms or any of its shorter versions created
@@ -40,7 +34,7 @@ class User(object):
             # No checking => user is permitted to do anything.
             return False
         parts = nperm.split('.')
-        has_perm = self._auth_user.has_permission("daphne", parts[1], parts[0])
+        has_perm = self._authorizer.has_permission(parts[1], parts[0])
         return not has_perm
 
     

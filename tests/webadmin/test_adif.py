@@ -12,7 +12,7 @@ except:
 from StringIO import StringIO
 import twill.commands
 
-from fred_webadmin import ldap_auth, corba_auth
+from fred_webadmin.auth import ldap_auth, corba_auth
 
 import tests.webadmin.base as base
 import fred_webadmin.controller.adif
@@ -111,7 +111,7 @@ class TestADIF(BaseADIFTestCase):
         # Mock out ldap.open method. We must not mock the whole ldap package,
         # because ldap_auth uses ldap exceptions.
         self.monkey_patch(
-            fred_webadmin.ldap_auth.ldap, 'open', self.ldap_mock)
+            fred_webadmin.auth.ldap_auth.ldap, 'open', self.ldap_mock)
         self.corba_conn_mock.connect("localhost_test", "fredtest")
         # Create corba objects in any order (prevent boilerplate code).
         for obj, ret in self.corba_objs_created_at_login:
@@ -148,13 +148,13 @@ class TestADIF(BaseADIFTestCase):
             fred_webadmin.controller.adif, 'auth', ldap_auth)
         # Mock out ldap.open method.
         self.monkey_patch(
-            fred_webadmin.ldap_auth.ldap, 'open', self.ldap_mock)
+            fred_webadmin.auth.ldap_auth.ldap, 'open', self.ldap_mock)
         self.corba_conn_mock.connect("localhost_test", "fredtest")
         # Create corba objects in any order (prevent boilerplate code).
         for obj, ret in self.corba_objs_created_at_login:
             self.corba_conn_mock.getObject(obj, obj).InAnyOrder(
                 "corba_obj").AndReturn(ret)
-        fred_webadmin.ldap_auth.ldap.open.__call__(
+        fred_webadmin.auth.ldap_auth.ldap.open.__call__(
             "test ldap server").AndReturn(self.ldap_mock)
         self.ldap_mock.simple_bind_s(
             "test ldap scope test", "test pwd").AndRaise(
@@ -184,13 +184,13 @@ class TestADIF(BaseADIFTestCase):
             fred_webadmin.controller.adif, 'auth', ldap_auth)
         # Mock out ldap.open method.
         self.monkey_patch(
-            fred_webadmin.ldap_auth.ldap, 'open', self.ldap_mock)
+            fred_webadmin.auth.ldap_auth.ldap, 'open', self.ldap_mock)
         self.corba_conn_mock.connect("localhost_test", "fredtest")
         # Create corba objects in any order (prevent boilerplate code).
         for obj, ret in self.corba_objs_created_at_login:
             self.corba_conn_mock.getObject(obj, obj).InAnyOrder(
                 "corba_obj").AndReturn(ret)
-        fred_webadmin.ldap_auth.ldap.open.__call__(
+        fred_webadmin.auth.ldap_auth.ldap.open.__call__(
             "test ldap server").AndRaise(ldap.SERVER_DOWN)
         self.corba_mock.ReplayAll()
 
@@ -721,8 +721,6 @@ class TestLoggerNoLogView(BaseADIFTestCase):
         self.monkey_patch(
             fred_webadmin.controller.adif, 'SessionLoggerFailSilent',
             fred_webadmin.logger.dummylogger.DummyLogger)
-        self.monkey_patch(
-            fred_webadmin.controller.adif, 'auth', corba_auth)
         self.corba_conn_mock.connect("localhost_test", "fredtest")
         # Create corba objects in any order (prevent boilerplate code).
         for obj, ret in self.corba_objs_created_at_login:
