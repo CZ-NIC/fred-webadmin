@@ -12,5 +12,5 @@ class Authorizer(object):
                     "Authorization record for user %s does not exist!" \
                         % username)
 
-    def has_permission(self, object, action):
-        return self._auth_user.has_permission("daphne", object, action)
+    def has_permission(self, obj, action):
+        return self._auth_user.has_permission("daphne", obj, action)

@@ -5,5 +5,5 @@ class Authorizer(object):
     def __init__(self, username):
         self._username = username
 
-    def has_permission(self, object, action):
+    def has_permission(self, obj, action):
         return True
