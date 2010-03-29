@@ -117,7 +117,7 @@ class TestADIF(BaseADIFTestCase):
         for obj, ret in self.corba_objs_created_at_login:
             self.corba_conn_mock.getObject(obj, obj).InAnyOrder(
                 "corba_obj").AndReturn(ret)
-        fred_webadmin.ldap_auth.ldap.open.__call__(
+        fred_webadmin.auth.ldap_auth.ldap.open.__call__(
             "test ldap server").AndReturn(self.ldap_mock)
         self.ldap_mock.simple_bind_s("test ldap scope test", "test pwd")
         self.admin_mock.createSession("test").AndReturn(self.corba_session_mock)
@@ -693,6 +693,39 @@ class TestBankStatement(BaseADIFTestCase):
         # Check that we do not display a link to the invoice after
         #an unsuccessful payment attempt.
         twill.commands.notfind("""<a href="/invoice/detail/\?id=11">.*</a>""")
+
+    def test_statementitem_detail_no_perms_to_change_type(self):
+        """ Pairing payment with empty registrar handle fails.
+        """
+        cherrypy.session['user']._authorizer = self.authorizer_mock
+        self.admin_mock.getCountryDescList().InAnyOrder().AndReturn(
+            [ccReg.CountryDesc(1, 'cz')])
+        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
+        statement = self._fabricate_bank_statement_detail()
+        self.corba_session_mock.getDetail(
+            ccReg.FT_STATEMENTITEM, 42).AndReturn(statement)
+        invoicing_mock = self.corba_mock.CreateMockAnything()
+        self.corba_session_mock.getBankingInvoicing().AndReturn(invoicing_mock)
+        invoicing_mock.pairPaymentRegistrarHandle(
+            42, "test handle").AndReturn(False)
+        self.corba_session_mock.getDetail(
+            ccReg.FT_STATEMENTITEM, 42).AndReturn(statement)
+        self.authorizer_mock.has_permission(
+            'bankstatement', 'read').AndReturn(True)
+        self.authorizer_mock.has_permission(
+            'payment', 'process').AndReturn(False)
+        # Other permissions get checked here (possibly will change when
+        # permission caching is implemented).
+        for i in range(0, 50):
+            self.authorizer_mock.has_permission(
+                mox.IgnoreArg(), mox.IgnoreArg()).AndReturn(False)
+
+        self.corba_mock.ReplayAll()
+
+        # Go to the pairing form 
+        twill.commands.go("http://localhost:8080/bankstatement/detail/?id=42")
+        twill.commands.showforms()
+        twill.commands.notfind("""<input type="text" name="handle" value=\"\"""")
 
 
 class TestLoggerNoLogView(BaseADIFTestCase):

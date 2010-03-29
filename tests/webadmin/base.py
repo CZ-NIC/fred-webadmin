@@ -62,13 +62,16 @@ class DaphneTestCase(object):
         self.admin_mock = self.corba_mock.CreateMockAnything()
         self.admin_mock.__str__ = lambda : "admin mock"
         
+        self.ldap_mock = self.corba_mock.CreateMockAnything()
+        self.ldap_mock.__str__ = lambda : "ldap backend mock"
+
+        self.authorizer_mock = self.corba_mock.CreateMockAnything()
+        self.authorizer_mock.__str__ = lambda : "authorizer mock"
+
         self.web_session_mock = {}
         self.web_session_mock['user'] = user.User(self.corba_user_mock)
         self.web_session_mock['Logger'] = logger.DummyLogger()
         self.web_session_mock['Admin'] = self.admin_mock
-
-        self.ldap_mock = self.corba_mock.CreateMockAnything()
-        self.ldap_mock.__str__ = lambda : "ldap backend mock"
 
         self._on_teardown = []
         self.monkey_patch(
