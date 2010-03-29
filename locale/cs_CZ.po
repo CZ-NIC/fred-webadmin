@@ -1,431 +1,1648 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# Czech translations for PACKAGE package.
+# Copyright (C) 2010 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# tomas <helpdesk@nic.cz>, 2010.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2006-10-30 14:58+0100\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"POT-Creation-Date: 2010-03-29 17:03+0200\n"
+"PO-Revision-Date: 2010-03-29 17:06+0200\n"
+"Last-Translator: tomas <helpdesk@nic.cz>\n"
+"Language-Team: Czech\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Type: text/plain; charset=ASCII\n"
 "Content-Transfer-Encoding: 8bit\n"
-
-msgid "Implemented"
-msgstr "Implementováno"
-
-msgid "Missing"
-msgstr "Chybí"
-
-msgid "Username"
-msgstr "Uživatelské jméno"
-
-msgid "Password"
-msgstr "Heslo"
-
-msgid "Login"
-msgstr "Přihlásit"
-
-msgid "Logout"
-msgstr "Odhlásit"
-
-msgid "Database"
-msgstr "Databáze"
-
-msgid "Browse"
-msgstr "Vyhledávání"
-
-msgid "Received_requests"
-msgstr "Došlé požadavky"
-
-msgid "Requests"
-msgstr "Požadavky"
-
-msgid "Registrars"
-msgstr "Registrátoři"
-
-msgid "Create_new"
-msgstr "Založení nového"
-
-msgid "Domain"
-msgstr "Doména"
-
-msgid "Domains"
-msgstr "Domény"
-
-msgid "Contacts"
-msgstr "Kontakty"
-
-msgid "Nameservers"
-msgstr "Nameservery"
-
-msgid "Table_as"
-msgstr "Tabulku jako"
-
-msgid "Searching_in_registrars"
-msgstr "Vyhledávání v registrátorech"
-
-msgid "Registrar_information"
-msgstr "Informace o registrátorovi"
-
-msgid "Searching_in_domains"
-msgstr "Vyhledávání v doménách"
-
-msgid "Domain_information"
-msgstr "Informace o doméně"
-
-msgid "Searching_in_contacts"
-msgstr "Vyhledávání v kontaktech"
-
-msgid "Contact_information"
-msgstr "Informace o kontaktu"
-
-msgid "Searching_in_NSSets"
-msgstr "Vyhledávání v NSSetech"
-
-msgid "NSSet_information"
-msgstr "Informace o NSSetu"
-
-msgid "Searching_in_requests"
-msgstr "Vyhledávání v požadavcích"
-
-msgid "Request_information"
-msgstr "Informace o požadavku"
-
-msgid "Searching_in_AuthInfo"
-msgstr "Vyhledávání v AuthInfo požadavcích"
-
-msgid "AuthInfo_request_detail"
-msgstr "Detail AuthInfo požadavku"
-
-msgid "Search_criteria"
-msgstr "Výběrová kritéria"
-
-msgid "Name"
-msgstr "Jméno"
-
-msgid "Domain_name"
-msgstr "Jméno domény"
-
-msgid "Status"
-msgstr "Stav"
-
-msgid "Handle"
-msgstr "Identifikátor"
-
-msgid "Identifier"
-msgstr "Identifikátor"
-
-msgid "Owner"
-msgstr "Vlastník"
-
-msgid "Admin"
-msgstr "Admin"
-
-msgid "Administrator"
-msgstr "Administrátor"
-
-msgid "Registrar"
-msgstr "Registrátor"
-
-msgid "Selected_registrar"
-msgstr "Určený registrátor"
-
-msgid "Creating_registrar"
-msgstr "Zakládající registrátor"
-
-msgid "Last_update_registrar"
-msgstr "Registrátor poslední úpravy"
-
-msgid "by_registrar"
-msgstr "registrátorem"
-
-msgid "Organization"
-msgstr "Organizace"
-
-msgid "Contact_type"
-msgstr "Typ kontaktu"
-
-msgid "Request_type"
-msgstr "Typ požadavku"
-
-msgid "Result"
-msgstr "Výsledek"
-
-msgid "clTRID"
-msgstr "clTRID"
-
-msgid "svTRID"
-msgstr "svTRID"
-
-msgid "Email"
-msgstr "Email"
-
-msgid "Notify_email"
-msgstr "Notifikační email"
-
-msgid "SSN"
-msgstr "RČ"
-
-msgid "VAT"
-msgstr "DPH"
-
-msgid "ICO"
-msgstr "IČO"
-
-msgid "IP_address"
-msgstr "IP adresa"
-
-msgid "IPs"
-msgstr "IP adresy"
-
-msgid "Nameserver_name"
-msgstr "Jméno nameserveru"
-
-msgid "Validity"
-msgstr "Platnost"
-
-msgid "Registration"
-msgstr "Registrace"
-
-msgid "Blocked"
-msgstr "Blokace"
-
-msgid "Including_history"
-msgstr "Včetně historie"
-
-msgid "Only_actual"
-msgstr "Jen aktuálně platné"
-
-msgid "Object_Id"
-msgstr "ID objektu"
-
-msgid "Request_Id"
-msgstr "ID požadavku"
-
-msgid "Request_reason"
-msgstr "Text žádosti"
-
-msgid "Close_status"
-msgstr "Stav uzavření"
-
-msgid "from"
-msgstr "od"
-
-msgid "to"
-msgstr "do"
-
-msgid "day"
-msgstr "den"
-
-msgid "Technical_contact"
-msgstr "Technický kontakt"
-
-msgid "Administrative_contacts"
-msgstr "Administrativní kontakty"
-
-msgid "NSSet"
-msgstr "NSSet"
-
-msgid "Nameserver_address"
-msgstr "Adresa nameserveru"
-
-msgid "Modified_manually"
-msgstr "Byl manuální zásah"
-
-msgid "Search"
-msgstr "Vyhledej"
-
-msgid "Clear"
-msgstr "Vyčisti"
-
-msgid "Save"
-msgstr "Ulož"
-
-msgid "Renew"
-msgstr "Obnov"
-
-msgid "Cancel"
-msgstr "Zruš"
-
-msgid "Edit"
-msgstr "Uprav"
-
-msgid "Reset"
-msgstr "Reset"
-
-msgid "date"
-msgstr "datum"
-
-msgid "Date"
-msgstr "Datum"
-
-msgid "Create_date"
-msgstr "Datum vytvoření"
-
-msgid "Registration_date"
-msgstr "Datum registrace"
-
-msgid "Expiry_date"
-msgstr "Datum expirace"
-
-msgid "Deleted_date"
-msgstr "Datum vyřazení"
-
-msgid "Cancel_date"
-msgstr "Datum zrušení"
-
-msgid "Validation_date"
-msgstr "Datum validace"
-
-msgid "Last_update_date"
-msgstr "Datum poslední aktualizace"
-
-msgid "Last_transfer_date"
-msgstr "Datum posledního transferu"
-
-msgid "Received_date"
-msgstr "Datum přijetí"
-
-msgid "Opened_date"
-msgstr "Datum založení"
-
-msgid "Closed_date"
-msgstr "Datum uzavření"
-
-msgid "Auth_info"
-msgstr "AuthInfo"
-
-msgid "AuthInfo_requests"
-msgstr "AuthInfo požadavky"
-
-msgid "Authentication"
-msgstr "Autentizace"
-
-msgid "Select_date"
-msgstr "Vyber datum"
-
-msgid "Detail_of_registrar"
-msgstr "Detail registrátora"
-
-msgid "Current_reminder"
-msgstr "Aktuální zůstatek"
-
-msgid "Address"
-msgstr "Adresa"
-
-msgid "Street"
-msgstr "Ulice"
-
-msgid "City"
-msgstr "Město"
-
-msgid "ZIP"
-msgstr "PSČ"
-
-msgid "State"
-msgstr "Stát / Oblast"
-
-msgid "Country"
-msgstr "Země"
-
-msgid "URL"
-msgstr "URL"
-
-msgid "Telephone"
-msgstr "Telefon"
-
-msgid "Fax"
-msgstr "Fax"
-
-msgid "MD5_of_certificate"
-msgstr "MD5 Certifikátu"
-
-msgid "Other_data"
-msgstr "Ostatní údaje"
-
-msgid "Options"
-msgstr "Volby"
-
-msgid "Edit_registrar"
-msgstr "Edituj registrátora"
-
-msgid "Domains_creating"
-msgstr "Domény - zakládající"
-
-msgid "Domains_selected"
-msgstr "Domény - určený"
-
-msgid "Domains_owner"
-msgstr "Domény - držitel"
-
-msgid "Domains_admin"
-msgstr "Domény - admin"
-
-msgid "Domains_all"
-msgstr "Domény - vše"
-
-msgid "NSSets"
-msgstr "NSSety"
-
-msgid "Type"
-msgstr "Typ"
-
-msgid "Time"
-msgstr "Čas"
-
-msgid "Number_of_pages"
-msgstr "Počet stran"
-
-msgid "entries"
-msgstr "počet záznamů"
-
-msgid "lang"
-msgstr "cs"
-
-msgid "of"
-msgstr "z"
-
-msgid "All"
-msgstr "Vše"
-
-msgid "Advance"
-msgstr "Zálohové"
-
-msgid "Account"
-msgstr "Vyúčtovací"
-
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+
+#: ../fred_webadmin/controller/perms.py:38
+#: ../fred_webadmin/controller/perms.py:69
+msgid "You don't have permissions for this page!"
+msgstr ""
+
+#: ../fred_webadmin/controller/adif.py:387
+msgid "Bad corba call! "
+msgstr ""
+
+#: ../fred_webadmin/controller/adif.py:460
+msgid "Domain expiration letters"
+msgstr ""
+
+#: ../fred_webadmin/controller/adif.py:647
+#: ../fred_webadmin/controller/adif.py:745
+#: ../fred_webadmin/controller/listtable.py:361
 msgid "Object_not_found"
-msgstr "Objekt nenalezen"
+msgstr ""
 
-msgid "Saving_failed"
-msgstr "Uložení selhalo"
+#: ../fred_webadmin/controller/adif.py:677
+msgid "Function setInZoneStatus() is not implemented in Admin."
+msgstr ""
 
-msgid "Non_numeric_ID"
-msgstr "Id musí být číslo (integer)"
+#: ../fred_webadmin/controller/adif.py:722
+#: ../fred_webadmin/controller/adif.py:766
+#: ../fred_webadmin/controller/adif.py:796
+#: ../fred_webadmin/controller/listtable.py:355
+msgid "Required_integer_as_parameter"
+msgstr ""
 
+#: ../fred_webadmin/controller/adif.py:775
+msgid ""
+"This object is blocked, request cannot be accepted.You can return back to "
+msgstr ""
+
+#: ../fred_webadmin/controller/adif.py:778
+msgid "public request."
+msgstr ""
+
+#: ../fred_webadmin/controller/adif.py:850
+#: ../fred_webadmin/controller/adif.py:865
+#, python-format
+msgid "Requires integer as parameter (got %s)."
+msgstr ""
+
+#: ../fred_webadmin/controller/adif.py:969
+msgid ""
+"This page displays memory consumption by python object on server.\n"
+"            It propably cause server threads to not work properly!!! \n"
+"            DO NOT USE THIS PAGE IN PRODUCTION SYSTEM!!!\n"
+"\n"
+msgstr ""
+
+#: ../fred_webadmin/controller/listtable.py:89
+#, python-format
+msgid "Filter saved as \"%s\""
+msgstr ""
+
+#: ../fred_webadmin/controller/listtable.py:130
 msgid "No_entries_found"
-msgstr "Nenalezen žádný záznam"
+msgstr ""
 
-msgid "Price_Per_Unit"
-msgstr "Cena za jednotku"
+#: ../fred_webadmin/webwidgets/templates/details.py:28
+msgid "Detail_of_contact"
+msgstr ""
 
-msgid "bytes"
-msgstr "bajtů"
+#: ../fred_webadmin/webwidgets/templates/details.py:30
+#: ../fred_webadmin/webwidgets/templates/details.py:133
+#: ../fred_webadmin/webwidgets/templates/details.py:147
+#: ../fred_webadmin/webwidgets/templates/details.py:160
+#: ../fred_webadmin/webwidgets/templates/details.py:171
+#: ../fred_webadmin/webwidgets/templates/details.py:201
+#: ../fred_webadmin/webwidgets/templates/details.py:246
+#: ../fred_webadmin/webwidgets/templates/details.py:335
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:26
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:27
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:80
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:82
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:247
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:271
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:475
+#: ../fred_webadmin/webwidgets/forms/editforms.py:100
+msgid "Handle"
+msgstr ""
 
-msgid "created"
-msgstr "vytvořen"
+#: ../fred_webadmin/webwidgets/templates/details.py:33
+#: ../fred_webadmin/webwidgets/templates/details.py:135
+#: ../fred_webadmin/webwidgets/templates/details.py:337
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:17
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:29
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:103
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:248
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:295
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:356
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:445
+#: ../fred_webadmin/webwidgets/forms/editforms.py:80
+#: ../fred_webadmin/webwidgets/forms/editforms.py:101
+msgid "Name"
+msgstr ""
 
-msgid "Server_disconnected"
-msgstr "Server odpojen"
+#: ../fred_webadmin/webwidgets/templates/details.py:39
+msgid "SSN"
+msgstr ""
 
-msgid "Underlying_server_disconnected_error"
-msgstr "Obslužný server restartoval spojení. Je potřeba se znovu přihlásit."
+#: ../fred_webadmin/webwidgets/templates/details.py:41
+#: ../fred_webadmin/webwidgets/templates/details.py:339
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:30
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:102
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:249
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:296
+#: ../fred_webadmin/webwidgets/forms/editforms.py:102
+msgid "Organization"
+msgstr ""
 
-msgid "url_home"
-msgstr "Návrat na přihlašovací stránku"
+#: ../fred_webadmin/webwidgets/templates/details.py:43
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:298
+msgid "VAT"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:45
+#: ../fred_webadmin/webwidgets/templates/details.py:364
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:43
+#: ../fred_webadmin/webwidgets/forms/editforms.py:122
+msgid "Telephone"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:47
+#: ../fred_webadmin/webwidgets/templates/details.py:366
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:44
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:108
+#: ../fred_webadmin/webwidgets/forms/editforms.py:123
+msgid "Fax"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:49
+#: ../fred_webadmin/webwidgets/templates/details.py:149
+#: ../fred_webadmin/webwidgets/templates/details.py:162
+#: ../fred_webadmin/webwidgets/templates/details.py:181
+#: ../fred_webadmin/webwidgets/templates/details.py:258
+#: ../fred_webadmin/webwidgets/templates/details.py:368
+#: ../fred_webadmin/webwidgets/templates/details.py:434
+#: ../fred_webadmin/webwidgets/templates/details.py:489
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:45
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:109
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:354
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:293
+#: ../fred_webadmin/webwidgets/forms/editforms.py:124
+msgid "Email"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:51
+#: ../fred_webadmin/webwidgets/templates/details.py:126
+msgid "Notify_email"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:53
+#: ../fred_webadmin/webwidgets/templates/details.py:128
+#: ../fred_webadmin/webwidgets/templates/details.py:250
+msgid "Auth_info"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:57
+#: ../fred_webadmin/webwidgets/templates/details.py:273
+#: ../fred_webadmin/webwidgets/templates/details.py:508
+msgid "Create_date"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:59
+#: ../fred_webadmin/webwidgets/templates/details.py:69
+#: ../fred_webadmin/webwidgets/templates/details.py:275
+#: ../fred_webadmin/webwidgets/templates/details.py:279
+msgid "by_registrar:"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:62
+msgid "Transfer_date"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:64
+msgid "to_registrar:"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:67
+msgid "Last_update_date:"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:77
+#: ../fred_webadmin/webwidgets/templates/details.py:137
+#: ../fred_webadmin/webwidgets/templates/details.py:345
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:59
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:124
+msgid "Address"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:79
+#: ../fred_webadmin/webwidgets/templates/details.py:354
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:39
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:116
+#: ../fred_webadmin/webwidgets/forms/editforms.py:109
+msgid "ZIP"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:81
+#: ../fred_webadmin/webwidgets/templates/details.py:352
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:37
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:117
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:250
+#: ../fred_webadmin/webwidgets/forms/editforms.py:107
+msgid "City"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:83
+#: ../fred_webadmin/webwidgets/templates/details.py:358
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:40
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:118
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:251
+#: ../fred_webadmin/webwidgets/forms/editforms.py:111
+msgid "Country"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:91
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:131
+msgid "Domains_owner"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:92
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:133
+msgid "Domains_admin"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:93
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:135
+msgid "Domains_all"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:94
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:139
+msgid "NSSets"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:95
+#: ../fred_webadmin/webwidgets/templates/details.py:232
+#: ../fred_webadmin/webwidgets/templates/details.py:287
+#: ../fred_webadmin/webwidgets/templates/details.py:398
+#: ../fred_webadmin/webwidgets/templates/details.py:560
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:74
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:143
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:184
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:246
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:316
+#: ../fred_webadmin/menunode.py:161
+msgid "Actions"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:96
+#: ../fred_webadmin/webwidgets/templates/details.py:233
+#: ../fred_webadmin/webwidgets/templates/details.py:288
+#: ../fred_webadmin/webwidgets/templates/details.py:399
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:75
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:145
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:186
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:248
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:318
+#: ../fred_webadmin/menunode.py:168
+msgid "Emails"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:110
+msgid "Domain_information"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:112
+#: ../fred_webadmin/webwidgets/templates/pages.py:373
+#: ../fred_webadmin/webwidgets/templates/pages.py:384
+msgid "Domain"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:114
+#: ../fred_webadmin/webwidgets/templates/details.py:426
+#: ../fred_webadmin/webwidgets/templates/details.py:481
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:351
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:378
+#: ../fred_webadmin/webwidgets/details/dfields.py:848
+#: ../fred_webadmin/webwidgets/details/dfields.py:859
+#: ../fred_webadmin/webwidgets/details/dfields.py:861
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:432
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:479
+msgid "Status"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:115
+msgid "Registration_date"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:118
+msgid "Expiry_date"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:120
+msgid "Outzone_date"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:122
+msgid "Delete_date"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:124
+msgid "Validation_date"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:132
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:303
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:319
+msgid "Owner"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:143
+msgid "Administrative_contacts"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:156
+msgid "Temporary_contacts"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:170
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:307
+msgid "NSSet"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:173
+#: ../fred_webadmin/webwidgets/templates/details.py:248
+#: ../fred_webadmin/webwidgets/templates/details.py:302
+#: ../fred_webadmin/webwidgets/templates/details.py:428
+#: ../fred_webadmin/webwidgets/templates/details.py:504
+#: ../fred_webadmin/webwidgets/details/adifdetaillayouts.py:19
+#: ../fred_webadmin/webwidgets/details/adifdetaillayouts.py:73
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:331
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:352
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:433
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:275
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:349
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:464
+msgid "Registrar"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:192
+#: ../fred_webadmin/webwidgets/templates/details.py:265
+msgid "IPs"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:200
+msgid "Selected_registrar"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:202
+#: ../fred_webadmin/webwidgets/templates/details.py:212
+#: ../fred_webadmin/webwidgets/details/dfields.py:560
+#: ../fred_webadmin/webwidgets/forms/adiffields.py:205
+msgid "from"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:210
+msgid "Creating_registrar"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:211
+#: ../fred_webadmin/webwidgets/templates/details.py:221
+msgid "handle"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:220
+msgid "Last_update_registrar"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:222
+#: ../fred_webadmin/webwidgets/details/dfields.py:847
+msgid "Date"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:234
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:320
+msgid "dig"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:270
+msgid "NSSet_information"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:277
+msgid "Last_update_date"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:281
+msgid "Last_transfer_date:"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:286
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:182
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:244
+msgid "Domains"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:298
+msgid "Request_information"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:300
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:330
+msgid "Received_date"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:304
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:332
+msgid "objectHandle"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:306
+#: ../fred_webadmin/webwidgets/templates/details.py:482
+#: ../fred_webadmin/webwidgets/templates/details.py:516
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:333
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:350
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:377
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:417
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:439
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:389
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:430
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:450
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:459
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:472
+#: ../fred_webadmin/webwidgets/forms/editforms.py:136
+msgid "Type"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:308
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:334
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:347
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:420
+msgid "Result"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:310
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:335
+msgid "clTRID"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:312
+#: ../fred_webadmin/webwidgets/templates/details.py:430
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:336
+msgid "svTRID"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:316
+msgid "XML IN"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:318
+msgid "XML OUT"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:332
+msgid "Detail_of_registrar"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:341
+msgid "Current_reminder"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:346
+#: ../fred_webadmin/webwidgets/templates/details.py:348
+#: ../fred_webadmin/webwidgets/templates/details.py:350
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:34
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:112
+msgid "Street"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:356
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:38
+#: ../fred_webadmin/webwidgets/forms/editforms.py:108
+msgid "State"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:363
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:60
+msgid "Other_data"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:370
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:46
+#: ../fred_webadmin/webwidgets/forms/editforms.py:125
+msgid "URL"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:375
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:61
+#: ../fred_webadmin/webwidgets/forms/editforms.py:129
+msgid "Authentication"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:379
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:12
+#: ../fred_webadmin/webwidgets/forms/editforms.py:73
+msgid "Password"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:381
+msgid "MD5_of_certificate"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:395
+msgid "Domains_selected"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:396
+msgid "Domains_creating"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:397
+msgid "Contacts"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:417
+msgid "PublicRequest_detail"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:420
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:349
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:376
+#: ../fred_webadmin/menunode.py:109
+msgid "Objects"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:422
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:435
+msgid "Reason"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:424
+msgid "Request_type"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:432
+msgid "Reply_Email"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:436
+#: ../fred_webadmin/webwidgets/templates/details.py:483
+msgid "Create_time"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:438
+msgid "Close_time"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:454
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:364
+msgid "Accept_and_send"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:455
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:368
+msgid "Invalidate_and_close"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:477
+msgid "Detail_of_email"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:479
+msgid "Handles"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:484
+msgid "Modify_time"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:485
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:381
+msgid "Attachments"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:500
+msgid "Invoice_detail"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:502
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:386
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:432
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:460
+msgid "Number"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:506
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:18
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:434
+msgid "Credit"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:510
+msgid "Tax_date"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:512
+msgid "From_date"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:514
+msgid "To_date"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:518
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:387
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:398
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:421
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:440
+msgid "Price"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:519
+#: ../fred_webadmin/webwidgets/details/dfields.py:413
+#, python-format
+msgid "(%s + %s of %s%% VAT)"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:520
+msgid "Variable_Symbol"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:526
+#: ../fred_webadmin/webwidgets/templates/details.py:530
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:443
+msgid "PDF"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:528
+#: ../fred_webadmin/webwidgets/templates/details.py:539
+msgid "size"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:528
+#: ../fred_webadmin/webwidgets/templates/details.py:539
+msgid "bytes, created"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:537
+#: ../fred_webadmin/webwidgets/templates/details.py:541
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:442
+msgid "XML"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:546
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:449
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:385
+#: ../fred_webadmin/menunode.py:146
+msgid "Payments"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/details.py:569
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:397
+msgid "PPU"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/pages.py:74
+msgid "Server disconnected, please "
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/pages.py:76
+msgid "log in"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/pages.py:81
+msgid "Not found (404)"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/pages.py:82
+msgid "Page not found"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/pages.py:100
+msgid "history"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/pages.py:146
+msgid "Modify filter"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/pages.py:154
+msgid "Table_as"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/pages.py:186
+msgid "Number_of_pages"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/pages.py:187
+msgid "entries"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/pages.py:214
+#: ../fred_webadmin/webwidgets/templates/pages.py:225
+#: ../fred_webadmin/webwidgets/templates/pages.py:235
+#: ../fred_webadmin/webwidgets/templates/pages.py:245
+#: ../fred_webadmin/webwidgets/templates/pages.py:256
+#: ../fred_webadmin/webwidgets/templates/pages.py:268
+#: ../fred_webadmin/webwidgets/templates/pages.py:281
+#: ../fred_webadmin/webwidgets/templates/pages.py:293
+#: ../fred_webadmin/webwidgets/templates/pages.py:304
+#: ../fred_webadmin/webwidgets/templates/pages.py:315
+#, python-format
+msgid "Detail_of_%s"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/pages.py:326
+#: ../fred_webadmin/webwidgets/templates/pages.py:337
+msgid "Detail of payment"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/pages.py:371
+msgid "dig_query"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/pages.py:382
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:322
+msgid "Set InZone Status"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/templates/pages.py:387
+msgid "Function returns True."
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/adifwidgets.py:29
+#: ../fred_webadmin/webwidgets/adifwidgets.py:65
+#: ../fred_webadmin/webwidgets/adifwidgets.py:93
+msgid "form"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/adifwidgets.py:32
+#: ../fred_webadmin/webwidgets/adifwidgets.py:68
+#: ../fred_webadmin/webwidgets/adifwidgets.py:96
+msgid "Custom filter"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/adifwidgets.py:124
+msgid "Options"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/details.py:68
+#, python-format
+msgid "Incorrect field name \"%s\" specified in %s. display_only list!"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/details.py:130
+msgid "Edit"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetaillayouts.py:20
+#: ../fred_webadmin/webwidgets/details/adifdetaillayouts.py:74
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:172
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:234
+msgid "Tech. contacts"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetaillayouts.py:21
+msgid "DNSs"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetaillayouts.py:75
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:235
+msgid "DS records"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetaillayouts.py:76
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:236
+msgid "DNSKeys"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:13
+msgid "MD5"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:19
+#: ../fred_webadmin/webwidgets/details/dfields.py:613
+#: ../fred_webadmin/webwidgets/details/dfields.py:711
+#: ../fred_webadmin/webwidgets/forms/editforms.py:81
+msgid "From"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:20
+#: ../fred_webadmin/webwidgets/details/dfields.py:613
+#: ../fred_webadmin/webwidgets/details/dfields.py:711
+#: ../fred_webadmin/webwidgets/forms/editforms.py:82
+msgid "To"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:31
+msgid "Total credit"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:32
+msgid "Unspecified credit"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:47
+#: ../fred_webadmin/webwidgets/forms/editforms.py:117
+msgid "ICO"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:48
+#: ../fred_webadmin/webwidgets/forms/editforms.py:118
+msgid "DIC"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:49
+#: ../fred_webadmin/webwidgets/forms/editforms.py:119
+msgid "Var. Symbol"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:50
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:106
+#: ../fred_webadmin/webwidgets/forms/editforms.py:120
+msgid "DPH"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:51
+#: ../fred_webadmin/webwidgets/forms/editforms.py:126
+msgid "System registrar"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:62
+#: ../fred_webadmin/webwidgets/forms/editforms.py:131
+msgid "Zones"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:68
+msgid "Domains sel."
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:69
+msgid "Domains cr."
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:70
+msgid "Contact sel."
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:71
+msgid "Contact cr."
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:72
+msgid "NSSet sel."
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:73
+msgid "NSSet cr."
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:91
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:435
+msgid "Create date"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:92
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:282
+msgid "Update date"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:93
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:283
+msgid "Transfer date"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:94
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:284
+msgid "Delete date"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:95
+msgid "Create_registrar"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:97
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:272
+msgid "AuthInfo"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:104
+msgid "Identification data"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:107
+msgid "Phone"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:110
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:294
+msgid "Notify email"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:122
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:171
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:233
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:304
+msgid "Selected registrar"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:123
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:174
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:237
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:302
+msgid "Dates"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:125
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:176
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:238
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:309
+msgid "States"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:141
+msgid "KeySets"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:151
+msgid "fqdn"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:152
+msgid "IP addresses"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:173
+msgid "Hosts"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:192
+msgid "keyTag"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:193
+msgid "algorithm"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:194
+msgid "digest type"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:195
+msgid "digest"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:196
+msgid "Max. sig. life"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:199
+msgid "Flags"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:200
+msgid "Protocol"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:201
+msgid "Algorithm"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:202
+msgid "Public key"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:254
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:394
+msgid "Expiration date"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:255
+msgid "Expiration valuation date"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:256
+msgid "Out zone date"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:305
+msgid "Admin contacts"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:306
+msgid "Temporary contacts"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:308
+msgid "KeySet"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:337
+msgid "XML out"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:338
+msgid "XML in"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:343
+msgid "XML In"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:344
+msgid "XML Out"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:348
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:428
+msgid "ID"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:353
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:439
+msgid "Action"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:355
+msgid "Answer email"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:356
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:379
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:433
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:448
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:461
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:476
+msgid "Create time"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:357
+msgid "Close time"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:380
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:477
+msgid "Modify time"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:382
+msgid "Email content"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:388
+msgid "Balance"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:392
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:343
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:437
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:465
+msgid "Object"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:393
+msgid "Action time"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:395
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:404
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:373
+msgid "Action type"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:396
+msgid "Count"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:402
+msgid "Start time"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:403
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:377
+msgid "End time"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:405
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:367
+msgid "Service type"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:406
+msgid "Session id"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:407
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:370
+msgid "Source IP"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:408
+msgid "Properties"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:409
+msgid "Raw request"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:410
+msgid "Raw response"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:414
+msgid "Account Number"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:415
+msgid "Bank Code"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:416
+msgid "Code"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:418
+msgid "Constant Symbol"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:419
+msgid "Variable Symbol"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:420
+msgid "Specific Symbol"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:422
+msgid "Account Evid."
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:423
+msgid "Account Memo"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:424
+msgid "Account Name"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:426
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:411
+msgid "Invoice Id"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:428
+msgid "crTime"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:436
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:462
+msgid "Tax date"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:437
+msgid "From date"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:438
+msgid "To date"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:441
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:409
+msgid "Variable symbol"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/adifdetails.py:450
+msgid "Payment actions"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/dfields.py:62
+msgid "CENSORED"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/dfields.py:561
+#: ../fred_webadmin/webwidgets/forms/adiffields.py:206
+msgid "to"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/dfields.py:613
+#: ../fred_webadmin/webwidgets/details/dfields.py:711
+msgid "A."
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/details/dfields.py:855
+msgid "Statuses"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:155
+msgid "s"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:252
+msgid "Zone fqdn"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:259
+msgid "State Type"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:264
+msgid "Valid from"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:265
+msgid "Valid to"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:277
+msgid "Creation registrar"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:279
+msgid "Update registrar"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:281
+msgid "Registration date"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:287
+msgid "Object state"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:297
+msgid "Identification"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:302
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:312
+msgid "Technical contact"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:303
+msgid "IP address"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:304
+msgid "Nameserver name"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:321
+msgid "Admin"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:323
+msgid "Temp"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:325
+msgid "Nameserver set"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:327
+msgid "Key set"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:329
+msgid "Expiry date"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:330
+msgid "OutZone date"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:331
+msgid "Cancel date"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:333
+msgid "Validation date"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:340
+msgid "Request type"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:344
+msgid "Requested Handle"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:345
+msgid "Received date"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:350
+msgid "SvTRID"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:351
+msgid "ClTRID"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:357
+msgid "Value"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:358
+msgid "Output Flag"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:363
+msgid "Logged Actions"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:371
+#: ../fred_webadmin/webwidgets/forms/adifforms.py:17
+msgid "Username"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:376
+msgid "Begin time"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:379
+msgid "Property"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:380
+msgid "Monitoring"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:403
+msgid "Account date"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:405
+msgid "Account number"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:406
+msgid "Bank code"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:408
+msgid "Constant symbol"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:417
+msgid "User name"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:418
+msgid "Group name"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:434
+msgid "Resolve time"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:436
+msgid "Email to answer"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:446
+msgid "Path"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:447
+msgid "Mime type"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:466
+msgid "File"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:480
+msgid "Attempt"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:481
+msgid "Message"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterforms.py:483
+msgid "Attachment"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/formsetlayouts.py:28
+#: ../fred_webadmin/webwidgets/forms/formlayouts.py:28
+msgid "Errors:"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/adiffields.py:48
+#: ../fred_webadmin/webwidgets/forms/adiffields.py:118
+msgid "Correct errors below."
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/adiffields.py:50
+#: ../fred_webadmin/webwidgets/forms/adiffields.py:120
+#: ../fred_webadmin/webwidgets/forms/fields.py:57
+#: ../fred_webadmin/webwidgets/forms/fields.py:664
+#: ../fred_webadmin/webwidgets/forms/fields.py:799
+msgid "This field is required."
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/adiffields.py:209
+msgid "offset"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/adiffields.py:213
+msgid "day"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/fields.py:115
+#, python-format
+msgid "Ensure this value has at most %(max)d characters (it has %(length)d)."
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/fields.py:117
+#, python-format
+msgid "Ensure this value has at least %(min)d characters (it has %(length)d)."
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/fields.py:149
+#: ../fred_webadmin/webwidgets/forms/fields.py:180
+msgid "Enter a number."
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/fields.py:151
+#: ../fred_webadmin/webwidgets/forms/fields.py:185
+#, python-format
+msgid "Ensure this value is less than or equal to %s."
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/fields.py:153
+#: ../fred_webadmin/webwidgets/forms/fields.py:187
+#, python-format
+msgid "Ensure this value is greater than or equal to %s."
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/fields.py:189
+#, python-format
+msgid "Ensure that there are no more than %s digits in total."
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/fields.py:191
+#, python-format
+msgid "Ensure that there are no more than %s decimal places."
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/fields.py:193
+#, python-format
+msgid "Ensure that there are no more than %s digits before the decimal point."
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/fields.py:243
+#: ../fred_webadmin/webwidgets/forms/fields.py:871
+msgid "Enter a valid date."
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/fields.py:279
+#: ../fred_webadmin/webwidgets/forms/fields.py:873
+msgid "Enter a valid time."
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/fields.py:324
+msgid "Enter a valid date/time."
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/fields.py:341
+msgid "Enter a valid value."
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/fields.py:373
+msgid "Enter a valid e-mail address."
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/fields.py:411
+msgid "No file was submitted. Check the encoding type on the form."
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/fields.py:413
+msgid "No file was submitted."
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/fields.py:415
+msgid "The submitted file is empty."
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/fields.py:439
+msgid ""
+"Upload a valid image. The file you uploaded was either not an image or a "
+"corrupted image."
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/fields.py:453
+#: ../fred_webadmin/webwidgets/forms/fields.py:479
+msgid "Enter a valid URL."
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/fields.py:481
+msgid "This URL appears to be a broken link."
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/fields.py:598
+#: ../fred_webadmin/webwidgets/forms/fields.py:622
+msgid "Select a valid choice. That choice is not one of the available choices."
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/fields.py:632
+msgid "Unknown"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/fields.py:632
+msgid "Yes"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/fields.py:673
+#, python-format
+msgid "Select a valid choice. %s is not one of the available choices."
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/fields.py:894
+msgid "Enter a valid IPv4 address."
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/filterformlayouts.py:77
+msgid "name"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/editformlayouts.py:61
+msgid "Save"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/adifforms.py:16
+msgid "Server"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/editforms.py:74
+msgid "MD5 of cert."
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/editforms.py:104
+msgid "Street1"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/editforms.py:105
+msgid "Street2"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/editforms.py:106
+msgid "Street3"
+msgstr ""
+
+#: ../fred_webadmin/webwidgets/forms/editforms.py:144
+msgid "Pair with Registrar Handle"
+msgstr ""
+
+#: ../fred_webadmin/menunode.py:105
+msgid "Summary"
+msgstr ""
+
+#: ../fred_webadmin/menunode.py:112
+msgid "Search domains"
+msgstr ""
+
+#: ../fred_webadmin/menunode.py:115
+msgid "Search contacts"
+msgstr ""
+
+#: ../fred_webadmin/menunode.py:118
+msgid "Search nssets"
+msgstr ""
+
+#: ../fred_webadmin/menunode.py:121
+msgid "Search keysets"
+msgstr ""
+
+#: ../fred_webadmin/menunode.py:125
+msgid "Registrars"
+msgstr ""
+
+#: ../fred_webadmin/menunode.py:129
+msgid "List"
+msgstr ""
+
+#: ../fred_webadmin/menunode.py:133
+msgid "Search"
+msgstr ""
+
+#: ../fred_webadmin/menunode.py:137
+msgid "Create new"
+msgstr ""
+
+#: ../fred_webadmin/menunode.py:142
+msgid "Invoices"
+msgstr ""
+
+#: ../fred_webadmin/menunode.py:156 ../fred_webadmin/menunode.py:173
+msgid "Logs"
+msgstr ""
+
+#: ../fred_webadmin/menunode.py:164
+msgid "PublicRequests"
+msgstr ""
+
+#: ../fred_webadmin/auth/corba_auth.py:13
+#: ../fred_webadmin/auth/ldap_auth.py:15
+msgid "Invalid username and/or password!"
+msgstr ""
+
+#: ../fred_webadmin/auth/ldap_auth.py:13
+msgid "LDAP server is unavailable!"
+msgstr ""
+
+#: ../fred_webadmin/exposed.py:37
+msgid "Error: Backend server is not running!"
+msgstr ""
+
+#: ../fred_webadmin/exposed.py:45
+msgid "Error: File not found!"
+msgstr ""
+
+#: ../fred_webadmin/exposed.py:52
+msgid "Error: CORBA object could not be found!"
+msgstr ""
+
+#: ../fred_webadmin/corba.py:67
+msgid "Advance"
+msgstr ""
+
+#: ../fred_webadmin/corba.py:68
+msgid "Account"
+msgstr ""

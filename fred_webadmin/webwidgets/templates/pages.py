@@ -7,7 +7,6 @@ from fred_webadmin.translation import _
 from fred_webadmin import config
 from fred_webadmin.utils import get_current_url, append_getpar_to_url
 
-#from details import ContactDetailDiv, DomainDetailDiv, NSSetDetailDiv, ActionDetailDiv, RegistrarDetailDiv, PublicRequestDetailDiv, MailDetailDiv, InvoiceDetailDiv
 from fred_webadmin.webwidgets.details import adifdetails
 from fred_webadmin.webwidgets.forms import editforms
 
@@ -324,7 +323,7 @@ class BankStatementDetail(DetailPage):
         super(BankStatementDetail, self).__init__(context)
         c = self.context
         if c.get('detail'):
-            self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
+            self.main.add(h1(_("Detail of payment"))) 
             self.main.add(adifdetails.BankStatementDetail(c.detail, c.history))
             if config.debug:
                 self.main.add('BankStatementDETAIL:', pre(unicode(c.detail).replace(u', ', u',\n')))
@@ -335,7 +334,7 @@ class BankStatementDetailWithPaymentPairing(DetailPage):
         super(BankStatementDetailWithPaymentPairing, self).__init__(context)
         c = self.context
         if c.get('detail'):
-            self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
+            self.main.add(h1(_('Detail of payment')))
             self.main.add(adifdetails.BankStatementDetail(c.detail, c.history))
         if c.get('form'):
             self.main.add(c.form)
