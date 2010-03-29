@@ -30,9 +30,6 @@ class User(object):
              if nperm is 'read.domain.authinfo' function returns True if one of following strings are in self.nperms:
                  'read', 'read.domain', 'read.domain.authinfo'
         '''
-        if not config.enable_perms_checking:
-            # No checking => user is permitted to do anything.
-            return False
         parts = nperm.split('.')
         has_perm = self._authorizer.has_permission(parts[1], parts[0])
         return not has_perm
