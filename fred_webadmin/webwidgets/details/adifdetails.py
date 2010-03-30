@@ -459,4 +459,4 @@ detail_classes = [AccessDetail, RegistrarDetail,
                   DomainDetail, 
                   ActionDetail, PublicRequestDetail, MailDetail, 
                   PaymentDetail, PaymentActionDetail, InvoiceDetail,
-                  BankStatementDetail, LoggerDetail]
+                  BankStatementDetail, LoggerDetail, ZoneDetail]

@@ -30,6 +30,8 @@ if config.auth_method == 'LDAP':
     import fred_webadmin.auth.ldap_auth as auth
 elif config.auth_method == 'CORBA':
     import fred_webadmin.auth.corba_auth as auth
+elif config.auth_method == 'OPENID':
+    import fred_webadmin.auth.openid_auth as auth
 else:
     raise Exception("No valid authentication module has been configured.")
 
@@ -834,7 +836,7 @@ class BankStatement(AdifPage, ListTableMixin):
         pairing_success = False
 
         user = cherrypy.session['user']
-        user_has_change_perms = not user.check_nperms("process.payment")
+        user_has_change_perms = not user.check_nperms("change.bankstatement")
         
         log_req = cherrypy.session['Logger'].create_request(
             cherrypy.request.remote.ip, cherrypy.request.body, 

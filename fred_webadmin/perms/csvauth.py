@@ -7,7 +7,7 @@ class Authorizer(object):
         Takes permissions from a csv file. The format of the data is:
         username1,perm1,perm2,perm3
         username2,perm1,perm2
-        e.g.:
+        E.g.:
         "testuser","read.registrar","change.domain"
         "testuser2","read.bankstatement"
 

@@ -145,7 +145,7 @@ registrars_node = MenuNode(
             MenuNode(
                 'bankstatement', _('Payments'), cssc='menu-item',
                 url=f_urls['bankstatement'] + 'allfilters/', 
-                nperm='read.payment')])
+                nperm='read.bankstatement')])
 
 log_submenu = []
 
@@ -166,7 +166,7 @@ log_submenu.extend(
             nperm='read.publicrequest'),
         MenuNode(
             'mail', _('Emails'), cssc='menu-item', 
-            url=f_urls['mail'] + 'allfilters/', nperm='read.email')])
+            url=f_urls['mail'] + 'allfilters/', nperm='read.mail')])
 
 
 logs_node = MenuNode(
