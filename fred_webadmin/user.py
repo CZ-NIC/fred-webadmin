@@ -2,12 +2,16 @@ import sys
 import types
 
 import config
-if config.enable_perms_checking:
-    import fred_webadmin.perms.nicauth as auth_user
+
+if config.permissions['enable_checking']:
+    if config.permissions['backend'] == 'nicauth':
+        import fred_webadmin.perms.nicauth as auth_user
+    elif config.permissions['backend'] == 'csv':
+        import fred_webadmin.perms.csvauth as auth_user
+    else:
+        raise Exception("No valid authorization module has been configured.")
 else:
     import fred_webadmin.perms.dummy as auth_user
-
-from logging import debug
 
 from fred_webadmin.webwidgets.utils import isiterable
 

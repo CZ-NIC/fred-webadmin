@@ -364,7 +364,7 @@ class ADIF(AdifPage):
                 del(cherrypy.session['corbaSessionString'])
                 cherrypy.response.status = 403
                 log_req.update("result", str(e))
-                form.non_field_errors().append(str(e))
+                form.non_field_errors().append("Authorization failed: %s" % str(e))
                 if config.debug:
                     form.non_field_errors().append('(%s)' % str(e))
                 return None

@@ -1,0 +1,58 @@
+import csv
+import fred_webadmin.config as config
+from fred_webadmin.controller.adiferrors import AuthorizationError
+
+class Authorizer(object):
+    """
+        Takes permissions from a csv file. The format of the data is:
+        username1,perm1,perm2,perm3
+        username2,perm1,perm2
+        e.g.:
+        "testuser","read.registrar","change.domain"
+        "testuser2","read.bankstatement"
+
+        Doctests:
+            Mock the _get_reader call, so that we do not actually read 
+            from a file.
+            >>> Authorizer._get_reader = lambda x : ([["user", "a1.o1", \
+"a2.o2"], ["user2", "a3.o3", "a4.o4"]])
+            >>> a = Authorizer("user")
+            >>> a.has_permission("o1", "a1")
+            True
+            >>> a.has_permission("o2", "a1")
+            False
+            >>> a.has_permission("o3", "a3")
+            False
+            >>> a = Authorizer("unknown user")
+            Traceback (most recent call last):
+            ...
+            AuthorizationError: Authorization record for user unknown user \
+does not exist!
+    """
+    source = config.permissions['csv_file']
+
+    def _get_reader(self):
+        try:
+            return csv.reader(open(Authorizer.source, "rb"))
+        except IOError, e:
+            raise AuthorizationError(e)
+
+    def __init__(self, username):
+        object.__init__(self)
+        reader = self._get_reader()
+        self.perms = None
+        # Find the line with permissions for user with @username
+        for row in reader:
+            if row[0] == username:
+                self.perms = row[1:]
+        if not self.perms:
+            raise AuthorizationError(
+                    "Authorization record for user %s does not exist!" \
+                        % username)
+
+    def has_permission(self, obj, action):
+        for perm in self.perms:
+            parts = perm.split(".")
+            if parts[1] == obj and parts[0] == action:
+                return True
+        return False

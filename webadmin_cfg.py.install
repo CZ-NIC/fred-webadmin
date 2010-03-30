@@ -28,7 +28,21 @@ audit_log = {
     'force_critical_logging' : False 
 }
 
-# Iff false, no security policy is enforced (there is no authorization).
+# enable_checking: Iff false, no security policy is enforced (there is
+#                  no authorization).
+# backend: Select from 'csv', 'nicauth' to specify the backend for permission
+#          data.
+# csv_file: Used only when 'csv' backend is selected. Speicfy the path to the
+#           file with permissions.
+#           File row format: username,action1.object1,action2.object2...
+#           e.g.: testuser,read.domain,write.registrar,read.registrar...
+permissions = {
+    'enable_checking': False,
+    'backend': 'csv', #, 'nicauth'
+    'csv_file': 'perms.csv',
+}
+
+
 enable_perms_checking = False
 
 idl = 'DU_IDL_DIR/ccReg.idl' #'/usr/share/idl/fred/ccReg.idl'
