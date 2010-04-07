@@ -403,7 +403,6 @@ class ADIF(AdifPage):
                 cherrypy.session['login_data'] = {}
                 cherrypy.session['login_data']['log_req'] = log_req
                 cherrypy.session['login_data']['form_data'] = form.cleaned_data
-                cherrypy.session['login_worker'] = login
             except (omniORB.CORBA.BAD_PARAM, AuthenticationError, 
                     AuthorizationError), exc:
                 log_req.update("result", str(exc))
