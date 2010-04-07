@@ -13,5 +13,10 @@ class IorNotFoundError(AdifError):
 class AuthenticationError(AdifError):
     pass
 
+
 class AuthorizationError(AdifError):
+    pass
+
+
+class MalformedAuthorizationError(AuthorizationError):
     pass

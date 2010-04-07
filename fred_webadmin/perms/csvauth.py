@@ -1,6 +1,7 @@
 import csv
 import fred_webadmin.config as config
-from fred_webadmin.controller.adiferrors import AuthorizationError
+from fred_webadmin.controller.adiferrors import (
+    AuthorizationError, MalformedAuthorizationError)
 from fred_webadmin.translation import _
 
 class Authorizer(object):
@@ -50,6 +51,13 @@ unknown user
             raise AuthorizationError(
                     _("Authorization record does not exist for user ") +\
                         str(username))
+        self._check_for_malformed_perms()
+
+    def _check_for_malformed_perms(self):
+        for perm in self.perms:
+            if len(perm.split(".")) != 2:
+                raise MalformedAuthorizationError(
+                    _("Malformed authorization record in csv file!"))
 
     def has_permission(self, obj, action):
         for perm in self.perms:
