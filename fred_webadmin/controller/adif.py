@@ -45,7 +45,7 @@ import fred_webadmin.utils as utils
 
 from fred_webadmin.logger.sessionlogger import (
     SessionLogger, SessionLoggerFailSilent, LoggingException)
-from fred_webadmin.logger.dummylogger import DummyLogger
+from fred_webadmin.logger.dummylogger import DummyLogger, DummyLogRequest
 
 from fred_webadmin.controller.listtable import ListTableMixin
 
@@ -98,6 +98,8 @@ from fred_webadmin.user import User
 from fred_webadmin.customview import CustomView
 
 from fred_webadmin.controller.perms import check_onperm, login_required
+
+SESSION_OPENID_REDIRECT = "openid_redirect"
 
 
 class Page(object):
@@ -208,7 +210,7 @@ class AdifPage(Page):
         else:
             return self._render('404_not_found')
 
-    def remove_session_data(self):
+    def _remove_session_data(self):
         cherrypy.session['user'] = None
         cherrypy.session['corbaSession'] = None
         cherrypy.session['corbaSessionString'] = None
@@ -219,12 +221,12 @@ class AdifPage(Page):
         cherrypy.session['filter_forms_javascript'] = None
         cherrypy.session['corba_logd'] = None
         cherrypy.session['filterforms'] = None
-        
+
 
 class ADIF(AdifPage):
     def _get_menu_handle(self, action):
         return 'summary'
-    
+
     @login_required
     def index(self, *args):
         if cherrypy.session.get('user'):
@@ -255,7 +257,7 @@ class ADIF(AdifPage):
                 return json_response(new_history)
         return super(ADIF, self).default(*args, **kwd)
 
-    def _replace_logger_page(self, logger_page_class):
+    def _set_logger_page(self, logger_page_class):
         """ Remove logger from cherrypy apps tree.
         """
         cherrypy.tree.apps[''].root.logger = logger_page_class()
@@ -269,7 +271,7 @@ class ADIF(AdifPage):
                 silently without exceptions).
         """
         if not config.audit_log['logging_actions_enabled']:
-            # We have to provide an object with the correct interface.
+            # Dummt object, only implements the interface.
             logger = DummyLogger()
         else:
             try:
@@ -277,15 +279,16 @@ class ADIF(AdifPage):
             except CosNaming.NamingContext.NotFound:
                 if config.audit_log['force_critical_logging']:
                     raise
-                log_filter_form = filterforms.LoggerFilterForm 
-                if log_filter_form in cherrypy.session['filterforms']:
-                    # No connection to logd server => remove 
-                    # LoggerFilterForm from filterforms.
-                    cherrypy.session['filterforms'].remove(log_filter_form)
-                self._replace_logger_page(LoggerDisabled)
+                form = filterforms.LoggerFilterForm 
+                if form in cherrypy.session['filterforms']:
+                    # Remove LoggerFilterForm from filterforms to prevent
+                    # exceptions during filterform-related javascript 
+                    # generation.
+                    cherrypy.session['filterforms'].remove(form)
+                self._set_logger_page(LoggerDisabled)
                 logger = DummyLogger()
             else:
-                self._replace_logger_page(Logger)
+                self._set_logger_page(Logger)
                 # CorbaLazyRequest needs to have the CORBA logd object in
                 # cherrypy.session
                 cherrypy.session['corba_logd'] = corba_logd
@@ -308,92 +311,65 @@ class ADIF(AdifPage):
         nscontext = config.iors[corba_server][2]
         corba_obj.connect(ior, nscontext)
 
-    def _login_process_valid_form(self, form):
-        """ Attempt to login to Daphne.
-            Returns: Address to redirect to, if all's OK. None otherwise.
-        """
+    def _init_login(self, form):
         login = form.cleaned_data.get('login', '')
-        password = form.cleaned_data.get('password', '')
         corba_server = int(form.cleaned_data.get('corba_server', 0))
         cherrypy.session['filterforms'] = copy(filterforms.form_classes)
-        
+        self._corba_connect(corba_server)
+        logger = self._create_session_logger()
         try:
-            log_req = None
-            self._corba_connect(corba_server)
-            logger = self._create_session_logger()
-            try:
-                logger.start_session("en", login)
-            except (omniORB.CORBA.SystemException,
+            logger.start_session("en", login)
+        except (omniORB.CORBA.SystemException,
                 ccReg.Admin.ServiceUnavailable):
-                if config.audit_log['force_critical_logging']:
-                    raise
-                logger = DummyLogger()
-            cherrypy.session['Logger'] = logger
-            log_req = logger.create_request(
-                cherrypy.request.remote.ip, cherrypy.request.body, "Login")
-            log_req.update("username", login)
+            if config.audit_log['force_critical_logging']:
+                raise
+            logger = DummyLogger()
+        log_req = logger.create_request(
+            cherrypy.request.remote.ip, cherrypy.request.body, "Login")
+        log_req.update("username", login)
+        admin = corba_obj.getObject('Admin', 'Admin')
+        cherrypy.session['Admin'] = admin
+        cherrypy.session['Logger'] = logger
+        return admin, log_req
 
-            admin = corba_obj.getObject('Admin', 'Admin')
-            cherrypy.session['Admin'] = admin
-            try:
-                auth.authenticate_user(admin, login, password)
-            except AuthenticationError, e:
-                cherrypy.response.status = 403
-                log_req.update("result", str(e))
-                form.non_field_errors().append(str(e))
-                if config.debug:
-                    form.non_field_errors().append('(%s)' % str(e))
-                return None
+    def _authenticate(self, form, admin, log_req):
+        login = form.cleaned_data.get('login', '')
+        password = form.cleaned_data.get('password', '')
+        try:
+            auth.authenticate_user(admin, login, password)
+        except AuthenticationError, e:
+            cherrypy.response.status = 403
+            raise
+       
+    def _authorize(self, form, admin, log_req):
+        login = form.cleaned_data.get('login', '')
+        corbaSessionString = admin.createSession(recoder.u2c(login))
+        log_req.update("session_id", corbaSessionString)
+        try:
+            session = admin.getSession(corbaSessionString)
+            # User gets authorized for login when User object is created.
+            user = User(session.getUser())
+        except AuthorizationError, e:
+            admin.destroySession(corbaSessionString)
+            cherrypy.response.status = 403
+            raise
+        cherrypy.session['user'] = user
+        return user, corbaSessionString
 
-            corbaSessionString = admin.createSession(recoder.u2c(login))
-            logger.set_common_property("session_id", corbaSessionString)
-
-            # I have to log the session_id now because this logging request 
-            # has been created before setting the session_id as a common
-            # property.
-            log_req.update("session_id", corbaSessionString)
-
-            cherrypy.session['corbaSessionString'] = corbaSessionString
-            cherrypy.session['corba_server_name'] = \
-                form.fields['corba_server'].choices[corba_server][1]
-            cherrypy.session['filter_forms_javascript'] = None
-
-            try:
-                cherrypy.session['user'] = User(
-                       utils.get_corba_session().getUser())
-            except AuthorizationError, e:
-                admin.destroySession(corbaSessionString)
-                del(cherrypy.session['corbaSessionString'])
-                cherrypy.response.status = 403
-                log_req.update("result", str(e))
-                form.non_field_errors().append("Authorization failed: %s" % str(e))
-                if config.debug:
-                    form.non_field_errors().append('(%s)' % str(e))
-                return None
-
-            cherrypy.session['Mailer'] = corba_obj.getObject(
-                'Mailer', 'Mailer')
-            cherrypy.session['FileManager'] = corba_obj.getObject(
-                'FileManager', 'FileManager')
+    def _fill_session_data(self, form, user, corbaSessionString):
+        cherrypy.session['corbaSessionString'] = corbaSessionString
+        corba_server = int(form.cleaned_data.get('corba_server', 0))
+        cherrypy.session['corba_server_name'] = \
+            form.fields['corba_server'].choices[corba_server][1]
+        cherrypy.session['filter_forms_javascript'] = None
+        cherrypy.session['filterforms'] = copy(filterforms.form_classes)
+        cherrypy.session['Logger'].set_common_property("session_id", corbaSessionString)
+        cherrypy.session['Mailer'] = corba_obj.getObject('Mailer', 'Mailer')
+        cherrypy.session['FileManager'] = corba_obj.getObject(
+            'FileManager', 'FileManager')
             
-            cherrypy.session['history'] = False
-            utils.get_corba_session().setHistory(False)
-
-            redir_addr = form.cleaned_data.get('next')
-            return redir_addr
-
-        except omniORB.CORBA.BAD_PARAM, e:
-            if log_req:
-                log_req.update("result", str(e))
-            form.non_field_errors().append(
-                _('Bad corba call! ') + '(%s)' % (str(e)))
-            if config.debug:
-                form.non_field_errors().append(noesc(escape(unicode(
-                    traceback.format_exc())).replace('\n', '<br/>')))
-        finally:
-            if log_req:
-                log_req.commit()
-        return None
+        cherrypy.session['history'] = False
+        utils.get_corba_session().setHistory(False)
 
     def login(self, *args, **kwd):
         """ The 'gateway' to the rest of Daphne. Handles authentication and 
@@ -403,7 +379,12 @@ class ADIF(AdifPage):
             # Already logged in, redirect to /summary.
             self._handle_double_login()
             raise cherrypy.HTTPRedirect('/summary/')
-        if kwd:
+
+        if cherrypy.session.get(SESSION_OPENID_REDIRECT):
+            # OpenID redirect => get stored data from the session.
+            form_data = cherrypy.session.get('login_data')['form_data']
+            form = LoginForm(form_data, action='/login/', method='post')
+        elif kwd:
             if cherrypy.request.method == 'GET' and kwd.get('next'):
                 form = LoginForm(action='/login/', method='post')
                 form.fields['next'].value = kwd['next']
@@ -413,21 +394,60 @@ class ADIF(AdifPage):
             form = LoginForm(action='/login/', method='post')
         
         if form.is_valid():
-            # Attempt to enter Daphne. Connect to Corba, authenticate 
-            # user, create corba objects such as admin and logger...
-            redir_addr = self._login_process_valid_form(form)
-            if redir_addr:
-                raise cherrypy.HTTPRedirect(redir_addr)
+            log_req = DummyLogRequest()
+            try:
+                log_req, admin = self._login_init_and_authenticate(form)
+                user, session_string = self._authorize(form, admin, log_req)
+            except cherrypy.HTTPRedirect:
+                # OpenID redirect => store necessary data in the session.
+                cherrypy.session['login_data'] = {}
+                cherrypy.session['login_data']['log_req'] = log_req
+                cherrypy.session['login_data']['form_data'] = form.cleaned_data
+                cherrypy.session['login_worker'] = login
+            except (omniORB.CORBA.BAD_PARAM, AuthenticationError, 
+                    AuthorizationError), exc:
+                log_req.update("result", str(exc))
+                form.non_field_errors().append(str(exc))
+                if config.debug:
+                    form.non_field_errors().append(noesc(escape(unicode(
+                        traceback.format_exc())).replace('\n', '<br/>')))
+                log_req.commit()
+            else:
+                self._fill_session_data(form, user, session_string)
+                if cherrypy.session.get('login_data'):
+                    del(cherrypy.session['login_data'])
+                # Login completed, go to the next page.
+                raise cherrypy.HTTPRedirect(form.cleaned_data.get('next'))
+            finally:
+                # Set OpenID redirect to False in any case (it will be set to
+                # True when it is redirected).
+                cherrypy.session[SESSION_OPENID_REDIRECT] = False
 
         form.action = '/login/'
         return self._render('login', {'form': form})
-      
+
+    def _login_init_and_authenticate(self, form):
+        """ Obtains CORBA admin reference either from the session data 
+            (when we've been redirected by OpenID authentication) or 
+            directly from the server. 
+            Also obtains the login log request.
+        """
+        if cherrypy.session.get(SESSION_OPENID_REDIRECT):
+            admin = cherrypy.session.get('Admin')
+            log_req = cherrypy.session.get('login_data')['log_req']
+        else:
+            admin, log_req = self._init_login(form)
+            # May raise a HTTPRedirect
+            self._authenticate(form, admin, log_req)
+        return log_req, admin
+
     @login_required
     def logout(self):
         if cherrypy.session.get('Admin'):
             try:
+                session_string = cherrypy.session['corbaSessionString']
                 cherrypy.session['Admin'].destroySession(
-                    recoder.u2c(cherrypy.session['corbaSessionString']))
+                    session_string)
             except CORBA.TRANSIENT, e:
                 debug('Admin.destroySession call failed, backend server '
                       'is not running.\n%s' % e)
@@ -445,7 +465,7 @@ class ADIF(AdifPage):
                 # session).
                 error("Failed to log logout action!")
                 pass
-        self.remove_session_data()
+        self._remove_session_data()
         raise cherrypy.HTTPRedirect('/')
 
 
@@ -980,6 +1000,37 @@ class Development(object):
         cherrypy.response.headers["Content-Type"] = "text/plain"
         return output
 
+class OpenID(AdifPage):
+    def index(self):
+        cherrypy.session[SESSION_OPENID_REDIRECT] = True
+#        raise cherrypy.HTTPRedirect("/login")
+        return cherrypy.session['openid_form']
+
+    def _normalize_dict(self, args):
+        normal = {}
+        for key, value in args:
+            try:
+                prefix, rest = key.split('.', 1)
+                if prefix != 'openid':
+                    normal[str(key)] = value
+            except ValueError: #no prefix
+                normal[str(key)] = value
+        return normal
+
+    def process(self, *args, **kwargs):
+        from openid.store import memstore
+        from openid.consumer import consumer
+        store = memstore.MemoryStore()
+        query = {}
+        for k, v in kwargs.items():
+            query[k] = v.decode('utf-8')
+        cons = consumer.Consumer(cherrypy.session['openid_session'], store)
+        import ipdb; ipdb.set_trace()
+        res = cons.complete(query, cherrypy.url("/") + "openid/process")
+#        res = cons.complete(cons.session, cherrypy.url("/") + "openid/process")
+        return res.message
+
+
 class Smaz(Page):
     def index(self):
         context = DictLookup({'main': p("hoj")})
@@ -1017,6 +1068,7 @@ def prepare_root():
     root.filter = Filter()
     root.statistic = Statistics()
     root.devel = Development()
+    root.openid = OpenID()
 
     return root
 

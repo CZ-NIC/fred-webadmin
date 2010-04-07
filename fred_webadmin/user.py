@@ -24,7 +24,7 @@ class User(object):
         self.firstname = user._get_firstname()
         self.surname = user._get_surname()
         self.table_page_size = config.tablesize
-        
+
         self._authorizer = auth_user.Authorizer(self.login)
         
     def has_nperm(self, nperm):

@@ -43,8 +43,6 @@ permissions = {
 }
 
 
-enable_perms_checking = False
-
 idl = 'DU_IDL_DIR/ccReg.idl' #'/usr/share/idl/fred/ccReg.idl'
 iors = (#(label, nshost, nscontext),
 		('Test', 'DU_NS_HOST', 'DU_NS_CONTEXT'),

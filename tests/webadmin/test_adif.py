@@ -4,6 +4,7 @@ import cherrypy
 import twill
 import datetime
 from logging import error
+from achoo import calling
 try:
     import ldap
 except:
@@ -62,7 +63,11 @@ class TestADIF(BaseADIFTestCase):
         for obj, ret in self.corba_objs_created_at_login:
             self.corba_conn_mock.getObject(obj, obj).InAnyOrder("corba_obj").AndReturn(ret)
         self.admin_mock.authenticateUser("test", "test pwd")
-        self.admin_mock.createSession("test").AndReturn(self.corba_session_mock)
+        self.admin_mock.createSession("test").AndReturn("testSessionString")
+        self.admin_mock.getSession("testSessionString").AndReturn(
+            self.corba_session_mock)
+        self.admin_mock.getSession("testSessionString").AndReturn(
+            self.corba_session_mock)
         self.corba_session_mock.getUser().AndReturn(self.corba_user_mock)
         self.corba_session_mock.setHistory(False)
         self.corba_mock.ReplayAll()
@@ -80,6 +85,8 @@ class TestADIF(BaseADIFTestCase):
         """ Login fails when using invalid corba authentication.
         """
         fred_webadmin.config.auth_method = 'CORBA'
+        self.monkey_patch(
+            fred_webadmin.controller.adif, 'auth', corba_auth)
         self.corba_conn_mock.connect("localhost_test", "fredtest")
         # Create corba objects in any order (prevent boilerplate code).
         for obj, ret in self.corba_objs_created_at_login:
@@ -113,6 +120,8 @@ class TestADIF(BaseADIFTestCase):
         self.monkey_patch(
             fred_webadmin.auth.ldap_auth.ldap, 'open', self.ldap_mock)
         self.corba_conn_mock.connect("localhost_test", "fredtest")
+        self.corba_conn_mock.getObject(
+            'Admin', 'Admin').AndReturn(self.admin_mock)
         # Create corba objects in any order (prevent boilerplate code).
         for obj, ret in self.corba_objs_created_at_login:
             self.corba_conn_mock.getObject(obj, obj).InAnyOrder(
@@ -120,7 +129,11 @@ class TestADIF(BaseADIFTestCase):
         fred_webadmin.auth.ldap_auth.ldap.open.__call__(
             "test ldap server").AndReturn(self.ldap_mock)
         self.ldap_mock.simple_bind_s("test ldap scope test", "test pwd")
-        self.admin_mock.createSession("test").AndReturn(self.corba_session_mock)
+        self.admin_mock.createSession("test").AndReturn("testSessionString")
+        self.admin_mock.getSession("testSessionString").AndReturn(
+            self.corba_session_mock)
+        self.admin_mock.getSession("testSessionString").AndReturn(
+            self.corba_session_mock)
         self.corba_session_mock.getUser().AndReturn(self.corba_user_mock)
         self.corba_session_mock.setHistory(False)
         self.corba_mock.ReplayAll()
@@ -713,7 +726,7 @@ class TestBankStatement(BaseADIFTestCase):
         self.authorizer_mock.has_permission(
             'bankstatement', 'read').AndReturn(True)
         self.authorizer_mock.has_permission(
-            'payment', 'process').AndReturn(False)
+            'bankstatement', 'change').AndReturn(False)
         # Other permissions get checked here (possibly will change when
         # permission caching is implemented).
         for i in range(0, 50):
@@ -759,7 +772,9 @@ class TestLoggerNoLogView(BaseADIFTestCase):
         for obj, ret in self.corba_objs_created_at_login:
             self.corba_conn_mock.getObject(obj, obj).InAnyOrder("corba_obj").AndReturn(ret)
         self.admin_mock.authenticateUser("test", "test pwd")
-        self.admin_mock.createSession("test").AndReturn(self.corba_session_mock)
+        self.admin_mock.createSession("test").AndReturn("testSessionString")
+        self.admin_mock.getSession("testSessionString").AndReturn(
+            self.corba_session_mock)
         self.corba_session_mock.getUser().AndReturn(self.corba_user_mock)
         self.corba_session_mock.setHistory(False)
 

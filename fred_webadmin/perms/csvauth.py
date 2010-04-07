@@ -1,6 +1,7 @@
 import csv
 import fred_webadmin.config as config
 from fred_webadmin.controller.adiferrors import AuthorizationError
+from fred_webadmin.translation import _
 
 class Authorizer(object):
     """
@@ -26,8 +27,8 @@ class Authorizer(object):
             >>> a = Authorizer("unknown user")
             Traceback (most recent call last):
             ...
-            AuthorizationError: Authorization record for user unknown user \
-does not exist!
+            AuthorizationError: Authorization record does not exist for user \
+unknown user
     """
     source = config.permissions['csv_file']
 
@@ -47,8 +48,8 @@ does not exist!
                 self.perms = row[1:]
         if not self.perms:
             raise AuthorizationError(
-                    "Authorization record for user %s does not exist!" \
-                        % username)
+                    _("Authorization record does not exist for user ") +\
+                        str(username))
 
     def has_permission(self, obj, action):
         for perm in self.perms:

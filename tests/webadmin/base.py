@@ -3,6 +3,7 @@ import cherrypy
 import fred_webadmin as webadmin
 import fred_webadmin.user as user
 import fred_webadmin.logger.dummylogger as logger
+import fred_webadmin.perms.dummy
 
 test_config = webadmin.config
 test_config.audit_log['logging_actions_enabled'] = False
@@ -51,6 +52,8 @@ class DaphneTestCase(object):
             func()
         
     def setUp(self, ldap=True):
+        self._on_teardown = []
+
         self.corba_mock = mox.Mox()
         self.corba_conn_mock = self.corba_mock.CreateMockAnything()
         self.corba_session_mock = self.corba_mock.CreateMockAnything()
@@ -68,12 +71,13 @@ class DaphneTestCase(object):
         self.authorizer_mock = self.corba_mock.CreateMockAnything()
         self.authorizer_mock.__str__ = lambda : "authorizer mock"
 
+        self.monkey_patch(
+            webadmin.user, 'auth_user', webadmin.perms.dummy)
         self.web_session_mock = {}
         self.web_session_mock['user'] = user.User(self.corba_user_mock)
         self.web_session_mock['Logger'] = logger.DummyLogger()
         self.web_session_mock['Admin'] = self.admin_mock
 
-        self._on_teardown = []
         self.monkey_patch(
             webadmin.utils, 'get_corba_session',  
             lambda : self.corba_session_mock)

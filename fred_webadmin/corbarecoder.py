@@ -207,9 +207,6 @@ def _encode_null_type(item, objref):
     return (False, None)
 
 
-class NullDate(object):
-    pass
-
 recoder = DaphneCorbaRecode('utf-8')
 c2u = recoder.decode # recode from corba string to unicode
 u2c = recoder.encode # recode from unicode to strings
