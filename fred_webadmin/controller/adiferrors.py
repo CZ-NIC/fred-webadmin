@@ -1,6 +1,9 @@
 class AdifError(Exception):
-    pass
+    def __init__(self, msg):
+        self.msg = msg.encode("utf-8")
 
+    def __str__(self):
+        return self.msg
 
 class PermissionDeniedError(AdifError):
     pass

@@ -2,6 +2,7 @@ import sys
 import types
 
 import config
+import fred_webadmin.corbarecoder as recoder
 
 if config.permissions['enable_checking']:
     if config.permissions['backend'] == 'nicauth':
@@ -20,7 +21,7 @@ class User(object):
         ''' Wrapper around corba User object '''
         self._user = user # corba User object
         self.id = user._get_id()
-        self.login = user._get_username()
+        self.login = recoder.c2u(user._get_username())
         self.firstname = user._get_firstname()
         self.surname = user._get_surname()
         self.table_page_size = config.tablesize

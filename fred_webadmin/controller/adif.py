@@ -1000,7 +1000,7 @@ class Development(object):
         return output
 
 class OpenID(AdifPage):
-    def index(self):
+    def index(self, *args, **kwargs):
         cherrypy.session[SESSION_OPENID_REDIRECT] = True
 #        raise cherrypy.HTTPRedirect("/login")
         return cherrypy.session['openid_form']

@@ -50,7 +50,7 @@ unknown user
         if not self.perms:
             raise AuthorizationError(
                     _("Authorization record does not exist for user ") +\
-                        str(username))
+                        username)
         self._check_for_malformed_perms()
 
     def _check_for_malformed_perms(self):
