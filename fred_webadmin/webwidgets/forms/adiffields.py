@@ -151,12 +151,11 @@ class CorbaEnumChoiceField(ChoiceField):
         
 #        super(CorbaEnumChoiceField, self).make_content()
     
-    def is_emptry(self):
+    def is_empty(self):
         if self.value == self.empty_choice[0]:
             return True
         else:
             return False
-            
             
 
 class AbstractIntervalField(MultiValueField):
