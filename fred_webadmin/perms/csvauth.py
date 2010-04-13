@@ -37,7 +37,7 @@ unknown user
         try:
             return csv.reader(open(Authorizer.source, "rb"))
         except IOError, e:
-            raise AuthorizationError(e)
+            raise AuthorizationError(str(e))
 
     def __init__(self, username):
         object.__init__(self)
