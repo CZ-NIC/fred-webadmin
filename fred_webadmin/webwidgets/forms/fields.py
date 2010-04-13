@@ -768,7 +768,6 @@ class MultiValueField(Field):
                 self.fields[i].value = val
     def _get_value(self):
         return self._value
-#    value = property(fget=lambda self: self._get_value(), fset=lambda self, value: self._set_value(value)) # late binding property
     value = LateBindingProperty(_get_value, _set_value)
 
         
@@ -839,7 +838,7 @@ class MultiValueField(Field):
             self.fields[i].set_from_clean(v)
 
     def value_from_datadict(self, data):
-#        debug('beru data z %s k fieldum se jmeny %s' % (str(data), str([f.name for f in self.fields])))
+        debug('beru data z %s k fieldum se jmeny %s' % (str(data), str([f.name for f in self.fields])))
         return [field.value_from_datadict(data) for field in self.fields]
     
     def is_empty(self):

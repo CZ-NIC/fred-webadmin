@@ -112,7 +112,7 @@ class FilterPanel(table):
         ''' filters is list of tripplet [button_label, object_name, filters] where filters in linear form. written
             (e.g. [{'domain.registrar.handle'='ahoj', 'handle'=[True, 'ahoj']}] (True is for negation))
             (so if there is negation, then value is list [value, negation], otherwise it is just value)
-            Alternatively, instead of filter (which is triplet), can be used direct link (couple):
+            Alternatively, instead of filter (which is a triplet), can be used direct link (couple):
             [button_label, url]
         '''
         super(FilterPanel, self).__init__(*content, **kwd)

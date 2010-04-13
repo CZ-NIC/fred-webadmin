@@ -8,6 +8,21 @@ from fred_webadmin.webwidgets.details.adifdetaillayouts import DomainsNSSetDetai
 from fred_webadmin.webwidgets.adifwidgets import FilterPanel
 from fred_webadmin.corbalazy import CorbaLazyRequestIterStructToDict
 
+# Limit the number of filter results for actions (when pressing the actions
+# button) by only asking for the results for the last month.
+FILTER_ACTION_TIME_LIMIT_LAST_MONTH = {
+    u'Time/4': u'0', u'Time/1/1/0': u'0', u'Time/0/0': u'', u'Time/2': u'', 
+    u'Time/3': unicode(ccReg.LAST_MONTH._v), u'Time/0/1/1': u'0', 
+    u'Time/0/1/0': u'0', u'Time/1/0': u'', u'Time/1/1/1': u'0'}
+
+# Limit the number of filter results for e-mails (when pressing the emails
+# button) by only asking for the results for the last month.
+FILTER_EMAIL_TIME_LIMIT_LAST_MONTH = {
+    u'CreateTime/4': u'0', u'CreateTime/1/1/0': u'0', u'CreateTime/0/0': u'', u'CreateTime/2': u'', 
+    u'CreateTime/3': unicode(ccReg.LAST_MONTH._v), u'CreateTime/0/1/1': u'0', 
+    u'CreateTime/0/1/0': u'0', u'CreateTime/1/0': u'', u'CreateTime/1/1/1': u'0'}
+
+
 class AccessDetail(Detail):
     password = CharDField(label=_('Password'))
     md5Cert = CharDField(label=_('MD5')) # registrar name
@@ -141,9 +156,11 @@ class ContactDetail(ObjectDetail):
                 [_('KeySets'), 'keyset', 
                     [{'TechContact.Handle': self.data.get('handle')}]],
                 [_('Actions'), 'action', 
-                    [{'RequestHandle': self.data.get('handle')}]],
+                    [{'RequestHandle': self.data.get('handle'),
+                    'Time': FILTER_EMAIL_TIME_LIMIT_LAST_MONTH}]],
                 [_('Emails'), 'mail', 
-                    [{'Message': self.data.get('handle')}]],
+                    [{'Message': self.data.get('handle'),
+                    'CreateTime': FILTER_EMAIL_TIME_LIMIT_LAST_MONTH}]],
             ]))
         super(ContactDetail, self).add_to_bottom()
     
@@ -182,9 +199,11 @@ class NSSetDetail(ObjectDetail):
                 [_('Domains'), 'domain', 
                     [{'NSSet.Handle': self.data.get('handle')}]],
                 [_('Actions'), 'action', 
-                    [{'RequestHandle': self.data.get('handle')}]],
+                    [{'RequestHandle': self.data.get('handle'),
+                    'Time': FILTER_EMAIL_TIME_LIMIT_LAST_MONTH}]],
                 [_('Emails'), 'mail', 
-                    [{'Message': self.data.get('handle')}]]
+                    [{'Message': self.data.get('handle'),
+                    'CreateTime': FILTER_EMAIL_TIME_LIMIT_LAST_MONTH}]]
             ]))
         super(NSSetDetail, self).add_to_bottom()
 
@@ -244,9 +263,11 @@ class KeySetDetail(ObjectDetail):
                 [_('Domains'), 'domain', 
                     [{'KeySet.Handle': self.data.get('handle')}]],
                 [_('Actions'), 'action', 
-                    [{'RequestHandle': self.data.get('handle')}]],
+                    [{'RequestHandle': self.data.get('handle'),
+                    'Time': FILTER_EMAIL_TIME_LIMIT_LAST_MONTH}]],
                 [_('Emails'), 'mail', 
-                    [{'Message': self.data.get('handle')}]],
+                    [{'Message': self.data.get('handle'),
+                    'CreateTime': FILTER_EMAIL_TIME_LIMIT_LAST_MONTH}]],
             ]))
         super(KeySetDetail, self).add_to_bottom()
 
@@ -314,9 +335,12 @@ class DomainDetail(ObjectDetail):
             self.media_files.append('/js/publicrequests.js')
             self.add(FilterPanel([
                 [_('Actions'), 'action', 
-                    [{'RequestHandle': self.data.get('handle')}]],
+                    [{'RequestHandle': self.data.get('handle'),
+                    # This is here to get results for the last month only.
+                    'Time': FILTER_EMAIL_TIME_LIMIT_LAST_MONTH}]],
                 [_('Emails'), 'mail', 
-                    [{'Message': self.data.get('handle')}]],
+                    [{'Message': self.data.get('handle'), 
+                    'CreateTime': FILTER_EMAIL_TIME_LIMIT_LAST_MONTH}]],
                 [_('dig'), f_urls['domain'] + 'dig/?handle=' + \
                     self.data.get('handle')], 
                 [_('Set InZone Status'), "javascript:setInZoneStatus('%s')" % 

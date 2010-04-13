@@ -53,17 +53,15 @@ class UnionFilterForm(Form):
             if data_cleaned=True, then data parametr is considered to be 
             cleaned_data (used when loaded from corba backend).
         """ 
-        debug('CREATING UNIONFORM')
         if not form_class:
             raise RuntimeError(
                 "You have to specify form_class for UnionFilterForm!")
 
         if data:
-            debug('data:%s' % data)
             if not data_cleaned and data.has_key('json_data'):
-                debug('data are json, so they are going to be transformed')
                 data = simplejson.loads(data['json_data'])
-            else: debug('data aren\'t json')
+            else: 
+                debug('data aren\'t json')
 
         self.form_class = form_class
         self.forms = []
@@ -101,15 +99,12 @@ class UnionFilterForm(Form):
         return True
     
     def full_clean(self):
-        debug('FULL CLEAN IN UNIONFROM')
         self._errors = ErrorDict()
         if not self.is_bound: # Stop further processing.
             return
         self.cleaned_data = []
         
         for form in self.forms:
-            debug('SUBFORM %s' % repr(form))
-            debug('SUBFORM.errors %s' % repr(form.errors))
             self._errors.update(form.errors)
             if hasattr(form, 'cleaned_data'):
                 self.cleaned_data.append(form.cleaned_data)
@@ -178,7 +173,7 @@ class FilterForm(Form):
         # self.fields are deepcopied from self.base_fields (in BaseForm) 
         base_fields = self.base_fields 
         self.fields = SortedDict()
-        
+
         fields_for_sort = []  
         if self.is_bound:
             if not self.data_cleaned:

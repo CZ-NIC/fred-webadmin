@@ -188,12 +188,20 @@ def convert_linear_filter_to_form_output(or_filters):
                 tmp_filter[name] = {}
             tmp_filter = tmp_filter[name]
         return tmp_filter, splitted_name[-1]
-    
+
+    def create_or_get_filter_multifield(new_or_filter, filter_name):
+        out_filter = new_or_filter
+        out_filter["presention|%s" % filter_name] = 'on'
+        return out_filter, filter_name
+
     result = []
     for or_filter in or_filters:
         new_or_filter = {}
         for fname, fval in or_filter.items():
-            current_filter, last_fname = create_or_get_filter(new_or_filter, fname)
+            if isinstance(fval, dict):
+                current_filter, last_fname = create_or_get_filter_multifield(new_or_filter, fname)
+            else:
+                current_filter, last_fname = create_or_get_filter(new_or_filter, fname)
             
             # negation is expressed by fval==[True, fval] instead on just fval,
             # here could be problem, if some field could return list of 
@@ -206,8 +214,13 @@ def convert_linear_filter_to_form_output(or_filters):
             else:
                 negation = False
             
-            current_filter['presention|' + last_fname] = 'on'  
-            current_filter[last_fname] =  fval
+            # TODO(tom): REFACTOR!
+            if not isinstance(fval, dict):
+                current_filter['presention|' + last_fname] = 'on'  
+                current_filter[last_fname] =  fval
+            else:
+                current_filter['presention|' + last_fname] = 'on'  
+                current_filter.update(fval)
             if negation:
                 current_filter['negation|' + last_fname] = 'on'
         result.append(new_or_filter)

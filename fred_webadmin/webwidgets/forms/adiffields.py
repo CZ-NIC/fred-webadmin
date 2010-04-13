@@ -254,4 +254,3 @@ class DateTimeIntervalField(AbstractIntervalField):
                   DecimalField(initial=1, size=5, min_value=-32768, max_value=32767))
         super(DateTimeIntervalField, self).__init__(name, value, fields, *args, **kwargs)
 
-

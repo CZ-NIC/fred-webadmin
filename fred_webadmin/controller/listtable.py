@@ -190,7 +190,7 @@ class ListTableMixin(object):
         if kwd:
             debug('Incomming data: %s' % kwd)
         context = {'main': div()}
-        
+
         action = 'filter'
         if kwd.get('list_all'):
             action = 'list'
@@ -225,13 +225,13 @@ class ListTableMixin(object):
                     kwd['json_data'] = simplejson.dumps(
                         convert_linear_filter_to_form_output(
                             simplejson.loads(kwd['json_linear_filter'])))
-                debug('Form inicializuju datama' % kwd)
                 form = UnionFilterForm(kwd, form_class=form_class)
             else:
                 form = UnionFilterForm(form_class=form_class)
             context['form'] = form
             if form.is_bound and config.debug:
                 context['main'].add(p(u'kwd:' + unicode(kwd)))
+
             try:
                 valid = form.is_valid()
             except ServerNotAvailableError:
@@ -240,6 +240,7 @@ class ListTableMixin(object):
                 log_req.commit("")
                 context['main'] = _(msg_server_unavailable % self.classname)
                 raise CustomView(self._render('base', ctx=context))
+
             if valid:
                 if config.debug:
                     context['main'].add(p(u'Jsem validni'))
