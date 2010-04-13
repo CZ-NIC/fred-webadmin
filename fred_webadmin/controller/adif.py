@@ -244,7 +244,7 @@ class ADIF(AdifPage):
                         if since or since2:
                             raise cherrypy.HTTPRedirect("", 304)
                     cherrypy.response.headers['Last-Modified'] = http.HTTPDate(time.time())
-                
+               
                 result = filterforms.get_filter_forms_javascript(
                     cherrypy.session['filterforms'])
                 cherrypy.session['filter_forms_javascript'] = result 
@@ -362,7 +362,6 @@ class ADIF(AdifPage):
         cherrypy.session['corba_server_name'] = \
             form.fields['corba_server'].choices[corba_server][1]
         cherrypy.session['filter_forms_javascript'] = None
-        cherrypy.session['filterforms'] = copy(filterforms.form_classes)
         cherrypy.session['Logger'].set_common_property("session_id", corbaSessionString)
         cherrypy.session['Mailer'] = corba_obj.getObject('Mailer', 'Mailer')
         cherrypy.session['FileManager'] = corba_obj.getObject(
