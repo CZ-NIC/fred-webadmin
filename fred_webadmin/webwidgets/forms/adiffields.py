@@ -147,10 +147,6 @@ class CorbaEnumChoiceField(ChoiceField):
         if cleaned_data != u'':
             return int(cleaned_data)
     
-#    def make_content(self):
-        
-#        super(CorbaEnumChoiceField, self).make_content()
-    
     def is_empty(self):
         if self.value == self.empty_choice[0]:
             return True
@@ -252,4 +248,3 @@ class DateTimeIntervalField(AbstractIntervalField):
                   ChoiceField(content=attr(onchange='onChangeDateIntervalType(this)'), choices=INTERVAL_CHOICES), 
                   DecimalField(initial=1, size=5, min_value=-32768, max_value=32767))
         super(DateTimeIntervalField, self).__init__(name, value, fields, *args, **kwargs)
-

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import types
+import copy
 from copy import deepcopy
 from gpyweb.gpyweb import ul, li
 
@@ -225,6 +226,36 @@ def convert_linear_filter_to_form_output(or_filters):
                 current_filter['negation|' + last_fname] = 'on'
         result.append(new_or_filter)
     return result
+
+def find_and_update_datetime_offset_in_json(json_data, delta):
+    """
+        >>> json_data = {u'SvTRID': u'', u'presention|SvTRID': u'000', u'presention|Time': u'on', u'Time/4': u'0', u'Time/1/1/0': u'0', u'Time/0/0': u'', u'Time/2': u'', u'Time/3': u'12', u'Time/0/1/1': u'0', u'Time/0/1/0': u'0', u'Time/1/0': u'', u'Time/1/1/1': u'0'}
+        >>> res = find_and_update_datetime_offset_in_json(json_data, 1)
+        >>> expected = {u'SvTRID': u'', u'presention|SvTRID': u'000', u'presention|Time': u'on', u'Time/4': u'1', u'Time/1/1/0': u'0', u'Time/0/0': u'', u'Time/2': u'', u'Time/3': u'12', u'Time/0/1/1': u'0', u'Time/0/1/0': u'0', u'Time/1/0': u'', u'Time/1/1/1': u'0'}
+        >>> res == expected
+        True
+
+        >>> json_data = {u'SvTRID': u'', u'presention|SvTRID': u'000', u'presention|Time': u'on', u'Time/4': u'0', u'Time/1/1/0': u'0', u'Time/0/0': u'', u'Time/2': u'', u'Time/3': u'12', u'Time/0/1/1': u'0', u'Time/0/1/0': u'0', u'Time/1/0': u'', u'Time/1/1/1': u'0'}
+        >>> res = find_and_update_datetime_offset_in_json(json_data, -1)
+        >>> expected = {u'SvTRID': u'', u'presention|SvTRID': u'000', u'presention|Time': u'on', u'Time/4': u'-1', u'Time/1/1/0': u'0', u'Time/0/0': u'', u'Time/2': u'', u'Time/3': u'12', u'Time/0/1/1': u'0', u'Time/0/1/0': u'0', u'Time/1/0': u'', u'Time/1/1/1': u'0'}
+        >>> res == expected
+        True
+
+        >>> json_data = [{"list_not_a_dict": "invalid"}]
+        >>> res = find_and_update_datetime_offset_in_json(json_data, 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: The parameter must be a dict!
+    """
+    if not isinstance(json_data, dict):
+        raise ValueError("The parameter must be a dict!")
+    # Copying is not necessary, but we do it anyway.
+    json_data = copy.copy(json_data)
+    offset = json_data.get('Time/4')
+    offset = int(offset)
+    offset = offset + delta
+    json_data['Time/4'] = unicode(offset)
+    return json_data
         
 def convert_corba_obj_to_form_data(corba_obj):
     data = corba_obj.__dict__

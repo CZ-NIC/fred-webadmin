@@ -12,7 +12,8 @@ from fred_webadmin.translation import _
 
 import fred_webadmin.webwidgets.forms.utils as form_utils
 from fred_webadmin.controller.perms import check_onperm, login_required
-from fred_webadmin.webwidgets.forms.filterforms import UnionFilterForm
+from fred_webadmin.webwidgets.forms.filterforms import (
+    UnionFilterForm, FilterFormEmptyValue)
 from fred_webadmin.itertable import IterTable, fileGenerator
 from fred_webadmin.mappings import (
     f_name_id, f_name_editformname, f_urls, f_name_actionfiltername, 
@@ -29,7 +30,7 @@ from fred_webadmin.utils import get_detail
 from fred_webadmin.corbalazy import ServerNotAvailableError
 
 
-msg_server_unavailable = ("Uh oh. We apologize, but the backend for %s "
+MSG_SERVER_UNAVAILABLE = ("Uh oh. We apologize, but the backend for %s "
     "filter seems not to be working. Please check "
     "that the appropriate server is running and then log out and log in "
     "again.")
@@ -187,111 +188,127 @@ class ListTableMixin(object):
             elif args[0] == 'jsonheader':
                 return self._filter_json_header()
 
-        if kwd:
-            debug('Incomming data: %s' % kwd)
         context = {'main': div()}
+        action = 'list' if kwd.get('list_all') else 'filter'
 
-        action = 'filter'
-        if kwd.get('list_all'):
-            action = 'list'
-
-        if kwd.get('txt') or kwd.get('csv'):
-            try:
+        try:
+            if kwd.get('txt') or kwd.get('csv'):
                 res = self._get_list(context, **kwd)
-            except (omniORB.CORBA.SystemException,
-                ccReg.Admin.ServiceUnavailable):
-                context['main'] = _(msg_server_unavailable % self.classname)
-                raise CustomView(self._render('base', ctx=context))
-            finally:
-                log_req.commit("")
-            return res
-        elif (kwd.get('cf') or kwd.get('page') or kwd.get('load') or 
-              kwd.get('list_all') or kwd.get('filter_id') or
-              kwd.get('sort_col')): 
+                return res
+            elif (kwd.get('cf') or kwd.get('page') or kwd.get('load') or 
+                  kwd.get('list_all') or kwd.get('filter_id') or
+                  kwd.get('sort_col')): 
                 # clear filter - whole list of objects without using filter form
-            try:
                 context = self._get_list(context, **kwd)
-            except (omniORB.CORBA.SystemException,
+            elif kwd.get("jump_prev") or kwd.get("jump_next"):
+                # Increase/decrease the key time field offset and reload the
+                # table (jump to the prev./next time interval).
+                table = self._get_itertable()
+                delta = -1 if kwd.get("jump_prev") else 1
+                cleaned_filter_data = table.get_filter_data()
+                self._update_key_time_field_offset(
+                    cleaned_filter_data, kwd['field_name'], delta)
+                table.set_filter(cleaned_filter_data)
+                table.reload()
+                action = self._process_form(
+                    context, action, log_req, cleaned_filter_data, **kwd)
+            else:
+                action = self._process_form(context, action, log_req, **kwd)
+        except (omniORB.CORBA.SystemException,
                 ccReg.Admin.ServiceUnavailable):
-                context['main'] = _(msg_server_unavailable % self.classname)
-                raise CustomView(self._render('base', ctx=context))
-            finally:
-                log_req.commit("")
-        else:
-            form_class = self._get_filterform_class()
-            # bound form with data
-            if kwd.get('json_data') or kwd.get('json_linear_filter'):
-                if kwd.get('json_linear_filter'):
-                    kwd['json_data'] = simplejson.dumps(
-                        convert_linear_filter_to_form_output(
-                            simplejson.loads(kwd['json_linear_filter'])))
-                form = UnionFilterForm(kwd, form_class=form_class)
-            else:
-                form = UnionFilterForm(form_class=form_class)
-            context['form'] = form
-            if form.is_bound and config.debug:
-                context['main'].add(p(u'kwd:' + unicode(kwd)))
+            context['main'] = _(MSG_SERVER_UNAVAILABLE % self.classname)
+            raise CustomView(self._render('base', ctx=context))
+        finally:
+            log_req.commit("")
 
-            try:
-                valid = form.is_valid()
-            except ServerNotAvailableError:
-                # form.is_valid connects to CORBA too. So we need to catch
-                # this.
-                log_req.commit("")
-                context['main'] = _(msg_server_unavailable % self.classname)
-                raise CustomView(self._render('base', ctx=context))
-
-            if valid:
-                if config.debug:
-                    context['main'].add(p(u'Jsem validni'))
-                    context['main'].add(u'cleaned_data:' + unicode(
-                        form.cleaned_data), br())
-                debug(u'cleaned_data:' + unicode(form.cleaned_data))
-                try:
-                    context = self._get_list(context, form.cleaned_data, **kwd)
-                except cherrypy.HTTPRedirect:
-                    log_req.commit("")
-                    # When there is only one item in the result, we jump right
-                    # onto it without showing the table. Close the log_request 
-                    # here and let the redirect happen.
-                    raise
-                except (omniORB.CORBA.SystemException, 
-                    ccReg.Admin.ServiceUnavailable), e:
-                    log_req.commit("")
-                    import traceback
-                    msg = msg_server_unavailable % self.classname
-                    if config.debug:
-                        # Append traceback.
-                        raise CustomView(self._render(
-                            "error", {"message": [_(msg), br(br()),
-                                traceback.format_exc()]}))
-                    else:
-                        raise CustomView(self._render(
-                            "error", {"message": [_(msg)]}))
-
-                context['main'].add(u"rows: " + str(
-                    self._get_itertable().num_rows))
-                log_req.update(
-                    "result_size", self._get_itertable().num_rows, output=True)
-                # Log the selected filters.
-                # TODO(tomas): Log OR operators better...
-                for name, value, neg in form_utils.flatten_form_data(
-                    form.cleaned_data):
-                    filter_req = ("filter_%s" % name, value, False, False)
-                    neg_req = ("negation", str(neg), False, True)
-                    log_req.update_multiple([filter_req, neg_req])
-
-                log_req.commit("")
-
-                return self._render('filter', context)
-            else:
-                if form.is_bound and config.debug:
-                    context['main'].add(u'Jsem nevalidni, errors:' + unicode(
-                        form.errors.items()))
-                context['headline'] = '%s filter' % self.__class__.__name__
-                log_req.commit("")
-        
         return self._render(action, context)
+
+    def _update_key_time_field_offset(self, filter_data, key_field_name, 
+            delta):
+        try:
+            key_time_field = filter_data[0][key_field_name]
+            key_time_field[1][4] = key_time_field[1][4] + delta
+            filter_data[0][key_field_name] = key_time_field
+        except IndexError:
+            pass
+
+    def _process_form(self, context, action, log_req, cleaned_data=None, 
+            **kwd):
+        form_class = self._get_filterform_class()
+        # bound form with data
+        if (kwd.get('json_data') or kwd.get('json_linear_filter')):
+            if kwd.get('json_linear_filter'):
+                kwd['json_data'] = simplejson.dumps(
+                    convert_linear_filter_to_form_output(
+                        simplejson.loads(kwd['json_linear_filter'])))
+            form = UnionFilterForm(kwd, form_class=form_class)
+        elif kwd.get('jump_prev') or kwd.get('jump_next'):
+            form = UnionFilterForm(
+                cleaned_data, form_class=form_class,
+                data_cleaned=True)
+        else:
+            form = UnionFilterForm(form_class=form_class)
+        context['form'] = form
+        if form.is_bound and config.debug:
+            context['main'].add(p(u'kwd:' + unicode(kwd)))
+
+        try:
+            valid = form.is_valid()
+        except ServerNotAvailableError:
+            # form.is_valid connects to CORBA too. So we need to catch
+            # this.
+            context['main'] = _(MSG_SERVER_UNAVAILABLE % self.classname)
+            raise CustomView(self._render('base', ctx=context))
+
+        if valid:
+            context = self._get_list(context, form.cleaned_data, **kwd)
+            context['main'].add(u"rows: " + str(
+                self._get_itertable().num_rows))
+
+            if self._should_display_jump_links(form):
+                # Key time field is active => Display prev/next links.
+                key_time_field = form.forms[0].get_key_time_field()
+                context['display_jump_links'] = {
+                    'url': f_urls[self.classname],
+                    'field_name': key_time_field.name}
+            log_req.update(
+                "result_size", self._get_itertable().num_rows, output=True)
+            # Log the selected filters.
+            # TODO(tomas): Log OR operators better...
+            for name, value, neg in form_utils.flatten_form_data(
+                form.cleaned_data):
+                filter_req = ("filter_%s" % name, value, False, False)
+                neg_req = ("negation", str(neg), False, True)
+                log_req.update_multiple([filter_req, neg_req])
+            action = "filter"
+        else:
+            if form.is_bound and config.debug:
+                context['main'].add(u'Jsem nevalidni, errors:' + unicode(
+                    form.errors.items()))
+            context['headline'] = '%s filter' % self.__class__.__name__
+
+        return action
+
+    def _should_display_jump_links(self, form):
+        if not (len(form.forms) == 1 and len(form.data) == 1):
+            return False
+        inner_form = form.forms[0]
+        key_time_field = inner_form.get_key_time_field()
+        if not key_time_field:
+            # Form does not specify a key time field.
+            return False
+        if not inner_form.fields.get(key_time_field.name):
+            # Key time field is not active in the filter.
+            return False
+        if len(form.cleaned_data) != 1:
+            return False
+        key_filter_field = form.cleaned_data[0][key_time_field.name][1]
+        if isinstance(key_filter_field, FilterFormEmptyValue):
+            return False
+        if (int(form.cleaned_data[0][key_time_field.name][1][3]) in 
+                    (int(ccReg.DAY._v), int(ccReg.INTERVAL._v))):
+            return False
+        return True
 
     @check_onperm('read')
     def allfilters(self, *args, **kwd):
@@ -361,5 +378,5 @@ class ListTableMixin(object):
             context['main'] = _("Object_not_found")
             raise CustomView(self._render('base', ctx=context))
         except (omniORB.CORBA.SystemException, ccReg.Admin.ServiceUnavailable):
-            context['main'] = _(msg_server_unavailable % self.classname)
+            context['main'] = _(MSG_SERVER_UNAVAILABLE % self.classname)
             raise CustomView(self._render('base', ctx=context))

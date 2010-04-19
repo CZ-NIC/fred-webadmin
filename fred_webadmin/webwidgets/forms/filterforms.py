@@ -148,6 +148,14 @@ class FilterForm(Form):
 
     def _get_header_title(self):
         return _(self.__class__.__name__[:-len('FilterForm')] + 's')
+
+    def get_key_time_field(self):
+        """ Returns the filter form field used to jump to the previous/page 
+            when displaying only the results for last day, month, year etc. 
+            We increment this field's offset and re-submit the form to display 
+            the results for the previous/next time interval.
+        """
+        return None
     
     def filter_base_fields(self):
         super(FilterForm, self).filter_base_fields()
@@ -325,7 +333,7 @@ class DomainFilterForm(ObjectFilterForm):
     OutZoneDate = DateIntervalField(label=_('OutZone date'))
     CancelDate = DateIntervalField(label=_('Cancel date'))
 
-    ValidationExpirationDate = DateIntervalField(label=_('Validation date'))
+#    ValidationExpirationDate = DateIntervalField(label=_('Validation date'))
 
 
 class ActionFilterForm(FilterForm):
@@ -344,6 +352,9 @@ class ActionFilterForm(FilterForm):
         label=_('Registrar'), form_class=RegistrarFilterForm)
     SvTRID = CharField(label=_('SvTRID'))
     ClTRID = CharField(label=_('ClTRID'))
+
+    def get_key_time_field(self):
+        return self.base_fields['Time']
 
 
 class PropertyFilterForm(FilterForm):
@@ -459,7 +470,8 @@ class InvoiceFilterForm(FilterForm):
         label=_('Registrar'), form_class=RegistrarFilterForm)
     Object = CompoundFilterField(label=_('Object'), form_class=ObjectFilterForm)
     File = CompoundFilterField(label=_('File'), form_class=FileFilterForm)
-    
+
+
 class MailFilterForm(FilterForm):
     default_fields_names = ['Type']
     

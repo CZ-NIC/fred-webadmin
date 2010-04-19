@@ -118,7 +118,6 @@ class FilterPanel(table):
         super(FilterPanel, self).__init__(*content, **kwd)
         self.tag = 'table'
         
-        
         filter_count = len(filters)
         self.add(attr(cssc='filter_panel'),
                  tr(th(attr(colspan=filter_count), b(_('Options')))),
@@ -127,19 +126,21 @@ class FilterPanel(table):
         for button_data in filters:
             if len(button_data) == 2:
                 button_label, url = button_data
-                
                 self.filter_buttons.add(
-                    td(a(attr(href = url), _(button_label))) 
-                )
-
+                    td(a(attr(href = url), _(button_label))))
             elif len(button_data) == 3:
                 button_label, obj_name, filter = button_data
                 self.filter_buttons.add(
-                    td(form(attr(action = f_urls[obj_name] + 'filter/', method='POST'), 
-                            textarea(attr(style='display: none', name='json_linear_filter'),
-                                     simplejson.dumps(filter)), 
-                            input(attr(type='submit', value=_(button_label))))) 
-                )
+                    td(form(
+                        attr(
+                            action=f_urls[obj_name] + 'filter/', 
+                            method='POST'),
+                        textarea(
+                            attr(
+                                style='display: none', 
+                                name='json_linear_filter'),
+                            simplejson.dumps(filter)),
+                        input(attr(type='submit', value=_(button_label))))))
             
         
     

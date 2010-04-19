@@ -161,7 +161,9 @@ class AdifPage(Page):
             return template
         
     def _get_menu(self, action):
-        return MenuHoriz(self.menu_tree, self._get_menu_handle(action), cherrypy.session['user'])
+        return MenuHoriz(
+            self.menu_tree, self._get_menu_handle(action), 
+            cherrypy.session['user'])
     
     def _get_menu_handle(self, action):
         if self.classname in ('registrar'):
@@ -193,7 +195,8 @@ class AdifPage(Page):
         user = cherrypy.session.get('user', None)
         if user: 
             context.user = user 
-            context.menu = self._get_menu(action) or None # Login page has no menu
+            # None for Login page that has no menu.
+            context.menu = self._get_menu(action) or None 
             context.body_id = self._get_selected_menu_body_id(action)
         
         if ctx:
@@ -258,7 +261,7 @@ class ADIF(AdifPage):
         return super(ADIF, self).default(*args, **kwd)
 
     def _set_logger_page(self, logger_page_class):
-        """ Remove logger from cherrypy apps tree.
+        """ Sets logger page in the cherrypy apps tree.
         """
         cherrypy.tree.apps[''].root.logger = logger_page_class()
         
@@ -271,7 +274,6 @@ class ADIF(AdifPage):
                 silently without exceptions).
         """
         if not config.audit_log['logging_actions_enabled']:
-            # Dummt object, only implements the interface.
             logger = DummyLogger()
         else:
             try:
@@ -293,10 +295,8 @@ class ADIF(AdifPage):
                 # cherrypy.session
                 cherrypy.session['corba_logd'] = corba_logd
                 if config.audit_log['force_critical_logging']:
-                    # Logger raises exceptions on error.
                     logger = SessionLogger(dao=corba_logd)
                 else:
-                    # Logger ignores logging errors.
                     logger = SessionLoggerFailSilent(dao=corba_logd)
         return logger
 
@@ -362,7 +362,8 @@ class ADIF(AdifPage):
         cherrypy.session['corba_server_name'] = \
             form.fields['corba_server'].choices[corba_server][1]
         cherrypy.session['filter_forms_javascript'] = None
-        cherrypy.session['Logger'].set_common_property("session_id", corbaSessionString)
+        cherrypy.session['Logger'].set_common_property(
+            "session_id", corbaSessionString)
         cherrypy.session['Mailer'] = corba_obj.getObject('Mailer', 'Mailer')
         cherrypy.session['FileManager'] = corba_obj.getObject(
             'FileManager', 'FileManager')
@@ -402,6 +403,7 @@ class ADIF(AdifPage):
                 cherrypy.session['login_data'] = {}
                 cherrypy.session['login_data']['log_req'] = log_req
                 cherrypy.session['login_data']['form_data'] = form.cleaned_data
+                raise
             except (omniORB.CORBA.BAD_PARAM, AuthenticationError, 
                     AuthorizationError), exc:
                 log_req.update("result", str(exc))

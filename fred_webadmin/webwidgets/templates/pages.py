@@ -1,6 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from fred_webadmin.webwidgets.gpyweb.gpyweb import div, span, p, a, b, h2, h3, noesc, attr, save, HTMLPage, hr, br, table, tr, th, td, img, form, label, input, h1, script, pre
+import simplejson
+from fred_webadmin.webwidgets.gpyweb.gpyweb import (
+    div, span, p, a, b, h2, h3, noesc, attr, save, HTMLPage, hr, br, table, 
+    tr, th, td, img, form, label, input, h1, script, pre, textarea)
 from fred_webadmin.webwidgets.forms.filterforms import get_filter_forms_javascript
 from fred_webadmin.webwidgets.table import WIterTable
 from fred_webadmin.translation import _
@@ -197,8 +200,22 @@ class FilterPage(BaseSiteMenu):
                         a(attr(cssc='pager-button', href='?page=%s' % itertable.last_page), noesc('&raquo;'))
                     ))
                 self.main.add(pageflip)
-            
-            
+        if c.get("display_jump_links"):
+            # Display the 'previous' and 'next' links (they auto-submit 
+            # the form to display results for the prev./next time interval).
+            jump_links_info = c.get("display_jump_links")
+            self.main.add(div(a(
+                attr(
+                    href=(jump_links_info['url'] + 
+                        'filter/?jump_prev=1&field_name=%s' %
+                        jump_links_info['field_name'])),
+                "prev"), 
+                a(attr(
+                    href=(jump_links_info['url'] + 
+                        'filter/?jump_next=1&field_name=%s' %
+                        jump_links_info['field_name'])),
+                    "next")))
+
 
 
 class DetailPage(BaseSiteMenu):
