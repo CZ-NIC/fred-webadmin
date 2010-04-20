@@ -45,6 +45,8 @@ unknown user
         self.perms = None
         # Find the line with permissions for user with @username
         for row in reader:
+            if not row:
+                continue
             if row[0] == username:
                 self.perms = row[1:]
         if not self.perms:
