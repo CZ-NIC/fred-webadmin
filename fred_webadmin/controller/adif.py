@@ -69,7 +69,7 @@ from fred_webadmin.webwidgets.templates.pages import (
     DomainDetail, ContactDetail, NSSetDetail, KeySetDetail, RegistrarDetail, 
     ActionDetail, PublicRequestDetail, MailDetail, InvoiceDetail, LoggerDetail,
     RegistrarEdit, BankStatementPairingEdit, BankStatementDetail, 
-    BankStatementDetailWithPaymentPairing
+    BankStatementDetailWithPaymentPairing, GroupEditorPage
 )
 from fred_webadmin.webwidgets.gpyweb.gpyweb import WebWidget
 from fred_webadmin.webwidgets.gpyweb.gpyweb import (
@@ -80,7 +80,7 @@ from fred_webadmin.webwidgets.forms.adifforms import LoginForm
 
 # Must be imported because of template magic stuff. I think.
 from fred_webadmin.webwidgets.forms.editforms import (RegistrarEditForm,
-    BankStatementPairingEditForm)
+    BankStatementPairingEditForm, GroupEditForm)
 import fred_webadmin.webwidgets.forms.editforms as editforms
 
 import fred_webadmin.webwidgets.forms.filterforms as filterforms
@@ -614,6 +614,7 @@ class Registrar(AdifPage, ListTableMixin):
                     log_request_name)
                 self._process_valid_form(
                     form, registrar, kwd.get('id'), context, log_request)
+                form.changed_data
             else:
                 if config.debug:
                     context['main'].add(
@@ -818,7 +819,8 @@ class PublicRequest(AdifPage, ListTableMixin):
             context['main'] = _("Required_integer_as_parameter")
             return self._render('base', ctx=context)
         cherrypy.session.get('Admin').processPublicRequest(id_ai, True)
-        raise cherrypy.HTTPRedirect(f_urls[self.classname] + 'filter/?reload=1&load=1' % (self.classname))
+        raise cherrypy.HTTPRedirect(
+            f_urls[self.classname] + 'filter/?reload=1&load=1' % (self.classname))
 
 
 class Invoice(AdifPage, ListTableMixin):
@@ -1048,6 +1050,41 @@ class Detail41(AdifPage):
         return 'muj default'
 
 
+class GroupEditor(AdifPage):
+    def index(self, *args, **kwargs):
+        context = {}
+        reg_mgr = cherrypy.session['Admin'].getRegistrarManager()
+        groups = reg_mgr.getGroups()
+        initial = {"groups": groups}
+        error(groups)
+        if cherrypy.request.method == 'POST':
+            form = GroupEditForm(kwargs, initial=initial, method='post')
+            if form.is_valid():
+                self._process_valid_form(form)
+        else:
+            form = GroupEditForm(initial=initial, method='post')
+        context['form'] = form
+        res = self._render(ctx=context)
+        return res
+
+    def _process_valid_form(self, form):
+        cleaned_data = form.cleaned_data
+        form.fire_actions()
+        raise cherrypy.HTTPRedirect("/groups")
+
+    def _template(self, action=''):
+        template_name = "GroupEditorPage"
+        template = getattr(sys.modules[self.__module__], template_name, None)
+        if template is None:
+            error("TEMPLATE %s IN MODULE %s NOT FOUND, USING DEFAULT: BaseSiteMenu" % (template_name, sys.modules[self.__module__]))
+            template = BaseSiteMenu 
+        if not issubclass(template, WebWidget):
+            raise RuntimeError(
+                "%s is not derived from WebWidget - it "
+                "cannot be a template!" % repr(template))
+        return template
+
+
 def prepare_root():
     root = ADIF()
     root.detail41 = Detail41()
@@ -1069,6 +1106,7 @@ def prepare_root():
     root.statistic = Statistics()
     root.devel = Development()
     root.openid = OpenID()
+    root.groups = GroupEditor()
 
     return root
 

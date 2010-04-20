@@ -19,10 +19,11 @@ EMPTY_VALUES = (None, '')
 
 class Field(WebWidget):
     creation_counter = 0
-    #tattr_list = input.tattr_list
     is_hidden = False
     
-    def __init__(self, name='', value='', required=True, label=None, initial=None, nperm = None, help_text=None, *content, **kwd):
+    def __init__(self, name='', value='', required=True, label=None, 
+                 initial=None, nperm = None, help_text=None, 
+                 *content, **kwd):
         super(Field, self).__init__(*content, **kwd)
         self.tag = ''
         self.required = required
@@ -90,7 +91,11 @@ class Field(WebWidget):
             return self._nperm.lower()
         else:
             return self.name.lower()
-    
+
+    def fire_actions(self):
+        pass
+
+
 class CharField(Field):
     tattr_list = input.tattr_list
     def __init__(self, name='', value='', max_length=None, min_length=None, strip_spaces=True, *args, **kwargs):

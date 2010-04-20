@@ -260,7 +260,6 @@ class KeySetDetail(DetailPage):
         c = self.context
         if c.get('result'):
             self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
-            #self.main.add(KeySetDetailDiv(context))
             self.main.add(adifdetails.KeySetDetail(c.result, c.history))
             if config.debug:
                 self.main.add('KeySetDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
@@ -272,7 +271,6 @@ class ActionDetail(DetailPage):
         if c.get('result'):
             self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
             self.main.add(adifdetails.ActionDetail(c.result, c.history))
-            #self.main.add(ActionDetailDiv(context))
             if config.debug:
                 self.main.add('ACTIONDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
         
@@ -283,10 +281,7 @@ class RegistrarDetail(DetailPage):
         c = self.context        
         if c.get('result'):
             self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
-            #self.main.add(RegistrarDetailDiv(context))
-            
             self.main.add(adifdetails.RegistrarDetail(c.result, c.history))
-            #self.main.add(p(a(attr(href=u'../edit/?id=' + unicode(c.result.id)), _('Edit'))))
             if config.debug:
                 self.main.add('RegistrarDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
             
@@ -296,7 +291,6 @@ class PublicRequestDetail(DetailPage):
         c = self.context
         if c.get('result'):
             self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
-            #self.main.add(PublicRequestDetailDiv(context))
             self.main.add(adifdetails.PublicRequestDetail(c.result, c.history))
             if config.debug:
                 self.main.add('PublicRequestSDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
@@ -358,7 +352,7 @@ class BankStatementDetailWithPaymentPairing(DetailPage):
 
                 
 class EditPage(BaseSiteMenu):
-    def __init__(self, context = None):
+    def __init__(self, context=None):
         super(EditPage, self).__init__(context)
         c = self.context
         if c.get('form'):
@@ -373,12 +367,33 @@ class EditPage(BaseSiteMenu):
                 """scwDateOutputFormat = "%s"; // set output format for """
                 """js_calendar""" % config.js_calendar_date_format_edit))
 
+
 class RegistrarEdit(EditPage):
     pass
 
 
 class BankStatementPairingEdit(EditPage):
-    pass           
+    pass
+
+
+class GroupEditorPage(BaseSiteMenu):
+    def __init__(self, context=None):
+        super(GroupEditorPage, self).__init__(context)
+        c = self.context
+        if c.get('form'):
+            self.main.add(c.form)
+            lang_code = config.lang[:2]
+            if lang_code == 'cs': # conversion between cs and cz identifier of lagnguage
+                lang_code = 'cz'
+            self.head.add(
+                script(attr(type='text/javascript'),
+                'scwLanguage = "%s"; //sets language of js_calendar' % \
+                lang_code,
+                """scwDateOutputFormat = "%s"; // set output format for """
+                """js_calendar""" % config.js_calendar_date_format_edit))
+
+    def _create_group_list(groups):
+        pass
 
 
 class DigPage(BaseSiteMenu):

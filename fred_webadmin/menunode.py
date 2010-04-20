@@ -138,6 +138,9 @@ registrars_node = MenuNode(
                 url=f_urls['registrar'] + 'create/', 
                 nperm=['read.registrar', 'change.registrar'], 
                 nperm_type='one'),
+#            MenuNode(
+#                'registrargroups', _('Groups'), cssc='menu-item', 
+#                url=f_urls['group'], nperm='group.invoice'),
             MenuNode(
                 'invoice', _('Invoices'), cssc='menu-item', 
                 url=f_urls['invoice'] + 'allfilters/', 

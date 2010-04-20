@@ -280,12 +280,8 @@ class BaseFormSet(WebWidget):
         return self.forms[0].is_multipart()
 
     def render(self, indent_level=0):
-        debug('RENDERING of %s indent_level %s' % (self.__class__.__name__, indent_level))
-        
         self.content = [] # empty previous content (if render would be called moretimes, there would be multiple forms instead one )
-        debug('Adding layout %s to %s' % (self.layout_class, self.__class__.__name__))
         self.add(self.layout_class(self))
-        debug('After adding layout %s to %s' % (self.layout_class, self.__class__.__name__))
         return super(BaseFormSet, self).render(indent_level)
 
 # XXX: This API *will* change. Use at your own risk.
@@ -293,12 +289,3 @@ def _formset_factory(form, formset=BaseFormSet, extra_count=1, can_order=False, 
     """Return a FormSet for the given form class."""
     attrs = {'form': form, 'extra_count': extra_count, 'can_order': can_order, 'can_delete': can_delete}
     return type(form.__name__ + 'FormSet', (formset,), attrs)
-
-#def all_valid(formsets):
-#    """Returns true if every formset in formsets is valid."""
-#    valid = True
-#    for formset in formsets:
-#        if not formset.is_valid():
-#            valid = False
-#    return valid
-

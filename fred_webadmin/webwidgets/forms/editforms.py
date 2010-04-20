@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
+import cherrypy
 from logging import debug
 
 from fred_webadmin import config
@@ -43,7 +43,8 @@ class EditForm(Form):
     name_postfix = 'EditForm'
     
     def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None,
-                 initial=None, error_class=ErrorList, label_suffix=':', layout_class=EditFormLayout, *content, **kwd):
+                 initial=None, error_class=ErrorList, label_suffix=':', 
+                 layout_class=EditFormLayout, *content, **kwd):
         super(EditForm, self).__init__(
             data, files, auto_id, prefix, initial, error_class, label_suffix, 
             layout_class=EditFormLayout, 
@@ -67,6 +68,10 @@ class EditForm(Form):
                         field.title = 'unchecked'
                 else: # usual field
                     field.title = initial_value
+
+    def fire_actions(self): 
+        for field in self.fields.values():
+            field.fire_actions()
                 
 
 class AccessEditForm(EditForm):
@@ -143,6 +148,33 @@ class BankStatementPairingEditForm(EditForm):
     handle = CharField(
         label=_('Pair with Registrar Handle'), name="registrar_handle_input")
     id = HiddenIntegerField()
-    
-form_classes = [AccessEditForm, RegistrarEditForm,
-                BankStatementPairingEditForm, ZoneEditForm]
+
+
+class RegistrarGroupsEditForm(EditForm):
+    name = CharField(label=_("Group name"))
+    id = HiddenIntegerField()
+
+    def fire_actions(self):
+        mgr = cherrypy.session['Admin'].getRegistrarManager()
+        group_id = self.fields['id'].value
+        group_name = self.fields['name'].value
+        if not group_id:
+            if ("name" in self.changed_data):
+                mgr.createGroup(group_name)
+        else:
+            group_id = int(group_id)
+            if 'DELETE' in self.changed_data:
+                mgr.deleteGroup(group_id)
+            elif 'group_name' in self.changed_data:
+                mgr.updateGroup(group_id, group_name)
+
+
+class GroupEditForm(EditForm):
+    groups = FormSetField(
+        label=_('Registrar groups'), form_class=RegistrarGroupsEditForm, 
+        can_delete=True)
+
+
+form_classes = [
+    AccessEditForm, RegistrarEditForm, BankStatementPairingEditForm, 
+    ZoneEditForm, GroupEditForm, RegistrarGroupsEditForm]

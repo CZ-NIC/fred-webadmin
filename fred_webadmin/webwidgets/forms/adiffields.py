@@ -61,7 +61,7 @@ class CompoundFilterField(Field):
 
 class FormSetField(Field):
     "Field that wraps formset"
-    def __init__(self, name='', value='', formset_class = BaseFormSet, 
+    def __init__(self, name='', value='', formset_class=BaseFormSet, 
         formset_layout=TableFormSetLayout, form_class=None, 
         can_order=False, can_delete=False, *args, **kwargs):
     
@@ -75,7 +75,7 @@ class FormSetField(Field):
         super(FormSetField, self).__init__(name, value, *args, **kwargs)
         self.formset = None
         self.initialized = True
-#        self.value = value
+        self.changed_data_values = []
     
     def create_formset_once(self):
         ''' If formset han't yet been created, this function will create it. '''
@@ -128,6 +128,30 @@ class FormSetField(Field):
         # of formsets can access them.
         return dict([[key, val] for key, val in data.items() 
             if key.startswith(self.name)])  
+
+    def _has_changed(self, initial, data):
+        """ Returns True if data differs from initial.
+        """
+        self.create_formset_once()
+        for form in self.formset.forms:
+            self.changed_data.append
+
+        if data is None:
+            data_value = u''
+        else:
+            data_value = data
+        if initial is None:
+            initial_value = u''
+        else:
+            initial_value = initial
+        if unicode(initial_value) != unicode(data_value):
+            return True
+        return False
+
+    def fire_actions(self):
+        self.create_formset_once()
+        for form in self.formset.forms:
+            form.fire_actions()
 
 
 class CorbaEnumChoiceField(ChoiceField):

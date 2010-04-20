@@ -799,4 +799,90 @@ class TestLoggerLogView(BaseADIFTestCase):
     def setUpConfig(self):
         fred_webadmin.config.auth_method = 'CORBA'
         fred_webadmin.config.audit_log['viewing_actions_enabled'] = True
-    
+
+
+class TestRegistrarGroupEditor(BaseADIFTestCase):
+
+    class MockRegistrarGroup(object):
+        def __init__(self, id, name, cancelled=None):
+            self.id = id
+            self.name = name
+            self.cancelled = cancelled
+
+    def setUp(self):
+        BaseADIFTestCase.setUp(self)
+        self.reg_mgr_mock = self.corba_mock.CreateMockAnything()
+        self.reg_mgr_mock.__str__ = lambda : "reg_mgr_mock"        
+
+    def test_display_two_groups(self):
+        """ Two registrar groups are displayed.
+        """
+        self.admin_mock.getRegistrarManager().AndReturn(self.reg_mgr_mock)
+        self.reg_mgr_mock.getGroups().AndReturn(
+            [TestRegistrarGroupEditor.MockRegistrarGroup(1, "test_group_1"),
+            TestRegistrarGroupEditor.MockRegistrarGroup(2, "test_group_2")])
+
+        self.corba_mock.ReplayAll()
+
+        twill.commands.go("http://localhost:8080/groups")
+        twill.commands.showforms()
+        twill.commands.code(200)
+        twill.commands.find(
+            '''<input title="test_group_1" type="text" name="groups-0-name"'''
+            ''' value="test_group_1" />''')
+        twill.commands.find(
+            '''<input title="test_group_2" type="text" name="groups-1-name"'''
+            ''' value="test_group_2" />''')
+
+    def test_display_zero_groups(self):
+        """ Two registrar groups are displayed.
+        """
+        self.admin_mock.getRegistrarManager().AndReturn(self.reg_mgr_mock)
+        self.reg_mgr_mock.getGroups().AndReturn([])
+
+        self.corba_mock.ReplayAll()
+
+        twill.commands.go("http://localhost:8080/groups")
+        twill.commands.showforms()
+        twill.commands.code(200)
+        twill.commands.find(
+            '''<input type="text" name="groups-0-name" value="" />''')
+            
+    def test_delete_group(self):
+        """ Two registrar groups are displayed, one gets deleted.
+        """
+        self.admin_mock.getRegistrarManager().AndReturn(self.reg_mgr_mock)
+        self.reg_mgr_mock.getGroups().AndReturn(
+            [TestRegistrarGroupEditor.MockRegistrarGroup(1, "test_group_1"),
+            TestRegistrarGroupEditor.MockRegistrarGroup(2, "test_group_2")])
+
+        self.admin_mock.getRegistrarManager().AndReturn(self.reg_mgr_mock)
+        self.reg_mgr_mock.getGroups().AndReturn(
+            [TestRegistrarGroupEditor.MockRegistrarGroup(1, "test_group_1"),
+            TestRegistrarGroupEditor.MockRegistrarGroup(2, "test_group_2")])
+        self.admin_mock.getRegistrarManager().AndReturn(self.reg_mgr_mock)
+        self.reg_mgr_mock.deleteGroup(1)
+
+        self.admin_mock.getRegistrarManager().AndReturn(self.reg_mgr_mock)
+        self.admin_mock.getRegistrarManager().AndReturn(self.reg_mgr_mock)
+
+        self.admin_mock.getRegistrarManager().AndReturn(self.reg_mgr_mock)
+        self.reg_mgr_mock.getGroups().AndReturn(
+            [TestRegistrarGroupEditor.MockRegistrarGroup(2, "test_group_2")])
+
+        self.corba_mock.ReplayAll()
+
+        twill.commands.go("http://localhost:8080/groups")
+        twill.commands.showforms()
+        twill.commands.code(200)
+        twill.commands.fv(2, "groups-0-DELETE", "1")
+        twill.commands.submit()
+        twill.commands.showforms()
+        twill.commands.code(200)
+        twill.commands.notfind(
+            '''<input title="test_group_1" type="text" name="groups-0-name"'''
+            ''' value="test_group_1" />''')
+        twill.commands.find(
+            '''<input title="test_group_2" type="text" name="groups-0-name"'''
+            ''' value="test_group_2" />''')
+

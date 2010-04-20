@@ -246,8 +246,6 @@ class BaseForm(form):
         """
         return bool(self.changed_data)
     
-   
-    
     def _get_changed_data(self):
         if self._changed_data is None:
             self._changed_data = []

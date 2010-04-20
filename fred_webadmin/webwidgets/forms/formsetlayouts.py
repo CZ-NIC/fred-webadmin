@@ -25,7 +25,9 @@ class TableFormSetLayout(FormSetLayout):
         
         
         if formset.non_form_errors():
-            self.tbody.add(tr(td(attr(colspan=self.columns_count), _('Errors:'), formset.non_form_errors())))
+            self.tbody.add(tr(td(
+                attr(colspan=self.columns_count), 
+                _('Errors:'), formset.non_form_errors())))
         
         for form in formset.forms:
             self.tbody.add(tr(
@@ -38,5 +40,7 @@ class TableFormSetLayout(FormSetLayout):
             self.tbody.add(self.get_submit_row())
         
     def get_submit_row(self):
-        return tr(td(attr(colspan=self.columns_count, cssc='center'), input(attr(type=u'submit', value=u'Save set', name=u'submit'))))
+        return tr(td(
+            attr(colspan=self.columns_count, cssc='center'), 
+            input(attr(type=u'submit', value=u'Save set', name=u'submit'))))
       
