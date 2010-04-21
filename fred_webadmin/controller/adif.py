@@ -614,7 +614,6 @@ class Registrar(AdifPage, ListTableMixin):
                     log_request_name)
                 self._process_valid_form(
                     form, registrar, kwd.get('id'), context, log_request)
-                form.changed_data
             else:
                 if config.debug:
                     context['main'].add(
