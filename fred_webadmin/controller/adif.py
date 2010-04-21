@@ -416,6 +416,7 @@ class ADIF(AdifPage):
                 self._fill_session_data(form, user, session_string)
                 if cherrypy.session.get('login_data'):
                     del(cherrypy.session['login_data'])
+                log_req.commit()
                 # Login completed, go to the next page.
                 raise cherrypy.HTTPRedirect(form.cleaned_data.get('next'))
             finally:
