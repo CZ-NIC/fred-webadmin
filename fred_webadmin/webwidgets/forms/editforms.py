@@ -70,6 +70,9 @@ class EditForm(Form):
                     field.title = initial_value
 
     def fire_actions(self): 
+        """ To be called after the form is submitted. Calls field.fire_actions
+            for each field in the form.
+        """
         for field in self.fields.values():
             field.fire_actions()
                 

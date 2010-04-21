@@ -325,7 +325,7 @@ class ADIF(AdifPage):
                 raise
             logger = DummyLogger()
         log_req = logger.create_request(
-            cherrypy.request.remote.ip, cherrypy.request.body, "Login")
+            cherrypy.request.headers['Remote-Addr'], cherrypy.request.body, "Login")
         log_req.update("username", login)
         admin = corba_obj.getObject('Admin', 'Admin')
         cherrypy.session['Admin'] = admin
@@ -454,7 +454,7 @@ class ADIF(AdifPage):
         if cherrypy.session.get('Logger'):
             try:
                 req = cherrypy.session['Logger'].create_request(
-                    cherrypy.request.remote.ip, cherrypy.request.body, "Logout")
+                    cherrypy.request.headers['Remote-Addr'], cherrypy.request.body, "Logout")
                 req.commit("") 
                 cherrypy.session['Logger'].close_session()
             except (omniORB.CORBA.SystemException, 
@@ -610,7 +610,7 @@ class Registrar(AdifPage, ListTableMixin):
                 # "save" (we only care about contacting the server, not about 
                 # user entering the edit page).
                 log_request = cherrypy.session['Logger'].create_request(
-                    cherrypy.request.remote.ip, cherrypy.request.body, 
+                    cherrypy.request.headers['Remote-Addr'], cherrypy.request.body, 
                     log_request_name)
                 self._process_valid_form(
                     form, registrar, kwd.get('id'), context, log_request)
@@ -650,7 +650,7 @@ class Domain(AdifPage, ListTableMixin):
     def dig(self, **kwd):
         context = {}
         log_request = cherrypy.session['Logger'].create_request(
-            cherrypy.request.remote.ip, cherrypy.request.body, 
+            cherrypy.request.headers['Remote-Addr'], cherrypy.request.body, 
             "DomainDig")
         handle = kwd.get('handle', None)
         log_request.update("handle", handle)
@@ -678,7 +678,7 @@ class Domain(AdifPage, ListTableMixin):
     def setinzonestatus(self, **kwd):
         "Call setInzoneStatus(domainID) "
         log_request = cherrypy.session['Logger'].create_request(
-            cherrypy.request.remote.ip, cherrypy.request.body, 
+            cherrypy.request.headers['Remote-Addr'], cherrypy.request.body, 
             "SetInZoneStatus")
         context = {'error': None}
         domain_id = kwd.get('id', None) # domain ID
@@ -733,7 +733,7 @@ class File(AdifPage, ListTableMixin):
     @check_onperm('read')
     def detail(self, **kwd):
         log_request = cherrypy.session['Logger'].create_request(
-            cherrypy.request.remote.ip, cherrypy.request.body, 
+            cherrypy.request.headers['Remote-Addr'], cherrypy.request.body, 
             "FileDetail")
         context = {}
         try:
@@ -775,7 +775,7 @@ class PublicRequest(AdifPage, ListTableMixin):
         '''Accept and send'''
         context = {}
         log_req = cherrypy.session['Logger'].create_request(
-            cherrypy.request.remote.ip, cherrypy.request.body,
+            cherrypy.request.headers['Remote-Addr'], cherrypy.request.body,
             "PublicRequestAccept")
         try:
             id_pr = int(kwd.get('id'))
@@ -806,7 +806,7 @@ class PublicRequest(AdifPage, ListTableMixin):
         '''Close and invalidate'''
         context = {}
         log_req = cherrypy.session['Logger'].create_request(
-            cherrypy.request.remote.ip, cherrypy.request.body,
+            cherrypy.request.headers['Remote-Addr'], cherrypy.request.body,
             "PublicRequestInvalidate")
         try:
             id_ai = int(kwd.get('id'))
@@ -831,7 +831,7 @@ class BankStatement(AdifPage, ListTableMixin):
             registrar_handle):
         """ Links the payment with registrar. """
         log_req = cherrypy.session['Logger'].create_request(
-            cherrypy.request.remote.ip, cherrypy.request.body, "PaymentPair")
+            cherrypy.request.headers['Remote-Addr'], cherrypy.request.body, "PaymentPair")
         log_req.update("payment_id", payment_id)
         log_req.update("registrar_handle", registrar_handle)
         invoicing = utils.get_corba_session().getBankingInvoicing()
@@ -860,7 +860,7 @@ class BankStatement(AdifPage, ListTableMixin):
         user_has_change_perms = not user.check_nperms("change.bankstatement")
         
         log_req = cherrypy.session['Logger'].create_request(
-            cherrypy.request.remote.ip, cherrypy.request.body, 
+            cherrypy.request.headers['Remote-Addr'], cherrypy.request.body, 
             f_name_actiondetailname[self.__class__.__name__.lower()])
 
         obj_id = kwd.get('id')

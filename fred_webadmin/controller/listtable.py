@@ -78,7 +78,7 @@ class ListTableMixin(object):
             table.set_filter(cleaned_filters)
             if kwd.get('save_input'): # save filter
                 log_req = cherrypy.session['Logger'].create_request(
-                    cherrypy.request.remote.ip, cherrypy.request.body,
+                    cherrypy.request.headers['Remote-Addr'], cherrypy.request.body,
                     "SaveFilter")
                 log_req.update("name", kwd['save_input'])
                 log_req.update(
@@ -179,7 +179,7 @@ class ListTableMixin(object):
     @check_onperm('read')
     def filter(self, *args, **kwd):
         log_req = cherrypy.session['Logger'].create_request(
-            cherrypy.request.remote.ip, cherrypy.request.body, 
+            cherrypy.request.headers['Remote-Addr'], cherrypy.request.body, 
             f_name_actionfiltername[self.__class__.__name__.lower()])
 
         if args:
@@ -325,7 +325,7 @@ class ListTableMixin(object):
     @check_onperm('read')
     def detail(self, **kwd):
         log_req = cherrypy.session['Logger'].create_request(
-            cherrypy.request.remote.ip, cherrypy.request.body, 
+            cherrypy.request.headers['Remote-Addr'], cherrypy.request.body, 
             f_name_actiondetailname[self.__class__.__name__.lower()])
 
         context = {}
