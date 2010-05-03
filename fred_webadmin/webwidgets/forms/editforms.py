@@ -10,12 +10,23 @@ from fields import *
 from adiffields import *
 from formsets import BaseFormSet
 
+import fred_webadmin.controller.adiferrors as adiferrors
+
 from fred_webadmin.translation import _
 from fred_webadmin.corbalazy import CorbaLazyRequest, CorbaLazyRequestIterStruct
 from editformlayouts import EditFormLayout
+from formlayouts import (
+    RegistrarEditFormLayout, NestedFieldsetFormSectionLayout, 
+    SimpleFieldsetFormSectionLayout, DivFormSectionLayout,
+    FieldsetFormLayout, RegistrarDataEditFormLayout)
+from fred_webadmin.webwidgets.forms.formsetlayouts import DivFormSetLayout
 
 from fred_webadmin.utils import get_current_url
 import fred_webadmin.mappings as mappings
+import fred_webadmin.utils
+
+from fred_webadmin.corba import ccReg, Registry
+import fred_webadmin.corbarecoder as recoder
 
 PAYMENT_UNASSIGNED = 1
 PAYMENT_REGISTRAR = 2
@@ -30,6 +41,10 @@ payment_map = dict([(PAYMENT_UNASSIGNED, u'Not assigned'),
 (PAYMENT_ACCOUNTS, u'Between our own accounts'), 
 (PAYMENT_ACADEMIA, u'Related to Academia'), 
 (PAYMENT_OTHER, u'Other transfers')])
+
+
+class UpdateFailedError(adiferrors.AdifError):
+    pass
 
 
 class EditForm(Form):
@@ -47,8 +62,7 @@ class EditForm(Form):
                  layout_class=EditFormLayout, *content, **kwd):
         super(EditForm, self).__init__(
             data, files, auto_id, prefix, initial, error_class, label_suffix, 
-            layout_class=EditFormLayout, 
-            *content, **kwd)
+            layout_class, *content, **kwd)
         self.media_files = ['/js/scw.js', 
                             '/js/scwLanguages.js',
                             '/js/publicrequests.js']
@@ -69,12 +83,12 @@ class EditForm(Form):
                 else: # usual field
                     field.title = initial_value
 
-    def fire_actions(self): 
+    def fire_actions(self, *args, **kwargs): 
         """ To be called after the form is submitted. Calls field.fire_actions
             for each field in the form.
         """
         for field in self.fields.values():
-            field.fire_actions()
+            field.fire_actions(*args, **kwargs)
                 
 
 class AccessEditForm(EditForm):
@@ -103,7 +117,35 @@ class ZoneEditForm(EditForm):
         return self.cleaned_data
 
 
+class SingleGroupEditForm(EditForm):
+    id = ChoiceField(
+        label=_('name'), 
+        choices=CorbaLazyRequestIterStruct(
+            'Admin', 'getGroupManager', 'getGroups', ['id', 'name']),
+        required=False)
+
+    def fire_actions(self, reg_id, *args, **kwargs): 
+        mgr = cherrypy.session['Admin'].getGroupManager()
+        group_id = self.fields['id'].value
+        if not group_id:
+            return
+        else:
+            group_id = int(group_id)
+        try:
+            if "id" in self.changed_data:
+                mgr.addRegistrarToGroup(reg_id, group_id)
+            elif 'DELETE' in self.changed_data:
+                mgr.removeRegistrarFromGroup(reg_id, group_id)
+        except Registry.Registrar.InvalidValue:
+            raise UpdateFailedError(
+                "Invalid registrar group value provided")
+    
+
 class RegistrarEditForm(EditForm):
+    def __init__(self, *args, **kwargs):
+        super(RegistrarEditForm, self).__init__(
+            layout_class=RegistrarEditFormLayout, *args, **kwargs)
+    
     id = HiddenDecimalField()
     handle = CharField(label=_('Handle')) # registrar identification
     name = CharField(label=_('Name'), required=False) # registrar name
@@ -118,8 +160,8 @@ class RegistrarEditForm(EditForm):
     countryCode = ChoiceField(
         label=_('Country'), 
         choices=CorbaLazyRequestIterStruct(
-            'Admin', 'getCountryDescList', ['cc', 'name']), 
-        initial=CorbaLazyRequest('Admin', 'getDefaultCountry'), 
+            'Admin', None, 'getCountryDescList', ['cc', 'name']), 
+        initial=CorbaLazyRequest('Admin', None, 'getDefaultCountry'), 
         required=False) # country code
     
     ico = CharField(label=_('ICO'), required=False)
@@ -132,12 +174,47 @@ class RegistrarEditForm(EditForm):
     email = CharField(label=_('Email'), required=False) # contact email
     url = CharField(label=_('URL'), required=False) # URL
     hidden = BooleanField(label=_('System registrar'), required=False) # System registrar
-
+    
     access = FormSetField(
-        label=_('Authentication'), form_class=AccessEditForm, can_delete=True)
+        label=_('Authentication'), form_class=AccessEditForm, can_delete=True,
+        formset_layout=DivFormSetLayout)
     zones = FormSetField(
         label=_('Zones'), form_class=ZoneEditForm, 
-        can_delete=False)
+        can_delete=False, formset_layout=DivFormSetLayout)
+
+    groups = FormSetField(
+        label=_('Groups'), form_class=SingleGroupEditForm, can_delete=False)
+
+    sections = (
+        (_("Registrar data"), (
+            "handle", "name", "organization", 'street1', 'street2', 
+            'street3', 'city', 'postalcode', 'stateorprovince', 'countryCode',
+            "postalCode", "ico", "dic", "varSymb", "vat", "telephone", "fax",
+            "email", "url", "id"),
+            SimpleFieldsetFormSectionLayout),
+        (_("Authentication"), ("access"), NestedFieldsetFormSectionLayout),
+        (_("Zones"), ("zones"), NestedFieldsetFormSectionLayout),
+        (_("Groups"), ("groups"), NestedFieldsetFormSectionLayout),
+    )
+
+    def fire_actions(self, *args, **kwargs):
+        try:
+            reg = kwargs["updated_registrar"]
+        except KeyError:
+            raise RuntimeError(
+                "RegistrarDataEditForm: Failed to fetch "
+                "updated registrar from kwargs.")
+        try:
+            reg_id = fred_webadmin.utils.get_corba_session().updateRegistrar(
+                reg)
+        except ccReg.Admin.UpdateFailed, e:
+            raise UpdateFailedError(
+                "Updating registrar failed. Perhaps you tried to "
+                "create a registrar with an already used handle?")
+        kwargs["result"]['reg_id'] = reg_id
+
+        self.fields["groups"].fire_actions(reg_id=reg_id, *args, **kwargs)
+   
 
 class BankStatementPairingEditForm(EditForm):
     type = IntegerChoiceField(
@@ -157,10 +234,10 @@ class RegistrarGroupsEditForm(EditForm):
     name = CharField(label=_("Group name"))
     id = HiddenIntegerField()
 
-    def fire_actions(self):
-        mgr = cherrypy.session['Admin'].getRegistrarManager()
+    def fire_actions(self, *args, **kwargs):
+        mgr = cherrypy.session['Admin'].getGroupManager()
         group_id = self.fields['id'].value
-        group_name = self.fields['name'].value
+        group_name = recoder.u2c(self.fields['name'].value)
         if not group_id:
             if ("name" in self.changed_data):
                 mgr.createGroup(group_name)
@@ -172,7 +249,7 @@ class RegistrarGroupsEditForm(EditForm):
                 mgr.updateGroup(group_id, group_name)
 
 
-class GroupEditForm(EditForm):
+class GroupManagerEditForm(EditForm):
     groups = FormSetField(
         label=_('Registrar groups'), form_class=RegistrarGroupsEditForm, 
         can_delete=True)
@@ -180,4 +257,4 @@ class GroupEditForm(EditForm):
 
 form_classes = [
     AccessEditForm, RegistrarEditForm, BankStatementPairingEditForm, 
-    ZoneEditForm, GroupEditForm, RegistrarGroupsEditForm]
+    ZoneEditForm, RegistrarGroupsEditForm, SingleGroupEditForm]

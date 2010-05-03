@@ -80,7 +80,7 @@ from fred_webadmin.webwidgets.forms.adifforms import LoginForm
 
 # Must be imported because of template magic stuff. I think.
 from fred_webadmin.webwidgets.forms.editforms import (RegistrarEditForm,
-    BankStatementPairingEditForm, GroupEditForm)
+    BankStatementPairingEditForm, GroupManagerEditForm)
 import fred_webadmin.webwidgets.forms.editforms as editforms
 
 import fred_webadmin.webwidgets.forms.filterforms as filterforms
@@ -89,14 +89,10 @@ from fred_webadmin.webwidgets.forms.filterforms import *
 #    get_filter_forms_javascript)
 
 from fred_webadmin.utils import json_response
-
-from fred_webadmin.mappings import ( 
-                      f_urls, 
-                      f_name_actiondetailname)
+from fred_webadmin.mappings import (
+    f_urls, f_name_actiondetailname)
 from fred_webadmin.user import User
-
 from fred_webadmin.customview import CustomView
-
 from fred_webadmin.controller.perms import check_onperm, login_required
 
 SESSION_OPENID_REDIRECT = "openid_redirect"
@@ -417,8 +413,10 @@ class ADIF(AdifPage):
                 if cherrypy.session.get('login_data'):
                     del(cherrypy.session['login_data'])
                 log_req.commit()
+
                 # Login completed, go to the next page.
-                raise cherrypy.HTTPRedirect(form.cleaned_data.get('next'))
+                raise cherrypy.HTTPRedirect(
+                    form.cleaned_data.get('next', "/summary/"))
             finally:
                 # Set OpenID redirect to False in any case (it will be set to
                 # True when it is redirected).
@@ -575,15 +573,16 @@ class Registrar(AdifPage, ListTableMixin):
             registrar, form.cleaned_data, log_request)
         corba_reg = recoder.u2c(registrar)
         try:
-            reg_id = utils.get_corba_session().updateRegistrar(corba_reg)
-        except ccReg.Admin.UpdateFailed, e:
-            form.non_field_errors().append(
-                "Updating registrar failed. Perhaps you tried to "
-                "create a registrar with an already used handle?")
+            result = {"reg_id": None}
+            form.fire_actions(
+                updated_registrar=corba_reg, result=result)
+            reg_id = result["reg_id"]
+        except editforms.UpdateFailedError, e:
+            form.non_field_errors().append(str(e))
             context['form'] = form
             log_request.update("result", str(e))
             log_request.commit("")
-            return self._render('edit', context)
+            return context 
         log_request.commit("")
         # Jump to the registrar's detail.
         raise cherrypy.HTTPRedirect("/registrar/detail/?id=%s" % reg_id)
@@ -601,11 +600,14 @@ class Registrar(AdifPage, ListTableMixin):
                     The type of log request that keeps log of this event.
         """
         context = {'main': div()}
-        form_class = self._get_editform_class()
-        initial = registrar.__dict__
+        reg_data_form_class = self._get_editform_class()
+        reg_data_initial = registrar.__dict__
+        initial = reg_data_initial
+        initial['groups'] = recoder.c2u(
+                cherrypy.session['Admin'].getGroupManager().getGroups())
 
         if cherrypy.request.method == 'POST':
-            form = form_class(kwd, initial=initial, method='post')
+            form = reg_data_form_class(kwd, initial=initial, method='post')
             if form.is_valid():
                 # Create the log request only after the user has clicked on
                 # "save" (we only care about contacting the server, not about 
@@ -613,29 +615,60 @@ class Registrar(AdifPage, ListTableMixin):
                 log_request = cherrypy.session['Logger'].create_request(
                     cherrypy.request.headers['Remote-Addr'], cherrypy.request.body, 
                     log_request_name)
-                self._process_valid_form(
+                context = self._process_valid_form(
                     form, registrar, kwd.get('id'), context, log_request)
+                return context
             else:
                 if config.debug:
                     context['main'].add(
                         'Form is not valid! Errors: %s' % repr(form.errors))
         else:
-            form = form_class(method='post', initial=initial)
+            form = reg_data_form_class(method='post', initial=initial)
 
         context['form'] = form
-        return self._render('edit', context)
+        return context
+
+    def _display_groups(self, ctx, *args, **kwargs):
+        from fred_webadmin.corba import Registry
+        from fred_webadmin.nulltype import NullDate
+        initial = {"groups": 
+            [Registry.Registrar.Group.GroupData(
+                42L, "test group", NullDate())]}
+        if cherrypy.request.method == 'POST':
+            form = GroupsEditForm(kwargs, initial=initial, method="post")
+            if form.is_valid():
+                pass
+        else:
+            form = GroupsEditForm(initial=initial, method="post")
+        ctx["groups_form"] = form
+        return ctx
+        
+
+    @check_onperm('read')
+    def detail(self, **kwd):
+        log_req = cherrypy.session['Logger'].create_request(
+            cherrypy.request.headers['Remote-Addr'], cherrypy.request.body, 
+            f_name_actiondetailname[self.__class__.__name__.lower()])
+        context = {}
+        result = self._get_detail(obj_id=kwd.get('id'))
+        log_req.update("object_id", kwd.get("id"))
+        context['edit'] = kwd.get('edit', False)
+        context['result'] = result
+        log_req.commit()
+        return self._render('detail', context)
+
     
     @check_onperm('change')
     def edit(self, *params, **kwd):
         registrar = self._get_detail(obj_id=kwd.get('id'))
-        result = self._update_registrar(registrar, "RegistrarUpdate", *params, **kwd)
-        return result
+        ctx = self._update_registrar(registrar, "RegistrarUpdate", *params, **kwd)
+        return self._render('edit', ctx)
 
     @check_onperm('change')
     def create(self, *params, **kwd):
         registrar = self._get_empty_corba_struct()
-        result = self._update_registrar(registrar, "RegistrarCreate", *params, **kwd)
-        return result
+        ctx = self._update_registrar(registrar, "RegistrarCreate", *params, **kwd)
+        return self._render('edit', ctx)
 
 
 class Action(AdifPage, ListTableMixin):
@@ -1056,13 +1089,12 @@ class GroupEditor(AdifPage):
         reg_mgr = cherrypy.session['Admin'].getGroupManager()
         groups = reg_mgr.getGroups()
         initial = {"groups": groups}
-        error(groups)
         if cherrypy.request.method == 'POST':
-            form = GroupEditForm(kwargs, initial=initial, method='post')
+            form = GroupManagerEditForm(kwargs, initial=initial, method='post')
             if form.is_valid():
                 self._process_valid_form(form)
         else:
-            form = GroupEditForm(initial=initial, method='post')
+            form = GroupManagerEditForm(initial=initial, method='post')
         context['form'] = form
         res = self._render(ctx=context)
         return res

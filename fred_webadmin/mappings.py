@@ -28,7 +28,7 @@
 import sys
 import fred_webadmin.config as config
 from pprint import pprint
-from omniORB import CORBA, importIDL
+from omniORB import importIDL
 
 importIDL(config.idl)
 ccReg = sys.modules['ccReg']
@@ -67,6 +67,7 @@ f_id_name = dict([(value, key) for key, value in f_name_id.items()])
 
 # dict {enum_item: url} 
 f_urls = dict([(name, '/%s/' % (name)) for name in f_name_enum.keys()])
+f_urls['group'] = "/groups/"
 
 # dict {classname: CT_*_ID}, where * is uppercase classname (used in itertable
 # headers for 'Id' column)

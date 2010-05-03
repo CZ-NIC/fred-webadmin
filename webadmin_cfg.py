@@ -6,20 +6,29 @@ import logging
 debug = False
 caching_filter_form_javascript = True # if this settings is on, then when doing changes to filter form, you should erase all sessions, because old filter forms are still in session
 
-www_dir = '/usr/local/share/fred-webadmin/www/'
-locale_dir = '/usr/local/share/fred-webadmin/locale/'
-sessions_dir = '/usr/local/var/lib/fred-webadmin/sessions/'
-log_dir = '/usr/local/var/log/fred-webadmin/'
+www_dir = '/home/tomas/code/enum/webadmin/trunk/www/'
+locale_dir = '/home/tomas/code/enum/webadmin/trunk/locale/'
+sessions_dir = '/home/tomas/code/enum/webadmin/trunk/sessions/'
+log_dir = '/home/tomas/code/enum/webadmin/trunk/'
 log_level = logging.ERROR
 
-# Session logger settings
-# If False, use dummy logger (just pretend to log, do not send anything to the 
-# server)
-session_logging_enabled = True
-# If False, no exceptions are thrown by the logger (if logging fails, it fails
-# silently).
-logging_mandatory = True
+# logging_actions_enabled: Iff false no user actions are logged to logd.
+# viewing_actions_enabled: Iff false, users cannot display log screen in
+#                          Daphne.
+# force_critical_logging: Iff False, any logger-related failure will silently
+#                         be ignored. Iff True, failures will shoot Daphne
+#                         down.
+audit_log = {
+    'logging_actions_enabled': True,
+    'viewing_actions_enabled': True,
+    'force_critical_logging' : False 
+}
 
+permissions = {
+    'enable_checking': True,
+    'backend': 'csv', #, 'nicauth'
+    'csv_file': 'perms.csv',
+}
 
 idl = '/usr/local/share/idl/fred/ccReg.idl' #'/usr/share/idl/fred/ccReg.idl'
 iors = (#(label, nshost, nscontext),
@@ -28,9 +37,9 @@ iors = (#(label, nshost, nscontext),
 
 tablesize = 45
 
-auth_method = 'CORBA' # 'LDAP', 'CORBA'
-LDAP_server = ''
-LDAP_scope = ''
+auth_method = 'CORBA' # 'LDAP', 'CORBA', 'OPENID'
+LDAP_server = 'ldap.nic.cz'
+LDAP_scope = 'uid=%s,ou=People,dc=nic,dc=cz'
 
 # gettext
 gettext_domain = 'adif'
@@ -44,9 +53,10 @@ js_calendar_date_format_edit = 'YYYY-MM-DD'
 
 cherrycfg = {
     'global': {
-        'server.socket_port': 18456,
+        'server.socket_port': 22353,
         'server.socket_host': "0.0.0.0",
         'server.thread_pool': 10,
+        'logDebugInfoFilter.on': False, 
         'server.environment': 'production',
         'tools.decode.on': True,
         'tools.decode.encoding': 'utf-8',

@@ -77,6 +77,8 @@ class WebWidget(object):
     
     
     def __init__(self, *content, **kwd):
+        if self in content:
+            raise GPyWebError("Trying to pass self in init")
         self.__dict__['tattr'] = {} # attributes, that will be rendered into tag as attribute (eg. <a href="/">...)
         self.__dict__['content'] = [] # To not pydev(or pylint) complain about assigning to undefined membet 'attr'
         self.parent_widget = None
@@ -130,8 +132,14 @@ class WebWidget(object):
         
         
     def __getattr__(self, name):
+        #TODO(Tom): This should only be active on debug, otherwise it slows down
+        # Daphne.
+        if self.__dict__.get('tattr') is None:
+            raise GPyWebError(
+                "WebWidget not initialized (have you called __init__ "
+                "on the parent object?).")
         if name in ['__reduce__', '__getstate__', '__setstate__', '__module__', '__getinitargs__', '__getnewargs__', '__deepcopy__', 
-                    'tatr' 'content']:
+                    'tattr' 'content']:
             raise AttributeError, name
         if self.tattr.has_key(name):
             return self.tattr[name]

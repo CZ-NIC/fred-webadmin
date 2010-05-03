@@ -92,7 +92,7 @@ class Field(WebWidget):
         else:
             return self.name.lower()
 
-    def fire_actions(self):
+    def fire_actions(self, *args, **kwargs):
         pass
 
 
@@ -570,7 +570,6 @@ class ChoiceField(Field):
 
     def make_content(self):
         self.content = []
-        
         # add/remove emtpy choice according 
         if self.required and self.choices and self.choices[0] == self.empty_choice: # remove empty choice:
             self.choices.pop(0)
@@ -589,8 +588,7 @@ class ChoiceField(Field):
         return super(ChoiceField, self).render(indent_level)
 
     def clean(self):
-        """
-        Validates that the input is in self.choices.
+        """ Validates that the input is in self.choices.
         """
         value = super(ChoiceField, self).clean()
         if self.is_empty():
@@ -598,10 +596,9 @@ class ChoiceField(Field):
         if value == u'':
             return value
         valid_values = set([unicode(k) for k, v in self.choices])
-        
         if value not in valid_values:
             raise ValidationError(_(u'Select a valid choice. That choice is not one of the available choices.'))
-            #raise ValidationError(_(u'Select a valid choice. That choice %s is not one of the available choices %s.' % (repr(value), valid_values)))
+
         return value
     
     def set_from_clean(self, value):
@@ -622,7 +619,6 @@ class IntegerChoiceField(ChoiceField):
             return value
         value = int(value)
         valid_values = set([k for k, _ignored_  in self.choices])
-        #import pdb; pdb.set_trace()
         if value not in valid_values:
             raise ValidationError(_(u'Select a valid choice. That choice is not one of the available choices.'))
         return value

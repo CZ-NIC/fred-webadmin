@@ -4,7 +4,7 @@ from fred_webadmin.translation import _
 import forms
 import editforms
 from fred_webadmin.webwidgets.gpyweb.gpyweb import WebWidget, tagid, attr, notag, div, span, table, tbody, tr, th, td, input, label, select, option, ul, li, script, a, img, strong
-from formlayouts import TableFormLayout
+from formlayouts import TableFormLayout, FieldsetFormLayout
 
 class EditFormLayout(TableFormLayout):
     columns_count = 2

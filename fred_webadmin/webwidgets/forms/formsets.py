@@ -5,7 +5,8 @@ from forms import Form
 from formsetlayouts import TableFormSetLayout
 from fields import DecimalField, BooleanField, HiddenDecimalField
 from fred_webadmin.webwidgets.utils import ErrorList, ValidationError
-from fred_webadmin.webwidgets.gpyweb.gpyweb import WebWidget
+from fred_webadmin.webwidgets.gpyweb.gpyweb import (
+    WebWidget)
 
 __all__ = ('BaseFormSet', 'all_valid')
 
@@ -30,8 +31,9 @@ class BaseFormSet(WebWidget):
     """
     A collection of instances of the same Form class.
     """
-    def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None,
-            initial=None, extra_count=1, error_class=ErrorList, is_nested=False, form_class=None, layout_class=TableFormSetLayout,
+    def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None, 
+            initial=None, extra_count=1, error_class=ErrorList, 
+            is_nested=False, form_class=None, layout_class=TableFormSetLayout, 
             can_order=False, can_delete=False, *content, **kwd):
         super(BaseFormSet, self).__init__(*content, **kwd)
         if not is_nested:
@@ -281,6 +283,7 @@ class BaseFormSet(WebWidget):
 
     def render(self, indent_level=0):
         self.content = [] # empty previous content (if render would be called moretimes, there would be multiple forms instead one )
+#        self.add(fieldset(self.layout_class(self)))
         self.add(self.layout_class(self))
         return super(BaseFormSet, self).render(indent_level)
 

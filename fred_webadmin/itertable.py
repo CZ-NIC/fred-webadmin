@@ -11,11 +11,11 @@ from logging import debug, error
 from omniORB.any import from_any
 
 from fred_webadmin.translation import _
-from fred_webadmin.webwidgets.forms.filterforms import FilterFormEmptyValue
 from fred_webadmin.mappings import (
     f_name_enum, f_enum_name, f_urls, f_name_default_sort)
 from fred_webadmin.corba import (
     ccReg, Registry, CorbaServerDisconnectedException)
+import fred_webadmin.webwidgets.forms.emptyvalue
 
 def fileGenerator(source, separator = '|'):
     "Generates CSV stream from IterTable object"
@@ -377,7 +377,7 @@ class FilterLoader(object):
             else:
                 sub_filter._set_neg(recoder.u2c(neg))
                 # Only set active filters (those that have a value). 
-                if not isinstance(val, FilterFormEmptyValue): 
+                if not isinstance(val, fred_webadmin.webwidgets.forms.emptyvalue.FilterFormEmptyValue): 
                     if isinstance(sub_filter, ccReg.Filters._objref_Date):
                         value = recoder.date_time_interval_to_corba(
                             val, recoder.date_to_corba)

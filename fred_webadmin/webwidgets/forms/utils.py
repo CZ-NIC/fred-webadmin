@@ -2,10 +2,9 @@
 # -*- coding: utf-8 -*-
 
 """ Various utils for web forms. """
-
+import fred_webadmin.webwidgets.forms.emptyvalue
 __all__ = ["flatten_form_data"]
 
-from fred_webadmin.webwidgets.forms.filterforms import FilterFormEmptyValue
 
 
 def _get_field_names(key, value, sep='.'):
@@ -23,7 +22,7 @@ def _get_values(value):
     """ Returns an array of form field values. """
     # It's the last level in the hierarchy
     if not isinstance(value[1], dict):
-        if isinstance(value[1], FilterFormEmptyValue):
+        if isinstance(value[1], fred_webadmin.webwidgets.forms.emptyvalue.FilterFormEmptyValue):
             return [""]
         return [value[1]]
 

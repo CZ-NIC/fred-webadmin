@@ -4,7 +4,6 @@ import simplejson
 from fred_webadmin.webwidgets.gpyweb.gpyweb import (
     div, span, p, a, b, h2, h3, noesc, attr, save, HTMLPage, hr, br, table, 
     tr, th, td, img, form, label, input, h1, script, pre, textarea)
-from fred_webadmin.webwidgets.forms.filterforms import get_filter_forms_javascript
 from fred_webadmin.webwidgets.table import WIterTable
 from fred_webadmin.translation import _
 from fred_webadmin import config
@@ -368,8 +367,25 @@ class EditPage(BaseSiteMenu):
                 """js_calendar""" % config.js_calendar_date_format_edit))
 
 
-class RegistrarEdit(EditPage):
-    pass
+class RegistrarEdit(BaseSiteMenu):
+    def __init__(self, context=None):
+        super(RegistrarEdit, self).__init__(context)
+        c = self.context
+        if c.get('form'):
+            self.main.add(c.form)
+            lang_code = config.lang[:2]
+            if lang_code == 'cs': # conversion between cs and cz identifier of lagnguage
+                lang_code = 'cz'
+            self.head.add(
+                script(attr(type='text/javascript'),
+                'scwLanguage = "%s"; //sets language of js_calendar' % \
+                lang_code,
+                """scwDateOutputFormat = "%s"; // set output format for """
+                """js_calendar""" % config.js_calendar_date_format_edit))
+        if c.get("groups_form"):
+            self.main.add(c.groups_form)
+        if c.get("certifications_form"):
+            pass
 
 
 class BankStatementPairingEdit(EditPage):

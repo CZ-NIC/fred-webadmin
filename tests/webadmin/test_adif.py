@@ -518,6 +518,7 @@ class TestRegistrar(BaseADIFTestCase):
         # Test that we've stayed at the 'create' page (i.e., creation has
         # failed).
         twill.commands.url("http://localhost:8080/registrar/create")
+        twill.commands.code(200)
 
 
 class TestBankStatement(BaseADIFTestCase):
@@ -803,11 +804,11 @@ class TestLoggerLogView(BaseADIFTestCase):
 
 class TestRegistrarGroupEditor(BaseADIFTestCase):
 
-    class MockRegistrarGroup(object):
+    """class MockRegistrarGroup(object):
         def __init__(self, id, name, cancelled=None):
             self.id = id
             self.name = name
-            self.cancelled = cancelled
+            self.cancelled = cancelled"""
 
     def setUp(self):
         BaseADIFTestCase.setUp(self)
@@ -817,10 +818,12 @@ class TestRegistrarGroupEditor(BaseADIFTestCase):
     def test_display_two_groups(self):
         """ Two registrar groups are displayed.
         """
-        self.admin_mock.getRegistrarManager().AndReturn(self.reg_mgr_mock)
+        self.admin_mock.getGroupManager().AndReturn(self.reg_mgr_mock)
         self.reg_mgr_mock.getGroups().AndReturn(
-            [TestRegistrarGroupEditor.MockRegistrarGroup(1, "test_group_1"),
-            TestRegistrarGroupEditor.MockRegistrarGroup(2, "test_group_2")])
+            [Registry.Registrar.Group.GroupData(
+                1, "test_group_1", ccReg.DateType(20, 10, 2010)),
+            Registry.Registrar.Group.GroupData(
+                2, "test_group_2", ccReg.DateType(20, 10, 2010))])
 
         self.corba_mock.ReplayAll()
 
@@ -837,7 +840,7 @@ class TestRegistrarGroupEditor(BaseADIFTestCase):
     def test_display_zero_groups(self):
         """ Two registrar groups are displayed.
         """
-        self.admin_mock.getRegistrarManager().AndReturn(self.reg_mgr_mock)
+        self.admin_mock.getGroupManager().AndReturn(self.reg_mgr_mock)
         self.reg_mgr_mock.getGroups().AndReturn([])
 
         self.corba_mock.ReplayAll()
@@ -851,24 +854,29 @@ class TestRegistrarGroupEditor(BaseADIFTestCase):
     def test_delete_group(self):
         """ Two registrar groups are displayed, one gets deleted.
         """
-        self.admin_mock.getRegistrarManager().AndReturn(self.reg_mgr_mock)
+        self.admin_mock.getGroupManager().AndReturn(self.reg_mgr_mock)
         self.reg_mgr_mock.getGroups().AndReturn(
-            [TestRegistrarGroupEditor.MockRegistrarGroup(1, "test_group_1"),
-            TestRegistrarGroupEditor.MockRegistrarGroup(2, "test_group_2")])
+            [Registry.Registrar.Group.GroupData(
+                1, "test_group_1", ccReg.DateType(20, 10, 2010)),
+            Registry.Registrar.Group.GroupData(
+                2, "test_group_2", ccReg.DateType(20, 10, 2010))])
 
-        self.admin_mock.getRegistrarManager().AndReturn(self.reg_mgr_mock)
+        self.admin_mock.getGroupManager().AndReturn(self.reg_mgr_mock)
         self.reg_mgr_mock.getGroups().AndReturn(
-            [TestRegistrarGroupEditor.MockRegistrarGroup(1, "test_group_1"),
-            TestRegistrarGroupEditor.MockRegistrarGroup(2, "test_group_2")])
-        self.admin_mock.getRegistrarManager().AndReturn(self.reg_mgr_mock)
+            [Registry.Registrar.Group.GroupData(
+                1, "test_group_1", ccReg.DateType(20, 10, 2010)),
+            Registry.Registrar.Group.GroupData(
+                2, "test_group_2", ccReg.DateType(20, 10, 2010))])
+        self.admin_mock.getGroupManager().AndReturn(self.reg_mgr_mock)
         self.reg_mgr_mock.deleteGroup(1)
 
-        self.admin_mock.getRegistrarManager().AndReturn(self.reg_mgr_mock)
-        self.admin_mock.getRegistrarManager().AndReturn(self.reg_mgr_mock)
+        self.admin_mock.getGroupManager().AndReturn(self.reg_mgr_mock)
+        self.admin_mock.getGroupManager().AndReturn(self.reg_mgr_mock)
 
-        self.admin_mock.getRegistrarManager().AndReturn(self.reg_mgr_mock)
+        self.admin_mock.getGroupManager().AndReturn(self.reg_mgr_mock)
         self.reg_mgr_mock.getGroups().AndReturn(
-            [TestRegistrarGroupEditor.MockRegistrarGroup(2, "test_group_2")])
+            [Registry.Registrar.Group.GroupData(
+                2, "test_group_2", ccReg.DateType(20, 10, 2010))])
 
         self.corba_mock.ReplayAll()
 

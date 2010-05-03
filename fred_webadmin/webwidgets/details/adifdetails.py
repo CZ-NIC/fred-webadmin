@@ -35,6 +35,11 @@ class ZoneDetail(Detail):
     toDate = DateDField(label=_('To'))
 
 
+class CertificationDetail(Detail):
+#    score = DecimalField(label=_("Score"))
+    pass
+
+
 class RegistrarDetail(Detail):
     editable = True
     
@@ -53,7 +58,6 @@ class RegistrarDetail(Detail):
     stateorprovince = CharDField(label=_('State')) # address part
     postalcode = CharDField(label=_('ZIP')) # address part
     countryCode = CharDField(label=_('Country')) # country code
-    
 
     telephone = CharDField(label=_('Telephone')) # phone number
     fax = CharDField(label=_('Fax')) # fax number
@@ -64,18 +68,24 @@ class RegistrarDetail(Detail):
     varSymb = CharDField(label=_('Var. Symbol'))
     vat = CharDField(label=_('DPH'))
     hidden = CharDField(label=_('System registrar')) # hidden in PIF
-
     
     access = ListObjectDField(detail_class=AccessDetail)
     zones = ListObjectDField(detail_class=ZoneDetail)
+
+    certifications = NHDField(
+        ListObjectDField(
+            detail_class=CertificationDetail, 
+            display_only=['score']),
+        HistoryListObjectDField(
+            detail_class=CertificationDetail, 
+            display_only=['score']))
     
     sections = (
         (None, ('handle', 'organization', 'name', 'credit', 'unspec_credit')),
         (_('Address'), ('street1', 'street2', 'street3', 'city', 'postalcode', 'stateorprovince', 'country')),
         (_('Other_data'), ('telephone', 'fax', 'email', 'url', 'ico', 'dic', 'varSymb', 'vat', 'hidden')),
         (_('Authentication'), ('access', ), DirectSectionLayout),
-        (_('Zones'), ('zones', ), DirectSectionLayout),
-    )
+        (_('Zones'), ('zones', ), DirectSectionLayout))
 
     def add_to_bottom(self):
         if self.data:
@@ -398,7 +408,10 @@ class PublicRequestDetail(Detail):
     
 class MailDetail(Detail):
     objects = ListCharDField(label=_('Objects'))
-    type = ConvertDField(label=_('Type'), inner_field=CharDField(), convert_table=CorbaLazyRequestIterStructToDict('Mailer', 'getMailTypes', ['id', 'name']))
+    type = ConvertDField(
+        label=_('Type'), inner_field=CharDField(), 
+        convert_table=CorbaLazyRequestIterStructToDict(
+            'Mailer', None, 'getMailTypes', ['id', 'name']))
     status = CharDField(label=_('Status'))
     createTime = CharDField(label=_('Create time'))
     modifyTime = CharDField(label=_('Modify time'))

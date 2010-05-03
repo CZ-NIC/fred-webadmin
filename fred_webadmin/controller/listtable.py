@@ -12,8 +12,7 @@ from fred_webadmin.translation import _
 
 import fred_webadmin.webwidgets.forms.utils as form_utils
 from fred_webadmin.controller.perms import check_onperm, login_required
-from fred_webadmin.webwidgets.forms.filterforms import (
-    UnionFilterForm, FilterFormEmptyValue)
+from fred_webadmin.webwidgets.forms.filterforms import UnionFilterForm
 from fred_webadmin.itertable import IterTable, fileGenerator
 from fred_webadmin.mappings import (
     f_name_id, f_name_editformname, f_urls, f_name_actionfiltername, 
@@ -28,6 +27,7 @@ from fred_webadmin.corba import ccReg
 from fred_webadmin.utils import get_detail
 
 from fred_webadmin.corbalazy import ServerNotAvailableError
+import fred_webadmin.webwidgets.forms.emptyvalue
 
 
 MSG_SERVER_UNAVAILABLE = ("Uh oh. We apologize, but the backend for %s "
@@ -303,7 +303,7 @@ class ListTableMixin(object):
         if len(form.cleaned_data) != 1:
             return False
         key_filter_field = form.cleaned_data[0][key_time_field.name][1]
-        if isinstance(key_filter_field, FilterFormEmptyValue):
+        if isinstance(key_filter_field, fred_webadmin.webwidgets.forms.emptyvalue.FilterFormEmptyValue):
             return False
         if (int(form.cleaned_data[0][key_time_field.name][1][3]) in 
                     (int(ccReg.DAY._v), int(ccReg.INTERVAL._v))):

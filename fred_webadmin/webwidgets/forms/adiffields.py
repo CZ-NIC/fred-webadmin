@@ -1,10 +1,10 @@
-from logging import debug
 from formsets import BaseFormSet
-from formsetlayouts import TableFormSetLayout
+from formsetlayouts import TableFormSetLayout#, FieldsetFormSetLayout
 from fields import Field, DecimalField, ChoiceField, MultiValueField, DateField, SplitDateSplitTimeField
 from fred_webadmin.webwidgets.utils import ValidationError, ErrorList
 from fred_webadmin.translation import _
 from fred_webadmin.webwidgets.gpyweb.gpyweb import attr, save, span
+#from fred_webadmin.nulltype import NullDate
 
 #cobra things:
 from fred_webadmin.corba import ccReg
@@ -23,7 +23,6 @@ class CompoundFilterField(Field):
         self._value = value
         self.form = None
         self.initialized = True
-#        self.value = value
         
     def _get_value(self):
         return self._value
@@ -55,15 +54,13 @@ class CompoundFilterField(Field):
                 self.form = self.form_class(is_nested=True)
             else:
                 self.form = self.form_class(data=self.value, is_nested=True)
-            
-        debug('Rendering compund field, (its form)')
         return self.form.render(indent_level)
 
 class FormSetField(Field):
     "Field that wraps formset"
     def __init__(self, name='', value='', formset_class=BaseFormSet, 
         formset_layout=TableFormSetLayout, form_class=None, 
-        can_order=False, can_delete=False, *args, **kwargs):
+        can_order=False, can_delete=False, extra_count=1, *args, **kwargs): 
     
         self.initialized = False
         self.form_class = form_class
@@ -76,6 +73,8 @@ class FormSetField(Field):
         self.formset = None
         self.initialized = True
         self.changed_data_values = []
+        self.formset_layout = formset_layout
+        self.extra_count = extra_count
     
     def create_formset_once(self):
         ''' If formset han't yet been created, this function will create it. '''
@@ -83,7 +82,8 @@ class FormSetField(Field):
             self.formset = self.formset_class(
                 data=self.value, initial=self.initial, 
                 form_class=self.form_class, prefix=self.name, is_nested=True, 
-                can_order=self.can_order, can_delete=self.can_delete)
+                can_order=self.can_order, can_delete=self.can_delete,
+                extra_count=self.extra_count)
     
     def _get_value(self):
         return self._value
@@ -148,10 +148,10 @@ class FormSetField(Field):
             return True
         return False
 
-    def fire_actions(self):
+    def fire_actions(self, *args, **kwargs):
         self.create_formset_once()
         for form in self.formset.forms:
-            form.fire_actions()
+            form.fire_actions(*args, **kwargs)
 
 
 class CorbaEnumChoiceField(ChoiceField):

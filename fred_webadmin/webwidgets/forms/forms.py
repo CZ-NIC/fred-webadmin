@@ -159,14 +159,8 @@ class BaseForm(form):
         return self.prefix and ('%s-%s' % (self.prefix, field_name)) or field_name
 
     def render(self, indent_level=0):
-        debug('RENDERING of %s indent_level %s' % (self.__class__.__name__, indent_level))
-        
-                
-        
         self.content = [] # empty previous content (if render would be called moretimes, there would be multiple forms instead one )
-        debug('Adding layout %s to %s' % (self.layout_class, self.__class__.__name__))
         self.add(self.layout_class(self))
-        debug('After adding layout %s to %s' % (self.layout_class, self.__class__.__name__))
         return super(BaseForm, self).render(indent_level)
 
     def non_field_errors(self):

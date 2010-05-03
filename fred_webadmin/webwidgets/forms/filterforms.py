@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
 from copy import deepcopy
 
 import simplejson
@@ -26,6 +25,7 @@ from fred_webadmin.corbalazy import (
 from fred_webadmin.corba import ccReg
 from fred_webadmin.mappings import f_urls
 import fred_webadmin.webwidgets.forms.editforms as editforms
+import fred_webadmin.webwidgets.forms.emptyvalue
 
 __all__ = ['UnionFilterForm', 'RegistrarFilterForm', 'ObjectStateFilterForm', 
            'ObjectFilterForm', 'ContactFilterForm', 'NSSetFilterForm',
@@ -34,12 +34,6 @@ __all__ = ['UnionFilterForm', 'RegistrarFilterForm', 'ObjectStateFilterForm',
            'InvoiceFilterForm', 'MailFilterForm', 'FileFilterForm',
            'LoggerFilterForm', 'BankStatementFilterForm', 'PropertyFilterForm',
            'get_filter_forms_javascript']
-
-class FilterFormEmptyValue(object):
-    ''' Class used in clean method of Field as empty value (if
-        field.is_emtpy()=True, than clean vill return instance of this object.
-    '''
-    pass
 
 class UnionFilterForm(Form):
     ''' Form that contains more Filter Forms, data for this form is list of data
@@ -232,7 +226,7 @@ class FilterForm(Form):
         try:
             value = field.clean()
             if field.is_empty():
-                value = FilterFormEmptyValue()
+                value = fred_webadmin.webwidgets.forms.emptyvalue.FilterFormEmptyValue()
             self.cleaned_data[name] = [field.negation, value]
             if hasattr(self, 'clean_%s' % name):
                 value = getattr(self, 'clean_%s' % name)()
@@ -261,7 +255,7 @@ class ObjectStateFilterForm(FilterForm):
     StateId = ChoiceField(
         label=_('State Type'), 
         choices=CorbaLazyRequestIterStruct(
-            'Admin', 'getObjectStatusDescList', 
+            'Admin', None, 'getObjectStatusDescList', 
             ['id', 'shortName'], config.lang[:2]))
 
     ValidFrom = DateTimeIntervalField(label=_('Valid from'))
@@ -342,7 +336,7 @@ class ActionFilterForm(FilterForm):
     Type = ChoiceField(
         label=_('Request type'), 
         choices=CorbaLazyRequestIterStruct(
-            'Admin', 'getEPPActionTypeList', ['id', 'name']))
+            'Admin', None, 'getEPPActionTypeList', ['id', 'name']))
     Object = CompoundFilterField(label=_('Object'), form_class=ObjectFilterForm)
     RequestHandle = CharField(label=_('Requested Handle'))
     Time = DateTimeIntervalField(label=_('Received date'))
@@ -378,7 +372,7 @@ class LoggerFilterForm(FilterForm):
     ActionType = IntegerChoiceField(
         label=_('Action type'), 
         choices=CorbaLazyRequestIterStruct(
-            'corba_logd', 'GetServiceActions', ['id', 'status'], 4))
+            'corba_logd', None, 'GetServiceActions', ['id', 'status'], 4))
     TimeBegin = DateTimeIntervalField(label=_('Begin time'))
     TimeEnd = DateTimeIntervalField(label=_('End time'))
     RequestPropertyValue = CompoundFilterField(
@@ -455,7 +449,7 @@ class FileFilterForm(FilterForm):
     Type = ChoiceField(
         label=_('Type'), 
         choices=CorbaLazyRequestIterStruct(
-            'FileManager', 'getTypeEnum', ['id', 'name']))
+            'FileManager', None, 'getTypeEnum', ['id', 'name']))
 
 
 class InvoiceFilterForm(FilterForm):
@@ -478,7 +472,7 @@ class MailFilterForm(FilterForm):
     Type = ChoiceField(
         label=_('Type'), 
         choices=CorbaLazyRequestIterStruct(
-            'Mailer', 'getMailTypes', ['id', 'name']))
+            'Mailer', None, 'getMailTypes', ['id', 'name']))
     Handle = CharField(label=_('Handle'))
     CreateTime = DateTimeIntervalField(label=_('Create time'))
     ModifyTime = DateTimeIntervalField(label=_('Modify time'))

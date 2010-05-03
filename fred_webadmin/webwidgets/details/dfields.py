@@ -434,10 +434,10 @@ class ObjectDField(DField):
         self.inner_detail = self.detail_class(self.value, self.owner_detail.history, display_only=self.display_only, sections=self.sections, layout_class=self.layout_class, is_nested=True, all_no_access=not self.access)
         
     def make_content(self):
-#        from fred_webadmin.webwidgets.details.adifdetails import NSSetDetail 
         self.content = []
         self.create_inner_detail()
         self.add(self.inner_detail)
+
 
 class ListObjectDField(DField):
     ''' Field with inner list of objects - displayed in table where headers are labels, 
@@ -732,7 +732,8 @@ class HistoryStateDField(DField):
     ''' Field that display actual states or history of states.'''
     def __init__(self, name='', label=None, *content, **kwd):
         super(HistoryStateDField, self).__init__(name, label, *content, **kwd)
-        self.corba_states_desc = CorbaLazyRequestIter('Admin', 'getObjectStatusDescList', config.lang[:2])
+        self.corba_states_desc = CorbaLazyRequestIter(
+            'Admin', None, 'getObjectStatusDescList', config.lang[:2])
         self.state_list = []
         self.states_desc = {}
         self.states_name = {}

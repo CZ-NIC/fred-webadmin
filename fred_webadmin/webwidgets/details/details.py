@@ -40,7 +40,8 @@ class BaseDetail(div):
     editable = False
     nperm_names = ['read']
     
-    def __init__(self, data, history, label_suffix=':', display_only = None, sections = None, layout_class=SectionDetailLayout,#TableDetailLayout,
+    def __init__(self, data, history, label_suffix=':', display_only = None, 
+                 sections = None, layout_class=SectionDetailLayout,
                  is_nested = False, all_no_access=False, *content, **kwd):
         super(BaseDetail, self).__init__(*content, **kwd)
         self.tag = u''
