@@ -1053,7 +1053,7 @@ class Detail41(AdifPage):
 class GroupEditor(AdifPage):
     def index(self, *args, **kwargs):
         context = {}
-        reg_mgr = cherrypy.session['Admin'].getRegistrarManager()
+        reg_mgr = cherrypy.session['Admin'].getGroupManager()
         groups = reg_mgr.getGroups()
         initial = {"groups": groups}
         error(groups)
