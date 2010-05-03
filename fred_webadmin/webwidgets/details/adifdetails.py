@@ -40,6 +40,10 @@ class CertificationDetail(Detail):
     pass
 
 
+class GroupDetail(Detail):
+    name = CharDField(label=_("Name"))
+
+
 class RegistrarDetail(Detail):
     editable = True
     
@@ -72,6 +76,8 @@ class RegistrarDetail(Detail):
     access = ListObjectDField(detail_class=AccessDetail)
     zones = ListObjectDField(detail_class=ZoneDetail)
 
+    groups = ListObjectDField(detail_class=GroupDetail)
+
     certifications = NHDField(
         ListObjectDField(
             detail_class=CertificationDetail, 
@@ -85,7 +91,8 @@ class RegistrarDetail(Detail):
         (_('Address'), ('street1', 'street2', 'street3', 'city', 'postalcode', 'stateorprovince', 'country')),
         (_('Other_data'), ('telephone', 'fax', 'email', 'url', 'ico', 'dic', 'varSymb', 'vat', 'hidden')),
         (_('Authentication'), ('access', ), DirectSectionLayout),
-        (_('Zones'), ('zones', ), DirectSectionLayout))
+        (_('Zones'), ('zones', ), DirectSectionLayout),
+        (_('Groups'), ('groups', ), DirectSectionLayout))
 
     def add_to_bottom(self):
         if self.data:

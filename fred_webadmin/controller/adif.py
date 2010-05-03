@@ -650,7 +650,10 @@ class Registrar(AdifPage, ListTableMixin):
             cherrypy.request.headers['Remote-Addr'], cherrypy.request.body, 
             f_name_actiondetailname[self.__class__.__name__.lower()])
         context = {}
-        result = self._get_detail(obj_id=kwd.get('id'))
+        detail = self._get_detail(obj_id=kwd.get('id'))
+        result = detail.__dict__
+        result['groups'] = recoder.c2u(
+            cherrypy.session['Admin'].getGroupManager().getGroups())
         log_req.update("object_id", kwd.get("id"))
         context['edit'] = kwd.get('edit', False)
         context['result'] = result
