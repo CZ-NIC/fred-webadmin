@@ -14,11 +14,11 @@ import fred_webadmin.controller.adiferrors as adiferrors
 
 from fred_webadmin.translation import _
 from fred_webadmin.corbalazy import CorbaLazyRequest, CorbaLazyRequestIterStruct
-from editformlayouts import EditFormLayout
+from editformlayouts import (
+    EditFormLayout, RegistrarEditFormLayout)
 from formlayouts import (
-    RegistrarEditFormLayout, NestedFieldsetFormSectionLayout, 
-    SimpleFieldsetFormSectionLayout, DivFormSectionLayout,
-    FieldsetFormLayout, RegistrarDataEditFormLayout)
+    NestedFieldsetFormSectionLayout, 
+    SimpleFieldsetFormSectionLayout, DivFormSectionLayout)
 from fred_webadmin.webwidgets.forms.formsetlayouts import DivFormSetLayout
 
 from fred_webadmin.utils import get_current_url
