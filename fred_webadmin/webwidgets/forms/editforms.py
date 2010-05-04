@@ -139,12 +139,19 @@ class SingleGroupEditForm(EditForm):
         except Registry.Registrar.InvalidValue:
             raise UpdateFailedError(
                 "Invalid registrar group value provided")
-    
+
+
+class CertificationEditForm(EditForm):
+    toDate = DateField(label=_("To"))
+    score = IntegerField(label=_("Score"))
+    evaluation_file_id = FileField(label=_("Evaluation"), type="file")
+
 
 class RegistrarEditForm(EditForm):
     def __init__(self, *args, **kwargs):
         super(RegistrarEditForm, self).__init__(
-            layout_class=RegistrarEditFormLayout, *args, **kwargs)
+            layout_class=RegistrarEditFormLayout,
+            enctype="multipart/form-data", *args, **kwargs)
     
     id = HiddenDecimalField()
     handle = CharField(label=_('Handle')) # registrar identification
@@ -181,9 +188,11 @@ class RegistrarEditForm(EditForm):
     zones = FormSetField(
         label=_('Zones'), form_class=ZoneEditForm, 
         can_delete=False, formset_layout=DivFormSetLayout)
-
     groups = FormSetField(
         label=_('Groups'), form_class=SingleGroupEditForm, can_delete=False)
+    certifications = FormSetField(
+        label=_('Certifications'), form_class=CertificationEditForm, 
+        can_delete=False)
 
     sections = (
         (_("Registrar data"), (
@@ -195,6 +204,7 @@ class RegistrarEditForm(EditForm):
         (_("Authentication"), ("access"), NestedFieldsetFormSectionLayout),
         (_("Zones"), ("zones"), NestedFieldsetFormSectionLayout),
         (_("Groups"), ("groups"), NestedFieldsetFormSectionLayout),
+        (_("Certifications"), ("certifications"), NestedFieldsetFormSectionLayout),
     )
 
     def fire_actions(self, *args, **kwargs):
@@ -205,14 +215,15 @@ class RegistrarEditForm(EditForm):
                 "RegistrarDataEditForm: Failed to fetch "
                 "updated registrar from kwargs.")
         try:
-            reg_id = fred_webadmin.utils.get_corba_session().updateRegistrar(
-                reg)
+            reg_id = fred_webadmin.utils.get_corba_session().updateRegistrar(reg)
         except ccReg.Admin.UpdateFailed, e:
             raise UpdateFailedError(
                 "Updating registrar failed. Perhaps you tried to "
                 "create a registrar with an already used handle?")
+        # Set created/updated registrar id to result (it is used in ADIF
+        # registrar page).
         kwargs["result"]['reg_id'] = reg_id
-
+        # Fire actions for groups.
         self.fields["groups"].fire_actions(reg_id=reg_id, *args, **kwargs)
    
 

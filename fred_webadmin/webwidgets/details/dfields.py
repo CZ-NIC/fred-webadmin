@@ -935,7 +935,7 @@ class NHDField(BaseNHDField):
     def value_from_data(self, data):
         value = data.get(self.name)
         
-        if value is not None:
+        if value:
             if self.owner_detail.history and len(value) > 1 and not self.owner_detail.is_nested:
                 self.displaying_history = True
                 self.history_field.owner_detail = self.owner_detail

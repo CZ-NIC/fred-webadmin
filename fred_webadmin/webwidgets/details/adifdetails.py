@@ -36,7 +36,11 @@ class ZoneDetail(Detail):
 
 
 class CertificationDetail(Detail):
-#    score = DecimalField(label=_("Score"))
+    score = CharDField(label=_("Score"))
+    fromDate = DateDField(label=_('From'))
+    to = DateDField(label=_('From'))
+#    evaluation_file_id = ObjectHandleDField(label=_('Evaluation'))
+    evaluation_file_id = CharDField(label=_('Evaluation'))
     pass
 
 
@@ -78,21 +82,16 @@ class RegistrarDetail(Detail):
 
     groups = ListObjectDField(detail_class=GroupDetail)
 
-    certifications = NHDField(
-        ListObjectDField(
-            detail_class=CertificationDetail, 
-            display_only=['score']),
-        HistoryListObjectDField(
-            detail_class=CertificationDetail, 
-            display_only=['score']))
-    
+    certifications = ListObjectDField(detail_class=CertificationDetail)
+
     sections = (
         (None, ('handle', 'organization', 'name', 'credit', 'unspec_credit')),
         (_('Address'), ('street1', 'street2', 'street3', 'city', 'postalcode', 'stateorprovince', 'country')),
         (_('Other_data'), ('telephone', 'fax', 'email', 'url', 'ico', 'dic', 'varSymb', 'vat', 'hidden')),
         (_('Authentication'), ('access', ), DirectSectionLayout),
         (_('Zones'), ('zones', ), DirectSectionLayout),
-        (_('Groups'), ('groups', ), DirectSectionLayout))
+        (_('Groups'), ('groups', ), DirectSectionLayout),
+        (_('Certifications'), ('certifications', ), DirectSectionLayout))
 
     def add_to_bottom(self):
         if self.data:

@@ -603,8 +603,11 @@ class Registrar(AdifPage, ListTableMixin):
         reg_data_form_class = self._get_editform_class()
         reg_data_initial = registrar.__dict__
         initial = reg_data_initial
-        initial['groups'] = recoder.c2u(
-                cherrypy.session['Admin'].getGroupManager().getGroups())
+        group_mgr = cherrypy.session['Admin'].getGroupManager()
+        corba_groups = group_mgr.getGroups()
+        groups = [
+            group for group in recoder.c2u(corba_groups) if not group.cancelled]
+        initial['groups'] = groups
 
         if cherrypy.request.method == 'POST':
             form = reg_data_form_class(kwd, initial=initial, method='post')
@@ -628,22 +631,6 @@ class Registrar(AdifPage, ListTableMixin):
         context['form'] = form
         return context
 
-    def _display_groups(self, ctx, *args, **kwargs):
-        from fred_webadmin.corba import Registry
-        from fred_webadmin.nulltype import NullDate
-        initial = {"groups": 
-            [Registry.Registrar.Group.GroupData(
-                42L, "test group", NullDate())]}
-        if cherrypy.request.method == 'POST':
-            form = GroupsEditForm(kwargs, initial=initial, method="post")
-            if form.is_valid():
-                pass
-        else:
-            form = GroupsEditForm(initial=initial, method="post")
-        ctx["groups_form"] = form
-        return ctx
-        
-
     @check_onperm('read')
     def detail(self, **kwd):
         log_req = cherrypy.session['Logger'].create_request(
@@ -652,15 +639,27 @@ class Registrar(AdifPage, ListTableMixin):
         context = {}
         detail = self._get_detail(obj_id=kwd.get('id'))
         result = detail.__dict__
-        result['groups'] = recoder.c2u(
-            cherrypy.session['Admin'].getGroupManager().getGroups())
+        result['groups'] = self._get_groups_for_reg_id(int(kwd.get('id')))
+        result['certifications'] = self._get_certifications_for_reg_id(int(kwd.get('id')))
         log_req.update("object_id", kwd.get("id"))
         context['edit'] = kwd.get('edit', False)
         context['result'] = result
         log_req.commit()
         return self._render('detail', context)
 
-    
+    def _get_groups_for_reg_id(self, reg_id):
+        group_mgr = cherrypy.session['Admin'].getGroupManager()
+        all_groups = group_mgr.getGroups()
+        memberships = group_mgr.getMembershipsByRegistar(reg_id)
+        my_groups_ids = [member.group_id for member in memberships]
+        groups = [group for group in all_groups if group.id in my_groups_ids]
+        return groups
+
+    def _get_certifications_for_reg_id(self, reg_id):
+        cert_mgr = cherrypy.session['Admin'].getCertificationManager()
+        certs = cert_mgr.getCertificationsByRegistrar(reg_id)
+        return certs
+
     @check_onperm('change')
     def edit(self, *params, **kwd):
         registrar = self._get_detail(obj_id=kwd.get('id'))
@@ -1090,8 +1089,10 @@ class GroupEditor(AdifPage):
     def index(self, *args, **kwargs):
         context = {}
         reg_mgr = cherrypy.session['Admin'].getGroupManager()
-        groups = reg_mgr.getGroups()
-        initial = {"groups": groups}
+        corba_groups = reg_mgr.getGroups()
+        groups = recoder.c2u(corba_groups)
+        active_groups = [group for group in groups if not group.cancelled]
+        initial = {"groups": active_groups}
         if cherrypy.request.method == 'POST':
             form = GroupManagerEditForm(kwargs, initial=initial, method='post')
             if form.is_valid():

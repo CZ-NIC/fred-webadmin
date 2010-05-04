@@ -4,6 +4,7 @@ import fred_webadmin as webadmin
 import fred_webadmin.user as user
 import fred_webadmin.logger.dummylogger as logger
 import fred_webadmin.perms.dummy
+from fred_webadmin.corba import Registry, ccReg
 
 test_config = webadmin.config
 test_config.audit_log['logging_actions_enabled'] = False
@@ -50,6 +51,8 @@ class DaphneTestCase(object):
             helper-for-monkey-patching-in-tests.html"""
         for func in reversed(self._on_teardown):
             func()
+        self.corba_mock.UnsetStubs()
+        self.corba_mock.ResetAll()
         
     def setUp(self, ldap=True):
         self._on_teardown = []
@@ -62,8 +65,8 @@ class DaphneTestCase(object):
         self.corba_user_mock = self.corba_mock.CreateMockAnything()
         self.corba_user_mock.__str__ = lambda : "corba user mock"
 
-        self.admin_mock = self.corba_mock.CreateMockAnything()
-        self.admin_mock.__str__ = lambda : "admin mock"
+#        self.admin_mock = self.corba_mock.CreateMockAnything()
+#        self.admin_mock.__str__ = lambda : "admin mock"
         
         self.ldap_mock = self.corba_mock.CreateMockAnything()
         self.ldap_mock.__str__ = lambda : "ldap backend mock"
@@ -76,15 +79,17 @@ class DaphneTestCase(object):
         self.web_session_mock = {}
         self.web_session_mock['user'] = user.User(self.corba_user_mock)
         self.web_session_mock['Logger'] = logger.DummyLogger()
-        self.web_session_mock['Admin'] = self.admin_mock
+#        self.web_session_mock['Admin'] = self.admin_mock
+#        self.admin_mock =  AdminMock(self.corba_mock)
+#        self.web_session_mock['Admin'] = self.admin_mock
 
-        self.monkey_patch(
-            webadmin.utils, 'get_corba_session',  
-            lambda : self.corba_session_mock)
+#        self.monkey_patch(
+#            webadmin.utils, 'get_corba_session',  
+#            lambda : self.corba_session_mock)
         self.monkey_patch(cherrypy, 'session', self.web_session_mock)
         self.monkey_patch(webadmin, 'config', test_config)
-        self.monkey_patch(
-            webadmin.controller.adif, 'corba_obj', self.corba_conn_mock)
+#        self.monkey_patch(
+#            webadmin.controller.adif, 'corba_obj', self.corba_conn_mock)
 
         cherrypy.config.update({ "environment": "embedded" })
 

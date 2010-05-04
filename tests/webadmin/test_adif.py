@@ -24,6 +24,11 @@ import fred_webadmin.logger.dummylogger as logger
 class BaseADIFTestCase(base.DaphneTestCase):
     def setUp(self):
         base.DaphneTestCase.setUp(self)
+        self.admin_mock = AdminMock()
+        self.web_session_mock['Admin'] = self.admin_mock
+        self.corba_conn_mock = CorbaConnectionMock(admin=self.admin_mock)
+        self.monkey_patch(
+            fred_webadmin.controller.adif, 'corba_obj', self.corba_conn_mock)
         # Create the application, mount it and start the server.
         root = fred_webadmin.controller.adif.prepare_root()
         wsgiApp = cherrypy.tree.mount(root)
@@ -42,13 +47,121 @@ class BaseADIFTestCase(base.DaphneTestCase):
         cherrypy.server.stop()
 
 
+class CertificationManagerMock(object):
+    def __init__(self):
+        super(CertificationManagerMock, self).__init__()
+
+    def getCertificationsByRegistrar(self, reg_id):
+        return [Registry.Registrar.Group.MembershipByGroup(1, 7,
+                ccReg.DateType(1, 1, 2008), ccReg.DateType(20, 10, 2010))]
+
+
+class AdminMock(object):
+    def __init__(self):
+        super(AdminMock, self).__init__()
+        self.session = None
+        
+    def getCountryDescList(self):
+        return [ccReg.CountryDesc(1, 'cz')]
+
+    def getDefaultCountry(self):
+        return 1
+
+    def getGroupManager(self):
+        return GroupManagerMock()
+
+    def getCertificationManager(self):
+        return CertificationManagerMock()
+
+    def authenticateUser(self):
+        pass
+
+    def createSession(self, username):
+        self.session = SessionMock()
+        return "testSessionString"
+
+    def getSession(self, session_str):
+        return self.session
+
+    def authenticateUser(self, user, pwd):
+        pass
+
+
+class CorbaConnectionMock(object):
+    def __init__(self, admin=AdminMock(), logger=logger.DummyLogger(), mailer=None, filemgr=None):
+        super(CorbaConnectionMock, self).__init__()
+        self.obj = {
+            "Admin": admin,
+            "Logger": logger,
+            "Mailer": mailer,
+            "FileManager": filemgr}
+
+    def getObject(self, obj1, obj2):
+       return self.obj[obj2] 
+
+    def connect(self, user, pwd):
+        pass
+
+class SessionMock(object):
+    def __init__(self):
+        super(SessionMock, self).__init__()
+
+    def getUser(self):
+        return UserMock()
+
+    def setHistory(self, val):
+        pass
+
+    def getDetail(self, obj, id):
+        pass
+
+    def updateRegistrar(self, reg):
+        raise NotImplementedError("This has to be stubbed out!")
+
+    def getBankingInvoicing(self):
+        raise NotImplementedError("This has to be stubbed out!")
+        
+        
+class UserMock(object):
+    def __init__(self):
+        super(UserMock, self).__init__()
+
+    def _get_id(self):
+        return "test_user_id"
+
+    def _get_username(self):
+        return "test_username"
+
+    def _get_firstname(self):
+        return "test_firstname"
+
+    def _get_surname(self):
+        return "test_surname"
+
+class GroupManagerMock(object):
+    def __init__(self):
+        self.groups = [
+            Registry.Registrar.Group.GroupData(
+                1, "test_group_1", ccReg.DateType(0, 0, 0)),
+            Registry.Registrar.Group.GroupData(
+                10, "test_group_2", ccReg.DateType(20, 10, 2009)),
+            Registry.Registrar.Group.GroupData(
+                7, "test_group_3", ccReg.DateType(0, 0, 0))]
+
+    def getGroups(self):
+        return self.groups
+
+    def getMembershipsByRegistar(self, reg_id):
+        return [Registry.Registrar.Group.MembershipByRegistrar(1, 7,
+            ccReg.DateType(1, 1, 2008), ccReg.DateType(20, 10, 2010))]
+
+    def deleteGroup(self, group_id):
+        raise NotImplementedError("This has to be stubbed out!")
+
+
 class TestADIF(BaseADIFTestCase):
     def setUp(self):
         BaseADIFTestCase.setUp(self)
-        # Corba objects requested from server at login time.
-        self.corba_objs_created_at_login = (
-            ("Admin", self.admin_mock), ("Logger", logger.DummyLogger()), 
-            ("Mailer", None), ("FileManager", None))
    
     def test_login_valid_corba_auth(self):
         """ Login passes when using valid corba authentication.
@@ -58,18 +171,6 @@ class TestADIF(BaseADIFTestCase):
         # module.
         self.monkey_patch(
             fred_webadmin.controller.adif, 'auth', corba_auth)
-        self.corba_conn_mock.connect("localhost_test", "fredtest")
-        # Create corba objects in any order (prevent boilerplate code).
-        for obj, ret in self.corba_objs_created_at_login:
-            self.corba_conn_mock.getObject(obj, obj).InAnyOrder("corba_obj").AndReturn(ret)
-        self.admin_mock.authenticateUser("test", "test pwd")
-        self.admin_mock.createSession("test").AndReturn("testSessionString")
-        self.admin_mock.getSession("testSessionString").AndReturn(
-            self.corba_session_mock)
-        self.admin_mock.getSession("testSessionString").AndReturn(
-            self.corba_session_mock)
-        self.corba_session_mock.getUser().AndReturn(self.corba_user_mock)
-        self.corba_session_mock.setHistory(False)
         self.corba_mock.ReplayAll()
 
         twill.commands.go("http://localhost:8080/login")
@@ -87,10 +188,7 @@ class TestADIF(BaseADIFTestCase):
         fred_webadmin.config.auth_method = 'CORBA'
         self.monkey_patch(
             fred_webadmin.controller.adif, 'auth', corba_auth)
-        self.corba_conn_mock.connect("localhost_test", "fredtest")
-        # Create corba objects in any order (prevent boilerplate code).
-        for obj, ret in self.corba_objs_created_at_login:
-            self.corba_conn_mock.getObject(obj, obj).InAnyOrder("corba_obj").AndReturn(ret)
+        self.corba_mock.StubOutWithMock(self.admin_mock, "authenticateUser")
         self.admin_mock.authenticateUser(
             "test", "test pwd").AndRaise(ccReg.Admin.AuthFailed)
         self.corba_mock.ReplayAll()
@@ -119,23 +217,9 @@ class TestADIF(BaseADIFTestCase):
         # because ldap_auth uses ldap exceptions.
         self.monkey_patch(
             fred_webadmin.auth.ldap_auth.ldap, 'open', self.ldap_mock)
-        self.corba_conn_mock.connect("localhost_test", "fredtest")
-        self.corba_conn_mock.getObject(
-            'Admin', 'Admin').AndReturn(self.admin_mock)
-        # Create corba objects in any order (prevent boilerplate code).
-        for obj, ret in self.corba_objs_created_at_login:
-            self.corba_conn_mock.getObject(obj, obj).InAnyOrder(
-                "corba_obj").AndReturn(ret)
         fred_webadmin.auth.ldap_auth.ldap.open.__call__(
             "test ldap server").AndReturn(self.ldap_mock)
         self.ldap_mock.simple_bind_s("test ldap scope test", "test pwd")
-        self.admin_mock.createSession("test").AndReturn("testSessionString")
-        self.admin_mock.getSession("testSessionString").AndReturn(
-            self.corba_session_mock)
-        self.admin_mock.getSession("testSessionString").AndReturn(
-            self.corba_session_mock)
-        self.corba_session_mock.getUser().AndReturn(self.corba_user_mock)
-        self.corba_session_mock.setHistory(False)
         self.corba_mock.ReplayAll()
 
         twill.commands.go("http://localhost:8080/login")
@@ -162,11 +246,6 @@ class TestADIF(BaseADIFTestCase):
         # Mock out ldap.open method.
         self.monkey_patch(
             fred_webadmin.auth.ldap_auth.ldap, 'open', self.ldap_mock)
-        self.corba_conn_mock.connect("localhost_test", "fredtest")
-        # Create corba objects in any order (prevent boilerplate code).
-        for obj, ret in self.corba_objs_created_at_login:
-            self.corba_conn_mock.getObject(obj, obj).InAnyOrder(
-                "corba_obj").AndReturn(ret)
         fred_webadmin.auth.ldap_auth.ldap.open.__call__(
             "test ldap server").AndReturn(self.ldap_mock)
         self.ldap_mock.simple_bind_s(
@@ -198,11 +277,6 @@ class TestADIF(BaseADIFTestCase):
         # Mock out ldap.open method.
         self.monkey_patch(
             fred_webadmin.auth.ldap_auth.ldap, 'open', self.ldap_mock)
-        self.corba_conn_mock.connect("localhost_test", "fredtest")
-        # Create corba objects in any order (prevent boilerplate code).
-        for obj, ret in self.corba_objs_created_at_login:
-            self.corba_conn_mock.getObject(obj, obj).InAnyOrder(
-                "corba_obj").AndReturn(ret)
         fred_webadmin.auth.ldap_auth.ldap.open.__call__(
             "test ldap server").AndRaise(ldap.SERVER_DOWN)
         self.corba_mock.ReplayAll()
@@ -239,6 +313,18 @@ class TestADIF(BaseADIFTestCase):
 
 
 class TestRegistrar(BaseADIFTestCase):
+    def __init__(self):
+        super(TestRegistrar, self).__init__()
+
+    def setUp(self):
+        super(TestRegistrar, self).setUp()
+        # We have to return our special session (createSession would
+        # instantiate a new one).
+        self.admin_mock.createSession("testuser")
+        self.session_mock = self.admin_mock.getSession("testSessionString")
+        self.corba_mock.StubOutWithMock(self.session_mock, "getDetail")
+        self.corba_mock.StubOutWithMock(self.session_mock, "updateRegistrar")
+
     def _fabricate_registrar(self):
         """ Returns a fake Registrar object. """ 
         return (
@@ -270,20 +356,15 @@ class TestRegistrar(BaseADIFTestCase):
 
     def test_edit_correct_args(self):
         """ Registrar editation passes. """
-        def _get_reg_detail():
-            return self.corba_session_mock.getDetail(
-                ccReg.FT_REGISTRAR, 42).AndReturn(
-                    self._fabricate_registrar())
-        self.admin_mock.getCountryDescList().AndReturn(
-            [ccReg.CountryDesc(1, 'cz')])
-        self.admin_mock.getDefaultCountry().AndReturn(1)
-        _get_reg_detail() # Display the detail.
-        _get_reg_detail() # Page reloaded after clicking 'save'.
-        self.admin_mock.getCountryDescList().AndReturn(
-            [ccReg.CountryDesc(1, 'cz')])
-        self.corba_session_mock.updateRegistrar(
+        self.session_mock.getDetail(
+            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
+        self.session_mock.getDetail(
+            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
+        self.session_mock.updateRegistrar(
             mox.IsA(Registry.Registrar.Detail)).AndReturn(42)
-        _get_reg_detail() # Jump to detail after updating.
+        # Jumps to detail after updating.
+        self.session_mock.getDetail(
+            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
 
         self.corba_mock.ReplayAll()
 
@@ -299,21 +380,14 @@ class TestRegistrar(BaseADIFTestCase):
     def test_edit_incorrect_zone_date_arg(self):
         """ Registrar editation does not pass when invalid zone date 
             provided. """
-        def _get_reg_detail():
-            return self.corba_session_mock.getDetail(
-                ccReg.FT_REGISTRAR, 42).AndReturn(
-                    self._fabricate_registrar())
-        self.admin_mock.getCountryDescList().InAnyOrder().AndReturn(
-            [ccReg.CountryDesc(1, 'cz')])
-        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
-        _get_reg_detail()
-        _get_reg_detail()
-        self.admin_mock.getCountryDescList().InAnyOrder().AndReturn(
-            [ccReg.CountryDesc(1, 'cz')])
-        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
-        self.corba_session_mock.updateRegistrar(
+        self.session_mock.getDetail(
+            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
+        self.session_mock.getDetail(
+            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
+        self.session_mock.updateRegistrar(
             mox.IsA(Registry.Registrar.Detail)).AndReturn(42)
-        _get_reg_detail()
+        self.session_mock.getDetail(
+            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
 
         self.corba_mock.ReplayAll()
 
@@ -329,17 +403,15 @@ class TestRegistrar(BaseADIFTestCase):
         twill.commands.url("http://localhost:8080/registrar/edit/\?id=42")
 
     def test_create(self):
-        """ Registrar creation passes. """
-        self.admin_mock.getCountryDescList().InAnyOrder().AndReturn(
-            [ccReg.CountryDesc(1, 'cz')])
-        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
-        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
-        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
-        self.admin_mock.getCountryDescList().InAnyOrder().AndReturn(
-            [ccReg.CountryDesc(1, 'cz')])
-        self.corba_session_mock.updateRegistrar(
+        """ Registrar creation passes.
+        """
+        # Submit the form.
+        self.session_mock.updateRegistrar(
             mox.IsA(ccReg.Registrar)).AndReturn(42)
-        self.corba_session_mock.getDetail(ccReg.FT_REGISTRAR, 42).AndReturn(
+
+        # Display the registar detail (we're redirected after a successful
+        # submit).
+        self.session_mock.getDetail(ccReg.FT_REGISTRAR, 42).AndReturn(
             CORBA.Any(
                 CORBA.TypeCode("IDL:Registry/Registrar/Detail:1.0"), 
                 Registry.Registrar.Detail(
@@ -350,7 +422,7 @@ class TestRegistrar(BaseADIFTestCase):
                     postalcode='', country='', telephone='', fax='', 
                     email='', url='', credit='', 
                     unspec_credit=u'', access=[], zones=[], hidden=False)))
-
+        
         self.corba_mock.ReplayAll()
 
         # Create the registrar.
@@ -368,16 +440,9 @@ class TestRegistrar(BaseADIFTestCase):
     def test_create_registrar_zone_to_date_smaller_than_zone_from_date(self):
         """ Registrar creation fails when zone 'To' date is smaller than zone
             'From' date (ticket #3530)."""
-        self.admin_mock.getCountryDescList().InAnyOrder().AndReturn(
-            [ccReg.CountryDesc(1, 'cz')])
-        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
-        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
-        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
-        self.admin_mock.getCountryDescList().InAnyOrder().AndReturn(
-            [ccReg.CountryDesc(1, 'cz')])
-        self.corba_session_mock.updateRegistrar(
+        self.session_mock.updateRegistrar(
             mox.IsA(ccReg.Registrar)).AndReturn(42)
-        self.corba_session_mock.getDetail(ccReg.FT_REGISTRAR, 42).AndReturn(
+        self.session_mock.getDetail(ccReg.FT_REGISTRAR, 42).AndReturn(
             CORBA.Any(
                 CORBA.TypeCode("IDL:Registry/Registrar/Detail:1.0"), 
                 Registry.Registrar.Detail(
@@ -388,7 +453,6 @@ class TestRegistrar(BaseADIFTestCase):
                     postalcode='', country='', telephone='', fax='', 
                     email='', url='', credit='', 
                     unspec_credit=u'', access=[], zones=[], hidden=False)))
-        self.admin_mock.getDefaultCountry().AndReturn(1)
 
         self.corba_mock.ReplayAll()
 
@@ -411,16 +475,9 @@ class TestRegistrar(BaseADIFTestCase):
     def test_create_registrar_zone_to_date_bigger_than_zone_from_date(self):
         """ Registrar creation passes when zone 'To' date is bigger than zone
             'From' date."""
-        self.admin_mock.getCountryDescList().InAnyOrder().AndReturn(
-            [ccReg.CountryDesc(1, 'cz')])
-        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
-        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
-        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
-        self.admin_mock.getCountryDescList().InAnyOrder().AndReturn(
-            [ccReg.CountryDesc(1, 'cz')])
-        self.corba_session_mock.updateRegistrar(
+        self.session_mock.updateRegistrar(
             mox.IsA(ccReg.Registrar)).AndReturn(42)
-        self.corba_session_mock.getDetail(ccReg.FT_REGISTRAR, 42).AndReturn(
+        self.session_mock.getDetail(ccReg.FT_REGISTRAR, 42).AndReturn(
             CORBA.Any(
                 CORBA.TypeCode("IDL:Registry/Registrar/Detail:1.0"), 
                 Registry.Registrar.Detail(
@@ -436,7 +493,6 @@ class TestRegistrar(BaseADIFTestCase):
                         fromDate=ccReg.DateType(day=1, month=2, year=2010), 
                         toDate=ccReg.DateType(day=10, month=2, year=2010))], 
                     hidden=False)))
-        self.admin_mock.getDefaultCountry().AndReturn(1)
 
         self.corba_mock.ReplayAll()
 
@@ -461,16 +517,9 @@ class TestRegistrar(BaseADIFTestCase):
     def test_create_two_registrars_with_same_name(self):
         """ Creating second registrar with the same name fails.
             Ticket #3079. """
-        self.admin_mock.getCountryDescList().InAnyOrder().AndReturn(
-            [ccReg.CountryDesc(1, 'cz')])
-        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
-        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
-        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
-        self.admin_mock.getCountryDescList().InAnyOrder().AndReturn(
-            [ccReg.CountryDesc(1, 'cz')])
-        self.corba_session_mock.updateRegistrar(
+        self.session_mock.updateRegistrar(
             mox.IsA(ccReg.Registrar)).AndReturn(42)
-        self.corba_session_mock.getDetail(ccReg.FT_REGISTRAR, 42).AndReturn(
+        self.session_mock.getDetail(ccReg.FT_REGISTRAR, 42).AndReturn(
             CORBA.Any(
                 CORBA.TypeCode("IDL:Registry/Registrar/Detail:1.0"), 
                 Registry.Registrar.Detail(
@@ -497,16 +546,8 @@ class TestRegistrar(BaseADIFTestCase):
         self.corba_mock.ResetAll()
 
         # Now create the second one with the same name.
-        self.admin_mock.getCountryDescList().InAnyOrder().AndReturn(
-            [ccReg.CountryDesc(1, 'cz')])
-        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
-        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
-        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
-        self.admin_mock.getCountryDescList().InAnyOrder().AndReturn(
-            [ccReg.CountryDesc(1, 'cz')])
-        self.corba_session_mock.updateRegistrar(
+        self.session_mock.updateRegistrar(
             mox.IsA(ccReg.Registrar)).AndRaise(ccReg.Admin.UpdateFailed)
-        self.admin_mock.getDefaultCountry().AndReturn(1)
 
         self.corba_mock.ReplayAll()
 
@@ -522,6 +563,14 @@ class TestRegistrar(BaseADIFTestCase):
 
 
 class TestBankStatement(BaseADIFTestCase):
+    def setUp(self):
+        super(TestBankStatement, self).setUp()
+        self.admin_mock.createSession("testuser")
+        self.session_mock = self.admin_mock.getSession("testSessionString")
+        self.corba_mock.StubOutWithMock(self.session_mock, "getDetail")
+        self.corba_mock.StubOutWithMock(
+            self.session_mock, "getBankingInvoicing")
+
     def _fabricate_bank_statement_detail(self):
         """ Create a fake Registry.Banking.BankItem.Detail object for testing
             purposes. """
@@ -539,14 +588,11 @@ class TestBankStatement(BaseADIFTestCase):
     def test_successfull_statementitem_payment_pairing(self):
         """ Payment pairing works OK when correct registrar handle 
             is specified. """
-        self.admin_mock.getCountryDescList().InAnyOrder().AndReturn(
-            [ccReg.CountryDesc(1, 'cz')])
-        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
         statement = self._fabricate_bank_statement_detail()
-        self.corba_session_mock.getDetail(
+        self.session_mock.getDetail(
             ccReg.FT_STATEMENTITEM, 42).AndReturn(statement)
         invoicing_mock = self.corba_mock.CreateMockAnything()
-        self.corba_session_mock.getBankingInvoicing().AndReturn(invoicing_mock)
+        self.session_mock.getBankingInvoicing().AndReturn(invoicing_mock)
         invoicing_mock.pairPaymentRegistrarHandle(
             42, "test handle").AndReturn(True)
         invoicing_mock.setPaymentType(42, 2).AndReturn(True)
@@ -555,7 +601,7 @@ class TestBankStatement(BaseADIFTestCase):
         statement_after_pairing = self._fabricate_bank_statement_detail()
         statement_after_pairing.value().invoiceId = 11L
         statement_after_pairing.value().type = 2
-        self.corba_session_mock.getDetail(
+        self.session_mock.getDetail(
             ccReg.FT_STATEMENTITEM, 42).AndReturn(statement_after_pairing)
 
         self.corba_mock.ReplayAll()
@@ -577,21 +623,18 @@ class TestBankStatement(BaseADIFTestCase):
     def test_successfull_statementitem_payment_pairing_no_reg_handle(self):
         """ Payment pairing works OK when correct registrar handle 
             is not specified, but type != "from/to registrar". """
-        self.admin_mock.getCountryDescList().InAnyOrder().AndReturn(
-            [ccReg.CountryDesc(1, 'cz')])
-        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
         statement = self._fabricate_bank_statement_detail()
-        self.corba_session_mock.getDetail(
+        self.session_mock.getDetail(
             ccReg.FT_STATEMENTITEM, 42).AndReturn(statement)
         invoicing_mock = self.corba_mock.CreateMockAnything()
-        self.corba_session_mock.getBankingInvoicing().AndReturn(invoicing_mock)
+        self.session_mock.getBankingInvoicing().AndReturn(invoicing_mock)
         invoicing_mock.setPaymentType(42, 3).AndReturn(True)
         # Create a new bank statement detail with a non-zero invoiceId value 
         # to simulate successfull payment pairing.
         statement_after_pairing = self._fabricate_bank_statement_detail()
         statement_after_pairing.value().invoiceId = 11L
         statement_after_pairing.value().type = 3
-        self.corba_session_mock.getDetail(
+        self.session_mock.getDetail(
             ccReg.FT_STATEMENTITEM, 42).AndReturn(statement_after_pairing)
 
         self.corba_mock.ReplayAll()
@@ -612,21 +655,18 @@ class TestBankStatement(BaseADIFTestCase):
     def test_successfull_statementitem_payment_pairing_incorrect_reg_handle(self):
         """ Payment pairing works OK when an invalid registrar handle 
             is specified, but type != "from/to registrar". """
-        self.admin_mock.getCountryDescList().InAnyOrder().AndReturn(
-            [ccReg.CountryDesc(1, 'cz')])
-        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
         statement = self._fabricate_bank_statement_detail()
-        self.corba_session_mock.getDetail(
+        self.session_mock.getDetail(
             ccReg.FT_STATEMENTITEM, 42).AndReturn(statement)
         invoicing_mock = self.corba_mock.CreateMockAnything()
-        self.corba_session_mock.getBankingInvoicing().AndReturn(invoicing_mock)
+        self.session_mock.getBankingInvoicing().AndReturn(invoicing_mock)
         invoicing_mock.setPaymentType(42, 3).AndReturn(True)
         # Create a new bank statement detail with a non-zero invoiceId value 
         # to simulate successfull payment pairing.
         statement_after_pairing = self._fabricate_bank_statement_detail()
         statement_after_pairing.value().invoiceId = 11L
         statement_after_pairing.value().type = 3
-        self.corba_session_mock.getDetail(
+        self.session_mock.getDetail(
             ccReg.FT_STATEMENTITEM, 42).AndReturn(statement_after_pairing)
 
         self.corba_mock.ReplayAll()
@@ -649,17 +689,14 @@ class TestBankStatement(BaseADIFTestCase):
     def test_statementitem_detail_unknown_unempty_handle(self):
         """ Pairing with unknown registrar handle fails.
         """
-        self.admin_mock.getCountryDescList().InAnyOrder().AndReturn(
-            [ccReg.CountryDesc(1, 'cz')])
-        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
         statement = self._fabricate_bank_statement_detail()
-        self.corba_session_mock.getDetail(
+        self.session_mock.getDetail(
             ccReg.FT_STATEMENTITEM, 42).AndReturn(statement)
         invoicing_mock = self.corba_mock.CreateMockAnything()
-        self.corba_session_mock.getBankingInvoicing().AndReturn(invoicing_mock)
+        self.session_mock.getBankingInvoicing().AndReturn(invoicing_mock)
         invoicing_mock.pairPaymentRegistrarHandle(
             42, "test handle").AndReturn(False)
-        self.corba_session_mock.getDetail(
+        self.session_mock.getDetail(
             ccReg.FT_STATEMENTITEM, 42).AndReturn(statement)
 
         self.corba_mock.ReplayAll()
@@ -680,17 +717,14 @@ class TestBankStatement(BaseADIFTestCase):
     def test_statementitem_detail_empty_handle(self):
         """ Pairing payment with empty registrar handle fails.
         """
-        self.admin_mock.getCountryDescList().InAnyOrder().AndReturn(
-            [ccReg.CountryDesc(1, 'cz')])
-        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
         statement = self._fabricate_bank_statement_detail()
-        self.corba_session_mock.getDetail(
+        self.session_mock.getDetail(
             ccReg.FT_STATEMENTITEM, 42).AndReturn(statement)
         invoicing_mock = self.corba_mock.CreateMockAnything()
-        self.corba_session_mock.getBankingInvoicing().AndReturn(invoicing_mock)
+        self.session_mock.getBankingInvoicing().AndReturn(invoicing_mock)
         invoicing_mock.pairPaymentRegistrarHandle(
             42, "test handle").AndReturn(False)
-        self.corba_session_mock.getDetail(
+        self.session_mock.getDetail(
             ccReg.FT_STATEMENTITEM, 42).AndReturn(statement)
 
         self.corba_mock.ReplayAll()
@@ -712,17 +746,14 @@ class TestBankStatement(BaseADIFTestCase):
         """ Pairing payment with empty registrar handle fails.
         """
         cherrypy.session['user']._authorizer = self.authorizer_mock
-        self.admin_mock.getCountryDescList().InAnyOrder().AndReturn(
-            [ccReg.CountryDesc(1, 'cz')])
-        self.admin_mock.getDefaultCountry().InAnyOrder().AndReturn(1)
         statement = self._fabricate_bank_statement_detail()
-        self.corba_session_mock.getDetail(
+        self.session_mock.getDetail(
             ccReg.FT_STATEMENTITEM, 42).AndReturn(statement)
         invoicing_mock = self.corba_mock.CreateMockAnything()
-        self.corba_session_mock.getBankingInvoicing().AndReturn(invoicing_mock)
+        self.session_mock.getBankingInvoicing().AndReturn(invoicing_mock)
         invoicing_mock.pairPaymentRegistrarHandle(
             42, "test handle").AndReturn(False)
-        self.corba_session_mock.getDetail(
+        self.session_mock.getDetail(
             ccReg.FT_STATEMENTITEM, 42).AndReturn(statement)
         self.authorizer_mock.has_permission(
             'bankstatement', 'read').AndReturn(True)
@@ -752,10 +783,6 @@ class TestLoggerNoLogView(BaseADIFTestCase):
     def setUp(self):
         self.setUpConfig()
         BaseADIFTestCase.setUp(self)
-        # Corba objects requested from server at login time.
-        self.corba_objs_created_at_login = (
-            ("Admin", self.admin_mock), ("Mailer", None), 
-            ("FileManager", None))
 
     def test_logger_hidden_when_log_view_is_disabled_in_config(self):
         # Replace fred_webadmin.controller.adif.auth module with CORBA
@@ -768,16 +795,6 @@ class TestLoggerNoLogView(BaseADIFTestCase):
         self.monkey_patch(
             fred_webadmin.controller.adif, 'SessionLoggerFailSilent',
             fred_webadmin.logger.dummylogger.DummyLogger)
-        self.corba_conn_mock.connect("localhost_test", "fredtest")
-        # Create corba objects in any order (prevent boilerplate code).
-        for obj, ret in self.corba_objs_created_at_login:
-            self.corba_conn_mock.getObject(obj, obj).InAnyOrder("corba_obj").AndReturn(ret)
-        self.admin_mock.authenticateUser("test", "test pwd")
-        self.admin_mock.createSession("test").AndReturn("testSessionString")
-        self.admin_mock.getSession("testSessionString").AndReturn(
-            self.corba_session_mock)
-        self.corba_session_mock.getUser().AndReturn(self.corba_user_mock)
-        self.corba_session_mock.setHistory(False)
 
         self.corba_mock.ReplayAll()
 
@@ -792,8 +809,6 @@ class TestLoggerNoLogView(BaseADIFTestCase):
         twill.commands.url("http://localhost:8080/logger")
         # Test that the page has not been found.
         twill.commands.code(404)
-
-        self.corba_mock.VerifyAll()
 
 
 class TestLoggerLogView(BaseADIFTestCase):
@@ -812,18 +827,24 @@ class TestRegistrarGroupEditor(BaseADIFTestCase):
 
     def setUp(self):
         BaseADIFTestCase.setUp(self)
+        self.admin_mock.createSession("testuser")
         self.reg_mgr_mock = self.corba_mock.CreateMockAnything()
         self.reg_mgr_mock.__str__ = lambda : "reg_mgr_mock"        
+        self.corba_mock.StubOutWithMock(self.admin_mock, "getGroupManager") 
 
     def test_display_two_groups(self):
         """ Two registrar groups are displayed.
         """
-        self.admin_mock.getGroupManager().AndReturn(self.reg_mgr_mock)
-        self.reg_mgr_mock.getGroups().AndReturn(
+        group_mgr = GroupManagerMock()
+        self.admin_mock.getGroupManager().AndReturn(group_mgr)
+        self.corba_mock.StubOutWithMock(group_mgr, "getGroups")
+        group_mgr.getGroups().AndReturn(
             [Registry.Registrar.Group.GroupData(
-                1, "test_group_1", ccReg.DateType(20, 10, 2010)),
+                1, "test_group_1", ccReg.DateType(0, 0, 0)),
             Registry.Registrar.Group.GroupData(
-                2, "test_group_2", ccReg.DateType(20, 10, 2010))])
+                3, "test_group_3", ccReg.DateType(20, 10, 2009)),
+            Registry.Registrar.Group.GroupData(
+                2, "test_group_2", ccReg.DateType(0, 0, 0))])
 
         self.corba_mock.ReplayAll()
 
@@ -840,8 +861,10 @@ class TestRegistrarGroupEditor(BaseADIFTestCase):
     def test_display_zero_groups(self):
         """ Two registrar groups are displayed.
         """
-        self.admin_mock.getGroupManager().AndReturn(self.reg_mgr_mock)
-        self.reg_mgr_mock.getGroups().AndReturn([])
+        group_mgr = GroupManagerMock()
+        self.admin_mock.getGroupManager().AndReturn(group_mgr)
+        self.corba_mock.StubOutWithMock(group_mgr, "getGroups")
+        group_mgr.getGroups().AndReturn([])
 
         self.corba_mock.ReplayAll()
 
@@ -854,29 +877,34 @@ class TestRegistrarGroupEditor(BaseADIFTestCase):
     def test_delete_group(self):
         """ Two registrar groups are displayed, one gets deleted.
         """
-        self.admin_mock.getGroupManager().AndReturn(self.reg_mgr_mock)
-        self.reg_mgr_mock.getGroups().AndReturn(
+        group_mgr = GroupManagerMock()
+        self.admin_mock.getGroupManager().AndReturn(group_mgr)
+        self.corba_mock.StubOutWithMock(group_mgr, "getGroups")
+        group_mgr.getGroups().AndReturn(
             [Registry.Registrar.Group.GroupData(
-                1, "test_group_1", ccReg.DateType(20, 10, 2010)),
+                1, "test_group_1", ccReg.DateType(0, 0, 0)),
             Registry.Registrar.Group.GroupData(
-                2, "test_group_2", ccReg.DateType(20, 10, 2010))])
+                2, "test_group_2", ccReg.DateType(0, 0, 0))])
 
-        self.admin_mock.getGroupManager().AndReturn(self.reg_mgr_mock)
-        self.reg_mgr_mock.getGroups().AndReturn(
+        self.admin_mock.getGroupManager().AndReturn(group_mgr)
+        group_mgr.getGroups().AndReturn(
             [Registry.Registrar.Group.GroupData(
-                1, "test_group_1", ccReg.DateType(20, 10, 2010)),
+                1, "test_group_1", ccReg.DateType(0, 0, 0)),
             Registry.Registrar.Group.GroupData(
-                2, "test_group_2", ccReg.DateType(20, 10, 2010))])
-        self.admin_mock.getGroupManager().AndReturn(self.reg_mgr_mock)
-        self.reg_mgr_mock.deleteGroup(1)
+                2, "test_group_2", ccReg.DateType(0, 0, 0))])
 
-        self.admin_mock.getGroupManager().AndReturn(self.reg_mgr_mock)
-        self.admin_mock.getGroupManager().AndReturn(self.reg_mgr_mock)
+        self.admin_mock.getGroupManager().AndReturn(group_mgr)
+        self.corba_mock.StubOutWithMock(group_mgr, "deleteGroup")
+        group_mgr.deleteGroup(1)
 
-        self.admin_mock.getGroupManager().AndReturn(self.reg_mgr_mock)
-        self.reg_mgr_mock.getGroups().AndReturn(
+        self.admin_mock.getGroupManager().AndReturn(group_mgr)
+        group_mgr.getGroups().AndReturn(
             [Registry.Registrar.Group.GroupData(
-                2, "test_group_2", ccReg.DateType(20, 10, 2010))])
+                2, "test_group_2", ccReg.DateType(0, 0, 0)),
+            Registry.Registrar.Group.GroupData(
+                1, "test_group_1", ccReg.DateType(20, 10, 2009))])
+        self.admin_mock.getGroupManager().AndReturn(group_mgr)
+        self.admin_mock.getGroupManager().AndReturn(group_mgr)
 
         self.corba_mock.ReplayAll()
 
@@ -885,6 +913,7 @@ class TestRegistrarGroupEditor(BaseADIFTestCase):
         twill.commands.code(200)
         twill.commands.fv(2, "groups-0-DELETE", "1")
         twill.commands.submit()
+
         twill.commands.showforms()
         twill.commands.code(200)
         twill.commands.notfind(

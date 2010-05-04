@@ -405,20 +405,29 @@ class FileField(Field):
     tattr_list = input.tattr_list
     def __init__(self, name='', value='', *args, **kwargs):
         super(FileField, self).__init__(name, value,  *args, **kwargs)
+        self.tag = "input"
 
-    def clean(self, data):
-        super(FileField, self).clean(data)
-        if not self.required and data in EMPTY_VALUES:
+#    def clean(self, data):
+    def clean(self):
+        super(FileField, self).clean()#data)
+#        if not self.required and data in EMPTY_VALUES:
+        if not self.required and self.value in EMPTY_VALUES:
             return fredtypes.NullFile()
         try:
-            f = UploadedFile(data['filename'], data['content'])
+#            f = UploadedFile(data['filename'], data['content'])
+            f = fredtypes.NullFile() #UploadedFile(self.value, None)
         except TypeError:
             raise ValidationError(_(u"No file was submitted. Check the encoding type on the form."))
         except KeyError:
             raise ValidationError(_(u"No file was submitted."))
-        if not f.content:
-            raise ValidationError(_(u"The submitted file is empty."))
+#        if not f.content:
+#            raise ValidationError(_(u"The submitted file is empty."))
         return f
+
+    def _has_changed(self, initial, data):
+        #TODO(tom)
+        if not data.filename:
+            return False
 
 class ImageField(FileField):
     def clean(self, data):
