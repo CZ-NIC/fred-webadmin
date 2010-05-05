@@ -256,7 +256,7 @@ class ObjectStateFilterForm(FilterForm):
         label=_('State Type'), 
         choices=CorbaLazyRequestIterStruct(
             'Admin', None, 'getObjectStatusDescList', 
-            ['id', 'shortName'], config.lang[:2]))
+            ['id', 'shortName'], None, config.lang[:2]))
 
     ValidFrom = DateTimeIntervalField(label=_('Valid from'))
     ValidTo = DateTimeIntervalField(label=_('Valid to'))
@@ -336,7 +336,7 @@ class ActionFilterForm(FilterForm):
     Type = ChoiceField(
         label=_('Request type'), 
         choices=CorbaLazyRequestIterStruct(
-            'Admin', None, 'getEPPActionTypeList', ['id', 'name']))
+            'Admin', None, 'getEPPActionTypeList', ['id', 'name'], None))
     Object = CompoundFilterField(label=_('Object'), form_class=ObjectFilterForm)
     RequestHandle = CharField(label=_('Requested Handle'))
     Time = DateTimeIntervalField(label=_('Received date'))
@@ -372,7 +372,7 @@ class LoggerFilterForm(FilterForm):
     ActionType = IntegerChoiceField(
         label=_('Action type'), 
         choices=CorbaLazyRequestIterStruct(
-            'corba_logd', None, 'GetServiceActions', ['id', 'status'], 4))
+            'corba_logd', None, 'GetServiceActions', ['id', 'status'], None, 4))
     TimeBegin = DateTimeIntervalField(label=_('Begin time'))
     TimeEnd = DateTimeIntervalField(label=_('End time'))
     RequestPropertyValue = CompoundFilterField(
@@ -449,7 +449,7 @@ class FileFilterForm(FilterForm):
     Type = ChoiceField(
         label=_('Type'), 
         choices=CorbaLazyRequestIterStruct(
-            'FileManager', None, 'getTypeEnum', ['id', 'name']))
+            'FileManager', None, 'getTypeEnum', ['id', 'name'], None))
 
 
 class InvoiceFilterForm(FilterForm):
@@ -472,7 +472,7 @@ class MailFilterForm(FilterForm):
     Type = ChoiceField(
         label=_('Type'), 
         choices=CorbaLazyRequestIterStruct(
-            'Mailer', None, 'getMailTypes', ['id', 'name']))
+            'Mailer', None, 'getMailTypes', ['id', 'name'], None))
     Handle = CharField(label=_('Handle'))
     CreateTime = DateTimeIntervalField(label=_('Create time'))
     ModifyTime = DateTimeIntervalField(label=_('Modify time'))

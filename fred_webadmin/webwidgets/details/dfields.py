@@ -733,7 +733,7 @@ class HistoryStateDField(DField):
     def __init__(self, name='', label=None, *content, **kwd):
         super(HistoryStateDField, self).__init__(name, label, *content, **kwd)
         self.corba_states_desc = CorbaLazyRequestIter(
-            'Admin', None, 'getObjectStatusDescList', config.lang[:2])
+            'Admin', None, 'getObjectStatusDescList', None, config.lang[:2])
         self.state_list = []
         self.states_desc = {}
         self.states_name = {}

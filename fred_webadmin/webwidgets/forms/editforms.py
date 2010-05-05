@@ -1,7 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import cherrypy
-from logging import debug
+from logging import debug, error
+import base64
+import binascii
 
 from fred_webadmin import config
 
@@ -27,6 +29,7 @@ import fred_webadmin.utils
 
 from fred_webadmin.corba import ccReg, Registry
 import fred_webadmin.corbarecoder as recoder
+from fred_webadmin.webwidgets.utils import ErrorDict, ValidationError
 
 PAYMENT_UNASSIGNED = 1
 PAYMENT_REGISTRAR = 2
@@ -121,8 +124,10 @@ class SingleGroupEditForm(EditForm):
     id = ChoiceField(
         label=_('name'), 
         choices=CorbaLazyRequestIterStruct(
-            'Admin', 'getGroupManager', 'getGroups', ['id', 'name']),
+            'Admin', 'getGroupManager', 'getGroups', ['id', 'name'], 
+            lambda groups: [g for g in groups if not g.cancelled]),
         required=False)
+
 
     def fire_actions(self, reg_id, *args, **kwargs): 
         mgr = cherrypy.session['Admin'].getGroupManager()
@@ -135,16 +140,83 @@ class SingleGroupEditForm(EditForm):
             if "id" in self.changed_data:
                 mgr.addRegistrarToGroup(reg_id, group_id)
             elif 'DELETE' in self.changed_data:
+#                import ipdb; ipdb.set_trace()
                 mgr.removeRegistrarFromGroup(reg_id, group_id)
-        except Registry.Registrar.InvalidValue:
+        except Registry.Registrar.InvalidValue, e:
+            error(e)
             raise UpdateFailedError(
                 "Invalid registrar group value provided")
 
 
 class CertificationEditForm(EditForm):
+    id = HiddenIntegerField()
+    evaluation_file_id = HiddenIntegerField()
+
     toDate = DateField(label=_("To"))
-    score = IntegerField(label=_("Score"))
-    evaluation_file_id = FileField(label=_("Evaluation"), type="file")
+    score = IntegerChoiceField(
+        choices=[(0,0), (1, 1), (2, 2), (3, 3), (4, 4), (5, 5)], label=_("Score")) 
+
+    uploaded_file = CharField(label=_("Uploaded file"), required=False)
+    evaluation_file = FileField(label=_("Upload file"), type="file",
+    required=False)
+
+    def set_fields_values(self):
+        super(CertificationEditForm, self).set_fields_values()
+        if not self.initial.get("id"):
+            return
+        file_id = self.initial['evaluation_file_id']
+        file_mgr = cherrypy.session['FileManager']
+
+        info = file_mgr.info(file_id)
+        self.fields['uploaded_file'].value = info.name
+        self.fields['uploaded_file'].initial = info.name
+
+    def fire_actions(self, reg_id, *args, **kwargs):
+        file_mgr = cherrypy.session['FileManager']
+        file_obj = self.fields['evaluation_file'].value
+        if not self.changed_data:
+            return
+        if "evaluation_file" in self.changed_data:
+            # User wants to ppload a new file.
+            #TODO(tom): Type should probably not be 0.
+            file_upload_obj = file_mgr.save(file_obj.filename, file_obj.type, 0)
+            content = file_obj.file.read(-1)
+            try:
+                binary_content = base64.decodestring(content)
+            except binascii.Error:
+                binary_content = content
+            file_upload_obj.upload(binary_content)
+            file_id = file_upload_obj.finalize_upload()
+        else:
+            file_id = self.cleaned_data['evaluation_file_id']
+            if not file_id:
+                # This can happen when user changes something in the edit form,
+                # but specifies no file to upload.
+                # TODO(tom): This is wrong. Specifying file upload should be
+                # mandatory. However making it mandatory breaks FormSetField 
+                # validation...
+                raise UpdateFailedError(
+                    "You have not specified the upload file for a certification!")
+        certs_mgr = cherrypy.session['Admin'].getCertificationManager() 
+        if not self.cleaned_data['id']:
+            # Create a new certification.
+            certs_mgr.createCertification(
+                reg_id,
+                recoder.u2c(datetime.datetime.date(datetime.datetime.now())),
+                recoder.u2c(self.cleaned_data['toDate']), self.cleaned_data['score'], 
+                file_id)
+        else:
+            # Update an existing certifications.
+            try:
+                certs_mgr.updateCertification(
+                    self.cleaned_data['id'], 
+                    recoder.u2c(self.cleaned_data['score']), file_id)
+            except Registry.Registrar.InvalidValue:
+                raise UpdateFailedError(
+                    "Unable to update certification.")
+            if "toDate" in self.changed_data:
+                certs_mgr.shortenCertification(
+                    reg_id, recoder.u2c(self.cleaned_data['toDate']))
 
 
 class RegistrarEditForm(EditForm):
@@ -167,8 +239,8 @@ class RegistrarEditForm(EditForm):
     countryCode = ChoiceField(
         label=_('Country'), 
         choices=CorbaLazyRequestIterStruct(
-            'Admin', None, 'getCountryDescList', ['cc', 'name']), 
-        initial=CorbaLazyRequest('Admin', None, 'getDefaultCountry'), 
+            'Admin', None, 'getCountryDescList', ['cc', 'name'], None), 
+        initial=CorbaLazyRequest('Admin', None, 'getDefaultCountry', None), 
         required=False) # country code
     
     ico = CharField(label=_('ICO'), required=False)
@@ -189,7 +261,7 @@ class RegistrarEditForm(EditForm):
         label=_('Zones'), form_class=ZoneEditForm, 
         can_delete=False, formset_layout=DivFormSetLayout)
     groups = FormSetField(
-        label=_('Groups'), form_class=SingleGroupEditForm, can_delete=False)
+        label=_('Groups'), form_class=SingleGroupEditForm, can_delete=True)
     certifications = FormSetField(
         label=_('Certifications'), form_class=CertificationEditForm, 
         can_delete=False)
@@ -225,6 +297,7 @@ class RegistrarEditForm(EditForm):
         kwargs["result"]['reg_id'] = reg_id
         # Fire actions for groups.
         self.fields["groups"].fire_actions(reg_id=reg_id, *args, **kwargs)
+        self.fields["certifications"].fire_actions(reg_id=reg_id, *args, **kwargs)
    
 
 class BankStatementPairingEditForm(EditForm):
@@ -251,7 +324,13 @@ class RegistrarGroupsEditForm(EditForm):
         group_name = recoder.u2c(self.fields['name'].value)
         if not group_id:
             if ("name" in self.changed_data):
-                mgr.createGroup(group_name)
+                try:
+                    mgr.createGroup(group_name)
+                except Registry.Registrar.InvalidValue:
+                    raise UpdateFailedError(
+                        _(u"Could not create group. Perhaps you've entered "
+                           "a name of an already existing group (or name of "
+                           "a deleted one, which is currently invalid too)?"))
         else:
             group_id = int(group_id)
             if 'DELETE' in self.changed_data:

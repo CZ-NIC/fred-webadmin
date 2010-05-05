@@ -411,11 +411,16 @@ class FileField(Field):
     def clean(self):
         super(FileField, self).clean()#data)
 #        if not self.required and data in EMPTY_VALUES:
-        if not self.required and self.value in EMPTY_VALUES:
+        if not self.required and self.value.filename in EMPTY_VALUES:
             return fredtypes.NullFile()
+        if self.required and self.value.filename in EMPTY_VALUES:
+            raise ValidationError(_(u"No file specified."))
         try:
 #            f = UploadedFile(data['filename'], data['content'])
-            f = fredtypes.NullFile() #UploadedFile(self.value, None)
+#            f = fredtypes.NullFile() #UploadedFile(self.value, None)
+#            data = self.value
+#            f = UploadedFile(data.filename, data.file.read(-1))
+            f = self.value
         except TypeError:
             raise ValidationError(_(u"No file was submitted. Check the encoding type on the form."))
         except KeyError:
@@ -426,6 +431,10 @@ class FileField(Field):
 
     def _has_changed(self, initial, data):
         #TODO(tom)
+        if initial in EMPTY_VALUES and data.filename in EMPTY_VALUES:
+            return False
+        if initial != data.filename:
+            return True
         if not data.filename:
             return False
 
@@ -615,7 +624,7 @@ class ChoiceField(Field):
 
 
 class IntegerChoiceField(ChoiceField):
-     def clean(self):
+    def clean(self):
         """
         Validates that the input is in self.choices.
         """
@@ -631,6 +640,12 @@ class IntegerChoiceField(ChoiceField):
         if value not in valid_values:
             raise ValidationError(_(u'Select a valid choice. That choice is not one of the available choices.'))
         return value
+
+    def _has_changed(self, initial, data):
+        data = int(data)
+        if initial == None and data == self.choices[0][0]:
+            return False
+        return (initial != data)
 
 
 class NullBooleanField(ChoiceField):
