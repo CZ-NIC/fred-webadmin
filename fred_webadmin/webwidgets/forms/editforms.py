@@ -140,7 +140,6 @@ class SingleGroupEditForm(EditForm):
             if "id" in self.changed_data:
                 mgr.addRegistrarToGroup(reg_id, group_id)
             elif 'DELETE' in self.changed_data:
-#                import ipdb; ipdb.set_trace()
                 mgr.removeRegistrarFromGroup(reg_id, group_id)
         except Registry.Registrar.InvalidValue, e:
             error(e)
@@ -334,9 +333,18 @@ class RegistrarGroupsEditForm(EditForm):
         else:
             group_id = int(group_id)
             if 'DELETE' in self.changed_data:
-                mgr.deleteGroup(group_id)
+                try:
+                    mgr.deleteGroup(group_id)
+                except Registry.Registrar.InvalidValue, e:
+                    error(e)
+                    raise UpdateFailedError(_(u"Group %s is not empty.") % group_name)
             elif 'group_name' in self.changed_data:
-                mgr.updateGroup(group_id, group_name)
+                try:
+                    mgr.updateGroup(group_id, group_name)
+                except Registry.Registrar.InvalidValue, e:
+                    error(e)
+                    raise UpdateFailedError(_(u"Updating group %s has failed.") % group_name)
+
 
 
 class GroupManagerEditForm(EditForm):
