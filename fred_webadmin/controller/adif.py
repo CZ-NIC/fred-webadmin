@@ -587,7 +587,7 @@ class Registrar(AdifPage, ListTableMixin):
         # Jump to the registrar's detail.
         raise cherrypy.HTTPRedirect("/registrar/detail/?id=%s" % reg_id)
 
-    def _update_registrar(self, registrar, log_request_name, *params,**kwd):
+    def _update_registrar(self, registrar, log_request_name, action_is_edit, *params,**kwd):
         """ Handles the actual updating/creating of a registrar.
             Note that registrar create only differs from registrar update in
             that it create has id == 0.
@@ -603,11 +603,12 @@ class Registrar(AdifPage, ListTableMixin):
         reg_data_form_class = self._get_editform_class()
         reg_data_initial = registrar.__dict__
         initial = reg_data_initial
-        group_mgr = cherrypy.session['Admin'].getGroupManager()
-        groups = self._get_groups_for_reg_id(int(kwd.get('id')))
-        initial['groups'] = recoder.c2u(groups)
-        certs = self._get_certifications_for_reg_id(int(kwd.get('id')))
-        initial['certifications'] = recoder.c2u(certs)
+        if action_is_edit:
+            group_mgr = cherrypy.session['Admin'].getGroupManager()
+            groups = self._get_groups_for_reg_id(int(kwd.get('id')))
+            initial['groups'] = recoder.c2u(groups)
+            certs = self._get_certifications_for_reg_id(int(kwd.get('id')))
+            initial['certifications'] = recoder.c2u(certs)
 
         if cherrypy.request.method == 'POST':
             form = reg_data_form_class(kwd, initial=initial, method='post')
@@ -667,13 +668,15 @@ class Registrar(AdifPage, ListTableMixin):
     @check_onperm('change')
     def edit(self, *params, **kwd):
         registrar = self._get_detail(obj_id=kwd.get('id'))
-        ctx = self._update_registrar(registrar, "RegistrarUpdate", *params, **kwd)
+        ctx = self._update_registrar(
+            registrar, "RegistrarUpdate", action_is_edit=True, *params, **kwd)
         return self._render('edit', ctx)
 
     @check_onperm('change')
     def create(self, *params, **kwd):
         registrar = self._get_empty_corba_struct()
-        ctx = self._update_registrar(registrar, "RegistrarCreate", *params, **kwd)
+        ctx = self._update_registrar(
+            registrar, "RegistrarCreate", action_is_edit=False, *params, **kwd)
         return self._render('edit', ctx)
 
 
