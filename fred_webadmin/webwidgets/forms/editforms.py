@@ -155,7 +155,8 @@ class CertificationEditForm(EditForm):
     score = IntegerChoiceField(
         choices=[(0,0), (1, 1), (2, 2), (3, 3), (4, 4), (5, 5)], label=_("Score")) 
 
-    uploaded_file = CharField(label=_("Uploaded file"), required=False)
+    uploaded_file = CharField(
+        label=_("Uploaded file"), required=False, disabled=True)
     evaluation_file = FileField(label=_("Upload file"), type="file",
     required=False)
 
