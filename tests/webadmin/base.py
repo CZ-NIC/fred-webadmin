@@ -77,7 +77,7 @@ class DaphneTestCase(object):
         self.monkey_patch(
             webadmin.user, 'auth_user', webadmin.perms.dummy)
         self.web_session_mock = {}
-        self.web_session_mock['user'] = user.User(self.corba_user_mock)
+#        self.web_session_mock['user'] = user.User(self.corba_user_mock)
         self.web_session_mock['Logger'] = logger.DummyLogger()
 #        self.web_session_mock['Admin'] = self.admin_mock
 #        self.admin_mock =  AdminMock(self.corba_mock)

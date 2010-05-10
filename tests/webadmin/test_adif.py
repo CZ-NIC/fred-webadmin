@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*
+
 import mox
 import CORBA
 import cherrypy
@@ -20,12 +22,16 @@ import fred_webadmin.controller.adif
 
 from fred_webadmin.corba import Registry, ccReg
 import fred_webadmin.logger.dummylogger as logger
+import fred_webadmin.user as user
 
 class BaseADIFTestCase(base.DaphneTestCase):
     def setUp(self):
         base.DaphneTestCase.setUp(self)
         self.admin_mock = AdminMock()
         self.web_session_mock['Admin'] = self.admin_mock
+        self.web_session_mock['user'] = user.User(UserMock())
+        self.file_mgr_mock = FileManagerMock()
+        self.web_session_mock['FileManager'] = self.file_mgr_mock
         self.corba_conn_mock = CorbaConnectionMock(admin=self.admin_mock)
         self.monkey_patch(
             fred_webadmin.controller.adif, 'corba_obj', self.corba_conn_mock)
@@ -52,8 +58,14 @@ class CertificationManagerMock(object):
         super(CertificationManagerMock, self).__init__()
 
     def getCertificationsByRegistrar(self, reg_id):
-        return [Registry.Registrar.Group.MembershipByGroup(1, 7,
-                ccReg.DateType(1, 1, 2008), ccReg.DateType(20, 10, 2010))]
+        return []
+        #[Registry.Registrar.Certification.CertificationData(
+        #    1, ccReg.DateType(1, 1, 2008), ccReg.DateType(1, 1, 2010), 2, 17)]
+
+
+class FileManagerMock(object):
+    def info(self, file_id):
+        raise NotImplementedError("This has to be stubbed out!")
 
 
 class AdminMock(object):
@@ -152,10 +164,14 @@ class GroupManagerMock(object):
         return self.groups
 
     def getMembershipsByRegistar(self, reg_id):
-        return [Registry.Registrar.Group.MembershipByRegistrar(1, 7,
-            ccReg.DateType(1, 1, 2008), ccReg.DateType(20, 10, 2010))]
+        return []
+#        return [Registry.Registrar.Group.MembershipByRegistrar(1, 7,
+#            ccReg.DateType(1, 1, 2008), ccReg.DateType(20, 10, 2010))]
 
     def deleteGroup(self, group_id):
+        raise NotImplementedError("This has to be stubbed out!")
+
+    def addRegistrarToGroup(self, reg_id, group_id):
         raise NotImplementedError("This has to be stubbed out!")
 
 
@@ -181,6 +197,28 @@ class TestADIF(BaseADIFTestCase):
         twill.commands.submit()
         twill.commands.url("http://localhost:8080/summary/")
         twill.commands.code(200)
+
+    def ignoretest_login_unicode_username(self):
+        """ Login passes when using valid corba authentication.
+            THIS IS BROKEN, probably because of strange way 
+            mechanize (and twill that uses it) handles unicode strings.
+        """
+        fred_webadmin.config.auth_method = 'CORBA'
+        # Replace fred_webadmin.controller.adif.auth module with CORBA
+        # module.
+        self.monkey_patch(
+            fred_webadmin.controller.adif, 'auth', corba_auth)
+        self.corba_mock.ReplayAll()
+
+        twill.commands.go("http://localhost:8080/login")
+        twill.commands.showforms()
+        twill.commands.fv(1, "login", u"ěščěšřéýí汉语unicode")
+        twill.commands.fv(1, "password", "test pwd")
+        twill.commands.fv(1, "corba_server", "0")
+        twill.commands.submit()
+        twill.commands.url("http://localhost:8080/summary/")
+        twill.commands.code(200)
+
 
     def test_login_invalid_corba_auth(self):
         """ Login fails when using invalid corba authentication.
@@ -312,19 +350,7 @@ class TestADIF(BaseADIFTestCase):
         twill.commands.url("http://localhost:8080/login/")
 
 
-class TestRegistrar(BaseADIFTestCase):
-    def __init__(self):
-        super(TestRegistrar, self).__init__()
-
-    def setUp(self):
-        super(TestRegistrar, self).setUp()
-        # We have to return our special session (createSession would
-        # instantiate a new one).
-        self.admin_mock.createSession("testuser")
-        self.session_mock = self.admin_mock.getSession("testSessionString")
-        self.corba_mock.StubOutWithMock(self.session_mock, "getDetail")
-        self.corba_mock.StubOutWithMock(self.session_mock, "updateRegistrar")
-
+class RegistrarUtils(object):
     def _fabricate_registrar(self):
         """ Returns a fake Registrar object. """ 
         return (
@@ -354,17 +380,40 @@ class TestRegistrar(BaseADIFTestCase):
                             fromDate=ccReg.DateType(1, 1, 2007),
                             toDate=ccReg.DateType(0, 0, 0))], hidden=False)))
 
+
+class TestRegistrar(BaseADIFTestCase, RegistrarUtils):
+    def __init__(self):
+        super(TestRegistrar, self).__init__()
+
+    def setUp(self):
+        super(TestRegistrar, self).setUp()
+        # We have to return our special session (createSession would
+        # instantiate a new one).
+        self.admin_mock.createSession("testuser")
+        self.session_mock = self.admin_mock.getSession("testSessionString")
+        self.corba_mock.StubOutWithMock(self.session_mock, "getDetail")
+        self.corba_mock.StubOutWithMock(self.session_mock, "updateRegistrar")
+
     def test_edit_correct_args(self):
         """ Registrar editation passes. """
+        self.corba_mock.StubOutWithMock(self.file_mgr_mock, "info")
+        self.file_mgr_mock.info(17).AndReturn(ccReg.FileInfo(1, "testfile",
+            "testpath", "testmime", 0, ccReg.DateType(10, 10, 2010), 100))
         self.session_mock.getDetail(
             ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
+        self.file_mgr_mock.info(17).AndReturn(ccReg.FileInfo(1, "testfile",
+            "testpath", "testmime", 0, ccReg.DateType(10, 10, 2010), 100))
         self.session_mock.getDetail(
             ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
+        self.file_mgr_mock.info(17).AndReturn(ccReg.FileInfo(1, "testfile",
+            "testpath", "testmime", 0, ccReg.DateType(10, 10, 2010), 100))
         self.session_mock.updateRegistrar(
             mox.IsA(Registry.Registrar.Detail)).AndReturn(42)
         # Jumps to detail after updating.
         self.session_mock.getDetail(
             ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
+        self.file_mgr_mock.info(17).AndReturn(ccReg.FileInfo(1, "testfile",
+            "testpath", "testmime", 0, ccReg.DateType(10, 10, 2010), 100))
 
         self.corba_mock.ReplayAll()
 
@@ -380,14 +429,23 @@ class TestRegistrar(BaseADIFTestCase):
     def test_edit_incorrect_zone_date_arg(self):
         """ Registrar editation does not pass when invalid zone date 
             provided. """
+        self.corba_mock.StubOutWithMock(self.file_mgr_mock, "info")
+        self.file_mgr_mock.info(17).AndReturn(ccReg.FileInfo(1, "testfile",
+            "testpath", "testmime", 0, ccReg.DateType(10, 10, 2010), 100))
         self.session_mock.getDetail(
             ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
+        self.file_mgr_mock.info(17).AndReturn(ccReg.FileInfo(1, "testfile",
+            "testpath", "testmime", 0, ccReg.DateType(10, 10, 2010), 100))
         self.session_mock.getDetail(
             ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
+        self.file_mgr_mock.info(17).AndReturn(ccReg.FileInfo(1, "testfile",
+            "testpath", "testmime", 0, ccReg.DateType(10, 10, 2010), 100))
         self.session_mock.updateRegistrar(
             mox.IsA(Registry.Registrar.Detail)).AndReturn(42)
         self.session_mock.getDetail(
             ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
+        self.file_mgr_mock.info(17).AndReturn(ccReg.FileInfo(1, "testfile",
+            "testpath", "testmime", 0, ccReg.DateType(10, 10, 2010), 100))
 
         self.corba_mock.ReplayAll()
 
@@ -415,14 +473,14 @@ class TestRegistrar(BaseADIFTestCase):
             CORBA.Any(
                 CORBA.TypeCode("IDL:Registry/Registrar/Detail:1.0"), 
                 Registry.Registrar.Detail(
-                    id=3L, ico='', dic='', varSymb='', vat=True, 
+                    id=u'0', ico='', dic='', varSymb='', vat=True, 
                     handle='test handle', name='', 
                     organization='', street1='', 
                     street2='', street3='', city='', stateorprovince='', 
                     postalcode='', country='', telephone='', fax='', 
                     email='', url='', credit='', 
                     unspec_credit=u'', access=[], zones=[], hidden=False)))
-        
+
         self.corba_mock.ReplayAll()
 
         # Create the registrar.
@@ -560,6 +618,68 @@ class TestRegistrar(BaseADIFTestCase):
         # failed).
         twill.commands.url("http://localhost:8080/registrar/create")
         twill.commands.code(200)
+
+
+class TestRegistrarGroups(BaseADIFTestCase, RegistrarUtils):
+    def setUp(self):
+        BaseADIFTestCase.setUp(self)
+        self.admin_mock.createSession("testuser")
+        self.session_mock = self.admin_mock.getSession("testSessionString")
+        self.corba_mock.StubOutWithMock(self.session_mock, "getDetail")
+        self.corba_mock.StubOutWithMock(self.session_mock, "updateRegistrar")
+        self.group_mgr_mock = GroupManagerMock()
+        self.admin_mock.getGroupManager = lambda : self.group_mgr_mock
+        self.file_mgr = FileManagerMock()
+        self.file_mgr.info
+        self.web_session_mock['FileManager'] = self.file_mgr
+
+
+    def test_add_registrar_to_group(self):
+        self.corba_mock.StubOutWithMock(
+            self.group_mgr_mock, "getMembershipsByRegistar")
+        self.corba_mock.StubOutWithMock(
+            self.group_mgr_mock, "addRegistrarToGroup")
+
+        # Prepare the groups.
+        self.group_mgr_mock.getGroups = lambda : (
+            [Registry.Registrar.Group.GroupData(
+                1, "test_group_1", ccReg.DateType(0, 0, 0)),
+            Registry.Registrar.Group.GroupData(
+                3, "test_group_3", ccReg.DateType(20, 10, 2009)),
+            Registry.Registrar.Group.GroupData(
+                2, "test_group_2", ccReg.DateType(0, 0, 0))])
+
+        # Show the edit form.
+        self.session_mock.getDetail(
+            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
+        self.group_mgr_mock.getMembershipsByRegistar(42).AndReturn([])
+
+        # Process form after submitting.
+        self.session_mock.getDetail(
+            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
+        self.group_mgr_mock.getMembershipsByRegistar(42).AndReturn([])
+        self.session_mock.updateRegistrar(
+            mox.IsA(Registry.Registrar.Detail)).AndReturn(42)
+        self.group_mgr_mock.addRegistrarToGroup(42, 1)
+
+        # Jump to detail after updating.
+        self.session_mock.getDetail(
+            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
+        self.group_mgr_mock.getMembershipsByRegistar(42).AndReturn(
+            [Registry.Registrar.Group.MembershipByRegistrar(1, 1,
+            ccReg.DateType(1, 1, 2008), ccReg.DateType(0, 0, 0))])
+
+        self.corba_mock.ReplayAll()
+
+        twill.commands.go("http://localhost:8080/registrar/edit/?id=42")
+        twill.commands.showforms()
+        twill.commands.fv(2, "groups-0-id", "1")
+        twill.commands.submit()
+
+        twill.commands.code(200)
+        twill.commands.find("test_group_1")
+
+        self.corba_mock.VerifyAll()
 
 
 class TestBankStatement(BaseADIFTestCase):
@@ -818,13 +938,6 @@ class TestLoggerLogView(BaseADIFTestCase):
 
 
 class TestRegistrarGroupEditor(BaseADIFTestCase):
-
-    """class MockRegistrarGroup(object):
-        def __init__(self, id, name, cancelled=None):
-            self.id = id
-            self.name = name
-            self.cancelled = cancelled"""
-
     def setUp(self):
         BaseADIFTestCase.setUp(self)
         self.admin_mock.createSession("testuser")
@@ -922,4 +1035,44 @@ class TestRegistrarGroupEditor(BaseADIFTestCase):
         twill.commands.find(
             '''<input title="test_group_2" type="text" name="groups-0-name"'''
             ''' value="test_group_2" />''')
+
+    def test_delete_nonempty_group(self):
+        """ Nonempty group cannot be deleted.
+        """
+        group_mgr = GroupManagerMock()
+        self.admin_mock.getGroupManager().AndReturn(group_mgr)
+        self.corba_mock.StubOutWithMock(group_mgr, "getGroups")
+        group_mgr.getGroups().AndReturn(
+            [Registry.Registrar.Group.GroupData(
+                1, "test_group_1", ccReg.DateType(0, 0, 0)),
+            Registry.Registrar.Group.GroupData(
+                2, "test_group_2", ccReg.DateType(0, 0, 0))])
+
+        self.admin_mock.getGroupManager().AndReturn(group_mgr)
+        group_mgr.getGroups().AndReturn(
+            [Registry.Registrar.Group.GroupData(
+                1, "test_group_1", ccReg.DateType(0, 0, 0)),
+            Registry.Registrar.Group.GroupData(
+                2, "test_group_2", ccReg.DateType(0, 0, 0))])
+
+        self.admin_mock.getGroupManager().AndReturn(group_mgr)
+        self.corba_mock.StubOutWithMock(group_mgr, "deleteGroup")
+        group_mgr.deleteGroup(1).AndRaise(
+            Registry.Registrar.InvalidValue(
+                "Test message that group is nonempty."))
+
+        self.corba_mock.ReplayAll()
+
+        twill.commands.go("http://localhost:8080/groups")
+        twill.commands.showforms()
+        twill.commands.code(200)
+        twill.commands.fv(2, "groups-0-DELETE", "1")
+        twill.commands.submit()
+
+        twill.commands.showforms()
+        twill.commands.code(200)
+        twill.commands.find(
+            '''<input title="test_group_1" type="text" name="groups-0-name"'''
+            ''' value="test_group_1" />''')
+
 
