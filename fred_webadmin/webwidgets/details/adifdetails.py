@@ -39,8 +39,8 @@ class CertificationDetail(Detail):
     score = CharDField(label=_("Score"))
     fromDate = DateDField(label=_('From'))
     toDate = DateDField(label=_('To'))
-#    evaluation_file_id = ObjectHandleDField(label=_('Evaluation'))
-    evaluation_file_id = CharDField(label=_('Evaluation'))
+    evaluation_file_id = FileHandleDField(
+        handle="pdf", label=_('Evaluation'))
     pass
 
 

@@ -159,6 +159,18 @@ class CertificationEditForm(EditForm):
     evaluation_file = FileField(label=_("Upload file"), type="file",
     required=False)
 
+    def clean(self):
+        """ Check that To' date is bigger than current date
+        """
+        toDate = self.fields['toDate'].value
+        fromDate = datetime.datetime.date(datetime.datetime.now()) 
+        if toDate:
+            if toDate < fromDate.strftime("%Y-%m-%d"):
+                raise ValidationError(
+                    "'To' date must be bigger than current date.")
+        return self.cleaned_data
+
+
     def set_fields_values(self):
         super(CertificationEditForm, self).set_fields_values()
         if not self.initial.get("id"):
@@ -178,13 +190,11 @@ class CertificationEditForm(EditForm):
         if "evaluation_file" in self.changed_data:
             # User wants to ppload a new file.
             #TODO(tom): Type should probably not be 0.
-            file_upload_obj = file_mgr.save(file_obj.filename, file_obj.type, 0)
-            content = file_obj.file.read(-1)
-            try:
-                binary_content = base64.decodestring(content)
-            except binascii.Error:
-                binary_content = content
-            file_upload_obj.upload(binary_content)
+            file_upload_obj = file_mgr.save(file_obj.filename, file_obj.type, 6)
+            chunk = file_obj.file.read(2**14)
+            while chunk:
+                file_upload_obj.upload(chunk)
+                chunk = file_obj.file.read(2**14)
             file_id = file_upload_obj.finalize_upload()
         else:
             file_id = self.cleaned_data['evaluation_file_id']
@@ -199,11 +209,19 @@ class CertificationEditForm(EditForm):
         certs_mgr = cherrypy.session['Admin'].getCertificationManager() 
         if not self.cleaned_data['id']:
             # Create a new certification.
-            certs_mgr.createCertification(
-                reg_id,
-                recoder.u2c(datetime.datetime.date(datetime.datetime.now())),
-                recoder.u2c(self.cleaned_data['toDate']), self.cleaned_data['score'], 
-                file_id)
+            try:
+                certs_mgr.createCertification(
+                    reg_id,
+                    recoder.u2c(datetime.datetime.date(
+                        datetime.datetime.now())),
+                    recoder.u2c(
+                        self.cleaned_data['toDate']), 
+                    self.cleaned_data['score'], 
+                    file_id)
+            except Registry.Registrar.InvalidValue, e:
+                error(e)
+                raise UpdateFailedError(
+                    _("Failed to create a certification."))
         else:
             # Update an existing certifications.
             try:

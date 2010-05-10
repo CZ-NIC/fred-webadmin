@@ -565,7 +565,22 @@ class Registrar(AdifPage, ListTableMixin):
                 corba_val = field_val
             setattr(registrar, field_key, corba_val)
             # Add this action to the audit log.
-            log_request.update("set_%s" % field_key, field_val)
+            if not getattr(field_val, '__iter__', False):
+                log_request.update("set_%s" % field_key, field_val)
+            else:
+                self._log_iterable(log_request, field_key, field_val)
+
+    def _log_iterable(self, log_request, key, val):
+        if key == "certifications":
+            for item in val:
+                log_val = item["uploaded_file"]
+                if not log_val and item.get("evaluation_file"):
+                    log_val = item.get("evaluation_file")
+                log_request.update("set_%s" % key, log_val)
+        else:
+            for item in val:
+                log_request.update("set_%s" % key, item)
+        
 
     def _process_valid_form(self, form, registrar, reg_id, 
                             context, log_request):

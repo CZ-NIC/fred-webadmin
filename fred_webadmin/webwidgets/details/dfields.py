@@ -317,6 +317,24 @@ class ObjectHandleDField(DField):
         else:
             self.add(div(attr(cssc='field_empty')))
 
+
+class FileHandleDField(ObjectHandleDField):
+    def __init__(self, handle, *args, **kwargs):
+        super(FileHandleDField, self).__init__(*args, **kwargs)
+        self.handle = handle
+
+    def make_content(self):
+        self.content = []
+        if not self._value:
+            self.add(div(attr(cssc='field_empty')))
+        else:
+            self.add(a(attr(
+                href=(
+                    f_urls[f_enum_name[ ccReg.FT_FILE]] + u'detail/?id=' + 
+                    unicode(self._value))), 
+                self.handle))
+
+
 class MultiValueDField(DField):
     ''' Field that takes some values from data of form and store them to self.value as dict. 
         Method that takes value from data of form can be overriden,
