@@ -22,8 +22,8 @@ class User(object):
         self._user = user # corba User object
         self.id = user._get_id()
         self.login = recoder.c2u(user._get_username())
-        self.firstname = user._get_firstname()
-        self.surname = user._get_surname()
+        self.firstname = recoder.c2u(user._get_firstname())
+        self.surname = recoder.c2u(user._get_surname())
         self.table_page_size = config.tablesize
 
         self._authorizer = auth_user.Authorizer(self.login)
