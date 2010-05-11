@@ -51,7 +51,8 @@ class UpdateFailedError(adiferrors.AdifError):
 
 
 class EditForm(Form):
-    "Base class for all forms used for editing objects"
+    """ Base class for all forms used for editing objects. 
+    """
     nperm_names = ['read', 'change']
     # XXX: Tak tohle se bude muset predelat, protoze pro editform nelze
     # XXX: jednoduse spustit filter_base_fields(), protoze pak se odesila
@@ -107,7 +108,8 @@ class ZoneEditForm(EditForm):
     toDate = DateField(label=_('To'), required=False)
 
     def clean(self):
-        """ Check that To' date is bigger than 'From' date. """
+        """ Check that 'To' date is bigger than 'From' date. 
+        """
         toDate = self.fields['toDate'].value
         fromDate = self.fields['fromDate'].value
         if fromDate and toDate:
@@ -169,6 +171,11 @@ class CertificationEditForm(EditForm):
             if toDate < fromDate.strftime("%Y-%m-%d"):
                 raise ValidationError(
                     "'To' date must be bigger than current date.")
+        if self.initial:
+            if (self.initial['toDate'].strftime("%Y-%m-%d") <
+                    self.fields['toDate'].value):
+                raise ValidationError(
+                    "It is disallowed to lengthen the certification.")
         return self.cleaned_data
 
 
@@ -222,7 +229,8 @@ class CertificationEditForm(EditForm):
             except Registry.Registrar.InvalidValue, e:
                 error(e)
                 raise UpdateFailedError(
-                    _("Failed to create a certification."))
+                    _("Failed to create a certification. Perhaps you have "
+                      "tried to create overlapping certifications?"))
         else:
             # Update an existing certifications.
             try:
@@ -374,4 +382,5 @@ class GroupManagerEditForm(EditForm):
 
 form_classes = [
     AccessEditForm, RegistrarEditForm, BankStatementPairingEditForm, 
-    ZoneEditForm, RegistrarGroupsEditForm, SingleGroupEditForm]
+    ZoneEditForm, RegistrarGroupsEditForm, SingleGroupEditForm,
+    GroupManagerEditForm, CertificationEditForm]
