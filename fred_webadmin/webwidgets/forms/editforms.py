@@ -182,6 +182,12 @@ class CertificationEditForm(EditForm):
     def set_fields_values(self):
         super(CertificationEditForm, self).set_fields_values()
         if not self.initial.get("id"):
+            now = datetime.datetime.date(datetime.datetime.now())
+            initToDate = datetime.date(
+                year=now.year+1, month=now.month, day=now.day)
+            self.fields['toDate'].value = initToDate.strftime("%Y-%m-%d")
+            if not self.initial.get('toDate'):
+                self.initial['toDate'] = initToDate
             return
         file_id = self.initial['evaluation_file_id']
         file_mgr = cherrypy.session['FileManager']
