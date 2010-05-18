@@ -247,8 +247,9 @@ class CertificationEditForm(EditForm):
                 raise UpdateFailedError(
                     "Unable to update certification.")
             if "toDate" in self.changed_data:
+                cert_id = int(self.fields['id'].value)
                 certs_mgr.shortenCertification(
-                    reg_id, recoder.u2c(self.cleaned_data['toDate']))
+                    cert_id, recoder.u2c(self.cleaned_data['toDate']))
 
 
 class RegistrarEditForm(EditForm):
@@ -371,7 +372,7 @@ class RegistrarGroupsEditForm(EditForm):
                 except Registry.Registrar.InvalidValue, e:
                     error(e)
                     raise UpdateFailedError(_(u"Group %s is not empty.") % group_name)
-            elif 'group_name' in self.changed_data:
+            elif 'name' in self.changed_data:
                 try:
                     mgr.updateGroup(group_id, group_name)
                 except Registry.Registrar.InvalidValue, e:
