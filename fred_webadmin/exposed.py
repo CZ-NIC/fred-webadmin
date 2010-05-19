@@ -23,7 +23,7 @@ def catch_webadmin_exceptions_decorator(view_func):
         try:
             return view_func(*args, **kwd)
         except CorbaServerDisconnectedException, e:
-            self.remove_session_data()
+            self._remove_session_data()
             return self._render('disconnected')
         except CORBA.TRANSIENT, e:
             error("BACKEND IS NOT RUNNING")
