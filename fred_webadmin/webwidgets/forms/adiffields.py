@@ -133,10 +133,13 @@ class FormSetField(Field):
         """ Returns True if data differs from initial.
         """
         self.create_formset_once()
+        has_changed = False
         for form in self.formset.forms:
-            self.changed_data.append
+            has_changed = has_changed or form.has_changed()
+#            self.changed_data.append(form.changed_data)
+        return has_changed
 
-        if data is None:
+        """if data is None:
             data_value = u''
         else:
             data_value = data
@@ -146,7 +149,7 @@ class FormSetField(Field):
             initial_value = initial
         if unicode(initial_value) != unicode(data_value):
             return True
-        return False
+        return False"""
 
     def fire_actions(self, *args, **kwargs):
         self.create_formset_once()

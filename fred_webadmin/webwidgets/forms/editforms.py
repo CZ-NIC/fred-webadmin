@@ -154,6 +154,7 @@ class CertificationEditForm(EditForm):
     evaluation_file_id = HiddenIntegerField()
 
     toDate = DateField(label=_("To"))
+    fromDate = DateField(label=_("From"))
     score = IntegerChoiceField(
         choices=[(0,0), (1, 1), (2, 2), (3, 3), (4, 4), (5, 5)], label=_("Score")) 
 
@@ -178,6 +179,25 @@ class CertificationEditForm(EditForm):
                     "It is disallowed to lengthen the certification.")
         return self.cleaned_data
 
+    def _get_changed_data(self):
+        if self._changed_data is None:
+            self._changed_data = []
+            # XXX: For now we're asking the individual widgets whether or not the
+            # data has changed. It would probably be more efficient to hash the
+            # initial data, store it in a hidden field, and compare a hash of the
+            # submitted data, but we'd need a way to easily get the string value
+            # for a given field. Right now, that logic is embedded in the render
+            # method of each widget.
+            for name, field in self.fields.items():
+                if name == "uploaded_file":
+                    continue
+                data_value = field.value_from_datadict(self.data)
+                initial_value = self.initial.get(name, field.initial)
+                if field._has_changed(initial_value, data_value):
+                    self._changed_data.append(name)
+        return self._changed_data
+    
+
 
     def set_fields_values(self):
         super(CertificationEditForm, self).set_fields_values()
@@ -186,8 +206,11 @@ class CertificationEditForm(EditForm):
             initToDate = datetime.date(
                 year=now.year+1, month=now.month, day=now.day)
             self.fields['toDate'].value = initToDate.strftime("%Y-%m-%d")
+            self.fields['fromDate'].value = now.strftime("%Y-%m-%d")
             if not self.initial.get('toDate'):
                 self.initial['toDate'] = initToDate
+            if not self.initial.get('fromDate'):
+                self.initial['fromDate'] = now
             return
         file_id = self.initial['evaluation_file_id']
         file_mgr = cherrypy.session['FileManager']
@@ -197,18 +220,18 @@ class CertificationEditForm(EditForm):
         self.fields['uploaded_file'].initial = info.name
 
     def fire_actions(self, reg_id, *args, **kwargs):
-        file_mgr = cherrypy.session['FileManager']
-        file_obj = self.fields['evaluation_file'].value
-        if not self.changed_data:
+        if not self.cleaned_data or not self.changed_data:
             return
+        file_mgr = cherrypy.session['FileManager']
+        file_obj = self.cleaned_data['evaluation_file']
         if "evaluation_file" in self.changed_data:
             # User wants to ppload a new file.
             #TODO(tom): Type should probably not be 0.
-            file_upload_obj = file_mgr.save(file_obj.filename, file_obj.type, 6)
-            chunk = file_obj.file.read(2**14)
+            file_upload_obj = file_mgr.save(file_obj.filename, file_obj.content.type, 6)
+            chunk = file_obj.content.file.read(2**14)
             while chunk:
                 file_upload_obj.upload(chunk)
-                chunk = file_obj.file.read(2**14)
+                chunk = file_obj.content.file.read(2**14)
             file_id = file_upload_obj.finalize_upload()
         else:
             file_id = self.cleaned_data['evaluation_file_id']
@@ -219,19 +242,17 @@ class CertificationEditForm(EditForm):
                 # mandatory. However making it mandatory breaks FormSetField 
                 # validation...
                 raise UpdateFailedError(
-                    "You have not specified the upload file for a certification!")
+                    "You have not specified the upload file "
+                    "for a certification!")
         certs_mgr = cherrypy.session['Admin'].getCertificationManager() 
         if not self.cleaned_data['id']:
             # Create a new certification.
             try:
+#                now_date = datetime.datetime.date(datetime.datetime.now())
                 certs_mgr.createCertification(
-                    reg_id,
-                    recoder.u2c(datetime.datetime.date(
-                        datetime.datetime.now())),
-                    recoder.u2c(
-                        self.cleaned_data['toDate']), 
-                    self.cleaned_data['score'], 
-                    file_id)
+                    reg_id,recoder.u2c(self.cleaned_data['fromDate']),
+                    recoder.u2c(self.cleaned_data['toDate']), 
+                    self.cleaned_data['score'], file_id)
             except Registry.Registrar.InvalidValue, e:
                 error(e)
                 raise UpdateFailedError(
@@ -248,8 +269,12 @@ class CertificationEditForm(EditForm):
                     "Unable to update certification.")
             if "toDate" in self.changed_data:
                 cert_id = int(self.fields['id'].value)
-                certs_mgr.shortenCertification(
-                    cert_id, recoder.u2c(self.cleaned_data['toDate']))
+                try:
+                    certs_mgr.shortenCertification(
+                        cert_id, recoder.u2c(self.cleaned_data['toDate']))
+                except Registry.Registrar.InvalidValue:
+                    raise UpdateFailedError(
+                        "Unable to shorten certification.")
 
 
 class RegistrarEditForm(EditForm):
@@ -257,7 +282,7 @@ class RegistrarEditForm(EditForm):
         super(RegistrarEditForm, self).__init__(
             layout_class=RegistrarEditFormLayout,
             enctype="multipart/form-data", *args, **kwargs)
-    
+
     id = HiddenDecimalField()
     handle = CharField(label=_('Handle')) # registrar identification
     name = CharField(label=_('Name'), required=False) # registrar name

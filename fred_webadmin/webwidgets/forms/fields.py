@@ -46,6 +46,13 @@ class Field(WebWidget):
         # Increase the creation counter, and save our local copy.
         self.creation_counter = Field.creation_counter
         Field.creation_counter += 1
+
+#    def _get_value(self):
+#        return self._value
+#    def _set_value(self, val):
+#        self._value = val
+#    value = LateBindingProperty(_get_value,_set_value)
+#    value = property(_get_value, _set_value)
         
     def clean(self):
         """
@@ -78,11 +85,11 @@ class Field(WebWidget):
             data_value = u''
         else:
             data_value = data
-        if initial is None:
+        if initial is None or initial == fredtypes.Null():
             initial_value = u''
         else:
             initial_value = initial
-        if unicode(initial_value) != unicode(data_value):
+        if unicode(initial_value).strip() != unicode(data_value).strip():
             return True
         return False
     
@@ -388,7 +395,7 @@ class EmailField(RegexField):
         return result
 
 
-class UploadedFile(types.StringType):
+class UploadedFile(object): #types.StringType):
     "A wrapper for files uploaded in a FileField"
     def __init__(self, filename, content):
         self.filename = filename
@@ -401,11 +408,18 @@ class UploadedFile(types.StringType):
         """
         return self.filename
 
+    def __str__(self):
+        return self.filename
+
 class FileField(Field):
     tattr_list = input.tattr_list
     def __init__(self, name='', value='', *args, **kwargs):
         super(FileField, self).__init__(name, value,  *args, **kwargs)
         self.tag = "input"
+
+#    def _get_value(self):
+#        return UploadedFile(self._val.filename, self._val)
+#    value = property(_get_value)
 
 #    def clean(self, data):
     def clean(self):
@@ -420,7 +434,7 @@ class FileField(Field):
 #            f = fredtypes.NullFile() #UploadedFile(self.value, None)
 #            data = self.value
 #            f = UploadedFile(data.filename, data.file.read(-1))
-            f = self.value
+            f = UploadedFile(self.value.filename, self.value)
         except TypeError:
             raise ValidationError(_(u"No file was submitted. Check the encoding type on the form."))
         except KeyError:
@@ -641,7 +655,7 @@ class IntegerChoiceField(ChoiceField):
             raise ValidationError(_(u'Select a valid choice. That choice is not one of the available choices.'))
         return value
 
-    def _has_changed(self, initial, data):
+    def _has_changed(self, initial, data): 
         data = int(data)
         if initial == None and data == self.choices[0][0]:
             return False

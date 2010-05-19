@@ -11,7 +11,7 @@ import traceback
 
 from logging import debug, error
 from cgi import escape
-from copy import copy
+from copy import copy, deepcopy
 
 import omniORB
 from omniORB import CORBA
@@ -42,6 +42,8 @@ import simplejson
 
 import fred_webadmin.corbarecoder as recoder
 import fred_webadmin.utils as utils
+
+import fred_webadmin.webwidgets.forms.fields as formfields
 
 from fred_webadmin.logger.sessionlogger import (
     SessionLogger, SessionLoggerFailSilent, LoggingException)
@@ -555,22 +557,18 @@ class Registrar(AdifPage, ListTableMixin):
         new.append(False) # hidden
         return ccReg.Registrar(*new) # empty registrar
 
-    def _fill_registrar_struct_from_form(self, registrar, cleaned_data, 
-      log_request):
+    def _fill_registrar_struct_from_form(self, registrar, cleaned_data):
+        result = deepcopy(registrar)
         for field_key, field_val in cleaned_data.items():
             # Create the corba object for the respective field.
             if field_key in self.type_transformer:
                 corba_val = self.type_transformer[field_key](field_val)
             else:
                 corba_val = field_val
-            setattr(registrar, field_key, corba_val)
-            # Add this action to the audit log.
-            if not getattr(field_val, '__iter__', False):
-                log_request.update("set_%s" % field_key, field_val)
-            else:
-                self._log_iterable(log_request, field_key, field_val)
-
-    def _log_iterable(self, log_request, key, val):
+            setattr(result, field_key, corba_val)
+        return result
+            
+    """def _log_iterable(self, log_request, key, val):
         if key == "certifications":
             for item in val:
                 log_val = item["uploaded_file"]
@@ -579,13 +577,37 @@ class Registrar(AdifPage, ListTableMixin):
                 log_request.update("set_%s" % key, log_val)
         else:
             for item in val:
-                log_request.update("set_%s" % key, item)
-        
+                log_request.update("set_%s" % key, item)"""
 
-    def _process_valid_form(self, form, registrar, reg_id, 
+    def _log_formset(self, formset, name, log_req):
+        log_msg = [("set_%s" % name, "", False, False)]
+#        log_msg = ""
+        for form in formset.forms:
+            if form.has_changed():
+                for key, field in form.fields.items():
+                    if isinstance(field, formfields.FileField):
+                        log_msg.append(
+                            ("set_%s" % key, field.value.filename, False, True))
+                    else:
+                        log_msg.append((
+                            "set_%s" % key, field.value, False, True))
+        log_req.update_multiple(log_msg)
+
+    def _log_changed_fields(self, form, log_req):
+        if form.has_changed:
+            data = form._get_changed_data()
+        for field_name in data:
+            field = form.fields[field_name]
+            if getattr(field, "formset", False):
+                self._log_formset(field.formset, field_name, log_req)
+            else:
+                log_req.update("set_%s" % field_name, field.value)
+
+    def _process_valid_form(self, form, reg, reg_id, 
                             context, log_request):
-        self._fill_registrar_struct_from_form(
-            registrar, form.cleaned_data, log_request)
+        registrar = self._fill_registrar_struct_from_form(
+            reg, form.cleaned_data)
+        self._log_changed_fields(form, log_request)
         corba_reg = recoder.u2c(registrar)
         try:
             result = {"reg_id": None}

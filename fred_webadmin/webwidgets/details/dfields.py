@@ -304,7 +304,11 @@ class RequestPropertyDField(DField):
     def _format_property(self, prop):
         val = prop["value"]
         neg = "(neg)" if prop["neg"] else ""
-        return tr(td("%s %s:" % (neg, prop["name"])), td("%s" % val))
+        indent_style = "padding-left: 2em;" if prop["child"] else ""
+        res = tr(td(
+            "%s %s:" % (neg, prop["name"]), attr(style=indent_style)),
+            td("%s" % val))
+        return res
 
     
 class ObjectHandleDField(DField):

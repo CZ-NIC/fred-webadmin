@@ -10,6 +10,7 @@ from fred_webadmin.webwidgets.gpyweb.gpyweb import WebWidget, form
 from fields import Field
 from formlayouts import TableFormLayout
 from fred_webadmin.webwidgets.utils import ErrorDict, ErrorList, ValidationError, SortedDict
+from fred_webadmin.utils import LateBindingProperty
 
 NON_FIELD_ERRORS = '__all__'
 
@@ -250,14 +251,12 @@ class BaseForm(form):
             # for a given field. Right now, that logic is embedded in the render
             # method of each widget.
             for name, field in self.fields.items():
-                #prefixed_name = self.add_prefix(name)
-
-                data_value = field.value_from_datadict(self.data)#, prefixed_name)
+                data_value = field.value_from_datadict(self.data)
                 initial_value = self.initial.get(name, field.initial)
                 if field._has_changed(initial_value, data_value):
                     self._changed_data.append(name)
         return self._changed_data
-    changed_data = property(_get_changed_data)
+    changed_data = LateBindingProperty(_get_changed_data)
     
     def reset(self):
         """Return this form to the state it was in before data was passed to it."""
