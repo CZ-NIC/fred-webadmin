@@ -150,6 +150,15 @@ class SingleGroupEditForm(EditForm):
 
 
 class CertificationEditForm(EditForm):
+    def __init__(self, initial=None, *args, **kwargs):
+#        import ipdb; ipdb.set_trace()
+        super(CertificationEditForm, self).__init__(initial=initial, *args, **kwargs)
+        if initial is not None:
+#            self['fromDate'].tattr['disabled'] = True
+           self['fromDate'].tattr['onfocus'] = "this.blur();"
+           self['fromDate'].tattr['onclick'] = "this.blur();"
+           self['fromDate'].tattr['style'] = "background:#eee none; color:#222; font-style: italic"
+
     id = HiddenIntegerField()
     evaluation_file_id = HiddenIntegerField()
 

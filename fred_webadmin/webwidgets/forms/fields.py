@@ -425,6 +425,8 @@ class FileField(Field):
     def clean(self):
         super(FileField, self).clean()#data)
 #        if not self.required and data in EMPTY_VALUES:
+        if not self.value:
+            return fredtypes.NullFile()
         if not self.required and self.value.filename in EMPTY_VALUES:
             return fredtypes.NullFile()
         if self.required and self.value.filename in EMPTY_VALUES:
