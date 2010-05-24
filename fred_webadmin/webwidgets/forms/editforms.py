@@ -160,8 +160,8 @@ class CertificationEditForm(EditForm):
 
     uploaded_file = CharField(
         label=_("Uploaded file"), required=False, disabled=True)
-    evaluation_file = FileField(label=_("Upload file"), type="file",
-    required=False)
+    evaluation_file = FileField(
+        label=_("Upload file"), type="file", required=False)
 
     def clean(self):
         """ Check that To' date is bigger than current date

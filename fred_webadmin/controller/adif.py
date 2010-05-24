@@ -581,7 +581,6 @@ class Registrar(AdifPage, ListTableMixin):
 
     def _log_formset(self, formset, name, log_req):
         log_msg = [("set_%s" % name, "", False, False)]
-#        log_msg = ""
         for form in formset.forms:
             if form.has_changed():
                 for key, field in form.fields.items():

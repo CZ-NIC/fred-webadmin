@@ -289,8 +289,6 @@ class RequestPropertyDField(DField):
                 return 0
             else:
                 return -1
-        inprops.sort(cmp=cmp_props)
-        outprops.sort(cmp=cmp_props)
         table_in = table([self._format_property(prop) for prop in inprops]) if \
             inprops else span()
         table_out = table([self._format_property(prop) for prop in outprops]) if \

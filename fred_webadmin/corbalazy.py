@@ -115,6 +115,19 @@ class CorbaLazyRequest1V2L(CorbaLazyRequestIter):
 class CorbaLazyRequestIterStruct(CorbaLazyRequestIter):
     def __init__(self, object_name, mgr_getter_name, function_name, mapping,
                  selector=None, *args, **kwargs):
+        """ Arguments:
+                object_name: Key of thne respective CORBA object in 
+                    cherrypy.session dict.
+                mgr_getter_name: Getter function to be called on the admin. If
+                    None, then function @function_name is called directly on
+                    the CORBA object specified by object_name; otherwise the
+                    method with @function_name is called on the object returned
+                    by calling mgr_getter_name on @object_name.
+                function_name: See @mgr_getter_name doc above.
+                mapping: Specifies fields of the result object to be displayed.
+                selector: If not None, only include items in the result that 
+                    the selector function returns True when called on.
+        """
         super(CorbaLazyRequestIterStruct, self).__init__(
             object_name, mgr_getter_name, function_name, selector, *args, **kwargs)
         if len(mapping) == 2:
