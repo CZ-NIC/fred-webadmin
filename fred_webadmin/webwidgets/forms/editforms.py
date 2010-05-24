@@ -383,26 +383,51 @@ class RegistrarGroupsEditForm(EditForm):
         if not group_id:
             if ("name" in self.changed_data):
                 try:
-                    mgr.createGroup(group_name)
+                    log_req = cherrypy.session['Logger'].create_request(
+                        cherrypy.request.headers['Remote-Addr'], 
+                        cherrypy.request.body, "CreateRegistrarGroup")
+                    log_req.update("group_name", group_name)
+                    gid = mgr.createGroup(group_name)
+                    log_req.update("group_id", gid)
                 except Registry.Registrar.InvalidValue:
+                    log_request.update("result", str(e))
                     raise UpdateFailedError(
                         _(u"Could not create group. Perhaps you've entered "
                            "a name of an already existing group (or name of "
                            "a deleted one, which is currently invalid too)?"))
+                finally:
+                    log_req.commit()
         else:
             group_id = int(group_id)
             if 'DELETE' in self.changed_data:
                 try:
+                    log_req = cherrypy.session['Logger'].create_request(
+                        cherrypy.request.headers['Remote-Addr'], 
+                        cherrypy.request.body, "DeleteRegistrarGroup")
+                    log_req.update("group_name", group_name)
+                    log_req.update("group_id", group_id)
                     mgr.deleteGroup(group_id)
                 except Registry.Registrar.InvalidValue, e:
+                    log_request.update("result", str(e))
+                    log_req.update("group_id", group_id)
                     error(e)
                     raise UpdateFailedError(_(u"Group %s is not empty.") % group_name)
+                finally:
+                    log_req.commit()
             elif 'name' in self.changed_data:
                 try:
+                    log_req = cherrypy.session['Logger'].create_request(
+                        cherrypy.request.headers['Remote-Addr'], 
+                        cherrypy.request.body, "UpdateRegistrarGroup")
+                    log_req.update("group_name", group_name)
+                    log_req.update("group_id", group_id)
                     mgr.updateGroup(group_id, group_name)
                 except Registry.Registrar.InvalidValue, e:
+                    log_request.update("result", str(e))
                     error(e)
                     raise UpdateFailedError(_(u"Updating group %s has failed.") % group_name)
+                finally:
+                    log_req.commit()
 
 
 

@@ -567,17 +567,6 @@ class Registrar(AdifPage, ListTableMixin):
                 corba_val = field_val
             setattr(result, field_key, corba_val)
         return result
-            
-    """def _log_iterable(self, log_request, key, val):
-        if key == "certifications":
-            for item in val:
-                log_val = item["uploaded_file"]
-                if not log_val and item.get("evaluation_file"):
-                    log_val = item.get("evaluation_file")
-                log_request.update("set_%s" % key, log_val)
-        else:
-            for item in val:
-                log_request.update("set_%s" % key, item)"""
 
     def _log_formset(self, formset, name, log_req):
         log_msg = [("set_%s" % name, "", False, False)]
