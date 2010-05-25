@@ -1134,7 +1134,7 @@ class GroupEditor(AdifPage):
         else:
             form = GroupManagerEditForm(initial=initial, method='post')
             context['form'] = form
-        res = self._render(ctx=context)
+        res = self._render(action="edit", ctx=context)
         return res
 
     def _process_valid_form(self, form, context):
@@ -1146,6 +1146,9 @@ class GroupEditor(AdifPage):
             context['form'] = form
             return context
         raise cherrypy.HTTPRedirect("/groups")
+
+    def _get_menu_handle(self, action):
+        return "registrar"
 
     def _template(self, action=''):
         template_name = "GroupEditorPage"
