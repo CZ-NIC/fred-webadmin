@@ -88,4 +88,33 @@ function disableRegistrarHandle() {
         registrar_handle_input.disabled = true;
 }
 
+function show_hide(element_id, button_id, skip_effect) {
+    use_effect = typeof(skip_effect) == 'undefined' ? true : !skip_effect;
+    var field_elem = document.getElementById(element_id)
+    var btn_elem = document.getElementById(button_id)
+
+    if (field_elem.style.display == "none") {
+        if (use_effect)
+            slideDown(field_elem, {duration: 0.5});
+        else
+            field_elem.style.display = "block";
+        btn_elem.innerText = "hide";
+    } else {
+        if (use_effect)
+            slideUp(field_elem, {duration: 0.5});
+        else
+            field_elem.style.display = "none";
+        btn_elem.innerText = "show";
+    }
+}
+
+
+connect(window, 'onload', onload_hide_registrar_editform_fields); 
+function onload_hide_registrar_editform_fields(e) {
+    show_hide("authentications_id", "authentications_id_display", true);
+    show_hide("zones_id", "zones_id_display", true);
+    show_hide("groups_id", "groups_id_display", true);
+    show_hide("certifications_id", "certifications_id_display", true);
+}
+
 Ext.onReady(setSpecialBehaviourToFields);

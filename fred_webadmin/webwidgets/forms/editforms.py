@@ -19,7 +19,8 @@ from fred_webadmin.corbalazy import CorbaLazyRequest, CorbaLazyRequestIterStruct
 from editformlayouts import (
     EditFormLayout, RegistrarEditFormLayout)
 from formlayouts import (
-    NestedFieldsetFormSectionLayout, 
+    NestedFieldsetFormSectionLayout, HideableNestedFieldsetFormSectionLayout,
+    HideableSimpleFieldsetFormSectionLayout,
     SimpleFieldsetFormSectionLayout, DivFormSectionLayout)
 from fred_webadmin.webwidgets.forms.formsetlayouts import DivFormSetLayout
 
@@ -69,6 +70,8 @@ class EditForm(Form):
             layout_class, *content, **kwd)
         self.media_files = ['/js/scw.js', 
                             '/js/scwLanguages.js',
+                            '/js/MochiKit/MochiKit.js',
+                            '/js/editform.js',
                             '/js/publicrequests.js']
     
     def filter_base_fields(self):
@@ -151,10 +154,8 @@ class SingleGroupEditForm(EditForm):
 
 class CertificationEditForm(EditForm):
     def __init__(self, initial=None, *args, **kwargs):
-#        import ipdb; ipdb.set_trace()
         super(CertificationEditForm, self).__init__(initial=initial, *args, **kwargs)
         if initial is not None:
-#            self['fromDate'].tattr['disabled'] = True
            self['fromDate'].tattr['onfocus'] = "this.blur();"
            self['fromDate'].tattr['onclick'] = "this.blur();"
            self['fromDate'].tattr['style'] = "background:#eee none; color:#222; font-style: italic"
@@ -257,7 +258,6 @@ class CertificationEditForm(EditForm):
         if not self.cleaned_data['id']:
             # Create a new certification.
             try:
-#                now_date = datetime.datetime.date(datetime.datetime.now())
                 certs_mgr.createCertification(
                     reg_id,recoder.u2c(self.cleaned_data['fromDate']),
                     recoder.u2c(self.cleaned_data['toDate']), 
@@ -334,16 +334,18 @@ class RegistrarEditForm(EditForm):
         can_delete=False)
 
     sections = (
-        (_("Registrar data"), (
+        (_("Registrar data"), ("registrar_data_id"), (
             "handle", "name", "organization", 'street1', 'street2', 
             'street3', 'city', 'postalcode', 'stateorprovince', 'countryCode',
             "postalCode", "ico", "dic", "varSymb", "vat", "telephone", "fax",
             "email", "url", "id"),
-            SimpleFieldsetFormSectionLayout),
-        (_("Authentication"), ("access"), NestedFieldsetFormSectionLayout),
-        (_("Zones"), ("zones"), NestedFieldsetFormSectionLayout),
-        (_("Groups"), ("groups"), NestedFieldsetFormSectionLayout),
-        (_("Certifications"), ("certifications"), NestedFieldsetFormSectionLayout),
+            HideableSimpleFieldsetFormSectionLayout),
+        (_("Authentication"), ("authentications_id"), ("access"), 
+            HideableNestedFieldsetFormSectionLayout),
+        (_("Zones"), ("zones_id"), ("zones"), HideableNestedFieldsetFormSectionLayout),
+        (_("Groups"), ("groups_id"), ("groups"), HideableNestedFieldsetFormSectionLayout),
+        (_("Certifications"), ("certifications_id"), ("certifications"), 
+            HideableNestedFieldsetFormSectionLayout),
     )
 
     def fire_actions(self, *args, **kwargs):

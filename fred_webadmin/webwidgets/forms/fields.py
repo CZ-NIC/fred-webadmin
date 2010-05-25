@@ -47,13 +47,6 @@ class Field(WebWidget):
         self.creation_counter = Field.creation_counter
         Field.creation_counter += 1
 
-#    def _get_value(self):
-#        return self._value
-#    def _set_value(self, val):
-#        self._value = val
-#    value = LateBindingProperty(_get_value,_set_value)
-#    value = property(_get_value, _set_value)
-        
     def clean(self):
         """
         Validates the given value and returns its "cleaned" value as an

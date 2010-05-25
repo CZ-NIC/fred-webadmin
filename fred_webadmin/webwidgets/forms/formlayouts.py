@@ -74,11 +74,11 @@ class NestedFieldsetFormSectionLayout(WebWidget):
         self.create_layout()
         
     def get_fields(self):
-        section_fields_names = self.section_spec[1]
+        section_fields_names = self.section_spec[2]
         return [item[1] for item in self.form.fields.items() if item[0] in section_fields_names]
     
     def get_fields_dict(self):
-        section_fields_names = self.section_spec[1]
+        section_fields_names = self.section_spec[2]
         return dict([item for item in self.form.fields.items() if item[0] in section_fields_names])
     
     def layout_start(self):
@@ -89,7 +89,6 @@ class NestedFieldsetFormSectionLayout(WebWidget):
         
     def layout_fields(self):        
         fields_in_section = self.get_fields()
-        
         for field in fields_in_section:
             errors = self.form.errors.get(field.name_orig, None)
             label_str = self.get_label_name(field)
@@ -105,6 +104,23 @@ class NestedFieldsetFormSectionLayout(WebWidget):
         if not label_str:
             label_str = pretty_name(field.name)
         return label_str
+
+class HideableNestedFieldsetFormSectionLayout(NestedFieldsetFormSectionLayout):
+    def layout_start(self):
+        section_name = self.section_spec[0]
+        section_id = self.section_spec[1]
+        link_id = "%s_display" % section_id
+        if section_name:
+            self.add(legend(section_name))
+        self.add(div(
+            attr(style="text-align: right; padding-right: 1em;"),
+            a(
+                "hide", 
+                attr(href="JavaScript:void();"), 
+                onclick="show_hide('%s', '%s');" % (section_id, link_id),
+                id=link_id)))
+        self.add(table(
+            tagid('table'), attr(cssc="form_table"), id=section_id))
 
 
 class DivFormSectionLayout(NestedFieldsetFormSectionLayout):
@@ -158,6 +174,33 @@ class SimpleFieldsetFormSectionLayout(FormLayout):
         return label_str
 
     def get_fields(self):
-        section_fields_names = self.section_spec[1]
+        section_fields_names = self.section_spec[2]
         return [item[1] for item in self.form.fields.items() if item[0] in section_fields_names]
+
+class HideableSimpleFieldsetFormSectionLayout(SimpleFieldsetFormSectionLayout):
+    def layout_fields(self): 
+        section_name = self.section_spec[0]
+        section_id = self.section_spec[1]
+        link_id = "%s_display" % section_id
+        self.add(div(
+            attr(style="text-align: right; padding-right: 1em;"),
+            a(
+                "hide", 
+                attr(href="JavaScript:void();"), 
+                onclick="show_hide('%s', '%s');" % (section_id, link_id),
+                id=link_id)))
+        self.add(table(tagid("table"), id=section_id))
+        self.add(legend(section_name))
+        fields_in_section = self.get_fields()
+        hidden_fields = []
+        for field in fields_in_section:
+            if field.is_hidden:
+                hidden_fields.append(field)
+                continue
+            label_str = self.get_label_name(field)
+            errors = self.form.errors.get(field.name_orig, None)
+            self.table.add(tr(
+                td(label_str),
+                td(errors, field)))
+        self.add(hidden_fields)
 
