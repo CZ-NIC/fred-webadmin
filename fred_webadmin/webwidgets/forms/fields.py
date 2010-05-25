@@ -651,6 +651,8 @@ class IntegerChoiceField(ChoiceField):
         return value
 
     def _has_changed(self, initial, data): 
+        if data is None:
+            data = self.choices[0][0]
         data = int(data)
         if initial == None and data == self.choices[0][0]:
             return False
