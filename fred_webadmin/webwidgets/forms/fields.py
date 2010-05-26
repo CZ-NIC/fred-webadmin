@@ -10,7 +10,8 @@ from logging import debug
 import fred_webadmin.corbarecoder as recoder
 import fred_webadmin.nulltype as fredtypes
 
-from fred_webadmin.webwidgets.gpyweb.gpyweb import WebWidget, attr, select, option, span, input
+from fred_webadmin.webwidgets.gpyweb.gpyweb import (
+    WebWidget, attr, select, option, span, input, span)
 from fred_webadmin.webwidgets.utils import ValidationError, ErrorList, isiterable
 from fred_webadmin.translation import _
 from fred_webadmin.utils import LateBindingProperty
@@ -22,7 +23,7 @@ class Field(WebWidget):
     is_hidden = False
     
     def __init__(self, name='', value='', required=True, label=None, 
-                 initial=None, nperm = None, help_text=None, 
+                 initial=None, nperm = None, help_text=None, permitted=True,
                  *content, **kwd):
         super(Field, self).__init__(*content, **kwd)
         self.tag = ''
@@ -35,6 +36,7 @@ class Field(WebWidget):
         self.order = 0 # order in form, set during form creation
         self.owner_form = None
         self.value_is_from_initial = False
+        self.permitted = permitted
         
         self.name_orig = self.name = name
         if value == '' and initial is not None:
@@ -46,6 +48,12 @@ class Field(WebWidget):
         # Increase the creation counter, and save our local copy.
         self.creation_counter = Field.creation_counter
         Field.creation_counter += 1
+
+    def render(self, *args, **kwargs):
+        if self.permitted:
+            return super(Field, self).render(*args, **kwargs)
+        else:
+            return span().render()
 
     def clean(self):
         """
@@ -418,7 +426,7 @@ class FileField(Field):
     def clean(self):
         super(FileField, self).clean()#data)
 #        if not self.required and data in EMPTY_VALUES:
-        if not self.value:
+        if self.value is None:
             return fredtypes.NullFile()
         if not self.required and self.value.filename in EMPTY_VALUES:
             return fredtypes.NullFile()
@@ -657,6 +665,33 @@ class IntegerChoiceField(ChoiceField):
         if initial == None and data == self.choices[0][0]:
             return False
         return (initial != data)
+
+class LogActionTypeChoiceField(IntegerChoiceField):
+    def make_content(self):
+        actions_by_service_type = self._generate_choices()
+        self.content = []
+        self.choices = [a for a in actions_by_service_type.values()]
+        # add/remove emtpy choice according 
+        if self.required and self.choices and self.choices[0] == self.empty_choice: # remove empty choice:
+            self.choices.pop(0)
+        elif not self.required and (not self.choices or (self.choices and self.choices[0] != self.empty_choice)): # add empty choice:
+            self.choices.insert(0, self.empty_choice)
+            
+        if self.choices:
+            for value, caption in list(self.choices):
+                if unicode(value) == unicode(self.value):
+                    self.add(option(attr(value=value, selected='selected'), caption))
+                else:
+                    self.add(option(attr(value=value), caption))
+
+    def _generate_choices(self):
+        import cherrypy
+        logger = cherrypy.session.get("corba_logd")
+        types = [1, 2, 4] #logger.GetServiceTypes()
+        actions = {}
+        for t in types:
+            actions[t] = logger.GetServiceActions(t)
+        return actions
 
 
 class NullBooleanField(ChoiceField):
