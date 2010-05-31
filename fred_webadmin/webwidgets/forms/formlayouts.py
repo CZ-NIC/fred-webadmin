@@ -118,7 +118,8 @@ class HideableNestedFieldsetFormSectionLayout(NestedFieldsetFormSectionLayout):
                 "hide", 
                 attr(href="JavaScript:void();"), 
                 onclick="show_hide('%s', '%s');" % (section_id, link_id),
-                id=link_id)))
+                id=link_id, 
+                title="Click to show or hide the fieldset contents.")))
         self.add(table(
             tagid('table'), attr(cssc="form_table"), id=section_id))
 
