@@ -494,6 +494,9 @@ class MailFilterForm(FilterForm):
     Attachment = CompoundFilterField(
         label=_('Attachment'), form_class=FileFilterForm)
 
+    def get_key_time_field(self):
+        return self.base_fields['CreateTime']
+
       
 # This has to be a list and not a tuple, because ADIF can remove e.g. logger
 # filter during login when logging is disabled.
