@@ -90,8 +90,12 @@ function disableRegistrarHandle() {
 
 function show_hide(element_id, button_id, skip_effect) {
     use_effect = typeof(skip_effect) == 'undefined' ? true : !skip_effect;
-    var field_elem = document.getElementById(element_id)
-    var btn_elem = document.getElementById(button_id)
+    var field_elem = document.getElementById(element_id);
+    var btn_elem = document.getElementById(button_id);
+    var ids_elem = document.getElementById("visible_fieldsets_ids_field_id");
+    var ids = ids_elem.value.split(",");
+//    if (ids.length == 1)
+//        ids = ids_elem.innerText.split(",");
 
     if (field_elem.style.display == "none") {
         if (use_effect)
@@ -100,6 +104,8 @@ function show_hide(element_id, button_id, skip_effect) {
             field_elem.style.display = "block";
         btn_elem.innerText = "hide";
         btn_elem.innerHTML = "hide";
+        ids.push(element_id);
+        ids_elem.value = ids.toString();
     } else {
         if (use_effect)
             slideUp(field_elem, {duration: 0.45});
@@ -107,16 +113,28 @@ function show_hide(element_id, button_id, skip_effect) {
             field_elem.style.display = "none";
         btn_elem.innerText = "show";
         btn_elem.innerHTML = "show";
+        for (index in ids) {
+            if (ids[index] == element_id) {
+                ids = ids.slice(index, index+1);
+                break;
+            }
+        }
     }
 }
 
-
 connect(window, 'onload', onload_hide_registrar_editform_fields); 
+
 function onload_hide_registrar_editform_fields(e) {
-    show_hide("authentications_id", "authentications_id_display", true);
-    show_hide("zones_id", "zones_id_display", true);
-    show_hide("groups_id", "groups_id_display",  true);
-    show_hide("certifications_id", "certifications_id_display", true);
+    var ids = document.getElementById("visible_fieldsets_ids_field_id").value.split(",");
+
+    if (ids.indexOf("authentications_id") == -1)
+        show_hide("authentications_id", "authentications_id_display", true);
+    if (ids.indexOf("zones_id") == -1)
+        show_hide("zones_id", "zones_id_display", true);
+    if (ids.indexOf("groups_id") == -1)
+        show_hide("groups_id", "groups_id_display",  true);
+    if (ids.indexOf("certifications_id") == -1)
+        show_hide("certifications_id", "certifications_id_display", true);
 }
 
 Ext.onReady(setSpecialBehaviourToFields);

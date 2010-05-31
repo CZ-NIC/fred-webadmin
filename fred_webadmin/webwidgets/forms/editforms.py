@@ -323,6 +323,9 @@ class RegistrarEditForm(EditForm):
     email = CharField(label=_('Email'), required=False) # contact email
     url = CharField(label=_('URL'), required=False) # URL
     hidden = BooleanField(label=_('System registrar'), required=False) # System registrar
+
+    visible_fieldsets_ids = HiddenField(
+        required=False, id="visible_fieldsets_ids_field_id")
     
     access = FormSetField(
         label=_('Authentication'), form_class=AccessEditForm, can_delete=True,
@@ -341,7 +344,7 @@ class RegistrarEditForm(EditForm):
             "handle", "name", "organization", 'street1', 'street2', 
             'street3', 'city', 'postalcode', 'stateorprovince', 'countryCode',
             "postalCode", "ico", "dic", "varSymb", "vat", "telephone", "fax",
-            "email", "url", "id"),
+            "email", "url", "id", "visible_fieldsets_ids"),
             HideableSimpleFieldsetFormSectionLayout),
         (_("Authentication"), ("authentications_id"), ("access"), 
             HideableNestedFieldsetFormSectionLayout),
