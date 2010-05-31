@@ -165,8 +165,8 @@ class CertificationEditForm(EditForm):
     id = HiddenIntegerField()
     evaluation_file_id = HiddenIntegerField()
 
-    toDate = DateField(label=_("To"))
     fromDate = DateField(label=_("From"))
+    toDate = DateField(label=_("To"))
     score = IntegerChoiceField(
         choices=[(0,0), (1, 1), (2, 2), (3, 3), (4, 4), (5, 5)], label=_("Score")) 
 
