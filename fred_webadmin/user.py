@@ -60,4 +60,6 @@ class User(object):
                   (isiterable(nperms) and 
                    (check_type == 'all' and self.has_all_nperms(nperms) or
                     check_type == 'one' and self.has_one_nperm(nperms))))
+#        if result:
+#            import ipdb; ipdb.set_trace()
         return result 

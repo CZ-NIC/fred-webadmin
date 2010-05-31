@@ -256,6 +256,10 @@ class ADIF(AdifPage):
                 utils.get_corba_session().setHistory(new_history)
                 debug('History set to %s' % new_history)
                 return json_response(new_history)
+            elif args[0] == 'service_actions.js':
+                result = filterforms.get_service_actions_javascript(
+                    cherrypy.session.get("corba_logd"))
+                return result
         return super(ADIF, self).default(*args, **kwd)
 
     def _set_logger_page(self, logger_page_class):

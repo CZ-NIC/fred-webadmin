@@ -30,7 +30,8 @@ import fred_webadmin.utils
 
 from fred_webadmin.corba import ccReg, Registry
 import fred_webadmin.corbarecoder as recoder
-from fred_webadmin.webwidgets.utils import ErrorDict, ValidationError
+from fred_webadmin.webwidgets.utils import (
+    ErrorDict, ValidationError, SortedDict)
 
 PAYMENT_UNASSIGNED = 1
 PAYMENT_REGISTRAR = 2
@@ -75,6 +76,7 @@ class EditForm(Form):
                             '/js/publicrequests.js']
     
     def filter_base_fields(self):
+#        super(EditForm, self).filter_base_fields()
         pass # viz. XXX: poznamky nahore
     
     def set_fields_values(self):
@@ -206,8 +208,6 @@ class CertificationEditForm(EditForm):
                 if field._has_changed(initial_value, data_value):
                     self._changed_data.append(name)
         return self._changed_data
-    
-
 
     def set_fields_values(self):
         super(CertificationEditForm, self).set_fields_values()
@@ -347,6 +347,33 @@ class RegistrarEditForm(EditForm):
         (_("Certifications"), ("certifications_id"), ("certifications"), 
             HideableNestedFieldsetFormSectionLayout),
     )
+    
+    def filter_base_fields(self):
+        """ Filters base fields against user negative permissions, so if 
+            the user has nperm on the field we delete it from base_fields.
+        """
+        if self.nperm_names:
+            user = cherrypy.session.get('user', None)
+            if user is None:
+                self.base_fields = SortedDict({})
+            else:
+                object_name = self.get_object_name()
+                formset_fields = [
+                    self.base_fields['access'],
+                    self.base_fields['zones'],
+                    self.base_fields['groups'],
+                    self.base_fields['certifications']]
+                for field in formset_fields:
+                    if not user.check_nperms(['%s.%s.%s' % (
+                            nperm_name, object_name, field.get_nperm()) for 
+                            nperm_name in self.nperm_names], 'one'):
+                        field.permitted = True
+                    else:
+                        field.permitted = False
+                filtered_base_fields = SortedDict(
+                    [(name, field) for name, field in self.base_fields.items()]
+                )
+                self.base_fields = filtered_base_fields
 
     def fire_actions(self, *args, **kwargs):
         try:

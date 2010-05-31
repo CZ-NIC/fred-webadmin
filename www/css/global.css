@@ -53,7 +53,7 @@ p img, h1 img, h2 img, h3 img, h4 img, td img { vertical-align:middle; }
 .nowrap { white-space:nowrap; }
 
 /* TABLES */
-table.form_table  { border-collapse:collapse; border-color:#ccc; width: 400px;}
+table.form_table  { border-collapse:collapse; border-color:#ccc; width: 350px;}
 .form_table td, .form_table th { font-size:11px; line-height:13px; vertical-align:top; padding:5px; font-family:"Lucida Grande", Verdana, Arial, sans-serif; }
 .form_table th { text-align:left; font-size:12px; font-weight:bold; }
 .form_table thead th, 

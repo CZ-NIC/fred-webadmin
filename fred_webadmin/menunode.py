@@ -140,7 +140,7 @@ registrars_node = MenuNode(
                 nperm_type='one'),
             MenuNode(
                 'registrargroups', _('Groups'), cssc='menu-item', 
-                url=f_urls['group'], nperm='change.group'),
+                url=f_urls['group'], nperm='change.registrargroup'),
             MenuNode(
                 'invoice', _('Invoices'), cssc='menu-item', 
                 url=f_urls['invoice'] + 'allfilters/', 

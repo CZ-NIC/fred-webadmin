@@ -11,7 +11,8 @@ from fred_webadmin.webwidgets.forms.forms import Form
 from fred_webadmin.webwidgets.utils import (
     ErrorList, ValidationError)
 from fred_webadmin.webwidgets.forms.fields import (
-    CharField, ChoiceField, BooleanField, IntegerChoiceField, IntegerField) 
+    CharField, ChoiceField, BooleanField, IntegerChoiceField,
+    LogActionTypeChoiceField, IntegerField) 
 from fred_webadmin.webwidgets.forms.adiffields import (
     DateTimeIntervalField, CompoundFilterField, 
     CorbaEnumChoiceField, DateIntervalField)
@@ -68,6 +69,7 @@ class UnionFilterForm(Form):
                             '/js/interval_fields.js', 
                             '/js/scwLanguages.js',
                             '/js/form_content.js',
+                            '/service_actions.js',
                             '/filter_forms_javascript.js',
                             '/js/check_filter_forms_javascript.js',
                            ]
@@ -359,20 +361,29 @@ class PropertyFilterForm(FilterForm):
 
 
 class LoggerFilterForm(FilterForm):
+    def __init__(self, *args, **kwargs):
+        super(LoggerFilterForm, self).__init__(*args, **kwargs)
+
     def _get_header_title(self):
         return _("Logged Actions")
 
     default_fields_names = ['Service']
 
-    Service = IntegerChoiceField(label=_('Service type'), choices=[
+    Service = IntegerChoiceField(
+        id="logger_service_type_id",
+        label=_('Service type'), choices=[
         (0, u'UNIX Whois'), (1, u'Web Whois'), (2, u'Public Request'), 
-        (3, u'EPP'), (4, u'WebAdmin'), (5, u'Intranet')])
+        (3, u'EPP'), (4, u'WebAdmin'), (5, u'Intranet')],
+        onchange="filter_action_types();")
     SourceIp = CharField(label=_('Source IP'))
     UserName = CharField(label=_('Username'))
     ActionType = IntegerChoiceField(
+        id="logger_action_type_id",
         label=_('Action type'), 
         choices=CorbaLazyRequestIterStruct(
-            'corba_logd', None, 'GetServiceActions', ['id', 'status'], None, 4))
+            'corba_logd', None, 'GetServiceActions', ['id', 'status'], None,
+            4),
+        onfocus="filter_action_types();")
     TimeBegin = DateTimeIntervalField(label=_('Begin time'))
     TimeEnd = DateTimeIntervalField(label=_('End time'))
     RequestPropertyValue = CompoundFilterField(
@@ -530,3 +541,16 @@ def get_filter_forms_javascript(filter_form_classes):
         output += "}\n"
     output += u'allFieldsDict = %s' % (simplejson.dumps(all_fields_dict) + u'\n')
     return output
+
+def get_service_actions_javascript(logd):
+    types = [1,2,4] #logd.GetServiceTypes()
+    js = ""
+    result = {}
+    tmp = []
+    for t in types:
+        actions = logd.GetServiceActions(t)
+        result[t] = [[a.id, a.status] for a in actions]
+        tmp.extend(result[t])
+    result[0] = tmp
+    js = """function get_actions() { var res=%s; return res;}""" % result
+    return js

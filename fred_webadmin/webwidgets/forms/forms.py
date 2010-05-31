@@ -78,18 +78,28 @@ class BaseForm(form):
         self.set_fields_values()
     
     def filter_base_fields(self):
-        "Filters base fields against user negative permissions, so if user has nperm on field we delete it from base_fields"
+        """ Filters base fields against user negative permissions, so if 
+            the user has nperm on the field we delete it from base_fields.
+        """
         if self.nperm_names:
             user = cherrypy.session.get('user', None)
             if user is None:
                 self.base_fields = SortedDict({})
             else:
                 object_name = self.get_object_name()
-                self.base_fields = SortedDict(
-                    [(name, field) for name, field in self.base_fields.items() 
+#                for field in self.base_fields.values():
+#                    if not user.check_nperms(['%s.%s.%s' % (
+#                            nperm_name, object_name, field.get_nperm()) for 
+#                            nperm_name in self.nperm_names], 'one'):
+#                        field.permitted = True
+#                    else:
+#                        field.permitted = False
+                filtered_base_fields = SortedDict(
+                    [(name, field) for name, field in self.base_fields.items()
                      if not user.check_nperms(['%s.%s.%s' % (nperm_name, object_name, field.get_nperm()) for nperm_name in self.nperm_names], 'one')
                     ]
                 )
+                self.base_fields = filtered_base_fields
     
     @classmethod
     def get_object_name(cls):
