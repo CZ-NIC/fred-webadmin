@@ -99,12 +99,14 @@ function show_hide(element_id, button_id, skip_effect) {
         else
             field_elem.style.display = "block";
         btn_elem.innerText = "hide";
+        btn_elem.innerHTML = "hide";
     } else {
         if (use_effect)
             slideUp(field_elem, {duration: 0.45});
         else
             field_elem.style.display = "none";
         btn_elem.innerText = "show";
+        btn_elem.innerHTML = "show";
     }
 }
 

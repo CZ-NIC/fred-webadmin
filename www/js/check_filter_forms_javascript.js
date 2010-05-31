@@ -36,6 +36,7 @@ function filter_action_types() {
         action_select.add(newOption)
         newOption.value = actions[i][0];
         newOption.innerHTML = actions[i][1];
+        newOption.innerText = actions[i][1];
     }
 }
 
