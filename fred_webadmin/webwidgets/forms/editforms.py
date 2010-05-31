@@ -178,13 +178,14 @@ class CertificationEditForm(EditForm):
     def clean(self):
         """ Check that To' date is bigger than current date
         """
+        super(CertificationEditForm, self).clean()
         toDate = self.fields['toDate'].value
         fromDate = datetime.datetime.date(datetime.datetime.now()) 
         if toDate:
             if toDate < fromDate.strftime("%Y-%m-%d"):
                 raise ValidationError(
                     "'To' date must be bigger than current date.")
-        if self.initial:
+        if self.initial and self.initial.get('id', None):
             if (self.initial['toDate'].strftime("%Y-%m-%d") <
                     self.fields['toDate'].value):
                 raise ValidationError(
@@ -215,8 +216,10 @@ class CertificationEditForm(EditForm):
             now = datetime.datetime.date(datetime.datetime.now())
             initToDate = datetime.date(
                 year=now.year+1, month=now.month, day=now.day)
-            self.fields['toDate'].value = initToDate.strftime("%Y-%m-%d")
-            self.fields['fromDate'].value = now.strftime("%Y-%m-%d")
+            if (self.fields['toDate'].is_empty() or
+                self.fields['fromDate'].is_empty()):
+                self.fields['toDate'].value = initToDate.strftime("%Y-%m-%d")
+                self.fields['fromDate'].value = now.strftime("%Y-%m-%d")
             if not self.initial.get('toDate'):
                 self.initial['toDate'] = initToDate
             if not self.initial.get('fromDate'):
