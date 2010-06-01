@@ -87,13 +87,6 @@ class BaseForm(form):
                 self.base_fields = SortedDict({})
             else:
                 object_name = self.get_object_name()
-#                for field in self.base_fields.values():
-#                    if not user.check_nperms(['%s.%s.%s' % (
-#                            nperm_name, object_name, field.get_nperm()) for 
-#                            nperm_name in self.nperm_names], 'one'):
-#                        field.permitted = True
-#                    else:
-#                        field.permitted = False
                 filtered_base_fields = SortedDict(
                     [(name, field) for name, field in self.base_fields.items()
                      if not user.check_nperms(['%s.%s.%s' % (nperm_name, object_name, field.get_nperm()) for nperm_name in self.nperm_names], 'one')

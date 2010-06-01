@@ -16,7 +16,7 @@ from fred_webadmin.webwidgets.utils import ValidationError, ErrorList, isiterabl
 from fred_webadmin.translation import _
 from fred_webadmin.utils import LateBindingProperty
 
-EMPTY_VALUES = (None, '')
+EMPTY_VALUES = (None, '', u'')
 
 class Field(WebWidget):
     creation_counter = 0
@@ -625,6 +625,7 @@ class ChoiceField(Field):
     def clean(self):
         """ Validates that the input is in self.choices.
         """
+#        import ipdb; ipdb.set_trace()
         value = super(ChoiceField, self).clean()
         if self.is_empty():
             value = u''

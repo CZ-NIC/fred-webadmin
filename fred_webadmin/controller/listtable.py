@@ -208,8 +208,6 @@ class ListTableMixin(object):
                 cleaned_filter_data = table.get_filter_data()
                 self._update_key_time_field_offset(
                     cleaned_filter_data, kwd['field_name'], delta)
-                table.set_filter(cleaned_filter_data)
-                table.reload()
                 action = self._process_form(
                     context, action, log_req, cleaned_filter_data, **kwd)
             else:
@@ -246,6 +244,8 @@ class ListTableMixin(object):
             form = UnionFilterForm(
                 cleaned_data, form_class=form_class,
                 data_cleaned=True)
+#            form = UnionFilterForm(
+#                form_class=form_class)
         else:
             form = UnionFilterForm(form_class=form_class)
         context['form'] = form

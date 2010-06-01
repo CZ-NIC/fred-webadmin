@@ -365,6 +365,7 @@ class FilterLoader(object):
 
     @classmethod
     def _set_one_compound_filter(cls, compound, filter_data):
+#        import ipdb; ipdb.set_trace()
         debug('filter_data in set_one_compound_filter: %s' % filter_data)
         for key, [neg, val] in filter_data.items():
             func = getattr(compound, "add%s" % key)

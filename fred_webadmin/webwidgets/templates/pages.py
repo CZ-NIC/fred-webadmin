@@ -205,11 +205,13 @@ class FilterPage(BaseSiteMenu):
             jump_links_info = c.get("display_jump_links")
             self.main.add(div(a(
                 attr(
+                    title="Jumps to the previous time period.",
                     href=(jump_links_info['url'] + 
                         'filter/?jump_prev=1&field_name=%s' %
                         jump_links_info['field_name'])),
                 "prev"), 
                 a(attr(
+                    title="Jumps to the next time period.",
                     href=(jump_links_info['url'] + 
                         'filter/?jump_next=1&field_name=%s' %
                         jump_links_info['field_name'])),
