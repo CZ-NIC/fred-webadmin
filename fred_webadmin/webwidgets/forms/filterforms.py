@@ -12,7 +12,7 @@ from fred_webadmin.webwidgets.utils import (
     ErrorList, ValidationError)
 from fred_webadmin.webwidgets.forms.fields import (
     CharField, ChoiceField, BooleanField, IntegerChoiceField,
-    LogActionTypeChoiceField, IntegerField) 
+    IntegerField) 
 from fred_webadmin.webwidgets.forms.adiffields import (
     DateTimeIntervalField, CompoundFilterField, 
     CorbaEnumChoiceField, DateIntervalField)
@@ -249,6 +249,11 @@ class RegistrarFilterForm(FilterForm):
     City = CharField(label=_('City'))
     CountryCode = CharField(label=_('Country'))
     ZoneFqdn = CharField(label=_('Zone fqdn'))
+    GroupId = ChoiceField(
+        label=_('Group'), 
+        choices=CorbaLazyRequestIterStruct(
+            'Admin', 'getGroupManager', 'getGroups', ['id', 'name'], 
+            lambda groups: [g for g in groups if not g.cancelled]))
 
     
 class ObjectStateFilterForm(FilterForm):
