@@ -8,6 +8,8 @@
     * Added "next/prev." links to filter form page (briefly - if there is a 
     time field with an offset (e.g. last month) displayed, this links jump to 
     the results for the prev./next time period).
+    * Buttons in Dahne detail pages that jump directly to filter forms now only
+    return results for the last month.
     * Known bugs fixed.
     * New unit tests added.
 
