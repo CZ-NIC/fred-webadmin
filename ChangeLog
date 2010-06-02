@@ -5,6 +5,9 @@
     * Added registrar groups editor (creating/deleting/renaming groups).
     * Logging only changes in registrar editation.
     * Added group filter to registrar filter form.
+    * Added "next/prev." links to filter form page (briefly - if there is a 
+    time field with an offset (e.g. last month) displayed, this links jump to 
+    the results for the prev./next time period).
     * Known bugs fixed.
     * New unit tests added.
 
