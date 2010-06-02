@@ -1,3 +1,13 @@
+2010-TODO Tomas Brambora (3.3.5)
+    * Registrar edit form facelift (hideable sections).
+    * Added support for registrar certifications.
+    * Registrars can now be assigned to groups.
+    * Added registrar groups editor (creating/deleting/renaming groups).
+    * Logging only changes in registrar editation.
+    * Added group filter to registrar filter form.
+    * Known bugs fixed.
+    * New unit tests added.
+
 2010-03-19 Jiri Sadek (3.3.4)
 
     * import order fix (CosNaming, omniORB)
