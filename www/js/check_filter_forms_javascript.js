@@ -33,7 +33,7 @@ function filter_action_types() {
     }
     for (var i=0; i<actions.length; ++i) {
         var newOption = document.createElement('option');
-        action_select.add(newOption)
+        action_select.add(newOption, null);
         newOption.value = actions[i][0];
         newOption.innerHTML = actions[i][1];
         newOption.innerText = actions[i][1];
