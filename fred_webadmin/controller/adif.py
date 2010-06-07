@@ -1073,6 +1073,7 @@ class Development(object):
         cherrypy.response.headers["Content-Type"] = "text/plain"
         return output
 
+# TODO(Tom): OpenID auth does not work yet...
 class OpenID(AdifPage):
     def index(self, *args, **kwargs):
         cherrypy.session[SESSION_OPENID_REDIRECT] = True
@@ -1122,6 +1123,9 @@ class Detail41(AdifPage):
 
 
 class GroupEditor(AdifPage):
+    """ Registrar group editor page. Allows creating/deleting/renaming
+        registrar groups.
+    """
     def index(self, *args, **kwargs):
         context = {'main': div()}
         reg_mgr = cherrypy.session['Admin'].getGroupManager()

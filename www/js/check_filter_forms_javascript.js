@@ -18,10 +18,13 @@ function filter_action_types() {
         return;
     }
     var service_select = document.getElementById("logger_service_type_id");
-    var actions;
+    var actions = []
     var show_all = service_select == null || service_select.selectedIndex == 0
     if (show_all) {
-        actions = get_actions()[0];
+        var actions_by_types = get_actions();
+        for (a in actions_by_types) {
+            actions = actions.concat(actions_by_types[a])
+        }
     } else {
         var index = service_select.selectedIndex - 1; // Minus one for the empty type.
         var actions_by_types = get_actions();

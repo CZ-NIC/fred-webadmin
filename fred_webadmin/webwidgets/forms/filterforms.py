@@ -376,9 +376,11 @@ class LoggerFilterForm(FilterForm):
 
     Service = IntegerChoiceField(
         id="logger_service_type_id",
-        label=_('Service type'), choices=[
-        (0, u'UNIX Whois'), (1, u'Web Whois'), (2, u'Public Request'), 
-        (3, u'EPP'), (4, u'WebAdmin'), (5, u'Intranet')],
+        label=_('Service type'), #choices=[
+        choices=CorbaLazyRequestIterStruct(
+            'corba_logd', None, 'GetServices', ['id', 'name'], None),
+#        (0, u'UNIX Whois'), (1, u'Web Whois'), (2, u'Public Request'), 
+#        (3, u'EPP'), (4, u'WebAdmin'), (5, u'Intranet')],
         onchange="filter_action_types();")
     SourceIp = CharField(label=_('Source IP'))
     UserName = CharField(label=_('Username'))
@@ -551,14 +553,11 @@ def get_filter_forms_javascript(filter_form_classes):
     return output
 
 def get_service_actions_javascript(logd):
-    types = [1,2,4] #logd.GetServiceTypes()
+    types = [item.id for item in logd.GetServices()]
     js = ""
     result = {}
-    tmp = []
     for t in types:
         actions = logd.GetServiceActions(t)
         result[t] = [[a.id, a.status] for a in actions]
-        tmp.extend(result[t])
-    result[0] = tmp
     js = """function get_actions() { var res=%s; return res;}""" % result
     return js
