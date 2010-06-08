@@ -153,7 +153,8 @@ class SingleGroupEditForm(EditForm):
 
 class CertificationEditForm(EditForm):
     def __init__(self, initial=None, *args, **kwargs):
-        super(CertificationEditForm, self).__init__(initial=initial, *args, **kwargs)
+        super(CertificationEditForm, self).__init__(
+            initial=initial, *args, **kwargs)
         if initial is not None:
             self['fromDate'].tattr['onfocus'] = "this.blur();"
             self['fromDate'].tattr['onclick'] = "this.blur();"
@@ -173,16 +174,18 @@ class CertificationEditForm(EditForm):
         label=_("Upload file"), type="file", required=False)
 
     def clean(self):
-        """ Check that To' date is bigger than current date
+        """ Check that 'To' date is bigger than current date
         """
         super(CertificationEditForm, self).clean()
         to_date = self.fields['toDate'].value
         from_date = date.today()
         if to_date:
-            if to_date < from_date.strftime("%Y-%m-%d"):
+            if ('toDate' in self.changed_data and 
+                    to_date < from_date.strftime("%Y-%m-%d")):
                 raise ValidationError(
                     "'To' date must be bigger than current date.")
-        if self.initial and self.initial.get('id', None):
+        if (self.initial and self.initial.get('id', None) and
+                'toDate' in self.changed_data):
             if (self.initial['toDate'].strftime("%Y-%m-%d") <
                     self.fields['toDate'].value):
                 raise ValidationError(
@@ -213,8 +216,13 @@ class CertificationEditForm(EditForm):
             now = date.today()
             initToDate = datetime.date(
                 year=now.year+1, month=now.month, day=now.day)
+            # TODO(Tom): Some funny stuff is happening here, take a look at it.
             if (self.fields['toDate'].is_empty() or
                 self.fields['fromDate'].is_empty()):
+                # At least one of the date fields is empty => it's a new
+                # certification form => fill in the defult values. If both
+                # fields are filled, it's just a reloaded form, so keep the
+                # data (don't change them).
                 self.fields['toDate'].value = initToDate.strftime("%Y-%m-%d")
                 self.fields['fromDate'].value = now.strftime("%Y-%m-%d")
             if not self.initial.get('toDate'):
@@ -225,6 +233,7 @@ class CertificationEditForm(EditForm):
         file_id = self.initial['evaluation_file_id']
         file_mgr = cherrypy.session['FileManager']
 
+        # Set the name of the certification evaluation file.
         info = file_mgr.info(file_id)
         self.fields['uploaded_file'].value = info.name
         self.fields['uploaded_file'].initial = info.name
@@ -347,8 +356,7 @@ class RegistrarEditForm(EditForm):
         (_("Zones"), ("zones_id"), ("zones"), HideableNestedFieldsetFormSectionLayout),
         (_("Groups"), ("groups_id"), ("groups"), HideableNestedFieldsetFormSectionLayout),
         (_("Certifications"), ("certifications_id"), ("certifications"), 
-            HideableNestedFieldsetFormSectionLayout),
-    )
+            HideableNestedFieldsetFormSectionLayout))
     
     def filter_base_fields(self):
         """ Filters base fields against user negative permissions, so if 

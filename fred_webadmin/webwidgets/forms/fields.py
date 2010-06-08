@@ -667,33 +667,6 @@ class IntegerChoiceField(ChoiceField):
             return False
         return (initial != data)
 
-class LogActionTypeChoiceField(IntegerChoiceField):
-    def make_content(self):
-        actions_by_service_type = self._generate_choices()
-        self.content = []
-        self.choices = [a for a in actions_by_service_type.values()]
-        # add/remove emtpy choice according 
-        if self.required and self.choices and self.choices[0] == self.empty_choice: # remove empty choice:
-            self.choices.pop(0)
-        elif not self.required and (not self.choices or (self.choices and self.choices[0] != self.empty_choice)): # add empty choice:
-            self.choices.insert(0, self.empty_choice)
-            
-        if self.choices:
-            for value, caption in list(self.choices):
-                if unicode(value) == unicode(self.value):
-                    self.add(option(attr(value=value, selected='selected'), caption))
-                else:
-                    self.add(option(attr(value=value), caption))
-
-    def _generate_choices(self):
-        import cherrypy
-        logger = cherrypy.session.get("corba_logd")
-        types = [1, 2, 4] #logger.GetServiceTypes()
-        actions = {}
-        for t in types:
-            actions[t] = logger.GetServiceActions(t)
-        return actions
-
 
 class NullBooleanField(ChoiceField):
     """
