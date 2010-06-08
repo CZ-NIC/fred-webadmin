@@ -62,7 +62,7 @@ class EditFormLayout(TableFormLayout):
                     ))
 
 
-class RegistrarEditFormLayout(TableFormLayout):
+class RegistrarEditFormLayout(EditFormLayout):
     def __init__(self, form, *content, **kwd):
         super(RegistrarEditFormLayout, self).__init__(form, *content, **kwd)
 

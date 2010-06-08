@@ -642,11 +642,15 @@ class ChoiceField(Field):
 
 
 class IntegerChoiceField(ChoiceField):
+    def __init__(self, validate=True, *args, **kwargs):
+        super(IntegerChoiceField, self).__init__(*args, **kwargs)
+        self.validate = validate
+
     def clean(self):
         """
         Validates that the input is in self.choices.
         """
-        value = super(IntegerChoiceField, self).clean()
+        value = self.value
         if value == '':
             value = 0
         if self.is_empty():
@@ -654,6 +658,8 @@ class IntegerChoiceField(ChoiceField):
         if value == 0:
             return value
         value = int(value)
+        if not self.validate:
+            return value
         valid_values = set([k for k, _ignored_  in self.choices])
         if value not in valid_values:
             raise ValidationError(_(u'Select a valid choice. That choice is not one of the available choices.'))

@@ -202,6 +202,8 @@ class CertificationEditForm(EditForm):
             # for a given field. Right now, that logic is embedded in the render
             # method of each widget.
             for name, field in self.fields.items():
+                # Ignore "uploaded_file" field, because it is supposed to
+                # change (it is set to the name of the uploaded file).
                 if name == "uploaded_file":
                     continue
                 data_value = field.value_from_datadict(self.data)
@@ -353,8 +355,10 @@ class RegistrarEditForm(EditForm):
             HideableSimpleFieldsetFormSectionLayout),
         (_("Authentication"), ("authentications_id"), ("access"), 
             HideableNestedFieldsetFormSectionLayout),
-        (_("Zones"), ("zones_id"), ("zones"), HideableNestedFieldsetFormSectionLayout),
-        (_("Groups"), ("groups_id"), ("groups"), HideableNestedFieldsetFormSectionLayout),
+        (_("Zones"), ("zones_id"), ("zones"), 
+            HideableNestedFieldsetFormSectionLayout),
+        (_("Groups"), ("groups_id"), ("groups"), 
+            HideableNestedFieldsetFormSectionLayout),
         (_("Certifications"), ("certifications_id"), ("certifications"), 
             HideableNestedFieldsetFormSectionLayout))
     

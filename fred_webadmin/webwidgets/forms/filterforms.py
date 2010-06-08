@@ -387,9 +387,11 @@ class LoggerFilterForm(FilterForm):
     ActionType = IntegerChoiceField(
         id="logger_action_type_id",
         label=_('Action type'), 
-        choices=CorbaLazyRequestIterStruct(
-            'corba_logd', None, 'GetServiceActions', ['id', 'status'], None,
-            4),
+        choices=[],
+        validate=False,
+#        CorbaLazyRequestIterStruct(
+#            'corba_logd', None, 'GetServiceActions', ['id', 'status'], None,
+#            4),
         onfocus="filter_action_types();")
     TimeBegin = DateTimeIntervalField(label=_('Begin time'))
     TimeEnd = DateTimeIntervalField(label=_('End time'))

@@ -1168,7 +1168,9 @@ class GroupEditor(AdifPage):
         template_name = "GroupEditorPage"
         template = getattr(sys.modules[self.__module__], template_name, None)
         if template is None:
-            error("TEMPLATE %s IN MODULE %s NOT FOUND, USING DEFAULT: BaseSiteMenu" % (template_name, sys.modules[self.__module__]))
+            error(
+                "TEMPLATE %s IN MODULE %s NOT FOUND, USING DEFAULT: "
+                "BaseSiteMenu" % (template_name, sys.modules[self.__module__]))
             template = BaseSiteMenu 
         if not issubclass(template, WebWidget):
             raise RuntimeError(
