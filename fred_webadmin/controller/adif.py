@@ -618,8 +618,9 @@ class Registrar(AdifPage, ListTableMixin):
 
     def _update_registrar(self, registrar, log_request_name, action_is_edit, *params,**kwd):
         """ Handles the actual updating/creating of a registrar.
-            Note that registrar create only differs from registrar update in
-            that it create has id == 0.
+        
+            Note that we have to "glue" the registrar form data together. This
+            is unfortunate, but it's caused by the design of IDL.
 
             Args:
                 registrar:
@@ -627,12 +628,17 @@ class Registrar(AdifPage, ListTableMixin):
                     created.
                 log_request_name:
                     The type of log request that keeps log of this event.
+                action_is_edit:
+                    True iff we are editing an already existing registrar.
+                    false iff we are creating a new one.
         """
         context = {'main': div()}
         reg_data_form_class = self._get_editform_class()
         reg_data_initial = registrar.__dict__
         initial = reg_data_initial
         if action_is_edit:
+            # Only append groups and certifications when we're editing an
+            # already existing registrar.
             group_mgr = cherrypy.session['Admin'].getGroupManager()
             groups = self._get_groups_for_reg_id(int(kwd.get('id')))
             initial['groups'] = recoder.c2u(groups)

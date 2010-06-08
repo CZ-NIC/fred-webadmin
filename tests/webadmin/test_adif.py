@@ -744,19 +744,22 @@ class TestRegistrarCertifications(BaseADIFTestCase, RegistrarUtils):
         self.session_mock = self.admin_mock.getSession("testSessionString")
         self.corba_mock.StubOutWithMock(self.session_mock, "getDetail")
         self.corba_mock.StubOutWithMock(self.session_mock, "updateRegistrar")
+
         self.cert_mgr_mock = CertificationManagerMock()
         self.admin_mock.getCertificationManager = lambda : self.cert_mgr_mock
-        self.file_mgr_mock = FileManagerMock()
-        self.web_session_mock['FileManager'] = self.file_mgr_mock
-
-    def test_add_certification(self):
         self.corba_mock.StubOutWithMock(
             self.cert_mgr_mock, "getCertificationsByRegistrar")
         self.corba_mock.StubOutWithMock(
             self.cert_mgr_mock, "createCertification")
+
+        self.file_mgr_mock = FileManagerMock()
+        self.web_session_mock['FileManager'] = self.file_mgr_mock
         self.corba_mock.StubOutWithMock(
             self.file_mgr_mock, "save")
 
+    def test_add_certification(self):
+        """ Correctly configured certification is added.
+        """
         # Show the edit form.
         self.session_mock.getDetail(
             ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
@@ -802,6 +805,35 @@ class TestRegistrarCertifications(BaseADIFTestCase, RegistrarUtils):
 
         self.corba_mock.VerifyAll()
 
+    def test_add_certification_no_file(self):
+        """ Certification is not added when no file has been uploaded.
+        """
+        # Show the edit form.
+        self.session_mock.getDetail(
+            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
+        self.cert_mgr_mock.getCertificationsByRegistrar(42).AndReturn([])
+
+        # Process form after submitting.
+        self.session_mock.getDetail(
+            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
+        self.cert_mgr_mock.getCertificationsByRegistrar(42).AndReturn([])
+        self.session_mock.updateRegistrar(
+            mox.IsA(Registry.Registrar.Detail)).AndReturn(42)
+
+        self.corba_mock.ReplayAll()
+
+        twill.commands.go("http://localhost:8080/registrar/edit/?id=42")
+        twill.commands.showforms()
+        twill.commands.fv(2, "certifications-0-fromDate", "2010-06-01")
+        twill.commands.fv(2, "certifications-0-toDate", "2011-06-01")
+        twill.commands.fv(2, "certifications-0-score", "2")
+        twill.commands.submit()
+
+        twill.commands.code(200)
+        twill.commands.url("http://localhost:8080/registrar/edit/\?id=42")
+
+        self.corba_mock.VerifyAll()
+
     class DateMock(object):
             """ Mock class to replace datetime.date.today()
                 (we do not want it to return the real current date).
@@ -811,14 +843,10 @@ class TestRegistrarCertifications(BaseADIFTestCase, RegistrarUtils):
                 return datetime.date(2008, 1, 1)
 
     def test_shorten_certification(self):
-        self.corba_mock.StubOutWithMock(
-            self.cert_mgr_mock, "getCertificationsByRegistrar")
-        self.corba_mock.StubOutWithMock(
-            self.cert_mgr_mock, "createCertification")
+        """ It is possible to shorten the certification.
+        """
         self.corba_mock.StubOutWithMock(
             self.cert_mgr_mock, "shortenCertification")
-        self.corba_mock.StubOutWithMock(
-            self.file_mgr_mock, "save")
         self.corba_mock.StubOutWithMock(
             self.file_mgr_mock, "info")
 

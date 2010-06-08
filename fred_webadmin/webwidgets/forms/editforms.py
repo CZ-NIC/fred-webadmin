@@ -2,37 +2,30 @@
 # -*- coding: utf-8 -*-
 import cherrypy
 from logging import debug, error
-import base64
-import binascii
 
-from fred_webadmin import config
-
-from forms import Form
+from fred_webadmin.webwidgets.forms.forms import Form
 from fields import *
-from adiffields import *
-from formsets import BaseFormSet
+from fred_webadmin.webwidgets.forms.adiffields import *
+from fred_webadmin.webwidgets.forms.formsets import BaseFormSet
 from datetime import date
 
 import fred_webadmin.controller.adiferrors as adiferrors
 
 from fred_webadmin.translation import _
 from fred_webadmin.corbalazy import CorbaLazyRequest, CorbaLazyRequestIterStruct
-from editformlayouts import (
+from fred_webadmin.webwidgets.forms.editformlayouts import (
     EditFormLayout, RegistrarEditFormLayout)
-from formlayouts import (
-    NestedFieldsetFormSectionLayout, HideableNestedFieldsetFormSectionLayout,
-    HideableSimpleFieldsetFormSectionLayout,
-    SimpleFieldsetFormSectionLayout, DivFormSectionLayout)
+from fred_webadmin.webwidgets.forms.formlayouts import (
+    HideableNestedFieldsetFormSectionLayout,
+    HideableSimpleFieldsetFormSectionLayout)
 from fred_webadmin.webwidgets.forms.formsetlayouts import DivFormSetLayout
 
-from fred_webadmin.utils import get_current_url
-import fred_webadmin.mappings as mappings
 import fred_webadmin.utils
 
 from fred_webadmin.corba import ccReg, Registry
 import fred_webadmin.corbarecoder as recoder
 from fred_webadmin.webwidgets.utils import (
-    ErrorDict, ValidationError, SortedDict)
+    ValidationError, SortedDict)
 
 PAYMENT_UNASSIGNED = 1
 PAYMENT_REGISTRAR = 2
@@ -41,6 +34,7 @@ PAYMENT_ACCOUNTS = 4
 PAYMENT_ACADEMIA = 5
 PAYMENT_OTHER = 6
 
+# Mapping between id and user description of invoice types.
 payment_map = dict([(PAYMENT_UNASSIGNED, u'Not assigned'),
 (PAYMENT_REGISTRAR, u'From/to registrar'),
 (PAYMENT_BANK, u"From/to bank"), 
@@ -50,6 +44,8 @@ payment_map = dict([(PAYMENT_UNASSIGNED, u'Not assigned'),
 
 
 class UpdateFailedError(adiferrors.AdifError):
+    """ To be used in fire_actions when the action cannot be carried out.
+    """
     pass
 
 
@@ -116,14 +112,14 @@ class ZoneEditForm(EditForm):
     def clean(self):
         """ Check that 'To' date is bigger than 'From' date. 
         """
-        toDate = self.fields['toDate'].value
-        fromDate = self.fields['fromDate'].value
-        if fromDate and toDate:
-            if toDate < fromDate:
+        to_date = self.fields['toDate'].value
+        from_date = self.fields['fromDate'].value
+        if from_date and to_date:
+            if to_date < from_date:
                 raise ValidationError(
                     "'To' date must be bigger than 'From' date.")
         if 'fromDate' in self.changed_data:
-            if fromDate < datetime.date.today().isoformat():
+            if from_date < datetime.date.today().isoformat():
                 raise ValidationError("'From' date must be in future.")
         return self.cleaned_data
 
@@ -159,9 +155,9 @@ class CertificationEditForm(EditForm):
     def __init__(self, initial=None, *args, **kwargs):
         super(CertificationEditForm, self).__init__(initial=initial, *args, **kwargs)
         if initial is not None:
-           self['fromDate'].tattr['onfocus'] = "this.blur();"
-           self['fromDate'].tattr['onclick'] = "this.blur();"
-           self['fromDate'].tattr['style'] = "background:#eee none; color:#222; font-style: italic"
+            self['fromDate'].tattr['onfocus'] = "this.blur();"
+            self['fromDate'].tattr['onclick'] = "this.blur();"
+            self['fromDate'].tattr['style'] = "background:#eee none; color:#222; font-style: italic"
 
     id = HiddenIntegerField()
     evaluation_file_id = HiddenIntegerField()
@@ -180,10 +176,10 @@ class CertificationEditForm(EditForm):
         """ Check that To' date is bigger than current date
         """
         super(CertificationEditForm, self).clean()
-        toDate = self.fields['toDate'].value
-        fromDate = date.today()
-        if toDate:
-            if toDate < fromDate.strftime("%Y-%m-%d"):
+        to_date = self.fields['toDate'].value
+        from_date = date.today()
+        if to_date:
+            if to_date < from_date.strftime("%Y-%m-%d"):
                 raise ValidationError(
                     "'To' date must be bigger than current date.")
         if self.initial and self.initial.get('id', None):
@@ -388,18 +384,20 @@ class RegistrarEditForm(EditForm):
             raise RuntimeError(
                 "RegistrarDataEditForm: Failed to fetch "
                 "updated registrar from kwargs.")
+        session = fred_webadmin.utils.get_corba_session()
         try:
-            reg_id = fred_webadmin.utils.get_corba_session().updateRegistrar(reg)
+            reg_id = session.updateRegistrar(reg)
         except ccReg.Admin.UpdateFailed, e:
             raise UpdateFailedError(
                 "Updating registrar failed. Perhaps you tried to "
                 "create a registrar with an already used handle?")
         # Set created/updated registrar id to result (it is used in ADIF
-        # registrar page).
+        # registrar page and other fire_action methods).
         kwargs["result"]['reg_id'] = reg_id
         # Fire actions for groups.
         self.fields["groups"].fire_actions(reg_id=reg_id, *args, **kwargs)
-        self.fields["certifications"].fire_actions(reg_id=reg_id, *args, **kwargs)
+        self.fields["certifications"].fire_actions(
+            reg_id=reg_id, *args, **kwargs)
    
 
 class BankStatementPairingEditForm(EditForm):
