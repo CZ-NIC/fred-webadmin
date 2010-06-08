@@ -62,9 +62,21 @@ class CertificationManagerMock(object):
         #[Registry.Registrar.Certification.CertificationData(
         #    1, ccReg.DateType(1, 1, 2008), ccReg.DateType(1, 1, 2010), 2, 17)]
 
+    def createCertification(self, reg_id, from_date, to_date, score, file_id):
+        return 17
+
+    def updateCertification(self, crt_id, score, file_id):
+        pass
+
+    def shortenCertification(self, crt_id, to_date):
+        raise NotImplementedError("This has to be stubbed out!")
+
 
 class FileManagerMock(object):
     def info(self, file_id):
+        raise NotImplementedError("This has to be stubbed out!")
+
+    def save(self, name, mimetype, filetype):
         raise NotImplementedError("This has to be stubbed out!")
 
 
@@ -629,9 +641,6 @@ class TestRegistrarGroups(BaseADIFTestCase, RegistrarUtils):
         self.corba_mock.StubOutWithMock(self.session_mock, "updateRegistrar")
         self.group_mgr_mock = GroupManagerMock()
         self.admin_mock.getGroupManager = lambda : self.group_mgr_mock
-        self.file_mgr = FileManagerMock()
-        self.file_mgr.info
-        self.web_session_mock['FileManager'] = self.file_mgr
 
 
     def test_add_registrar_to_group(self):
@@ -678,6 +687,195 @@ class TestRegistrarGroups(BaseADIFTestCase, RegistrarUtils):
 
         twill.commands.code(200)
         twill.commands.find("test_group_1")
+
+        self.corba_mock.VerifyAll()
+
+    def test_remove_registrar_from_group(self):
+        self.corba_mock.StubOutWithMock(
+            self.group_mgr_mock, "getMembershipsByRegistar")
+        self.corba_mock.StubOutWithMock(
+            self.group_mgr_mock, "addRegistrarToGroup")
+
+        # Prepare the groups.
+        self.group_mgr_mock.getGroups = lambda : (
+            [Registry.Registrar.Group.GroupData(
+                1, "test_group_1", ccReg.DateType(0, 0, 0)),
+            Registry.Registrar.Group.GroupData(
+                3, "test_group_3", ccReg.DateType(20, 10, 2009)),
+            Registry.Registrar.Group.GroupData(
+                2, "test_group_2", ccReg.DateType(0, 0, 0))])
+
+        # Show the edit form.
+        self.session_mock.getDetail(
+            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
+        self.group_mgr_mock.getMembershipsByRegistar(42).AndReturn([Registry.Registrar.Group.MembershipByRegistrar(1, 1,
+            ccReg.DateType(1, 1, 2008), ccReg.DateType(0, 0, 0))])
+
+        # Process form after submitting.
+        self.session_mock.getDetail(
+            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
+        self.group_mgr_mock.getMembershipsByRegistar(42).AndReturn([])
+        self.session_mock.updateRegistrar(
+            mox.IsA(Registry.Registrar.Detail)).AndReturn(42)
+        self.group_mgr_mock.addRegistrarToGroup(42, 1)
+
+        # Jump to detail after updating.
+        self.session_mock.getDetail(
+            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
+        self.group_mgr_mock.getMembershipsByRegistar(42).AndReturn([])
+
+        self.corba_mock.ReplayAll()
+
+        twill.commands.go("http://localhost:8080/registrar/edit/?id=42")
+        twill.commands.showforms()
+        twill.commands.fv(2, "groups-0-DELETE", "1")
+        twill.commands.submit()
+
+        twill.commands.code(200)
+        twill.commands.notfind("test_group_1")
+
+        self.corba_mock.VerifyAll()
+
+
+class TestRegistrarCertifications(BaseADIFTestCase, RegistrarUtils):
+    def setUp(self):
+        BaseADIFTestCase.setUp(self)
+        self.admin_mock.createSession("testuser")
+        self.session_mock = self.admin_mock.getSession("testSessionString")
+        self.corba_mock.StubOutWithMock(self.session_mock, "getDetail")
+        self.corba_mock.StubOutWithMock(self.session_mock, "updateRegistrar")
+        self.cert_mgr_mock = CertificationManagerMock()
+        self.admin_mock.getCertificationManager = lambda : self.cert_mgr_mock
+        self.file_mgr_mock = FileManagerMock()
+        self.web_session_mock['FileManager'] = self.file_mgr_mock
+
+    def test_add_certification(self):
+        self.corba_mock.StubOutWithMock(
+            self.cert_mgr_mock, "getCertificationsByRegistrar")
+        self.corba_mock.StubOutWithMock(
+            self.cert_mgr_mock, "createCertification")
+        self.corba_mock.StubOutWithMock(
+            self.file_mgr_mock, "save")
+
+        # Show the edit form.
+        self.session_mock.getDetail(
+            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
+        self.cert_mgr_mock.getCertificationsByRegistrar(42).AndReturn([])
+
+        # Process form after submitting.
+        self.session_mock.getDetail(
+            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
+        self.cert_mgr_mock.getCertificationsByRegistrar(42).AndReturn([])
+        self.session_mock.updateRegistrar(
+            mox.IsA(Registry.Registrar.Detail)).AndReturn(42)
+        file_upload_mock = self.corba_mock.CreateMockAnything()
+        self.file_mgr_mock.save(
+            "./tests/webadmin/foofile.bar", "application/octet-stream",
+            6).AndReturn(file_upload_mock)
+        file_upload_mock.finalize_upload().AndReturn(17)
+        self.cert_mgr_mock.createCertification(
+            42, mox.IsA(ccReg.DateType), mox.IsA(ccReg.DateType), 2, 17)
+
+        # Jump to detail after updating.
+        self.session_mock.getDetail(
+            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
+        self.cert_mgr_mock.getCertificationsByRegistrar(42).AndReturn(
+            [Registry.Registrar.Certification.CertificationData(
+                1, ccReg.DateType(1, 1, 2008), 
+                ccReg.DateType(1, 1, 2010), 2, 17)])
+
+        self.corba_mock.ReplayAll()
+
+        twill.commands.go("http://localhost:8080/registrar/edit/?id=42")
+        twill.commands.showforms()
+        twill.commands.fv(2, "certifications-0-fromDate", "2010-06-01")
+        twill.commands.fv(2, "certifications-0-toDate", "2011-06-01")
+        twill.commands.fv(2, "certifications-0-score", "2")
+        twill.commands.formfile(2, "certifications-0-evaluation_file", "./tests/webadmin/foofile.bar")
+        twill.commands.submit()
+
+        twill.commands.code(200)
+        twill.commands.url("http://localhost:8080/registrar/detail/\?id=42")
+        twill.commands.showforms()
+        twill.commands.find(
+            '''<a href="/file/detail/\?id=17"''')
+
+        self.corba_mock.VerifyAll()
+
+    class DateMock(object):
+            """ Mock class to replace datetime.date.today()
+                (we do not want it to return the real current date).
+            """
+            @classmethod
+            def today(cls):
+                return datetime.date(2008, 1, 1)
+
+    def test_shorten_certification(self):
+        self.corba_mock.StubOutWithMock(
+            self.cert_mgr_mock, "getCertificationsByRegistrar")
+        self.corba_mock.StubOutWithMock(
+            self.cert_mgr_mock, "createCertification")
+        self.corba_mock.StubOutWithMock(
+            self.cert_mgr_mock, "shortenCertification")
+        self.corba_mock.StubOutWithMock(
+            self.file_mgr_mock, "save")
+        self.corba_mock.StubOutWithMock(
+            self.file_mgr_mock, "info")
+
+        date_mock = TestRegistrarCertifications.DateMock
+        self.monkey_patch(
+            fred_webadmin.webwidgets.forms.editforms, 
+            'date', date_mock)
+
+        # Show the edit form.
+        self.session_mock.getDetail(
+            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
+        self.cert_mgr_mock.getCertificationsByRegistrar(42).AndReturn(
+            [Registry.Registrar.Certification.CertificationData(
+                1, ccReg.DateType(1, 1, 2008), 
+                ccReg.DateType(1, 1, 2010), 2, 17)])
+
+        # Process form after submitting.
+        self.file_mgr_mock.info(17).AndReturn(ccReg.FileInfo(1, "testfile",
+            "testpath", "testmime", 0, ccReg.DateType(10, 10, 2010), 100))
+        self.file_mgr_mock.info(17).AndReturn(ccReg.FileInfo(1, "testfile",
+            "testpath", "testmime", 0, ccReg.DateType(10, 10, 2010), 100))
+        self.session_mock.getDetail(
+           ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
+        self.cert_mgr_mock.getCertificationsByRegistrar(42).AndReturn(
+            [Registry.Registrar.Certification.CertificationData(
+                1, ccReg.DateType(1, 1, 2008), 
+                ccReg.DateType(1, 1, 2010), 2, 17)])
+        self.file_mgr_mock.info(17).AndReturn(ccReg.FileInfo(1, "testfile",
+            "testpath", "testmime", 0, ccReg.DateType(10, 10, 2010), 100))
+    
+        self.session_mock.updateRegistrar(
+            mox.IsA(Registry.Registrar.Detail)).AndReturn(42)
+        self.cert_mgr_mock.shortenCertification(1, mox.IsA(ccReg.DateType))
+
+        # Jump to detail after updating (show shortened toDate).
+        self.session_mock.getDetail(
+            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
+        self.cert_mgr_mock.getCertificationsByRegistrar(42).AndReturn(
+            [Registry.Registrar.Certification.CertificationData(
+                1, ccReg.DateType(1, 1, 2008), 
+                ccReg.DateType(12, 12, 2009), 2, 17)])
+        self.file_mgr_mock.info(17).AndReturn(ccReg.FileInfo(1, "testfile",
+            "testpath", "testmime", 0, ccReg.DateType(10, 10, 2010), 100))
+
+        self.corba_mock.ReplayAll()
+
+        twill.commands.go("http://localhost:8080/registrar/edit/?id=42")
+        twill.commands.showforms()
+        twill.commands.fv(2, "certifications-0-toDate", "2009-12-12")
+        twill.commands.submit()
+
+        twill.commands.code(200)
+        twill.commands.url("http://localhost:8080/registrar/detail/\?id=42")
+        twill.commands.showforms()
+        twill.commands.find(
+            '''<a href="/file/detail/\?id=17"''')
+        twill.commands.find("2009-12-12")
 
         self.corba_mock.VerifyAll()
 

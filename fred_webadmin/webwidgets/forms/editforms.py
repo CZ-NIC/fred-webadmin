@@ -11,6 +11,7 @@ from forms import Form
 from fields import *
 from adiffields import *
 from formsets import BaseFormSet
+from datetime import date
 
 import fred_webadmin.controller.adiferrors as adiferrors
 
@@ -180,7 +181,7 @@ class CertificationEditForm(EditForm):
         """
         super(CertificationEditForm, self).clean()
         toDate = self.fields['toDate'].value
-        fromDate = datetime.datetime.date(datetime.datetime.now()) 
+        fromDate = date.today()
         if toDate:
             if toDate < fromDate.strftime("%Y-%m-%d"):
                 raise ValidationError(
@@ -213,7 +214,7 @@ class CertificationEditForm(EditForm):
     def set_fields_values(self):
         super(CertificationEditForm, self).set_fields_values()
         if not self.initial.get("id"):
-            now = datetime.datetime.date(datetime.datetime.now())
+            now = date.today()
             initToDate = datetime.date(
                 year=now.year+1, month=now.month, day=now.day)
             if (self.fields['toDate'].is_empty() or
@@ -238,8 +239,7 @@ class CertificationEditForm(EditForm):
         file_mgr = cherrypy.session['FileManager']
         file_obj = self.cleaned_data['evaluation_file']
         if "evaluation_file" in self.changed_data:
-            # User wants to ppload a new file.
-            #TODO(tom): Type should probably not be 0.
+            # User wants to upload a new file.
             file_upload_obj = file_mgr.save(file_obj.filename, file_obj.content.type, 6)
             chunk = file_obj.content.file.read(2**14)
             while chunk:
