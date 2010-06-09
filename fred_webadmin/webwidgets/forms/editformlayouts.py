@@ -23,38 +23,8 @@ class EditFormLayout(TableFormLayout):
                          ]
         
     def create_layout(self):
-#        form = self.form
-#        for field in form.fields.values():
-#            field.title = field.value
         super(EditFormLayout, self).create_layout()
 
-#        self.add(tbody(tagid('tbody')))
-#        
-#        if form.non_field_errors():
-#            self.tbody.add(tr(td(attr(colspan=self.columns_count), _('Errors:'), form.non_field_errors())))
-#        hidden_fields = []
-#        for field in form.fields.values():
-#            if field.is_hidden:
-#                hidden_fields.append(field)
-#                continue
-#            
-#            label_str = self.get_label_name(field)
-#            
-#            if field.required:
-#                cell_tag = th
-#            else:
-#                cell_tag = td
-#            
-#            errors = form.errors.get(field.name, None)
-#                
-#            self.tbody.add(tr(cell_tag(label(label_str)),
-#                              td(errors, field)
-#                             )
-#                          )
-#        
-#        self.tbody.add(self.get_submit_row(hidden_fields))
-    
-    
     def get_submit_row(self, hidden_fields=None):
         return tr(td(attr(colspan=self.columns_count, cssc='center'), 
                      hidden_fields, 
@@ -87,24 +57,4 @@ class RegistrarEditFormLayout(FormLayout):
     def get_submit_row(self):
         return div(attr(cssc='center'), 
             input(attr(type=u'submit', value=u'Save', name=u'submit')))
-
-
-class RegistrarSubformLayout(RegistrarEditFormLayout):
-    def create_layout(self):
-        form = self.form
-
-        if form.non_field_errors():
-            self.add(div(_('Errors:'), form.non_field_errors()))
-        hidden_fields = []
-
-        for field in form.fields.values():
-            self.add(div(field))
-
-        self.add(hidden_fields)
-        if not form.is_nested:
-            self.add(self.get_submit_row())
-
-
-
-
 

@@ -14,7 +14,7 @@ import fred_webadmin.controller.adiferrors as adiferrors
 from fred_webadmin.translation import _
 from fred_webadmin.corbalazy import CorbaLazyRequest, CorbaLazyRequestIterStruct
 from fred_webadmin.webwidgets.forms.editformlayouts import (
-    EditFormLayout, RegistrarEditFormLayout, RegistrarSubformLayout)
+    EditFormLayout, RegistrarEditFormLayout)
 from fred_webadmin.webwidgets.forms.formlayouts import (
     HideableNestedFieldsetFormSectionLayout,
     HideableSimpleFieldsetFormSectionLayout,
