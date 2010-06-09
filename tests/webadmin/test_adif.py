@@ -185,6 +185,9 @@ class GroupManagerMock(object):
 
     def addRegistrarToGroup(self, reg_id, group_id):
         raise NotImplementedError("This has to be stubbed out!")
+        
+    def removeRegistrarFromGroup(self, reg_id, group_id):
+        raise NotImplementedError("This has to be stubbed out!")
 
 
 class TestADIF(BaseADIFTestCase):
@@ -210,7 +213,7 @@ class TestADIF(BaseADIFTestCase):
         twill.commands.url("http://localhost:8080/summary/")
         twill.commands.code(200)
 
-    def ignoretest_login_unicode_username(self):
+    '''def ignoretest_login_unicode_username(self):
         """ Login passes when using valid corba authentication.
             THIS IS BROKEN, probably because of strange way 
             mechanize (and twill that uses it) handles unicode strings.
@@ -229,7 +232,7 @@ class TestADIF(BaseADIFTestCase):
         twill.commands.fv(1, "corba_server", "0")
         twill.commands.submit()
         twill.commands.url("http://localhost:8080/summary/")
-        twill.commands.code(200)
+        twill.commands.code(200)'''
 
 
     def test_login_invalid_corba_auth(self):
@@ -441,23 +444,14 @@ class TestRegistrar(BaseADIFTestCase, RegistrarUtils):
     def test_edit_incorrect_zone_date_arg(self):
         """ Registrar editation does not pass when invalid zone date 
             provided. """
-        self.corba_mock.StubOutWithMock(self.file_mgr_mock, "info")
-        self.file_mgr_mock.info(17).AndReturn(ccReg.FileInfo(1, "testfile",
-            "testpath", "testmime", 0, ccReg.DateType(10, 10, 2010), 100))
         self.session_mock.getDetail(
             ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
-        self.file_mgr_mock.info(17).AndReturn(ccReg.FileInfo(1, "testfile",
-            "testpath", "testmime", 0, ccReg.DateType(10, 10, 2010), 100))
         self.session_mock.getDetail(
             ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
-        self.file_mgr_mock.info(17).AndReturn(ccReg.FileInfo(1, "testfile",
-            "testpath", "testmime", 0, ccReg.DateType(10, 10, 2010), 100))
         self.session_mock.updateRegistrar(
             mox.IsA(Registry.Registrar.Detail)).AndReturn(42)
         self.session_mock.getDetail(
             ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
-        self.file_mgr_mock.info(17).AndReturn(ccReg.FileInfo(1, "testfile",
-            "testpath", "testmime", 0, ccReg.DateType(10, 10, 2010), 100))
 
         self.corba_mock.ReplayAll()
 
@@ -669,6 +663,7 @@ class TestRegistrarGroups(BaseADIFTestCase, RegistrarUtils):
         self.group_mgr_mock.getMembershipsByRegistar(42).AndReturn([])
         self.session_mock.updateRegistrar(
             mox.IsA(Registry.Registrar.Detail)).AndReturn(42)
+        self.group_mgr_mock.getMembershipsByRegistar(42).AndReturn([])
         self.group_mgr_mock.addRegistrarToGroup(42, 1)
 
         # Jump to detail after updating.
@@ -694,7 +689,7 @@ class TestRegistrarGroups(BaseADIFTestCase, RegistrarUtils):
         self.corba_mock.StubOutWithMock(
             self.group_mgr_mock, "getMembershipsByRegistar")
         self.corba_mock.StubOutWithMock(
-            self.group_mgr_mock, "addRegistrarToGroup")
+            self.group_mgr_mock, "removeRegistrarFromGroup")
 
         # Prepare the groups.
         self.group_mgr_mock.getGroups = lambda : (
@@ -708,16 +703,19 @@ class TestRegistrarGroups(BaseADIFTestCase, RegistrarUtils):
         # Show the edit form.
         self.session_mock.getDetail(
             ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
-        self.group_mgr_mock.getMembershipsByRegistar(42).AndReturn([Registry.Registrar.Group.MembershipByRegistrar(1, 1,
-            ccReg.DateType(1, 1, 2008), ccReg.DateType(0, 0, 0))])
+        self.group_mgr_mock.getMembershipsByRegistar(42).AndReturn(
+            [Registry.Registrar.Group.MembershipByRegistrar(
+                1, 1, ccReg.DateType(1, 1, 2008), ccReg.DateType(0, 0, 0))])
 
         # Process form after submitting.
         self.session_mock.getDetail(
             ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
-        self.group_mgr_mock.getMembershipsByRegistar(42).AndReturn([])
+        self.group_mgr_mock.getMembershipsByRegistar(42).AndReturn(
+            [Registry.Registrar.Group.MembershipByRegistrar(
+                1, 1, ccReg.DateType(1, 1, 2008), ccReg.DateType(0, 0, 0))])
         self.session_mock.updateRegistrar(
             mox.IsA(Registry.Registrar.Detail)).AndReturn(42)
-        self.group_mgr_mock.addRegistrarToGroup(42, 1)
+        self.group_mgr_mock.removeRegistrarFromGroup(42, 1)
 
         # Jump to detail after updating.
         self.session_mock.getDetail(
