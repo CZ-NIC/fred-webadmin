@@ -101,7 +101,7 @@ function show_hide(element_id, button_id, skip_effect) {
         if (use_effect)
             slideDown(field_elem, {duration: 0.45});
         else
-            field_elem.style.display = "block";
+            field_elem.style.display = "table";
         btn_elem.innerText = "hide";
         btn_elem.innerHTML = "hide";
         ids.push(element_id);

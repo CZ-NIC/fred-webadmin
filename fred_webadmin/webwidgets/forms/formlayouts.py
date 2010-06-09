@@ -129,6 +129,7 @@ class DivFormSectionLayout(NestedFieldsetFormSectionLayout):
         super(NestedFieldsetFormSectionLayout, self).__init__(*content, **kwd)   
         self.tag = u'div'
         self.cssc = "test"
+        self.style = "width: 300px;"
         self.form = form
         self.section_spec = section_spec
         self.create_layout()

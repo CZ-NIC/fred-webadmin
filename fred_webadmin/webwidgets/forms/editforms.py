@@ -14,10 +14,11 @@ import fred_webadmin.controller.adiferrors as adiferrors
 from fred_webadmin.translation import _
 from fred_webadmin.corbalazy import CorbaLazyRequest, CorbaLazyRequestIterStruct
 from fred_webadmin.webwidgets.forms.editformlayouts import (
-    EditFormLayout, RegistrarEditFormLayout)
+    EditFormLayout, RegistrarEditFormLayout, RegistrarSubformLayout)
 from fred_webadmin.webwidgets.forms.formlayouts import (
     HideableNestedFieldsetFormSectionLayout,
-    HideableSimpleFieldsetFormSectionLayout)
+    HideableSimpleFieldsetFormSectionLayout,
+    SimpleFieldsetFormSectionLayout, TableFormLayout)
 from fred_webadmin.webwidgets.forms.formsetlayouts import DivFormSetLayout
 
 import fred_webadmin.utils
@@ -103,6 +104,10 @@ class AccessEditForm(EditForm):
 
 
 class ZoneEditForm(EditForm):
+    def __init__(self, *args, **kwargs):
+        super(ZoneEditForm, self).__init__(
+            layout_class=TableFormLayout, *args, **kwargs) 
+
     id = HiddenIntegerField(initial=0)
 
     name = CharField(label=_('Name'))
@@ -132,7 +137,6 @@ class SingleGroupEditForm(EditForm):
             lambda groups: [g for g in groups if not g.cancelled]),
         required=False)
 
-
     def fire_actions(self, reg_id, *args, **kwargs): 
         mgr = cherrypy.session['Admin'].getGroupManager()
         group_id = self.fields['id'].value
@@ -142,7 +146,17 @@ class SingleGroupEditForm(EditForm):
             group_id = int(group_id)
         try:
             if "id" in self.changed_data:
-                mgr.addRegistrarToGroup(reg_id, group_id)
+                old_group_id = self.initial.get('id', None)
+                if old_group_id:
+                    # We're chaning an already existing groups membership.
+                    mgr.removeRegistrarFromGroup(reg_id, old_group_id)
+                memberships = mgr.getMembershipsByRegistar(reg_id) 
+                is_member = any(
+                    item.group_id == group_id and not \
+                    recoder.corba_to_date(item.toDate) for item in memberships)
+                if not is_member:
+                    # Add the registrar to a new group.
+                    mgr.addRegistrarToGroup(reg_id, group_id)
             elif 'DELETE' in self.changed_data:
                 mgr.removeRegistrarFromGroup(reg_id, group_id)
         except Registry.Registrar.InvalidValue, e:

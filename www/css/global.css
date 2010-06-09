@@ -68,6 +68,8 @@ table.form_table  { border-collapse:collapse; border-color:#ccc; width: 350px;}
 .form_table .row1 { background:#EDF3FE; }
 .form_table .row2 { background:white; }
 
+div.editform {width: 450px; margin-bottom: 1em;}
+
 /* Edit form fieldset layout */
 fieldset.form_fieldset { padding-top: 5px; margin-top: 10px; margin-bottom: 10px; }
 

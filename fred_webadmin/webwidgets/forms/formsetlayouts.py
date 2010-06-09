@@ -16,7 +16,8 @@ class TableFormSetLayout(FormSetLayout):
         super(TableFormSetLayout, self).__init__(*content, **kwd)
 
         self.tag = u'table'
-        self.cssc = 'form_table formset_table'
+        self.cssc = 'form_table' # formset_table'
+        self.style = "width: 70%;"
         self.formset = formset
         self.create_layout()
         
