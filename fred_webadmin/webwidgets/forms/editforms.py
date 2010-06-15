@@ -227,6 +227,11 @@ class CertificationEditForm(EditForm):
         return self._changed_data
 
     def set_fields_values(self):
+        """ This is called during the form's __init__ method execution.
+            Therefore, if we submit the form, this method is called when the
+            form is reloaded (even if the form is not displayed and we jump
+            straight to the registrar detail).
+        """
         super(CertificationEditForm, self).set_fields_values()
         if not self.initial.get("id"):
             now = date.today()
@@ -237,14 +242,15 @@ class CertificationEditForm(EditForm):
                 self.fields['fromDate'].is_empty()):
                 # At least one of the date fields is empty => it's a new
                 # certification form => fill in the defult values. If both
-                # fields are filled, it's just a reloaded form, so keep the
-                # data (don't change them).
+                # fields are filled, it's just a reload of a submitte form, 
+                # so keep the data (don't change them).
                 self.fields['toDate'].value = initToDate.strftime("%Y-%m-%d")
                 self.fields['fromDate'].value = now.strftime("%Y-%m-%d")
             if not self.initial.get('toDate'):
                 self.initial['toDate'] = initToDate
             if not self.initial.get('fromDate'):
                 self.initial['fromDate'] = now
+            self.initial['score'] = 0
             return
         file_id = self.initial['evaluation_file_id']
         file_mgr = cherrypy.session['FileManager']
