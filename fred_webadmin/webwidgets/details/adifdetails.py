@@ -95,7 +95,7 @@ class RegistrarDetail(Detail):
 
     def add_to_bottom(self):
         if self.data:
-            self.add(FilterPanel([
+            self.add(FilterPanel([[
                 [_('Domains sel.'), 'domain', [{'Registrar.Handle': self.data.get('handle')}]],
                 [_('Domains cr.'), 'domain', [{'CreateRegistrar.Handle': self.data.get('handle')}]],
                 [_('Contact sel.'), 'contact', [{'Registrar.Handle': self.data.get('handle')}]],
@@ -108,7 +108,9 @@ class RegistrarDetail(Detail):
                 [_('Emails'), 'mail', [
                     {'Message': self.data.get('name'),
                     'CreateTime': FILTER_EMAIL_TIME_LIMIT_LAST_MONTH}]],
-            ]))
+                [_('Invoice'), 'invoice', [
+                    {'Registrar.Handle': self.data.get('handle')}]],
+            ]]))
         super(RegistrarDetail, self).add_to_bottom()
 
 class ObjectDetail(Detail):
@@ -162,7 +164,7 @@ class ContactDetail(ObjectDetail):
     
     def add_to_bottom(self):
         if self.data:
-            self.add(FilterPanel([
+            self.add(FilterPanel([[
                 [_('Domains_owner'), 'domain', 
                     [{'Registrant.Handle': self.data.get('handle')}]],
                 [_('Domains_admin'), 'domain', 
@@ -181,7 +183,7 @@ class ContactDetail(ObjectDetail):
                 [_('Emails'), 'mail', 
                     [{'Message': self.data.get('handle'),
                     'CreateTime': FILTER_EMAIL_TIME_LIMIT_LAST_MONTH}]],
-            ]))
+            ]]))
         super(ContactDetail, self).add_to_bottom()
     
 class HostDetail(Detail):
@@ -215,7 +217,7 @@ class NSSetDetail(ObjectDetail):
         
     def add_to_bottom(self):
         if self.data:
-            self.add(FilterPanel([
+            self.add(FilterPanel([[
                 [_('Domains'), 'domain', 
                     [{'NSSet.Handle': self.data.get('handle')}]],
                 [_('Actions'), 'action', 
@@ -224,7 +226,7 @@ class NSSetDetail(ObjectDetail):
                 [_('Emails'), 'mail', 
                     [{'Message': self.data.get('handle'),
                     'CreateTime': FILTER_EMAIL_TIME_LIMIT_LAST_MONTH}]]
-            ]))
+            ]]))
         super(NSSetDetail, self).add_to_bottom()
 
 class DSRecordDetail(Detail):
@@ -279,7 +281,7 @@ class KeySetDetail(ObjectDetail):
     
     def add_to_bottom(self):
         if self.data:
-            self.add(FilterPanel([
+            self.add(FilterPanel([[
                 [_('Domains'), 'domain', 
                     [{'KeySet.Handle': self.data.get('handle')}]],
                 [_('Actions'), 'action', 
@@ -288,7 +290,7 @@ class KeySetDetail(ObjectDetail):
                 [_('Emails'), 'mail', 
                     [{'Message': self.data.get('handle'),
                     'CreateTime': FILTER_EMAIL_TIME_LIMIT_LAST_MONTH}]],
-            ]))
+            ]]))
         super(KeySetDetail, self).add_to_bottom()
 
 class DomainDetail(ObjectDetail):
@@ -337,7 +339,7 @@ class DomainDetail(ObjectDetail):
         HistoryListObjectDField(
                 detail_class=ContactDetail, 
                 display_only=['handle_url', 'organization', 'name', 'email']))
-    
+
     sections = (
         (None, ('handleEPPId', 'authInfo')),
         (_('Dates'), ('createRegistrar', 'updateRegistrar'), DatesSectionLayout),
@@ -354,7 +356,7 @@ class DomainDetail(ObjectDetail):
         if self.data:
             self.media_files.append('/js/publicrequests.js')
             self.add(FilterPanel([
-                [_('Actions'), 'action', 
+                [[_('Actions'), 'action', 
                     [{'RequestHandle': self.data.get('handle'),
                     # This is here to get results for the last month only.
                     'Time': FILTER_ACTION_TIME_LIMIT_LAST_MONTH}]],
@@ -365,7 +367,25 @@ class DomainDetail(ObjectDetail):
                     self.data.get('handle')], 
                 [_('Set InZone Status'), "javascript:setInZoneStatus('%s')" % 
                     (f_urls['domain'] + 'setinzonestatus/?id=%d' % \
-                        self.data.get('id'))],          
+                        self.data.get('id'))]],          
+                [[_('UNIX Whois Actions'), 'logger', 
+                    [{'Service': 0, 'RequestPropertyValue.Name': 'id',
+                        'RequestPropertyValue.Value': self.data.get('handle')}]],
+                [_('Web Whois Actions'), 'logger', 
+                    [{'Service': 1, 'RequestPropertyValue.Name': 'id',
+                        'RequestPropertyValue.Value': self.data.get('handle')}]],
+                [_('Public Request Actions'), 'logger', 
+                    [{'Service': 2, 'RequestPropertyValue.Name': 'id',
+                        'RequestPropertyValue.Value': self.data.get('handle')}]],
+                [_('EPP Actions'), 'logger', 
+                    [{'Service': 3, 'RequestPropertyValue.Name': 'id',
+                        'RequestPropertyValue.Value': self.data.get('handle')}]],
+                [_('Webadmin Actions'), 'logger', 
+                    [{'Service': 4, 'RequestPropertyValue.Name': 'object_id',
+                        'RequestPropertyValue.Value': str(self.data.get('id'))}]],
+                [_('Intranet Actions'), 'logger', 
+                    [{'Service': 5, 'RequestPropertyValue.Name': 'id',
+                        'RequestPropertyValue.Value': self.data.get('handle')}]]]
             ]))
         super(DomainDetail, self).add_to_bottom()
         
@@ -404,7 +424,7 @@ class PublicRequestDetail(Detail):
         if self.data and \
             self.data.get('status') == Registry.PublicRequest.PRS_NEW:
                 self.media_files.append('/js/publicrequests.js')
-                self.add(FilterPanel([
+                self.add(FilterPanel([[
                     [_('Accept_and_send'), 
                         "javascript:processPublicRequest('%s')" % \
                         (f_urls['publicrequest'] + 'resolve/?id=%s' % \
@@ -413,7 +433,7 @@ class PublicRequestDetail(Detail):
                         "javascript:closePublicRequest('%s')" % \
                             (f_urls['publicrequest'] + 'close/?id=%s' % \
                                 self.data.get('id'))],
-                ]))
+                ]]))
         super(PublicRequestDetail, self).add_to_bottom()
     
 class MailDetail(Detail):

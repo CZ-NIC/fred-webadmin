@@ -42,6 +42,7 @@
 .filter_panel {
 	table-layout: fixed;
 	margin-left: 2px;
+        border: medium gray;
 }
 .section_table > tbody > tr > td, .section_table > tbody > tr > th,
 .section_table > thead > tr > td, .section_table > thead > tr > th, 

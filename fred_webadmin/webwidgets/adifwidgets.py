@@ -5,8 +5,11 @@ import sys
 import simplejson
 from logging import debug
 import cherrypy
+from itertools import izip, chain, repeat
 
-from gpyweb.gpyweb import WebWidget, attr, save, ul, li, a, table, tr, th, td, b, form, textarea, input, script
+from gpyweb.gpyweb import (
+    WebWidget, attr, save, ul, li, a, table, tr, th, td, b, form, 
+    textarea, input, script, tagid)
 from fred_webadmin.mappings import f_urls, f_id_name, f_name_filterformname
 from fred_webadmin.translation import _
 from fred_webadmin.itertable import IterTable
@@ -108,7 +111,7 @@ class FilterPanel(table):
         currently displayed object (like admins of domain in domain detail view).
         Button can also be just simple link.
     '''
-    def __init__(self, filters, *content, **kwd):
+    def __init__(self, filters, max_row_size=5, *content, **kwd):
         ''' filters is list of tripplet [button_label, object_name, filters] where filters in linear form. written
             (e.g. [{'domain.registrar.handle'='ahoj', 'handle'=[True, 'ahoj']}] (True is for negation))
             (so if there is negation, then value is list [value, negation], otherwise it is just value)
@@ -116,13 +119,45 @@ class FilterPanel(table):
             [button_label, url]
         '''
         super(FilterPanel, self).__init__(*content, **kwd)
-        self.tag = 'table'
-        
-        filter_count = len(filters)
-        self.add(attr(cssc='filter_panel'),
-                 tr(th(attr(colspan=filter_count), b(_('Options')))),
-                 tr(save(self, 'filter_buttons')))
+        self.tag = 'div'
 
+#        chunks = grouper(max_row_size, filters)
+        first = True
+#        import ipdb; ipdb.set_trace()
+        filter_count = max([len(l) for l in filters])
+
+        for chunk in filters:
+            filter_count = len(chunk)
+            tbl = table()
+            tbl.add(attr(cssc='filter_panel'),
+                 tr(th(
+                    attr(colspan=filter_count), 
+                    b(_('Options')) if first else b())),
+                 tr(save(self, 'filter_buttons')))
+            self._create_links(chunk)
+            self.add(tbl)
+            first = False
+
+        """for button_data in filters:
+            if len(button_data) == 2:
+                button_label, url = button_data
+                self.filter_buttons.add(
+                    td(a(attr(href = url), _(button_label))))
+            elif len(button_data) == 3:
+                button_label, obj_name, filter = button_data
+                self.filter_buttons.add(
+                    td(form(
+                        attr(
+                            action=f_urls[obj_name] + 'filter/', 
+                            method='POST'),
+                        textarea(
+                            attr(
+                                style='display: none', 
+                                name='json_linear_filter'),
+                            simplejson.dumps(filter)),
+                        input(attr(type='submit', value=_(button_label))))))"""
+
+    def _create_links(self, filters):
         for button_data in filters:
             if len(button_data) == 2:
                 button_label, url = button_data
@@ -141,8 +176,7 @@ class FilterPanel(table):
                                 name='json_linear_filter'),
                             simplejson.dumps(filter)),
                         input(attr(type='submit', value=_(button_label))))))
-            
-        
-    
-    
-    
+
+def grouper(n, iterable, padvalue=None):
+    "grouper(3, 'abcdefg', 'x') --> ('a','b','c'), ('d','e','f'), ('g','x','x')"
+    return izip(*[chain(iterable, repeat(padvalue, n-1))]*n)

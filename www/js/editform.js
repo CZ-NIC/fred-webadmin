@@ -7,19 +7,6 @@ function setCleanOrDirty(field, defaultValue, newValue) {
     } else {
         Ext.get(field).parent('tr').dom.style.backgroundColor='#FCC';
     }
-    /*if (field.type == 'checkbox' || field.type == 'radiobox') {
-        if (newValue == defaultValue) {
-            field.style.color = 'black';
-        } else {
-            field.style.color = 'red';
-        }       
-    } else {
-	    if (newValue == defaultValue) {
-	        field.style.backgroundColor = 'white';
-	    } else {
-	        field.style.backgroundColor = 'red';
-	    }
-    }*/
 }
 
 function fieldOnChange(event) {
