@@ -5,13 +5,11 @@
     Logging framework.
 """
 
-import traceback
-import omniORB
-
+from fred_webadmin.corba import ccReg
 import fred_webadmin.corbarecoder as recoder
 import fred_webadmin.logger.dummylogger
-
-from fred_webadmin.corba import ccReg
+import omniORB
+import traceback
 
 __all__ = ["SessionLogger", "LogRequest", 
             "LoggingException", "service_type_webadmin"]

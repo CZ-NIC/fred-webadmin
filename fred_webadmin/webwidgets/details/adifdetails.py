@@ -102,8 +102,12 @@ class RegistrarDetail(Detail):
                 [_('Contact cr.'), 'contact', [{'CreateRegistrar.Handle': self.data.get('handle')}]],
                 [_('NSSet sel.'), 'nsset', [{'Registrar.Handle': self.data.get('handle')}]],
                 [_('NSSet cr.'), 'nsset', [{'CreateRegistrar.Handle': self.data.get('handle')}]],
-                [_('Actions'), 'action', [{'Registrar.Handle': self.data.get('handle')}]],
-                [_('Emails'), 'mail', [{'Message': self.data.get('name')}]],
+                [_('Actions'), 'action', [
+                    {'Registrar.Handle': self.data.get('handle'), 
+                    'Time': FILTER_ACTION_TIME_LIMIT_LAST_MONTH}]],
+                [_('Emails'), 'mail', [
+                    {'Message': self.data.get('name'),
+                    'CreateTime': FILTER_EMAIL_TIME_LIMIT_LAST_MONTH}]],
             ]))
         super(RegistrarDetail, self).add_to_bottom()
 

@@ -619,8 +619,9 @@ class Registrar(AdifPage, ListTableMixin):
     def _update_registrar(self, registrar, log_request_name, action_is_edit, *params,**kwd):
         """ Handles the actual updating/creating of a registrar.
         
-            Note that we have to "glue" the registrar form data together. This
-            is unfortunate, but it's caused by the design of IDL.
+            Note that we have to "glue" the registrar initial form data 
+            together. This is unfortunate, but it's caused by the design 
+            of IDL.
 
             Args:
                 registrar:
@@ -638,7 +639,7 @@ class Registrar(AdifPage, ListTableMixin):
         initial = reg_data_initial
         if action_is_edit:
             # Only append groups and certifications when we're editing an
-            # already existing registrar.
+            # already existing registrar (there are none for a new registrar).
             group_mgr = cherrypy.session['Admin'].getGroupManager()
             groups = self._get_groups_for_reg_id(int(kwd.get('id')))
             initial['groups'] = recoder.c2u(groups)
@@ -652,8 +653,8 @@ class Registrar(AdifPage, ListTableMixin):
                 # "save" (we only care about contacting the server, not about 
                 # user entering the edit page).
                 log_request = cherrypy.session['Logger'].create_request(
-                    cherrypy.request.headers['Remote-Addr'], cherrypy.request.body, 
-                    log_request_name)
+                    cherrypy.request.headers['Remote-Addr'], 
+                    cherrypy.request.body, log_request_name)
                 context = self._process_valid_form(
                     form, registrar, kwd.get('id'), context, log_request)
                 return context
@@ -687,6 +688,10 @@ class Registrar(AdifPage, ListTableMixin):
         return self._render('detail', context)
 
     def _get_groups_for_reg_id(self, reg_id):
+        """ Returns groups that the registrar with reg_id belongs to under the
+            condition that their membership toDate value is not set (i.e., the 
+            membership is active).
+        """
         group_mgr = cherrypy.session['Admin'].getGroupManager()
         all_groups = group_mgr.getGroups()
         memberships = group_mgr.getMembershipsByRegistar(reg_id)
@@ -1012,7 +1017,9 @@ class BankStatement(AdifPage, ListTableMixin):
             return super(BankStatement, self)._template(action)
         template = getattr(sys.modules[self.__module__], template_name, None)
         if template is None:
-            error("TEMPLATE %s IN MODULE %s NOT FOUND, USING DEFAULT: BaseSiteMenu" % (template_name, sys.modules[self.__module__]))
+            error(
+                "TEMPLATE %s IN MODULE %s NOT FOUND, USING DEFAULT: "
+                "BaseSiteMenu" % (template_name, sys.modules[self.__module__]))
             template = BaseSiteMenu 
         if not issubclass(template, WebWidget):
             raise RuntimeError(
