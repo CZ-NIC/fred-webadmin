@@ -1,4 +1,4 @@
-2010-TODO Tomas Brambora (3.3.5)
+2010-06-22 Tomas Brambora (3.4.0)
     * Registrar edit form facelift (hideable sections).
     * Added support for registrar certifications.
     * Registrars can now be assigned to groups.
@@ -12,6 +12,19 @@
     return results for the last month.
     * Known bugs fixed.
     * New unit tests added.
+
+2010-04-07 Tomas Brambora (3.3.6)
+    * Introduced permissions checking (permissions are described using in csv
+      file).
+    * Added an example csv file with user "test" having all the permissions.
+    * Minor bugfixes, mostly related to permissions.
+    * Changes in payment pairing / type assigning.
+    * Bugfixes.
+
+2010-03-23 Tomas Brambora (3.3.5)
+
+    * Changes in payments (an unassigned payment is now recognized by having
+    type == 1, not invoiceId == 0).
 
 2010-03-19 Jiri Sadek (3.3.4)
 
