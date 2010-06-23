@@ -18,7 +18,7 @@ from fred_webadmin.mappings import (
     f_name_id, f_name_editformname, f_urls, f_name_actionfiltername, 
     f_name_actiondetailname, f_name_filterformname)
 import simplejson
-from fred_webadmin.webwidgets.gpyweb.gpyweb import div, p, br
+from fred_webadmin.webwidgets.gpyweb.gpyweb import div, p
 from fred_webadmin.webwidgets.utils import convert_linear_filter_to_form_output
 from fred_webadmin.utils import json_response 
 from fred_webadmin.webwidgets.adifwidgets import FilterListCustomUnpacked

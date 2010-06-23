@@ -170,26 +170,52 @@ class ContactDetail(ObjectDetail):
     
     def add_to_bottom(self):
         if self.data:
-            self.add(FilterPanel([[
-                [_('Domains_owner'), 'domain', 
-                    [{'Registrant.Handle': self.data.get('handle')}]],
-                [_('Domains_admin'), 'domain', 
-                    [{'AdminContact.Handle': self.data.get('handle')}]],
-                [_('Domains_all'), 'domain', 
-                    [{'Registrant.Handle': self.data.get('handle')}, 
-                        {'AdminContact.Handle': self.data.get('handle')}, 
-                        {'TempContact.Handle': self.data.get('handle')}]],
-                [_('NSSets'), 'nsset', 
-                    [{'TechContact.Handle': self.data.get('handle')}]],
-                [_('KeySets'), 'keyset', 
-                    [{'TechContact.Handle': self.data.get('handle')}]],
-                [_('Actions'), 'action', 
-                    [{'RequestHandle': self.data.get('handle'),
-                    'Time': FILTER_ACTION_TIME_LIMIT_LAST_MONTH}]],
-                [_('Emails'), 'mail', 
-                    [{'Message': self.data.get('handle'),
-                    'CreateTime': FILTER_EMAIL_TIME_LIMIT_LAST_MONTH}]],
-            ]]))
+            self.add(FilterPanel([
+                [
+                    [_('Domains_owner'), 'domain', 
+                        [{'Registrant.Handle': self.data.get('handle')}]],
+                    [_('Domains_admin'), 'domain', 
+                        [{'AdminContact.Handle': self.data.get('handle')}]],
+                    [_('Domains_all'), 'domain', 
+                        [{'Registrant.Handle': self.data.get('handle')}, 
+                            {'AdminContact.Handle': self.data.get('handle')}, 
+                            {'TempContact.Handle': self.data.get('handle')}]],
+                    [_('NSSets'), 'nsset', 
+                        [{'TechContact.Handle': self.data.get('handle')}]],
+                    [_('KeySets'), 'keyset', 
+                        [{'TechContact.Handle': self.data.get('handle')}]],
+                    [_('Actions'), 'action', 
+                        [{'RequestHandle': self.data.get('handle'),
+                        'Time': FILTER_ACTION_TIME_LIMIT_LAST_MONTH}]],
+                    [_('Emails'), 'mail', 
+                        [{'Message': self.data.get('handle'),
+                        'CreateTime': FILTER_EMAIL_TIME_LIMIT_LAST_MONTH}]]],
+                [
+                    [_('UNIX Whois Actions'), 'logger', 
+                        [{'Service': 0, 'RequestPropertyValue.Name': 'handle',
+                            'RequestPropertyValue.Value': self.data.get('handle'),
+                            'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
+                    [_('Web Whois Actions'), 'logger', 
+                        [{'Service': 1, 'RequestPropertyValue.Name': 'handle',
+                            'RequestPropertyValue.Value': self.data.get('handle'),
+                            'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
+                    [_('Public Request Actions'), 'logger', 
+                        [{'Service': 2, 'RequestPropertyValue.Name': 'handle',
+                            'RequestPropertyValue.Value': self.data.get('handle'),
+                            'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
+                    [_('EPP Actions'), 'logger', 
+                        [{'Service': 3, 'RequestPropertyValue.Name': 'id',
+                            'RequestPropertyValue.Value': self.data.get('handle'),
+                            'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
+                    [_('Webadmin Actions'), 'logger', 
+                        [{'Service': 4, 'RequestPropertyValue.Name': 'object_id',
+                            'RequestPropertyValue.Value': str(self.data.get('id')),
+                            'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
+                    [_('Intranet Actions'), 'logger', 
+                        [{'Service': 5, 'RequestPropertyValue.Name': 'handle',
+                            'RequestPropertyValue.Value': self.data.get('handle'),
+                            'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]]]
+            ]))
         super(ContactDetail, self).add_to_bottom()
     
 class HostDetail(Detail):
@@ -223,16 +249,42 @@ class NSSetDetail(ObjectDetail):
         
     def add_to_bottom(self):
         if self.data:
-            self.add(FilterPanel([[
-                [_('Domains'), 'domain', 
-                    [{'NSSet.Handle': self.data.get('handle')}]],
-                [_('Actions'), 'action', 
-                    [{'RequestHandle': self.data.get('handle'),
-                    'Time': FILTER_ACTION_TIME_LIMIT_LAST_MONTH}]],
-                [_('Emails'), 'mail', 
-                    [{'Message': self.data.get('handle'),
-                    'CreateTime': FILTER_EMAIL_TIME_LIMIT_LAST_MONTH}]]
-            ]]))
+            self.add(FilterPanel([
+                [
+                    [_('Domains'), 'domain', 
+                        [{'NSSet.Handle': self.data.get('handle')}]],
+                    [_('Actions'), 'action', 
+                        [{'RequestHandle': self.data.get('handle'),
+                        'Time': FILTER_ACTION_TIME_LIMIT_LAST_MONTH}]],
+                    [_('Emails'), 'mail', 
+                        [{'Message': self.data.get('handle'),
+                        'CreateTime': FILTER_EMAIL_TIME_LIMIT_LAST_MONTH}]]],
+                [
+                    [_('UNIX Whois Actions'), 'logger', 
+                        [{'Service': 0, 'RequestPropertyValue.Name': 'handle',
+                            'RequestPropertyValue.Value': self.data.get('handle'),
+                            'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
+                    [_('Web Whois Actions'), 'logger', 
+                        [{'Service': 1, 'RequestPropertyValue.Name': 'handle',
+                            'RequestPropertyValue.Value': self.data.get('handle'),
+                            'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
+                    [_('Public Request Actions'), 'logger', 
+                        [{'Service': 2, 'RequestPropertyValue.Name': 'handle',
+                            'RequestPropertyValue.Value': self.data.get('handle'),
+                            'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
+                    [_('EPP Actions'), 'logger', 
+                        [{'Service': 3, 'RequestPropertyValue.Name': 'id',
+                            'RequestPropertyValue.Value': self.data.get('handle'),
+                            'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
+                    [_('Webadmin Actions'), 'logger', 
+                        [{'Service': 4, 'RequestPropertyValue.Name': 'object_id',
+                            'RequestPropertyValue.Value': str(self.data.get('id')),
+                            'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
+                    [_('Intranet Actions'), 'logger', 
+                        [{'Service': 5, 'RequestPropertyValue.Name': 'handle',
+                            'RequestPropertyValue.Value': self.data.get('handle'),
+                            'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]]]
+            ]))
         super(NSSetDetail, self).add_to_bottom()
 
 class DSRecordDetail(Detail):
@@ -295,8 +347,33 @@ class KeySetDetail(ObjectDetail):
                     'Time': FILTER_ACTION_TIME_LIMIT_LAST_MONTH}]],
                 [_('Emails'), 'mail', 
                     [{'Message': self.data.get('handle'),
-                    'CreateTime': FILTER_EMAIL_TIME_LIMIT_LAST_MONTH}]],
-            ]]))
+                    'CreateTime': FILTER_EMAIL_TIME_LIMIT_LAST_MONTH}]],]
+                [
+                    [_('UNIX Whois Actions'), 'logger', 
+                        [{'Service': 0, 'RequestPropertyValue.Name': 'handle',
+                            'RequestPropertyValue.Value': self.data.get('handle'),
+                            'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
+                    [_('Web Whois Actions'), 'logger', 
+                        [{'Service': 1, 'RequestPropertyValue.Name': 'handle',
+                            'RequestPropertyValue.Value': self.data.get('handle'),
+                            'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
+                    [_('Public Request Actions'), 'logger', 
+                        [{'Service': 2, 'RequestPropertyValue.Name': 'handle',
+                            'RequestPropertyValue.Value': self.data.get('handle'),
+                            'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
+                    [_('EPP Actions'), 'logger', 
+                        [{'Service': 3, 'RequestPropertyValue.Name': 'id',
+                            'RequestPropertyValue.Value': self.data.get('handle'),
+                            'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
+                    [_('Webadmin Actions'), 'logger', 
+                        [{'Service': 4, 'RequestPropertyValue.Name': 'object_id',
+                            'RequestPropertyValue.Value': str(self.data.get('id')),
+                            'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
+                    [_('Intranet Actions'), 'logger', 
+                        [{'Service': 5, 'RequestPropertyValue.Name': 'handle',
+                            'RequestPropertyValue.Value': self.data.get('handle'),
+                            'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]]]
+            ]))
         super(KeySetDetail, self).add_to_bottom()
 
 class DomainDetail(ObjectDetail):
@@ -375,19 +452,19 @@ class DomainDetail(ObjectDetail):
                     (f_urls['domain'] + 'setinzonestatus/?id=%d' % \
                         self.data.get('id'))]],          
                 [[_('UNIX Whois Actions'), 'logger', 
-                    [{'Service': 0, 'RequestPropertyValue.Name': 'id',
+                    [{'Service': 0, 'RequestPropertyValue.Name': 'handle',
                         'RequestPropertyValue.Value': self.data.get('handle'),
                         'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
                 [_('Web Whois Actions'), 'logger', 
-                    [{'Service': 1, 'RequestPropertyValue.Name': 'id',
+                    [{'Service': 1, 'RequestPropertyValue.Name': 'handle',
                         'RequestPropertyValue.Value': self.data.get('handle'),
                         'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
                 [_('Public Request Actions'), 'logger', 
-                    [{'Service': 2, 'RequestPropertyValue.Name': 'id',
+                    [{'Service': 2, 'RequestPropertyValue.Name': 'handle',
                         'RequestPropertyValue.Value': self.data.get('handle'),
                         'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
                 [_('EPP Actions'), 'logger', 
-                    [{'Service': 3, 'RequestPropertyValue.Name': 'id',
+                    [{'Service': 3, 'RequestPropertyValue.Name': 'name',
                         'RequestPropertyValue.Value': self.data.get('handle'),
                         'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
                 [_('Webadmin Actions'), 'logger', 
@@ -395,7 +472,7 @@ class DomainDetail(ObjectDetail):
                         'RequestPropertyValue.Value': str(self.data.get('id')),
                         'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
                 [_('Intranet Actions'), 'logger', 
-                    [{'Service': 5, 'RequestPropertyValue.Name': 'id',
+                    [{'Service': 5, 'RequestPropertyValue.Name': 'handle',
                         'RequestPropertyValue.Value': self.data.get('handle'),
                         'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]]]
             ]))
