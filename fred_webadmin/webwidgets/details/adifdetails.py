@@ -22,6 +22,12 @@ FILTER_EMAIL_TIME_LIMIT_LAST_MONTH = {
     u'CreateTime/3': unicode(ccReg.LAST_MONTH._v), u'CreateTime/0/1/1': u'0', 
     u'CreateTime/0/1/0': u'0', u'CreateTime/1/0': u'', u'CreateTime/1/1/1': u'0'}
 
+FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH = {
+    u'TimeBegin/4': u'0', u'TimeBegin/1/1/0': u'0', u'TimeBegin/0/0': u'', u'TimeBegin/2': u'', 
+    u'TimeBegin/3': unicode(ccReg.LAST_MONTH._v), u'TimeBegin/0/1/1': u'0', 
+    u'TimeBegin/0/1/0': u'0', u'TimeBegin/1/0': u'', u'TimeBegin/1/1/1': u'0'}
+
+
 
 class AccessDetail(Detail):
     password = CharDField(label=_('Password'))
@@ -370,22 +376,28 @@ class DomainDetail(ObjectDetail):
                         self.data.get('id'))]],          
                 [[_('UNIX Whois Actions'), 'logger', 
                     [{'Service': 0, 'RequestPropertyValue.Name': 'id',
-                        'RequestPropertyValue.Value': self.data.get('handle')}]],
+                        'RequestPropertyValue.Value': self.data.get('handle'),
+                        'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
                 [_('Web Whois Actions'), 'logger', 
                     [{'Service': 1, 'RequestPropertyValue.Name': 'id',
-                        'RequestPropertyValue.Value': self.data.get('handle')}]],
+                        'RequestPropertyValue.Value': self.data.get('handle'),
+                        'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
                 [_('Public Request Actions'), 'logger', 
                     [{'Service': 2, 'RequestPropertyValue.Name': 'id',
-                        'RequestPropertyValue.Value': self.data.get('handle')}]],
+                        'RequestPropertyValue.Value': self.data.get('handle'),
+                        'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
                 [_('EPP Actions'), 'logger', 
                     [{'Service': 3, 'RequestPropertyValue.Name': 'id',
-                        'RequestPropertyValue.Value': self.data.get('handle')}]],
+                        'RequestPropertyValue.Value': self.data.get('handle'),
+                        'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
                 [_('Webadmin Actions'), 'logger', 
                     [{'Service': 4, 'RequestPropertyValue.Name': 'object_id',
-                        'RequestPropertyValue.Value': str(self.data.get('id'))}]],
+                        'RequestPropertyValue.Value': str(self.data.get('id')),
+                        'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
                 [_('Intranet Actions'), 'logger', 
                     [{'Service': 5, 'RequestPropertyValue.Name': 'id',
-                        'RequestPropertyValue.Value': self.data.get('handle')}]]]
+                        'RequestPropertyValue.Value': self.data.get('handle'),
+                        'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]]]
             ]))
         super(DomainDetail, self).add_to_bottom()
         

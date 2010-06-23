@@ -372,15 +372,16 @@ class LoggerFilterForm(FilterForm):
     def _get_header_title(self):
         return _("Logged Actions")
 
+    def get_key_time_field(self):
+        return self.base_fields['TimeBegin']
+
     default_fields_names = ['Service']
 
     Service = IntegerChoiceField(
         id="logger_service_type_id",
-        label=_('Service type'), #choices=[
+        label=_('Service type'),
         choices=CorbaLazyRequestIterStruct(
             'corba_logd', None, 'GetServices', ['id', 'name'], None),
-#        (0, u'UNIX Whois'), (1, u'Web Whois'), (2, u'Public Request'), 
-#        (3, u'EPP'), (4, u'WebAdmin'), (5, u'Intranet')],
         onchange="filter_action_types();")
     SourceIp = CharField(label=_('Source IP'))
     UserName = CharField(label=_('Username'))
@@ -389,9 +390,6 @@ class LoggerFilterForm(FilterForm):
         label=_('Action type'), 
         choices=[],
         validate=False,
-#        CorbaLazyRequestIterStruct(
-#            'corba_logd', None, 'GetServiceActions', ['id', 'status'], None,
-#            4),
         onfocus="filter_action_types();")
     TimeBegin = DateTimeIntervalField(label=_('Begin time'))
     TimeEnd = DateTimeIntervalField(label=_('End time'))
