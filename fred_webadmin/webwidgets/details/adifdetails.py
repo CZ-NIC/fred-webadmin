@@ -237,8 +237,10 @@ class NSSetDetail(ObjectDetail):
         HistoryListObjectDField(
             detail_class=HostDetail, display_only=['fqdn', 'inet']))
 
+    reportLevel = CharNHDField(label=_('Report level'))
+
     sections = (
-        (None, ('handleEPPId', 'authInfo')),
+        (None, ('handleEPPId', 'authInfo', 'reportLevel')),
         (_('Selected registrar'), ('registrar', ), DirectSectionLayout),
         (_('Tech. contacts'), ('admins', ), DirectSectionLayout),
         (_('Hosts'), ('hosts', ), DirectSectionLayout),
