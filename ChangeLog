@@ -1,4 +1,5 @@
-2010-06-22 Tomas Brambora (3.4.0)
+2010-06-28 Tomas Brambora (3.4.0)
+    * NSSet detail - report level field added
     * Registrar edit form facelift (hideable sections).
     * Added support for registrar certifications.
     * Registrars can now be assigned to groups.
