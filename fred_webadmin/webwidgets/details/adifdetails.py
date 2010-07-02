@@ -381,6 +381,7 @@ class KeySetDetail(ObjectDetail):
 class DomainDetail(ObjectDetail):
     expirationDate = CharNHDField(label=_('Expiration date'))
     valExDate = CharNHDField(label=_('Expiration valuation date'))
+    publish = CharNHDField(label=_('In ENUM dictionary'))
     outZoneDate = CharDField(label=_('Out zone date'))
 
     registrant = NHDField(
@@ -426,7 +427,7 @@ class DomainDetail(ObjectDetail):
                 display_only=['handle_url', 'organization', 'name', 'email']))
 
     sections = (
-        (None, ('handleEPPId', 'authInfo')),
+        (None, ('handleEPPId', 'authInfo', 'publish')),
         (_('Dates'), ('createRegistrar', 'updateRegistrar'), DatesSectionLayout),
         (_('Owner'), ('registrant', ), DirectSectionLayout),
         (_('Selected registrar'), ('registrar', ), DirectSectionLayout),
