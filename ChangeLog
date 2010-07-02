@@ -1,3 +1,6 @@
+2010-07-02 Jiri Sadek (3.4.2)
+    * Registrar edit form fix (system registrar bug)
+
 2010-07-02 Jiri Sadek (3.4.1)
     * publish flag in domain detail
 
