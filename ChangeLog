@@ -1,3 +1,6 @@
+2010-07-02 Jiri Sadek (3.4.1)
+    * publish flag in domain detail
+
 2010-06-28 Tomas Brambora (3.4.0)
     * NSSet detail - report level field added
     * Registrar edit form facelift (hideable sections).
