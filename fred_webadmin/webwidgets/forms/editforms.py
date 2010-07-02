@@ -371,7 +371,7 @@ class RegistrarEditForm(EditForm):
             "handle", "name", "organization", 'street1', 'street2', 
             'street3', 'city', 'postalcode', 'stateorprovince', 'countryCode',
             "postalCode", "ico", "dic", "varSymb", "vat", "telephone", "fax",
-            "email", "url", "id", "visible_fieldsets_ids"),
+            "email", "url", "hidden", "id", "visible_fieldsets_ids"),
             HideableSimpleFieldsetFormSectionLayout),
         (_("Authentication"), ("authentications_id"), ("access"), 
             HideableNestedFieldsetFormSectionLayout),
