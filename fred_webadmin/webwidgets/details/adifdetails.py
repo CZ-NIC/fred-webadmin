@@ -349,7 +349,7 @@ class KeySetDetail(ObjectDetail):
                     'Time': FILTER_ACTION_TIME_LIMIT_LAST_MONTH}]],
                 [_('Emails'), 'mail', 
                     [{'Message': self.data.get('handle'),
-                    'CreateTime': FILTER_EMAIL_TIME_LIMIT_LAST_MONTH}]],]
+                    'CreateTime': FILTER_EMAIL_TIME_LIMIT_LAST_MONTH}]],],
                 [
                     [_('UNIX Whois Actions'), 'logger', 
                         [{'Service': 0, 'RequestPropertyValue.Name': 'handle',
