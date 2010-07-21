@@ -142,7 +142,7 @@ class BaseDetail(div):
         return super(BaseDetail, self).render(indent_level)        
 
     def check_nperms(self):
-        return false
+        return False
     
     @classmethod
     def get_nperms(cls):
