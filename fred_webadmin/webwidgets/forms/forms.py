@@ -151,6 +151,7 @@ class BaseForm(form):
         Returns True if the form has no errors. Otherwise, False. If errors are
         being ignored, returns False.
         """
+#        import ipdb; ipdb.set_trace()
         return self.is_bound and not bool(self.errors)
 
     def add_prefix(self, field_name):

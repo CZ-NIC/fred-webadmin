@@ -133,9 +133,16 @@ class BaseDetail(div):
     def render(self, indent_level=0):
         self.content = [] # empty previous content (if render would be called moretimes, there would be multiple forms instead one )
         self.add(self.layout_class(self))
+        if self.check_nperms():
+            # TODO: render error!
+            return div("ERROR NO PERMS").render()
+            pass
         if not self.is_nested:
             self.add_to_bottom()
         return super(BaseDetail, self).render(indent_level)        
+
+    def check_nperms(self):
+        return false
     
     @classmethod
     def get_nperms(cls):
@@ -145,7 +152,6 @@ class BaseDetail(div):
             field_nperms = ['%s.%s.%s' % (nperm_name, cls.get_object_name(), field_nperm) for nperm_name in cls.nperm_names]
             nperms.extend(field_nperms)
         return nperms
-    
 
  
 class Detail(BaseDetail):

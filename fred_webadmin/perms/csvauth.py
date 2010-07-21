@@ -57,13 +57,37 @@ unknown user
 
     def _check_for_malformed_perms(self):
         for perm in self.perms:
-            if len(perm.split(".")) != 2:
+            perm_len = len(perm.split("."))
+            if perm_len != 2 and perm_len != 4:
                 raise MalformedAuthorizationError(
                     _("Malformed authorization record in csv file!"))
+
+    def check_detailed_present(self, obj, action):
+        """ Check whether there is any 4-parts permission starting with  
+            'obj.action'.
+        """
+        return any([perm for perm in [item.split(".") for item in self.perms]
+            if perm[1] == obj and perm[0] == action and 
+            len(perm) == 4])
 
     def has_permission(self, obj, action):
         for perm in self.perms:
             parts = perm.split(".")
             if parts[1] == obj and parts[0] == action:
+                return True
+        return False
+
+    def has_permission_detailed(self, obj, action, obj_id):
+        """ example arguments: domain, read.auth_info, 42
+            example perm in file: read.domain.auth_info.42
+        """
+        for perm in self.perms:
+            parts = perm.split(".")
+            if len(parts) != 4:
+                continue
+#            import ipdb; ipdb.set_trace()
+            composed_part = "%s.%s" % (parts[0], parts[2]) #example: read.auth_info
+            if (composed_part == action and parts[1] == obj and 
+                    parts[3] == str(obj_id)):
                 return True
         return False

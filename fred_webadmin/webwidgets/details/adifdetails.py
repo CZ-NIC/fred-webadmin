@@ -568,6 +568,14 @@ class LoggerDetail(Detail):
     raw_request = XMLOrCharDField(label=_("Raw request"))
     raw_response = XMLOrCharDField(label=_("Raw response"))
 
+    def check_nperms(self):
+        return False
+        """
+        critical_field = self.fields['service_type']
+        nperms = [nperms for nperms in self.get_nperms() if 
+            nperms.split('.')[-1] == critical_field.get_nperm()]
+        return True"""
+
 
 class BankStatementDetail(Detail):
     accountNumber = CharDField(label=_('Account Number'))

@@ -27,8 +27,8 @@ class User(object):
         self.table_page_size = config.tablesize
 
         self._authorizer = auth_user.Authorizer(self.login)
-        
-    def has_nperm(self, nperm):
+
+    def has_nperm(self, nperm, obj_id=None):
         ''' Return True, if nperm in self.nperms or any of its shorter versions created
             from it by stripping right part of it from "." character to end
             Example: 
@@ -36,7 +36,22 @@ class User(object):
                  'read', 'read.domain', 'read.domain.authinfo'
         '''
         parts = nperm.split('.')
-        has_perm = self._authorizer.has_permission(parts[1], parts[0])
+        if obj_id is not None:
+            # Is there any detailed permission starting with 'obj.action'?
+            any_similar_detailed_perm_present = \
+                self._authorizer.check_detailed_present(
+                    parts[1], parts[0])
+            if any_similar_detailed_perm_present:
+                # Detailed permission detected => ignore high-level permission.
+                has_perm = self._authorizer.has_permission_detailed(
+                    parts[1], "%s.%s" % (parts[0], parts[2]), obj_id)
+            else: 
+                # Detailed permission not present => check for high-level
+                # permission.
+                has_perm = self._authorizer.has_permission(parts[1], parts[0])
+        else:
+            # We're only checking for high-level permission.
+            has_perm = self._authorizer.has_permission(parts[1], parts[0])
         return not has_perm
 
     
@@ -60,6 +75,4 @@ class User(object):
                   (isiterable(nperms) and 
                    (check_type == 'all' and self.has_all_nperms(nperms) or
                     check_type == 'one' and self.has_one_nperm(nperms))))
-#        if result:
-#            import ipdb; ipdb.set_trace()
         return result 

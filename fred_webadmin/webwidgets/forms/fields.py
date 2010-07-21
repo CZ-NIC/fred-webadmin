@@ -6,6 +6,7 @@ import time
 import datetime
 from decimal import Decimal, DecimalException
 from logging import debug
+import cherrypy
 
 import fred_webadmin.corbarecoder as recoder
 import fred_webadmin.nulltype as fredtypes
@@ -31,6 +32,7 @@ class Field(WebWidget):
         self.label = label
         self.initial = initial
         self._nperm = nperm
+        self._nperm_full = None
         self.help_text = help_text
         self.needs_multipart_form = False
         self.order = 0 # order in form, set during form creation
@@ -604,6 +606,11 @@ class ChoiceField(Field):
             self.choices = choices
 
     def make_content(self):
+        nperm = None
+        if self.owner_form:
+            nperms = [nperms for nperms in self.owner_form.get_nperms() if 
+                nperms.split('.')[-1] == self.get_nperm()]
+            nperm = nperms[0] if nperms else None
         self.content = []
         # add/remove emtpy choice according 
         if self.required and self.choices and self.choices[0] == self.empty_choice: # remove empty choice:
@@ -612,7 +619,10 @@ class ChoiceField(Field):
             self.choices.insert(0, self.empty_choice)
             
         if self.choices:
+            user = cherrypy.session['user']
             for value, caption in list(self.choices):
+                if nperm and user.has_nperm(nperm, value):
+                    continue
                 if unicode(value) == unicode(self.value):
                     self.add(option(attr(value=value, selected='selected'), caption))
                 else:

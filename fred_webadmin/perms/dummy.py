@@ -7,3 +7,10 @@ class Authorizer(object):
 
     def has_permission(self, obj, action):
         return True
+
+    def has_permission_detailed(self, obj, action, obj_id):
+        return True
+
+    def check_detailed_present(self, obj, action):
+        return False
+

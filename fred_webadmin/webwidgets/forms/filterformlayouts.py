@@ -155,9 +155,7 @@ class FilterTableFormLayout(TableFormLayout):
             'filterObjectName = "%s"' % self.form.get_object_name())) # global javascript variable
         self.tbody.add(self.build_fields_button())
         
-    def build_field_row(self, field, errors = None, for_javascript=False):
-        
-
+    def build_field_row(self, field, errors=None, for_javascript=False):
         if for_javascript:
             label_str = REPLACE_ME_WITH_LABEL + ':'
         else:
@@ -195,7 +193,9 @@ class FilterTableFormLayout(TableFormLayout):
         for field_num, (name, field) in enumerate(base_fields.items()):
             field.name = name
             output += u"case '%s':\n" % name
-            rendered_field = unicode(self.build_field_row(field, for_javascript=True))
+            rendered_field = unicode(
+                self.build_field_row(
+                    field, for_javascript=True))
             rendered_field = escape_js_literal(rendered_field)
             output += u"    row += '%s';\n" % rendered_field
             if isinstance(field, CompoundFilterField):
