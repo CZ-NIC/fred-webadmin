@@ -619,9 +619,9 @@ class ChoiceField(Field):
             self.choices.insert(0, self.empty_choice)
             
         if self.choices:
-            user = cherrypy.session['user']
+            user = cherrypy.session.get('user')
             for value, caption in list(self.choices):
-                if nperm and user.has_nperm(nperm, value):
+                if user and nperm and user.has_nperm(nperm, value):
                     continue
                 if unicode(value) == unicode(self.value):
                     self.add(option(attr(value=value, selected='selected'), caption))
