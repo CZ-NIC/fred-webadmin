@@ -1,18 +1,22 @@
 import mox
 import cherrypy
-import fred_webadmin as webadmin
+import fred_webadmin.config
+
+test_config = fred_webadmin.config
+# Disable logging by default. It pollutes the tests. Use DummyLogger.
+test_config.audit_log['logging_actions_enabled'] = False
+test_config.cherrycfg['global']['server.socket_port'] = 8081
+# Disable permissions checking by default. It pollutes the tests.
+# If a test wants to check permissions, it should enable it for itself only.
+test_config.permissions['enable_checking'] = False
+test_config.cherrycfg['environment'] = 'embedded'
+test_config.iors = (
+    ('test', 'localhost_test', 'fredtest'),)
+
 import fred_webadmin.user as user
 import fred_webadmin.logger.dummylogger as logger
 import fred_webadmin.perms.dummy
 from fred_webadmin.corba import Registry, ccReg
-
-test_config = webadmin.config
-test_config.audit_log['logging_actions_enabled'] = False
-test_config.cherrycfg['global']['server.socket_port'] = 8081
-test_config.cherrycfg['environment'] = 'embedded'
-test_config.iors = (
-    #(label, nshost, nscontext),
-    ('test', 'localhost_test', 'fredtest'),)
 
 
 class DaphneTestCase(object):
@@ -65,9 +69,6 @@ class DaphneTestCase(object):
         self.corba_user_mock = self.corba_mock.CreateMockAnything()
         self.corba_user_mock.__str__ = lambda : "corba user mock"
 
-#        self.admin_mock = self.corba_mock.CreateMockAnything()
-#        self.admin_mock.__str__ = lambda : "admin mock"
-        
         self.ldap_mock = self.corba_mock.CreateMockAnything()
         self.ldap_mock.__str__ = lambda : "ldap backend mock"
 
@@ -75,21 +76,12 @@ class DaphneTestCase(object):
         self.authorizer_mock.__str__ = lambda : "authorizer mock"
 
         self.monkey_patch(
-            webadmin.user, 'auth_user', webadmin.perms.dummy)
+            fred_webadmin.user, 'auth_user', fred_webadmin.perms.dummy)
         self.web_session_mock = {}
-#        self.web_session_mock['user'] = user.User(self.corba_user_mock)
         self.web_session_mock['Logger'] = logger.DummyLogger()
-#        self.web_session_mock['Admin'] = self.admin_mock
-#        self.admin_mock =  AdminMock(self.corba_mock)
-#        self.web_session_mock['Admin'] = self.admin_mock
 
-#        self.monkey_patch(
-#            webadmin.utils, 'get_corba_session',  
-#            lambda : self.corba_session_mock)
         self.monkey_patch(cherrypy, 'session', self.web_session_mock)
-        self.monkey_patch(webadmin, 'config', test_config)
-#        self.monkey_patch(
-#            webadmin.controller.adif, 'corba_obj', self.corba_conn_mock)
+        self.monkey_patch(fred_webadmin, 'config', test_config)
 
         cherrypy.config.update({ "environment": "embedded" })
 

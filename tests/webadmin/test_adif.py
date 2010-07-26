@@ -15,7 +15,10 @@ except:
 from StringIO import StringIO
 import twill.commands
 
-from fred_webadmin.auth import ldap_auth, corba_auth
+try:
+    from fred_webadmin.auth import ldap_auth, corba_auth
+except:
+    error("Could not import auth module, some test will probably fail...")
 
 import tests.webadmin.base as base
 import fred_webadmin.controller.adif
