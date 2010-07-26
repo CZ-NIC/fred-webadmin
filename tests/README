@@ -1,8 +1,16 @@
-In order to run unit tests, you need the following python modules: 
+In order to run unit tests, you need the following python packages: 
 
-Nose
-Achoo
-Twill
-Mox
+nose (python-nose)
+achoo (download from http://web.quuxo.com/products/achoo/)
+twill (python-twill)
+mox (python-mox)
 
-Plus optionally Selenium, but those tests are just in "very alpha state" now.
+
+To run tests:
+
+nosetests -v --rednose --nologcapture --with-doctest tests/webadmin fred_webadmin
+
+Note:
+Rednose is a plugin that colours the test results ouput (so it's better
+readable). Downloadable from: http://pypi.python.org/pypi/rednose/
+If you don't want it, just omit "--rednose" option.
