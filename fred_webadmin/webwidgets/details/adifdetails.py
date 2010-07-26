@@ -560,6 +560,7 @@ class PaymentActionDetail(Detail):
 class LoggerDetail(Detail):
     timeBegin = CharDField(label=_('Start time'))
     timeEnd = CharDField(label=_('End time'))
+    user_name = CharDField(label=_('Username'))
     action_type = CharDField(label=_('Action type'))
     service_type = CharDField(label=_('Service type'))
     session_id = CharDField(label=_('Session id'))
