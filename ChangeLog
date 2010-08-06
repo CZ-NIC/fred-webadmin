@@ -1,3 +1,6 @@
+2010-08-06 Jiri Sadek (3.4.4)
+    * Logger filters for object's handle fixed (property name)
+
 2010-07-22 Tomas Brambora, Jiri Sadek (3.4.3)
     * Keyset detail display fix
 	* Enhance permissions granularity (initial version)
