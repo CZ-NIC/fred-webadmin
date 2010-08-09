@@ -375,9 +375,9 @@ class LoggerFilterForm(FilterForm):
     def get_key_time_field(self):
         return self.base_fields['TimeBegin']
 
-    default_fields_names = ['Service']
+    default_fields_names = ['ServiceType']
 
-    Service = IntegerChoiceField(
+    ServiceType = IntegerChoiceField(
         id="logger_service_type_id",
         label=_('Service type'),
         choices=CorbaLazyRequestIterStruct(
@@ -385,9 +385,9 @@ class LoggerFilterForm(FilterForm):
         onchange="filter_action_types();")
     SourceIp = CharField(label=_('Source IP'))
     UserName = CharField(label=_('Username'))
-    ActionType = IntegerChoiceField(
+    RequestType = IntegerChoiceField(
         id="logger_action_type_id",
-        label=_('Action type'), 
+        label=_('Request type'), 
         choices=[],
         validate=False,
         onfocus="filter_action_types();")
@@ -558,7 +558,7 @@ def get_service_actions_javascript(logd):
     js = ""
     result = {}
     for t in types:
-        actions = logd.GetServiceActions(t)
-        result[t] = [[a.id, a.status] for a in actions]
+        actions = logd.GetRequestTypesByService(t)
+        result[t] = [[a.id, a.name] for a in actions]
     js = """function get_actions() { var res=%s; return res;}""" % result
     return js

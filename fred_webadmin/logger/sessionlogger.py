@@ -143,10 +143,10 @@ class SessionLogger(object):
             Request (action string code -> action int code) mapping from
             the server. 
         """
-        action_list = self.dao.GetServiceActions(service_type)
+        action_list = self.dao.GetRequestTypesByService(service_type)
         self.actions = {}
         for action in action_list:
-            self.actions[action.status] = action.id
+            self.actions[action.name] = action.id
 
     def _server_create_request(self, source_ip, content, action_type, 
                                 properties):
