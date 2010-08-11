@@ -1,3 +1,7 @@
+2010-08-11 Jan Zima (3.4.5)
+
+    * Change of registrar country attribute fixed
+
 2010-08-06 Jiri Sadek (3.4.4)
     * Logger filters for object's handle fixed (property name)
 
