@@ -369,7 +369,7 @@ class RegistrarEditForm(EditForm):
     sections = (
         (_("Registrar data"), ("registrar_data_id"), (
             "handle", "name", "organization", 'street1', 'street2', 
-            'street3', 'city', 'postalcode', 'stateorprovince', 'countryCode',
+            'street3', 'city', 'postalcode', 'stateorprovince', 'country',
             "postalCode", "ico", "dic", "varSymb", "vat", "telephone", "fax",
             "email", "url", "hidden", "id", "visible_fieldsets_ids"),
             HideableSimpleFieldsetFormSectionLayout),
