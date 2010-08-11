@@ -71,7 +71,7 @@ class RegistrarDetail(Detail):
     city = CharDField(label=_('City')) # city of registrar headquaters
     stateorprovince = CharDField(label=_('State')) # address part
     postalcode = CharDField(label=_('ZIP')) # address part
-    countryCode = CharDField(label=_('Country')) # country code
+    country = CharDField(label=_('Country')) # country code
 
     telephone = CharDField(label=_('Telephone')) # phone number
     fax = CharDField(label=_('Fax')) # fax number
