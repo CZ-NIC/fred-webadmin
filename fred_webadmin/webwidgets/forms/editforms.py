@@ -333,7 +333,7 @@ class RegistrarEditForm(EditForm):
     city = CharField(label=_('City'), required=False) # city of registrar headquaters
     stateorprovince = CharField(label=_('State'), required=False) # address part
     postalcode = CharField(label=_('ZIP'), required=False) # address part
-    countryCode = ChoiceField(
+    country = ChoiceField(
         label=_('Country'), 
         choices=CorbaLazyRequestIterStruct(
             'Admin', None, 'getCountryDescList', ['cc', 'name'], None), 
