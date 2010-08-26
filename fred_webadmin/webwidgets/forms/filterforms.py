@@ -558,7 +558,7 @@ def get_service_actions_javascript(logd):
     js = ""
     result = {}
     for t in types:
-        actions = logd.GetRequestTypesByService(t)
+        actions = logd.getRequestTypesByService(t)
         result[t] = [[a.id, a.name] for a in actions]
     js = """function get_actions() { var res=%s; return res;}""" % result
     return js

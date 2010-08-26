@@ -1,22 +1,30 @@
 import datetime
+import logging
 import cherrypy
 import simplejson
 from cherrypy.lib import http
 from omniORB.any import from_any
 from logging import debug
+import CosNaming
 
 import fred_webadmin.corbarecoder as recoder
-
 from corba import ccReg, Registry
 from corba import CorbaServerDisconnectedException
 from mappings import f_name_enum#, f_objectType_name
 from mappings import f_enum_name
+from fred_webadmin.corba import Corba
+from fred_webadmin import config
+from pylogger.dummylogger import DummyLogger
+from pylogger.corbalogger import Logger, LoggerFailSilent
 
 # recoder of CORBA objects
 #from corbarecoder import CorbaRecode
 #recoder = CorbaRecode('utf-8')
 #c2u = recoder.decode # recode from corba string to unicode
 #u2c = recoder.encode # recode from unicode to strings
+
+# one logger for each corba ior specified in config.iors
+loggers = {}
 
 def json_response(data):
     ''' Sets cherrypy contentype of response to text/javascript and return data as JSON '''
@@ -32,7 +40,7 @@ def update_meta (self, other):
     return self
 
 
-class LateBindingProperty (property):
+class LateBindingProperty(property):
     """ Taken from http://code.activestate.com/recipes/408713/ """
 
     def __new__(cls, fget=None, fset=None, fdel=None, doc=None):
@@ -103,6 +111,55 @@ def get_corba_session():
     except ccReg.Admin.ObjectNotFound:
         raise CorbaServerDisconnectedException
 
+
+
+def _create_logger(corba_server_spec):
+    """ Creates logger object to send log requests to the server.
+        Returns:
+            Logger object. Either DummyLogger when nothing should be
+            logged, or SessionLogger (normal logging with exceptions on
+            failure), or SessionLoggerFailSilent (logging that fails
+            silently without exceptions).
+    """
+    if not config.audit_log['logging_actions_enabled']:
+        logger = DummyLogger()
+    else:
+        logging.debug('Created Logger for server %s', config.iors[corba_server_spec])
+        ior = config.iors[corba_server_spec][1]
+        nscontext = config.iors[corba_server_spec][2]
+        
+        corba = Corba()
+        corba.connect(ior, nscontext)
+        try:
+            corba_logd = corba.getObject('Logger', 'Logger')
+        except CosNaming.NamingContext.NotFound:
+            if config.audit_log['force_critical_logging']:
+                raise
+            logger = DummyLogger()
+        else:
+            # CorbaLazyRequest needs to have the CORBA logd object in
+            # cherrypy.session
+            cherrypy.session['corba_logd'] = corba_logd
+            if config.audit_log['force_critical_logging']:
+                logger = Logger(dao=corba_logd, corba_module=ccReg)
+            else:
+                logger = LoggerFailSilent(dao=corba_logd, corba_module=ccReg)
+    return logger
+
+def get_logger():
+    # get logger from loggers by corba_ior or create new one for it
+    current_corba_server = cherrypy.session['corba_server']
+    logger = loggers.get(current_corba_server)
+    if not logger:
+        loggers[current_corba_server] = logger = _create_logger(current_corba_server)
+    return logger
+
+def create_log_request(request_type, properties = None, references = None):
+    log_req = get_logger().create_request(
+        cherrypy.request.headers['Remote-Addr'], 'WebAdmin', request_type, 
+        properties, references, cherrypy.session.get('logger_session_id', 0)
+    )
+    return log_req
 
 details_cache = {}
 def get_detail(obj_type_name, obj_id, use_cache=True):

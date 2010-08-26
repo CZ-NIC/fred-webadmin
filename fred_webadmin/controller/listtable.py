@@ -3,8 +3,6 @@ import time
 import sys
 import omniORB
 
-from logging import debug 
-
 from fred_webadmin import exposed
 from fred_webadmin import config
 
@@ -16,15 +14,14 @@ from fred_webadmin.webwidgets.forms.filterforms import UnionFilterForm
 from fred_webadmin.itertable import IterTable, fileGenerator
 from fred_webadmin.mappings import (
     f_name_id, f_name_editformname, f_urls, f_name_actionfiltername, 
-    f_name_actiondetailname, f_name_filterformname)
+    f_name_actiondetailname, f_name_filterformname, f_name_req_object_type)
 import simplejson
 from fred_webadmin.webwidgets.gpyweb.gpyweb import div, p
 from fred_webadmin.webwidgets.utils import convert_linear_filter_to_form_output
-from fred_webadmin.utils import json_response 
 from fred_webadmin.webwidgets.adifwidgets import FilterListCustomUnpacked
 from fred_webadmin.customview import CustomView
 from fred_webadmin.corba import ccReg
-from fred_webadmin.utils import get_detail
+from fred_webadmin.utils import get_detail, create_log_request
 
 from fred_webadmin.corbalazy import ServerNotAvailableError
 import fred_webadmin.webwidgets.forms.emptyvalue
@@ -56,141 +53,110 @@ class ListTableMixin(object):
 
         return itertable
 
-    def _get_list(self, context, cleaned_filters=None, **kwd):
-        table = self._get_itertable()
-        show_result = True
+    def _get_list(self, context, cleaned_filters=None, in_log_props=None, **kwd):
+        log_req = create_log_request(f_name_actionfiltername[self.__class__.__name__.lower()], properties=in_log_props)
         try:
-            page = int(kwd.get('page', 1))
-        except (ValueError, TypeError):
-            page = 1
-        try:
-            sort_col = kwd.get('sort_col')
-            if sort_col is not None:
-                sort_col = int(kwd.get('sort_col'))
-        except (ValueError, TypeError):
-            sort_col = 1
-        try:
-            sort_dir = bool(int(kwd.get('sort_dir', 1)))
-        except (ValueError, TypeError):
-            sort_dir = True
-        
-        if cleaned_filters is not None:
-            table.set_filter(cleaned_filters)
-            if kwd.get('save_input'): # save filter
-                log_req = cherrypy.session['Logger'].create_request(
-                    cherrypy.request.headers['Remote-Addr'], cherrypy.request.body,
-                    "SaveFilter")
-                log_req.update("name", kwd['save_input'])
-                log_req.update(
-                    "type", 
-                    f_name_actionfiltername[self.__class__.__name__.lower()])
-                table.save_filter(kwd['save_input'])
-                log_req.commit("")
-                context['main'].add(_(
-                    'Filter saved as "%s"') % kwd['save_input'])
-                show_result = False
-            else: # normal setting filter
-                table.reload()
-
-        if kwd.get('filter_id'): # load filter
-            # Do not log filter load (Jara's decision - it would just clutter
-            # the log output).
-            table.load_filter(int(kwd.get('filter_id')))
-            if kwd.get('show_form') or not table.all_fields_filled():
-                show_result = False
-                filter_data = table.get_filter_data()
-                form_class = self._get_filterform_class()
-                context['form'] = UnionFilterForm(
-                    filter_data, data_cleaned=True, form_class=form_class)
-            else:
-                table.reload()
-                
-        if kwd.get('cf'):
-            table.clear_filter()
-        if kwd.get('reload'):
-            table.reload()
-        if kwd.get('load'): # load current filter from backend
-            cleaned_filter_data = table.get_filter_data()
-            form_class = self._get_filterform_class()
-            form = UnionFilterForm(
-                cleaned_filter_data, form_class=form_class, data_cleaned=True)
-            context['form'] = form
-            context['show_form'] = kwd.get('show_form')
-            if config.debug:
-                context['main'].add(
-                    'kwd_json_data_loaded:', cleaned_filter_data)
-        if kwd.get('list_all'):
-            table.clear_filter()
-            table._table.add()
-            table.reload()
-        if sort_col is not None:
-            table.set_sort(sort_col, sort_dir)
-
-        if show_result:
-            if table.num_rows == 0:
-                context['result'] = _("No_entries_found")
-            if table.num_rows == 1:
-                rowId = table.get_row_id(0)
-                raise (cherrypy.HTTPRedirect(f_urls[self.classname] + 
-                    'detail/?id=%s' % rowId))
-            if kwd.get('txt', None):
-                cherrypy.response.headers["Content-Type"] = "text/plain"
-                cherrypy.response.headers["Content-Disposition"] = \
-                    "inline; filename=%s_%s.txt" % (self.classname,
-                    time.strftime('%Y-%m-%d'))
-                return fileGenerator(table)
-            elif kwd.get('csv', None):
-                cherrypy.response.headers["Content-Type"] = "text/plain"
-                cherrypy.response.headers["Content-Disposition"] = \
-                    "attachement; filename=%s_%s.csv" % (
-                        self.classname, time.strftime('%Y-%m-%d'))
-                return fileGenerator(table)
-            table.set_page(page)
+            out_props = []
+            table = self._get_itertable()
+            show_result = True
+            try:
+                page = int(kwd.get('page', 1))
+            except (ValueError, TypeError):
+                page = 1
+            try:
+                sort_col = kwd.get('sort_col')
+                if sort_col is not None:
+                    sort_col = int(kwd.get('sort_col'))
+            except (ValueError, TypeError):
+                sort_col = 1
+            try:
+                sort_dir = bool(int(kwd.get('sort_dir', 1)))
+            except (ValueError, TypeError):
+                sort_dir = True
             
-            context['itertable'] = table
+            if cleaned_filters is not None:
+                table.set_filter(cleaned_filters)
+                if kwd.get('save_input'): # save filter
+                    props = (('name', kwd['save_input']),
+                             ('type', f_name_actionfiltername[self.__class__.__name__.lower()]))
+                    save_log_req = create_log_request('SaveFilter', properties = props)
+                    try:
+                        table.save_filter(kwd['save_input'])
+                        save_log_req.result = 'Success'
+                    finally:
+                        save_log_req.close()
+                    context['main'].add(_('Filter saved as "%s"') % kwd['save_input'])
+                    show_result = False
+                else: # normal setting filter
+                    table.reload()
+    
+            if kwd.get('filter_id'): # load filter
+                # Do not log filter load (Jara's decision - it would just clutter
+                # the log output).
+                table.load_filter(int(kwd.get('filter_id')))
+                if kwd.get('show_form') or not table.all_fields_filled():
+                    show_result = False
+                    filter_data = table.get_filter_data()
+                    form_class = self._get_filterform_class()
+                    context['form'] = UnionFilterForm(
+                        filter_data, data_cleaned=True, form_class=form_class)
+                else:
+                    table.reload()
+                    
+            if kwd.get('cf'):
+                table.clear_filter()
+            if kwd.get('reload'):
+                table.reload()
+            if kwd.get('load'): # load current filter from backend
+                cleaned_filter_data = table.get_filter_data()
+                form_class = self._get_filterform_class()
+                form = UnionFilterForm(
+                    cleaned_filter_data, form_class=form_class, data_cleaned=True)
+                context['form'] = form
+                context['show_form'] = kwd.get('show_form')
+                if config.debug:
+                    context['main'].add(
+                        'kwd_json_data_loaded:', cleaned_filter_data)
+            if kwd.get('list_all'):
+                table.clear_filter()
+                table._table.add()
+                table.reload()
+            if sort_col is not None:
+                table.set_sort(sort_col, sort_dir)
+            
+            log_req.result = 'Success'
+            if show_result:
+                out_props.append(('result_size', table.num_rows))
+                if table.num_rows == 0:
+                    context['result'] = _("No_entries_found")
+                if table.num_rows == 1:
+                    rowId = table.get_row_id(0)
+                    raise (cherrypy.HTTPRedirect(f_urls[self.classname] + 
+                        'detail/?id=%s' % rowId))
+                if kwd.get('txt', None):
+                    cherrypy.response.headers["Content-Type"] = "text/plain"
+                    cherrypy.response.headers["Content-Disposition"] = \
+                        "inline; filename=%s_%s.txt" % (self.classname,
+                        time.strftime('%Y-%m-%d'))
+                    return fileGenerator(table)
+                elif kwd.get('csv', None):
+                    cherrypy.response.headers["Content-Type"] = "text/plain"
+                    cherrypy.response.headers["Content-Disposition"] = \
+                        "attachement; filename=%s_%s.csv" % (
+                            self.classname, time.strftime('%Y-%m-%d'))
+                    return fileGenerator(table)
+                table.set_page(page)
+                
+                context['itertable'] = table
+        finally:
+            log_req.close(properties=out_props)
         return context
 
     @check_onperm('read')
-    def _filter_json_header(self):
-        itertable = self._get_itertable()
-        return json_response({
-            'header': itertable.header,
-            'header_type': itertable.header_type,
-            'page_size': itertable.page_size,
-            'object_name': itertable.request_object,
-        })
-    
-    @check_onperm('read')
-    def _filter_json_rows(self, **kwd):
-        debug("A json rows delam s kwd: %s" % kwd)
-        itertable = self._get_itertable()
-        if kwd.get('sort') is not None and kwd.get('dir') is not None:
-            itertable.set_sort_by_name(kwd['sort'], kwd['dir'])
-        
-        rows = itertable.get_rows_dict(kwd.get('start'), kwd.get('limit'))
-        
-        json_data = json_response({
-            'rows': rows,
-            'num_rows': itertable.num_rows,
-        })
-        debug("vracim json_data = %s" % json_data)
-        return json_data
-    
-    @check_onperm('read')
     def filter(self, *args, **kwd):
-        log_req = cherrypy.session['Logger'].create_request(
-            cherrypy.request.headers['Remote-Addr'], cherrypy.request.body, 
-            f_name_actionfiltername[self.__class__.__name__.lower()])
-
-        if args:
-            if args[0] == 'jsondata':
-                return self._filter_json_rows(**kwd)
-            elif args[0] == 'jsonheader':
-                return self._filter_json_header()
-
         context = {'main': div()}
         action = 'list' if kwd.get('list_all') else 'filter'
-
+        
         try:
             if kwd.get('txt') or kwd.get('csv'):
                 res = self._get_list(context, **kwd)
@@ -208,16 +174,13 @@ class ListTableMixin(object):
                 cleaned_filter_data = table.get_filter_data()
                 self._update_key_time_field_offset(
                     cleaned_filter_data, kwd['field_name'], delta)
-                action = self._process_form(
-                    context, action, log_req, cleaned_filter_data, **kwd)
+                action = self._process_form(context, action, cleaned_filter_data, **kwd)
             else:
-                action = self._process_form(context, action, log_req, **kwd)
+                action = self._process_form(context, action, **kwd)
         except (omniORB.CORBA.SystemException,
                 ccReg.Admin.ServiceUnavailable):
             context['main'] = _(MSG_SERVER_UNAVAILABLE % self.classname)
             raise CustomView(self._render('base', ctx=context))
-        finally:
-            log_req.commit("")
 
         return self._render(action, context)
 
@@ -230,8 +193,7 @@ class ListTableMixin(object):
         except IndexError:
             pass
 
-    def _process_form(self, context, action, log_req, cleaned_data=None, 
-            **kwd):
+    def _process_form(self, context, action, cleaned_data=None, **kwd):
         form_class = self._get_filterform_class()
         # bound form with data
         if (kwd.get('json_data') or kwd.get('json_linear_filter')):
@@ -261,7 +223,14 @@ class ListTableMixin(object):
             raise CustomView(self._render('base', ctx=context))
 
         if valid:
-            context = self._get_list(context, form.cleaned_data, **kwd)
+            in_props = [] # log request properties
+            # Log the selected filters.
+            # TODO(tomas): Log OR operators better...
+            for name, value, neg in form_utils.flatten_form_data(form.cleaned_data):
+                in_props.append(('filter_%s' % name, value, False))
+                in_props.append(('negation', str(neg), True))
+                
+            context = self._get_list(context, form.cleaned_data, in_log_props=in_props, **kwd)
             context['main'].add(u"rows: " + str(
                 self._get_itertable().num_rows))
 
@@ -271,20 +240,11 @@ class ListTableMixin(object):
                 context['display_jump_links'] = {
                     'url': f_urls[self.classname],
                     'field_name': key_time_field.name}
-            log_req.update(
-                "result_size", self._get_itertable().num_rows, output=True)
-            # Log the selected filters.
-            # TODO(tomas): Log OR operators better...
-            for name, value, neg in form_utils.flatten_form_data(
-                form.cleaned_data):
-                filter_req = ("filter_%s" % name, value, False, False)
-                neg_req = ("negation", str(neg), False, True)
-                log_req.update_multiple([filter_req, neg_req])
-            action = "filter"
+            
+            action = 'filter'
         else:
             if form.is_bound and config.debug:
-                context['main'].add(u'Jsem nevalidni, errors:' + unicode(
-                    form.errors.items()))
+                context['main'].add(u'Invalid form data, errors:' + unicode(form.errors.items()))
             context['headline'] = '%s filter' % self.__class__.__name__
 
         return action
@@ -324,19 +284,27 @@ class ListTableMixin(object):
 
     @check_onperm('read')
     def detail(self, **kwd):
-        log_req = cherrypy.session['Logger'].create_request(
-            cherrypy.request.headers['Remote-Addr'], cherrypy.request.body, 
-            f_name_actiondetailname[self.__class__.__name__.lower()])
-
-        context = {}
-        
-        result = self._get_detail(obj_id=kwd.get('id'))
-
-        log_req.update("object_id", kwd.get("id"))
-        
-        context['edit'] = kwd.get('edit', False)
-        context['result'] = result
-        log_req.commit("")
+        object_type = f_name_req_object_type.get(self.classname)
+        references = []
+        try:
+            references.append((object_type, int(kwd.get('id'))))
+        except (TypeError, ValueError):
+            pass # it is handled in _get_detail
+        log_req = create_log_request(f_name_actiondetailname[self.classname], references = references)
+        out_props = []
+        try:
+            context = {}
+            detail = self._get_detail(obj_id=kwd.get('id'))
+            if detail is None:
+                log_req.result = 'Fail'
+            else:
+                log_req.result = 'Success'
+    
+            context['edit'] = kwd.get('edit', False)
+            context['result'] = detail
+            out_props.append(('object_id', kwd.get('id')))
+        finally:
+            log_req.close(properties = out_props)
         return self._render('detail', context)
 
     def _get_editform_class(self):

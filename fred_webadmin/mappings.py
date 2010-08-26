@@ -129,6 +129,13 @@ f_name_editformname = generate_dict('EditForm')
 f_name_detailname = generate_dict('Detail')
 
 f_name_actionname = generate_dict('')
+
+f_name_req_object_type = dict([(item['classname'], item['classname']) for 
+    item in filter_type_items])
+f_name_req_object_type['logger'] = 'request'
+for key in ('action', 'filter', 'obj', 'session', 'statementhead', 'zone'): # don't log references for these types:  
+    f_name_req_object_type.pop(key)
+
 # Overwrite some remaining non-matching (class -> action) mappings.
 # This is necessary because of tight coupling between class names and action
 # types. And names used in Corba would be weird as Python class names here in
@@ -178,6 +185,7 @@ if __name__ == '__main__':
         ('f_header_ids', f_header_ids),
         ('f_objectType_name', f_objectType_name),
         ('f_name_formname', f_name_editformname),
+        ('f_name_req_object_type', f_name_req_object_type),
     )
                         
     for printed_mapping in printed_mappings:

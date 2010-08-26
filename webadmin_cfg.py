@@ -2,29 +2,60 @@
 
 import logging
 
-#debug = True
 debug = False
+#debug = False
 caching_filter_form_javascript = True # if this settings is on, then when doing changes to filter form, you should erase all sessions, because old filter forms are still in session
 
-www_dir = '/usr/local/share/fred-webadmin/www/'
-locale_dir = '/usr/local/share/fred-webadmin/locale/'
-sessions_dir = '/usr/local/var/lib/fred-webadmin/sessions/'
-log_dir = '/usr/local/var/log/fred-webadmin/'
-log_level = logging.ERROR
+www_dir = '/home/glin/programming/workspace/webadmin/www/'
+locale_dir = '/home/glin/programming/workspace/webadmin/locale/'
+sessions_dir = '/home/glin/programming/workspace/webadmin/sessions/'
+log_dir = '/home/glin/programming/workspace/webadmin/log/'
+log_level = logging.DEBUG
+# logging_actions_enabled: Iff false no user actions are logged to logd.
+# viewing_actions_enabled: Iff false, users cannot display log screen in
+#                          Daphne.
+# force_critical_logging: Iff False, any logger-related failure will silently
+#                         be ignored. Iff True, failures will shoot Daphne
+#                         down.
+audit_log = {
+    'logging_actions_enabled': True,
+    'viewing_actions_enabled': True,
+    'force_critical_logging' : True 
+}
 
-# Session logger settings
-# If False, use dummy logger (just pretend to log, do not send anything to the 
-# server)
-session_logging_enabled = True
-# If False, no exceptions are thrown by the logger (if logging fails, it fails
-# silently).
-logging_mandatory = True
+# enable_checking: Iff false, no security policy is enforced (there is
+#                  no authorization).
+# backend: Select from 'csv', 'nicauth' to specify the backend for permission
+#          data.
+# csv_file: Used only when 'csv' backend is selected. Speicfy the path to the
+#           file with permissions.
+#           File row format: username,action1.object1,action2.object2...
+#           e.g.: testuser,read.domain,write.registrar,read.registrar...
+permissions = {
+    'enable_checking': False,
+    'backend': 'csv', #, 'nicauth'
+    'csv_file': 'DU_DATAROOTDIR/perms.csv',
+}
 
 
-idl = '/usr/local/share/idl/fred/ccReg.idl' #'/usr/share/idl/fred/ccReg.idl'
+idl = '/home/glin/programming/svn_enum_checkout/enum/idl/trunk/idl/ccReg.idl'
+#idl = '/home/glin/programming/nic/webadmin/servers/idl_devel/idl/ccReg.idl'
+#idl = '/home/glin/programming/nic/webadmin/servers/idl_trunk/idl/ccReg.idl' 
+
 iors = (#(label, nshost, nscontext),
-		('Test', 'localhost:2809', 'fred'),
+        (u'localní', 'localhost:20001', 'fred'),
+        (u'maňásek-tom', 'hal9000', 'fred-tom'),
+        (u'maňásek', 'hal9000', 'fred'),
+        (u'glin-server-maňásek-name-glin', 'jsadek', 'fred-glin'),
+        (u'hokuston2', 'pokuston', 'fred2'), 
+        (u'hokuston', 'pokuston:32346', 'fred'),
+        (u'koliha', 'curlew', 'fred'),
+        (u'jarahp', 'jarahp:22346', 'fred'),
+        (u'jura', '172.20.20.121', 'fred'),
+	#	('Test', 'localhost:22346', 'fred'),
+        ('Test', 'localhost', 'fred'),
 	   )
+
 
 tablesize = 45
 
