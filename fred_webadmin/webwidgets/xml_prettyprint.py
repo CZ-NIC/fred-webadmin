@@ -22,14 +22,17 @@ except ImportError:
 
 
 def format_xml(xml_string):
-    reader = Sax2.Reader()
-    doc = reader.fromString(xml_string)
-    doc.normalize()
-    f = StringIO.StringIO()
-    PrettyPrint(doc, f)
-    f.seek(0,0)
-    formated_xml = f.read().decode('utf-8')
-    return formated_xml
+    if xml_string:
+        reader = Sax2.Reader()
+        doc = reader.fromString(xml_string)
+        doc.normalize()
+        f = StringIO.StringIO()
+        PrettyPrint(doc, f)
+        f.seek(0,0)
+        formated_xml = f.read().decode('utf-8')
+        return formated_xml
+    else:
+        return ''
 
 def xml_highlight(xml_string):
     if xml_string:
