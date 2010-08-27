@@ -284,16 +284,9 @@ class ListTableMixin(object):
 
     @check_onperm('read')
     def detail(self, **kwd):
-        object_type = f_name_req_object_type.get(self.classname)
-        references = []
+        log_req = self._create_log_req_for_object_view(**kwd)
+        context = {}
         try:
-            references.append((object_type, int(kwd.get('id'))))
-        except (TypeError, ValueError):
-            pass # it is handled in _get_detail
-        log_req = create_log_request(f_name_actiondetailname[self.classname], references = references)
-        out_props = []
-        try:
-            context = {}
             detail = self._get_detail(obj_id=kwd.get('id'))
             if detail is None:
                 log_req.result = 'Fail'
@@ -302,9 +295,8 @@ class ListTableMixin(object):
     
             context['edit'] = kwd.get('edit', False)
             context['result'] = detail
-            out_props.append(('object_id', kwd.get('id')))
         finally:
-            log_req.close(properties = out_props)
+            log_req.close()
         return self._render('detail', context)
 
     def _get_editform_class(self):

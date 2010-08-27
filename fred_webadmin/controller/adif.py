@@ -43,7 +43,7 @@ import fred_webadmin.utils as utils
 
 import fred_webadmin.webwidgets.forms.fields as formfields
 
-from pylogger.corbalogger import Logger, LoggerFailSilent, LoggingException
+from pylogger.corbalogger import LoggingException
 from pylogger.dummylogger import DummyLogger
 
 from fred_webadmin.controller.listtable import ListTableMixin
@@ -217,6 +217,40 @@ class AdifPage(Page):
         cherrypy.session['Logger'] = None
         cherrypy.session['filter_forms_javascript'] = None
         cherrypy.session['filterforms'] = None
+        
+    def _create_log_req_for_object_view(self, request_type = None, properties = None, references = None, **kwd):
+        '''
+            To avoid code duplication - this is common for all views (like detail) which 
+            are taking id of an object.
+            request_type - default is view detail
+            It checks if ID is integer, returns errorpage if not otherwise creates new
+            log request with references and object_id in properties.
+            (note: object_id in properties will be obsolete when references will be everywhere)  
+        '''
+        
+        context = {}
+        try:
+            object_id = int(kwd.get('id'))
+        except (TypeError, ValueError):
+            context['message'] = _("Required_integer_as_parameter")
+            raise CustomView(self._render('error', ctx=context))
+
+        if request_type is None:
+            request_type = f_name_actiondetailname[self.classname] 
+        
+        if properties is None:
+            properties = []
+        if references is None:
+            references = []
+            
+        properties.append(('object_id', object_id))
+        object_type = f_name_req_object_type.get(self.classname)    
+        if object_type:
+            references.append((object_type, object_id))
+        
+        log_req = utils.create_log_request(request_type, properties = properties, references = references)
+        return log_req
+        
 
 
 class ADIF(AdifPage):
@@ -368,6 +402,7 @@ class ADIF(AdifPage):
                         traceback.format_exc())).replace('\n', '<br/>')))
                 if log_req:
                     log_req.status = 'Fail'
+                self._remove_session_data()
             else:
                 self._fill_session_data(form, user, corba_session_string)
                 if log_req:
@@ -610,18 +645,9 @@ class Registrar(AdifPage, ListTableMixin):
 
     @check_onperm('read')
     def detail(self, **kwd):
-        object_type = f_name_req_object_type.get(self.classname)
-        references = []
+        log_req = self._create_log_req_for_object_view(**kwd)
+        context = {}        
         try:
-            references.append((object_type, int(kwd.get('id'))))
-        except (TypeError, ValueError):
-            pass # it is handled in _get_detail
-        log_req = utils.create_log_request(f_name_actiondetailname[self.classname], 
-                                           references = references)
-        out_props = []
-
-        try:
-            context = {}
             detail = self._get_detail(obj_id=kwd.get('id'))
             if detail is None:
                 log_req.result = 'Fail'
@@ -637,9 +663,8 @@ class Registrar(AdifPage, ListTableMixin):
             
             context['edit'] = kwd.get('edit', False)
             context['result'] = result
-            out_props.append(('object_id', kwd.get('id')))
         finally:
-            log_req.close(properties = out_props)
+            log_req.close()
         return self._render('detail', context)
 
     def _get_groups_for_reg_id(self, reg_id):
@@ -709,44 +734,36 @@ class Domain(AdifPage, ListTableMixin):
     @check_onperm('change')
     def setinzonestatus(self, **kwd):
         'Call setInzoneStatus(domainID)'
-        log_request = cherrypy.session['Logger'].create_request(
-            cherrypy.request.headers['Remote-Addr'], cherrypy.request.body, 
-            "SetInZoneStatus")
+        log_req = self._create_log_req_for_object_view('SetInZoneStatus', **kwd)
+        domain_id = kwd['id']
         context = {'error': None}
-        domain_id = kwd.get('id', None) # domain ID
-        if not domain_id:
-            log_request.update("result", "No domain id.")
-            log_request.commit("")
-            raise cherrypy.HTTPRedirect(f_urls[self.classname])        
-        log_request.update("domainId", domain_id)
-
-        admin = cherrypy.session.get('Admin')
-        if hasattr(admin, "setInZoneStatus"):
+        try:
+            admin = cherrypy.session.get('Admin')
+            if hasattr(admin, 'setInZoneStatus'):
+                try:
+                    context['success'] = admin.setInZoneStatus(int(domain_id))
+                # TODO(tom): Do not catch generic exception here!
+                except Exception, e:
+                    context['error'] = e
+            else:
+                context['error'] = _("Function setInZoneStatus() is not implemented in Admin.")
+            
+            # if it was succefful, redirect into domain detail
+            if context['error'] is None:
+                log_req.status = 'Success'
+                raise cherrypy.HTTPRedirect(f_urls[self.classname] + '/detail/?id=%s' % domain_id)
+            else:
+                log_req.status = 'Fail'
+            # display domain name
             try:
-                context['success'] = admin.setInZoneStatus(int(domain_id))
-            # TODO(tom): Do not catch generic exception here!
+                context['handle'] = admin.getDomainById(int(domain_id)).fqdn
             except Exception, e:
                 context['error'] = e
-        else:
-            context['error'] = _("Function setInZoneStatus() is not implemented in Admin.")
-        
-        # if it was succefful, redirect into domain detail
-        if context['error'] is None:
-            log_request.commit("")
-            # use this URL in trunk version:
-            # HTTPRedirect(f_urls[self.classname] + '/detail/?id=%s' % domain_id)
-            # this URL is compatible with branche 3.1
-            raise cherrypy.HTTPRedirect('/domain/detail/?id=%s' % domain_id)
-        
-        # display domain name
-        try:
-            context['handle'] = admin.getDomainById(int(domain_id)).fqdn
-        except Exception, e:
-            context['error'] = e
-        log_request.update("result", "An error has occured.")
-        log_request.commit("")
-        # display page with error message
-        return self._render('setinzonestatus', context)
+            
+            # display page with error message
+            return self._render('setinzonestatus', context)
+        finally:
+            log_req.close()
 
 
 class Contact(AdifPage, ListTableMixin):
@@ -764,94 +781,78 @@ class Mail(AdifPage, ListTableMixin):
 class File(AdifPage, ListTableMixin):
     @check_onperm('read')
     def detail(self, **kwd):
-        log_request = cherrypy.session['Logger'].create_request(
-            cherrypy.request.headers['Remote-Addr'], cherrypy.request.body, 
-            "FileDetail")
+        log_req = self._create_log_req_for_object_view(**kwd)
         context = {}
         try:
-            handle = int(kwd.get('id', None))
-        except (TypeError, ValueError), e:
-            log_request.update("result", str(e))
-            log_request.commit()
-            context['main'] = _("Required_integer_as_parameter")
-            return self._render('base', ctx=context)
-        if handle:
+            file_id = int(kwd['id'])
             response = cherrypy.response
             filemanager = cherrypy.session.get('FileManager')
-            info = filemanager.info(recoder.u2c(handle))
+            info = filemanager.info(recoder.u2c(file_id))
             try:
-                f = filemanager.load(recoder.u2c(handle))
-                body = ""
+                f = filemanager.load(recoder.u2c(file_id))
+                body = ''
                 while 1:
                     part = f.download(102400) # 100kBytes
                     if part:
-                        body = "%s%s" % (body, part)
+                        body = '%s%s' % (body, part)
                     else:
                         break
                 response.body = body
                 response.headers['Content-Type'] = info.mimetype
-                cd = "%s; filename=%s" % ('attachment', info.name)
+                cd = '%s; filename=%s' % ('attachment', info.name)
                 response.headers["Content-Disposition"] = cd
                 response.headers['Content-Length'] = info.size
-            except ccReg.FileManager.FileNotFound, e:
-                log_request.update("result", str(e))
-                log_request.commit()
+                log_req.status = 'Success'
+            except ccReg.FileManager.FileNotFound:
+                log_req.status = 'Fail'
                 context['main'] = _("Object_not_found")
                 return self._render('file', ctx=context)
-            log_request.commit()
-            return response.body
+        finally:
+            log_req.close()
+        return response.body
         
 class PublicRequest(AdifPage, ListTableMixin):
     @check_onperm('change')
     def resolve(self, **kwd):
         '''Accept and send'''
-        context = {}
-        log_req = cherrypy.session['Logger'].create_request(
-            cherrypy.request.headers['Remote-Addr'], cherrypy.request.body,
-            "PublicRequestAccept")
+        log_req = self._create_log_req_for_object_view('PublicRequestAccept', **kwd)
         try:
-            id_pr = int(kwd.get('id'))
-            log_req.update("publicrequest_id", id_pr)
-            log_req.commit()
-
-        except (TypeError, ValueError), e:
-            log_req.update("result", str(e))
-            log_req.commit()
-            context['main'] = _("Required_integer_as_parameter")
-            return self._render('base', ctx=context)
-        try:
-            cherrypy.session.get('Admin').processPublicRequest(id_pr, False)
-        except ccReg.Admin.REQUEST_BLOCKED, e:
-            log_req.update("result", str(e))
-            log_req.commit()
+            cherrypy.session['Admin'].processPublicRequest(int(kwd['id']), False)
+            log_req.result = 'Success' 
+        except ccReg.Admin.REQUEST_BLOCKED:
+            log_req.result = 'Fail'
             raise CustomView(self._render(
                 'error', {'message': [
                     _(u'This object is blocked, request cannot be accepted.'
                     u'You can return back to '), a(attr(
-                        href=f_urls[self.classname] + 'detail/?id=%s' % id_pr), 
-                        _('public request.'))]}))
+                        href=f_urls[self.classname] + 'detail/?id=%s' % kwd['id']), 
+                        _('public request.'))
+            ]}))
+        finally:
+            log_req.close()
             
         raise cherrypy.HTTPRedirect(f_urls[self.classname] + 'filter/?reload=1&load=1')
 
     @check_onperm('change')
     def close(self, **kwd):
         '''Close and invalidate'''
-        context = {}
-        log_req = cherrypy.session['Logger'].create_request(
-            cherrypy.request.headers['Remote-Addr'], cherrypy.request.body,
-            "PublicRequestInvalidate")
+        log_req = self._create_log_req_for_object_view('PublicRequestInvalidate', **kwd)
         try:
-            id_ai = int(kwd.get('id'))
-            log_req.update("publicrequest_id", id_ai)
-            log_req.commit()
-        except (TypeError, ValueError), e:
-            log_req.update("result", str(e))
-            log_req.commit()
-            context['main'] = _("Required_integer_as_parameter")
-            return self._render('base', ctx=context)
-        cherrypy.session.get('Admin').processPublicRequest(id_ai, True)
-        raise cherrypy.HTTPRedirect(
-            f_urls[self.classname] + 'filter/?reload=1&load=1' % (self.classname))
+            cherrypy.session['Admin'].processPublicRequest(int(kwd['id']), True)
+            log_req.result = 'Success' 
+        except ccReg.Admin.REQUEST_BLOCKED:
+            log_req.result = 'Fail'
+            raise CustomView(self._render(
+                'error', {'message': [
+                    _(u'Request cannot be accepted.'
+                    u'You can return back to '), a(attr(
+                        href=f_urls[self.classname] + 'detail/?id=%s' % kwd['id']), 
+                        _('public request.'))
+            ]}))
+        finally:
+            log_req.close()
+        
+        raise cherrypy.HTTPRedirect(f_urls[self.classname] + 'filter/?reload=1&load=1')
 
 
 class Invoice(AdifPage, ListTableMixin):
@@ -859,23 +860,23 @@ class Invoice(AdifPage, ListTableMixin):
 
 
 class BankStatement(AdifPage, ListTableMixin):
-    def _pair_payment_with_registrar(self, context, payment_id, payment_type,
-            registrar_handle):
+    def _pair_payment_with_registrar(self, payment_id, payment_type, registrar_handle):
         """ Links the payment with registrar. """
-        log_req = cherrypy.session['Logger'].create_request(
-            cherrypy.request.headers['Remote-Addr'], cherrypy.request.body, "PaymentPair")
-        log_req.update("payment_id", payment_id)
-        log_req.update("registrar_handle", registrar_handle)
-        invoicing = utils.get_corba_session().getBankingInvoicing()
-        success = True
-        if payment_type == editforms.PAYMENT_REGISTRAR:
-            success = invoicing.pairPaymentRegistrarHandle(
-                payment_id, recoder.u2c(registrar_handle))
-        success = success and invoicing.setPaymentType(
-            payment_id, payment_type)
-        if not success:
-            log_req.update("result", "Could not pair payment")
-        log_req.commit()
+        props = [("registrar_handle", registrar_handle)]
+        log_req = self._create_log_req_for_object_view('PaymentPair', properties = props, **{'id': str(payment_id)})
+        try:
+            invoicing = utils.get_corba_session().getBankingInvoicing()
+            success = True
+            if payment_type == editforms.PAYMENT_REGISTRAR:
+                success = invoicing.pairPaymentRegistrarHandle(payment_id, recoder.u2c(registrar_handle))
+            
+            success = success and invoicing.setPaymentType(payment_id, payment_type)
+            if success:
+                log_req.result = 'Success'
+            else:
+                log_req.result = 'Fail'
+        finally:
+            log_req.close()
         return success
 
     @check_onperm('read')
@@ -883,78 +884,63 @@ class BankStatement(AdifPage, ListTableMixin):
         """ Detail for Payment. If the payment is not paired with any
             Registrar, we display a pairing form too.
         """
-        context = {}
-        # Indicator whether the pairing action has been carried out
-        # successfully.
-        pairing_success = False
-
-        user = cherrypy.session['user']
-        user_has_change_perms = not user.check_nperms("change.bankstatement")
-        
-        log_req = cherrypy.session['Logger'].create_request(
-            cherrypy.request.headers['Remote-Addr'], cherrypy.request.body, 
-            f_name_actiondetailname[self.__class__.__name__.lower()])
-
-        obj_id = kwd.get('id')
+        log_req = self._create_log_req_for_object_view(**kwd)
         try:
-            obj_id = int(obj_id)
-        except (TypeError, ValueError), e:
-            log_req.update("result", str(e))
-            log_req.commit()
-            context['main'] = _(
-                "Requires integer as parameter (got %s)." % obj_id)
-            raise CustomView(self._render('base', ctx=context))
-        
-        # When the user sends the pairing form we arrive at BankStatement
-        # detail again, but this time we receive registrar_handle in kwd
-        # => pair the payment with the registrar.
-        if cherrypy.request.method == 'POST' and user_has_change_perms:
-            registrar_handle = kwd.get('handle', None)
-            payment_type = kwd.get('type', None)
-            try:
-                payment_type = int(payment_type)
-            except (TypeError, ValueError), e:
-                log_req.update("result", str(e))
-                log_req.commit()
-                context['main'] = _(
-                    "Requires integer as parameter (got %s)." % payment_type)
-                raise CustomView(self._render('base', ctx=context))
-            pairing_success = self._pair_payment_with_registrar(
-                context, obj_id, payment_type, registrar_handle)
-
-        # Do not use cache - we want the updated BankStatementItem.
-        detail = utils.get_detail(self.classname, obj_id, use_cache=False)
-        log_req.update('object_id', kwd.get('id'))
-        context['detail'] = detail 
-        context['form'] = BankStatementPairingEditForm(
-            method="POST",
-            initial={
-                'handle': kwd.get('handle', None),
-                'statementId': kwd.get('statementId', None),
-                'type': kwd.get('type', 2),
-                'id': obj_id},
-            onsubmit='return confirmAction();')
-        if cherrypy.request.method == 'POST' and not pairing_success:
-            # Pairing form was submitted, but pairing did not finish
-            # successfully => Show an error.
-            context['form'].non_field_errors().append(
-                """Could not pair. Perhaps you have entered"""
-                """ an invalid handle?""")
-        log_req.commit("")
-        
-        if detail.type == editforms.PAYMENT_UNASSIGNED and user_has_change_perms:
-            # Payment not paired => show the payment pairing edit form
-            action = 'pair_payment'
-            # invoiceId is a link to detail, but for id == 0 this detail does
-            # not exist => hide invoiceId value so the link is not "clickable".
-            # Note: No information is lost, because id == 0 semantically means 
-            # that there is no id.
-            context['detail'].invoiceId = ""
-        else:
-            action = 'detail'
-            if detail.type != editforms.PAYMENT_REGISTRAR:
+            obj_id = int(kwd.get('id'))
+            context = {}
+            # Indicator whether the pairing action has been carried out
+            # successfully.
+            pairing_success = False
+    
+            user = cherrypy.session['user']
+            user_has_change_perms = not user.check_nperms("change.bankstatement")
+            
+            # When the user sends the pairing form we arrive at BankStatement
+            # detail again, but this time we receive registrar_handle in kwd
+            # => pair the payment with the registrar.
+            if cherrypy.request.method == 'POST' and user_has_change_perms:
+                registrar_handle = kwd.get('handle', None)
+                payment_type = kwd.get('type', None)
+                try:
+                    payment_type = int(payment_type)
+                except (TypeError, ValueError):
+                    log_req.result = 'Fail'
+                    context['main'] = _('Requires integer as parameter (got %s).' % payment_type)
+                    raise CustomView(self._render('base', ctx=context))
+                pairing_success = self._pair_payment_with_registrar(obj_id, payment_type, registrar_handle)
+    
+            # Do not use cache - we want the updated BankStatementItem.
+            detail = utils.get_detail(self.classname, int(obj_id), use_cache=False)
+            context['detail'] = detail 
+            context['form'] = BankStatementPairingEditForm(
+                method="POST",
+                initial={
+                    'handle': kwd.get('handle', None),
+                    'statementId': kwd.get('statementId', None),
+                    'type': kwd.get('type', 2),
+                    'id': obj_id},
+                onsubmit='return confirmAction();')
+            if cherrypy.request.method == 'POST' and not pairing_success:
+                # Pairing form was submitted, but pairing did not finish
+                # successfully => Show an error.
+                context['form'].non_field_errors().append(
+                    'Could not pair. Perhaps you have entered an invalid handle?')
+            
+            if detail.type == editforms.PAYMENT_UNASSIGNED and user_has_change_perms:
+                # Payment not paired => show the payment pairing edit form
+                action = 'pair_payment'
+                # invoiceId is a link to detail, but for id == 0 this detail does
+                # not exist => hide invoiceId value so the link is not "clickable".
+                # Note: No information is lost, because id == 0 semantically means 
+                # that there is no id.
                 context['detail'].invoiceId = ""
-        res = self._render(action, context)
+            else:
+                action = 'detail'
+                if detail.type != editforms.PAYMENT_REGISTRAR:
+                    context['detail'].invoiceId = ""
+            res = self._render(action, context)
+        finally:
+            log_req.close()
         return res
 
     def _template(self, action = ''):
