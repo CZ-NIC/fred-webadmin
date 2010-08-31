@@ -67,7 +67,7 @@ f_id_name = dict([(value, key) for key, value in f_name_id.items()])
 
 # dict {enum_item: url} 
 f_urls = dict([(name, '/%s/' % (name)) for name in f_name_enum.keys()])
-f_urls['group'] = "/groups/"
+f_urls['group'] = "/group/"
 
 # dict {classname: CT_*_ID}, where * is uppercase classname (used in itertable
 # headers for 'Id' column)

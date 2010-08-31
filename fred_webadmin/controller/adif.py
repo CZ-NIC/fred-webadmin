@@ -582,11 +582,12 @@ class Registrar(AdifPage, ListTableMixin):
             if result['reg_id'] != reg_id: # new registrar created, add him to out_refs
                 out_refs.append(('registrar', result['reg_id']))
             reg_id = result['reg_id']
+            log_req.result = 'Success'
         except editforms.UpdateFailedError, e:
             form.non_field_errors().append(str(e))
             context['form'] = form
             error('Update registrar failed with exception:', str(e))
-            log_req.result = 'Failed'
+            log_req.result = 'Fail'
             return context
         finally:
             log_req.close(references=out_refs)
@@ -675,8 +676,16 @@ class Registrar(AdifPage, ListTableMixin):
         group_mgr = cherrypy.session['Admin'].getGroupManager()
         all_groups = group_mgr.getGroups()
         memberships = group_mgr.getMembershipsByRegistar(reg_id)
-        my_groups_ids = [member.group_id for member in 
-            recoder.c2u(memberships) if not member.toDate]
+        my_groups_ids = [
+            member.group_id for member in recoder.c2u(memberships) 
+            if not member.toDate 
+            #or (member.toDate and not member.toDate <= datetime.date.today()) 
+            # Note: toDate should not be in the future (webadmin allow only setting it to today), so 
+            # it's safe to say that if there is toDate filled, registrar is already removed from
+            # the group. The only problem is that commandline fred_admin allow to set the toDate to the
+            # future, so it can couse some problems (then we would have to display such group but
+            # without possibility to remove it)
+        ]
         groups = [group for group in all_groups if group.id in my_groups_ids]
         return groups
 
@@ -1069,10 +1078,11 @@ class Detail41(AdifPage):
         return 'muj default'
 
 
-class GroupEditor(AdifPage):
+class Group(AdifPage):
     """ Registrar group editor page. Allows creating/deleting/renaming
         registrar groups.
     """
+    @check_onperm('change')
     def index(self, *args, **kwargs):
         context = {'main': div()}
         reg_mgr = cherrypy.session['Admin'].getGroupManager()
@@ -1093,14 +1103,13 @@ class GroupEditor(AdifPage):
         return res
 
     def _process_valid_form(self, form, context):
-        cleaned_data = form.cleaned_data
         try:
             form.fire_actions()
         except editforms.UpdateFailedError, e:
             form.non_field_errors().append(str(e))
             context['form'] = form
             return context
-        raise cherrypy.HTTPRedirect("/groups")
+        raise cherrypy.HTTPRedirect(f_urls[self.classname])
 
     def _get_menu_handle(self, action):
         return "registrar"
@@ -1141,7 +1150,7 @@ def prepare_root():
     root.statistic = Statistics()
     root.devel = Development()
     root.openid = OpenID()
-    root.groups = GroupEditor()
+    root.group = Group()
 
     return root
 

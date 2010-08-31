@@ -21,7 +21,7 @@ from fred_webadmin.webwidgets.forms.formlayouts import (
     SimpleFieldsetFormSectionLayout, TableFormLayout)
 from fred_webadmin.webwidgets.forms.formsetlayouts import DivFormSetLayout
 
-import fred_webadmin.utils
+from fred_webadmin import utils
 
 from fred_webadmin.corba import ccReg, Registry
 import fred_webadmin.corbarecoder as recoder
@@ -416,7 +416,7 @@ class RegistrarEditForm(EditForm):
             raise RuntimeError(
                 "RegistrarDataEditForm: Failed to fetch "
                 "updated registrar from kwargs.")
-        session = fred_webadmin.utils.get_corba_session()
+        session = utils.get_corba_session()
         try:
             reg_id = session.updateRegistrar(reg)
         except ccReg.Admin.UpdateFailed, e:
@@ -455,53 +455,48 @@ class RegistrarGroupsEditForm(EditForm):
         group_id = self.fields['id'].value
         group_name = recoder.u2c(self.fields['name'].value)
         if not group_id:
-            if ("name" in self.changed_data):
+            if ('name' in self.changed_data):
+                props = [('group_name', group_name)]
+                log_req = utils.create_log_request('CreateRegistrarGroup', properties = props)
+                out_props = []
                 try:
-                    log_req = cherrypy.session['Logger'].create_request(
-                        cherrypy.request.headers['Remote-Addr'], 
-                        cherrypy.request.body, "CreateRegistrarGroup")
-                    log_req.update("group_name", group_name)
                     gid = mgr.createGroup(group_name)
-                    log_req.update("group_id", gid)
+                    out_props.append(('group_id', gid))
+                    log_req.result = 'Success'
                 except Registry.Registrar.InvalidValue:
-                    log_req.update("result", str(e))
+                    log_req.result = 'Fail'
                     raise UpdateFailedError(
                         _(u"Could not create group. Perhaps you've entered "
                            "a name of an already existing group (or name of "
                            "a deleted one, which is currently invalid too)?"))
                 finally:
-                    log_req.commit()
+                    log_req.close(properties=out_props)
         else:
             group_id = int(group_id)
             if 'DELETE' in self.changed_data:
+                props = [('group_name', group_name), ('group_id', group_id)]
+                log_req = utils.create_log_request('DeleteRegistrarGroup', properties = props)
                 try:
-                    log_req = cherrypy.session['Logger'].create_request(
-                        cherrypy.request.headers['Remote-Addr'], 
-                        cherrypy.request.body, "DeleteRegistrarGroup")
-                    log_req.update("group_name", group_name)
-                    log_req.update("group_id", group_id)
                     mgr.deleteGroup(group_id)
+                    log_req.result = 'Success'
                 except Registry.Registrar.InvalidValue, e:
-                    log_req.update("result", str(e))
-                    log_req.update("group_id", group_id)
+                    log_req.result = 'Fail'
                     error(e)
-                    raise UpdateFailedError(_(u"Group %s is not empty.") % group_name)
+                    raise UpdateFailedError(_(u'Group %s is not empty.') % group_name)
                 finally:
-                    log_req.commit()
+                    log_req.close()
             elif 'name' in self.changed_data:
+                props = [('group_name', group_name), ('group_id', group_id)]
+                log_req = utils.create_log_request('UpdateRegistrarGroup', properties = props)
                 try:
-                    log_req = cherrypy.session['Logger'].create_request(
-                        cherrypy.request.headers['Remote-Addr'], 
-                        cherrypy.request.body, "UpdateRegistrarGroup")
-                    log_req.update("group_name", group_name)
-                    log_req.update("group_id", group_id)
                     mgr.updateGroup(group_id, group_name)
+                    log_req.result = 'Success'
                 except Registry.Registrar.InvalidValue, e:
-                    log_req.update("result", str(e))
+                    log_req.result = 'Fail'
                     error(e)
-                    raise UpdateFailedError(_(u"Updating group %s has failed.") % group_name)
+                    raise UpdateFailedError(_(u'Updating group %s has failed.') % group_name)
                 finally:
-                    log_req.commit()
+                    log_req.close()
 
 
 

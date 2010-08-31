@@ -34,7 +34,7 @@ audit_log = {
 permissions = {
     'enable_checking': False,
     'backend': 'csv', #, 'nicauth'
-    'csv_file': 'DU_DATAROOTDIR/perms.csv',
+    'csv_file': 'perms.csv',
 }
 
 
