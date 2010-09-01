@@ -587,7 +587,6 @@ class Registrar(AdifPage, ListTableMixin):
         except editforms.UpdateFailedError, e:
             form.non_field_errors().append(str(e))
             context['form'] = form
-            error('Update registrar failed with exception:', str(e))
             log_req.result = 'Fail'
             return context
         finally:
