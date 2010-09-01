@@ -450,6 +450,8 @@ class FileField(Field):
 
     def _has_changed(self, initial, data):
         #TODO(tom)
+        if data is None:
+            return False
         if initial in EMPTY_VALUES and data.filename in EMPTY_VALUES:
             return False
         if initial != data.filename:
