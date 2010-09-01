@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*
 
 import mox
-import CORBA
+from omniORB import CORBA
 import cherrypy
 import twill
 import datetime
@@ -24,7 +24,7 @@ import tests.webadmin.base as base
 import fred_webadmin.controller.adif
 
 from fred_webadmin.corba import Registry, ccReg
-import fred_webadmin.logger.dummylogger as logger
+import pylogger.dummylogger as logger
 import fred_webadmin.user as user
 
 class BaseADIFTestCase(base.DaphneTestCase):
@@ -1136,12 +1136,6 @@ class TestLoggerNoLogView(BaseADIFTestCase):
         # module.
         self.monkey_patch(
             fred_webadmin.controller.adif, 'auth', corba_auth)
-        self.monkey_patch(
-            fred_webadmin.controller.adif, 'SessionLogger',
-            fred_webadmin.logger.dummylogger.DummyLogger)
-        self.monkey_patch(
-            fred_webadmin.controller.adif, 'SessionLoggerFailSilent',
-            fred_webadmin.logger.dummylogger.DummyLogger)
 
         self.corba_mock.ReplayAll()
 
@@ -1188,7 +1182,7 @@ class TestRegistrarGroupEditor(BaseADIFTestCase):
 
         self.corba_mock.ReplayAll()
 
-        twill.commands.go("http://localhost:8080/groups")
+        twill.commands.go("http://localhost:8080/group")
         twill.commands.showforms()
         twill.commands.code(200)
         twill.commands.find(
@@ -1208,7 +1202,7 @@ class TestRegistrarGroupEditor(BaseADIFTestCase):
 
         self.corba_mock.ReplayAll()
 
-        twill.commands.go("http://localhost:8080/groups")
+        twill.commands.go("http://localhost:8080/group")
         twill.commands.showforms()
         twill.commands.code(200)
         twill.commands.find(
@@ -1248,7 +1242,7 @@ class TestRegistrarGroupEditor(BaseADIFTestCase):
 
         self.corba_mock.ReplayAll()
 
-        twill.commands.go("http://localhost:8080/groups")
+        twill.commands.go("http://localhost:8080/group")
         twill.commands.showforms()
         twill.commands.code(200)
         twill.commands.fv(2, "groups-0-DELETE", "1")
@@ -1290,7 +1284,7 @@ class TestRegistrarGroupEditor(BaseADIFTestCase):
 
         self.corba_mock.ReplayAll()
 
-        twill.commands.go("http://localhost:8080/groups")
+        twill.commands.go("http://localhost:8080/group")
         twill.commands.showforms()
         twill.commands.code(200)
         twill.commands.fv(2, "groups-0-DELETE", "1")

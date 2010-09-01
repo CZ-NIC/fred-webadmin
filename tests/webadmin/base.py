@@ -2,6 +2,7 @@ import mox
 import cherrypy
 import fred_webadmin.config
 
+
 test_config = fred_webadmin.config
 # Disable logging by default. It pollutes the tests. Use DummyLogger.
 test_config.audit_log['logging_actions_enabled'] = False
@@ -14,8 +15,10 @@ test_config.iors = (
     ('test', 'localhost_test', 'fredtest'),)
 
 import fred_webadmin.user as user
-import fred_webadmin.logger.dummylogger as logger
+import pylogger.dummylogger as logger
 import fred_webadmin.perms.dummy
+import fred_webadmin.utils
+from fred_webadmin import utils
 from fred_webadmin.corba import Registry, ccReg
 
 
@@ -82,6 +85,7 @@ class DaphneTestCase(object):
 
         self.monkey_patch(cherrypy, 'session', self.web_session_mock)
         self.monkey_patch(fred_webadmin, 'config', test_config)
+        self.monkey_patch(fred_webadmin.utils, 'get_logger', lambda : logger.DummyLogger())
 
         cherrypy.config.update({ "environment": "embedded" })
 

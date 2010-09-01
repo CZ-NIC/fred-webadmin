@@ -1,6 +1,6 @@
 import mox
 import cherrypy
-import CORBA
+from omniORB import CORBA
 import omniORB
 
 from nose.tools import with_setup, raises
