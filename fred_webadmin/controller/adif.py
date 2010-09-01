@@ -312,7 +312,7 @@ class ADIF(AdifPage):
         cherrypy.session['Admin'] = admin
         
         logger = utils.get_logger()
-        if getattr(logger, 'dao'):
+        if getattr(logger, 'dao', None):
             cherrypy.session['Logger'] = logger.dao # needed by CorbaLazyRequest
         if isinstance(logger, DummyLogger):
             logger_form = filterforms.LoggerFilterForm 
@@ -548,7 +548,8 @@ class Registrar(AdifPage, ListTableMixin):
             if form.has_changed():
                 for key, field in form.fields.items():
                     if isinstance(field, formfields.FileField):
-                        props.append(("set_%s" % key, field.value.filename, True))
+                        if field.value:
+                            props.append(("set_%s" % key, field.value.filename, True))
                     else:
                         props.append(("set_%s" % key, field.value, True))
 
