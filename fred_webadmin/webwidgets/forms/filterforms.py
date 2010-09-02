@@ -375,7 +375,7 @@ class LoggerFilterForm(FilterForm):
     def get_key_time_field(self):
         return self.base_fields['TimeBegin']
 
-    default_fields_names = ['ServiceType']
+    default_fields_names = ['ServiceType', 'TimeBegin', 'IsMonitoring']
 
     ServiceType = IntegerChoiceField(
         id="logger_service_type_id",
