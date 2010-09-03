@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="" />
+<title>330_Check_Registrar_Detail</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">330_Check_Registrar_Detail</td></tr>
+</thead><tbody>
+<tr>
+	<td>open</td>
+	<td>/registrar/detail/?id=1</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertTitle</td>
+	<td>Daphne - Test</td>
+	<td></td>
+</tr>
+<!--REG-FRED_A have no values for street etc, this needs to bee modified in fred-manager first-->
+<tr>
+	<td>verifyTextPresent</td>
+	<td>Detail of registrar </td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertTable</td>
+	<td>//div[@id='content-main']/table/tbody/tr[1]/td/table.0.1</td>
+	<td>REG-FRED_A</td>
+</tr>
+<tr>
+	<td>assertTable</td>
+	<td>//div[@id='content-main']/table/tbody/tr[1]/td/table.1.1</td>
+	<td>Company A l.t.d</td>
+</tr>
+<tr>
+	<td>assertTable</td>
+	<td>//div[@id='content-main']/table/tbody/tr[1]/td/table.2.1</td>
+	<td>Testing registrar A</td>
+</tr>
+<tr>
+	<td>assertTable</td>
+	<td>//div[@id='content-main']/table/tbody/tr[1]/td/table.3.1</td>
+	<td>487020.00</td>
+</tr>
+<tr>
+	<td>assertTable</td>
+	<td>//div[@id='content-main']/table/tbody/tr[1]/td/table.4.1</td>
+	<td>0.00</td>
+</tr>
+<tr>
+	<td>assertTable</td>
+	<td>//div[@id='content-main']/table/tbody/tr[2]/td/table.6.1</td>
+	<td>CZ</td>
+</tr>
+<tr>
+	<td>assertTable</td>
+	<td>//div[@id='content-main']/table/tbody/tr[3]/td/table.2.1</td>
+	<td>kuk@nic.cz</td>
+</tr>
+<tr>
+	<td>assertTable</td>
+	<td>//div[@id='content-main']/table/tbody/tr[3]/td/table.3.1</td>
+	<td>www.nic.cz</td>
+</tr>
+<tr>
+	<td>assertTable</td>
+	<td>//div[@id='content-main']/table/tbody/tr[3]/td/table.7.1</td>
+	<td>True</td>
+</tr>
+<tr>
+	<td>assertTable</td>
+	<td>//div[@id='content-main']/table/tbody/tr[3]/td/table.8.1</td>
+	<td>False</td>
+</tr>
+<tr>
+	<td>verifyTextPresent</td>
+	<td>39:D1:0C:CA:05:3A:CC:C0:0B:EC:6F:3F:81:0D:C7:9E </td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertTable</td>
+	<td>//div[@id='content-main']/table/tbody/tr[5]/td/table.1.1</td>
+	<td>103740</td>
+</tr>
+<tr>
+	<td>assertTable</td>
+	<td>//div[@id='content-main']/table/tbody/tr[5]/td/table.1.2</td>
+	<td>2007-01-01</td>
+</tr>
+<tr>
+	<td>assertTable</td>
+	<td>//div[@id='content-main']/table/tbody/tr[5]/td/table.2.1</td>
+	<td>383280</td>
+</tr>
+<tr>
+	<td>assertTable</td>
+	<td>//div[@id='content-main']/table/tbody/tr[5]/td/table.2.2</td>
+	<td>2007-01-01</td>
+</tr>
+<tr>
+	<td>assertTable</td>
+	<td>//div[@id='content-main']/table/tbody/tr[6]/td/table.1.0</td>
+	<td>certified</td>
+</tr>
+<tr>
+	<td>assertTable</td>
+	<td>//div[@id='content-main']/table/tbody/tr[7]/td/table.1.0</td>
+	<td>2</td>
+</tr>
+<tr>
+	<td>assertTable</td>
+	<td>//div[@id='content-main']/table/tbody/tr[7]/td/table.1.1</td>
+	<td>2010-09-03</td>
+</tr>
+<tr>
+	<td>assertTable</td>
+	<td>//div[@id='content-main']/table/tbody/tr[7]/td/table.1.2</td>
+	<td>2015-08-26</td>
+</tr>
+<tr>
+	<td>assertTable</td>
+	<td>//div[@id='content-main']/table/tbody/tr[7]/td/table.1.3</td>
+	<td>pdf</td>
+</tr>
+
+</tbody></table>
+</body>
+</html>
