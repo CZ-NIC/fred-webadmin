@@ -332,7 +332,7 @@ class RegistrarEditForm(EditForm):
     street3 = CharField(label=_('Street3'), required=False) # address part 3
     city = CharField(label=_('City'), required=False) # city of registrar headquaters
     stateorprovince = CharField(label=_('State'), required=False) # address part
-    postalcode = CharField(label=_('ZIP'), required=False) # address part
+    postalcode = CharField(label=_('ZIP'), required=False, max_length=32) # address part
     country = ChoiceField(
         label=_('Country'), 
         choices=CorbaLazyRequestIterStruct(
@@ -340,13 +340,13 @@ class RegistrarEditForm(EditForm):
         initial=CorbaLazyRequest('Admin', None, 'getDefaultCountry', None), 
         required=False) # country code
     
-    ico = CharField(label=_('ICO'), required=False)
-    dic = CharField(label=_('DIC'), required=False)
-    varSymb = CharField(label=_('Var. Symbol'), required=False)
+    ico = CharField(label=_('ICO'), required=False, max_length=50)
+    dic = CharField(label=_('DIC'), required=False, max_length=50)
+    varSymb = CharField(label=_('Var. Symbol'), required=False, max_length=10)
     vat = BooleanField(label=_('DPH'), required=False)
 
-    telephone = CharField(label=_('Telephone'), required=False) # phne number
-    fax = CharField(label=_('Fax'), required=False) # fax number
+    telephone = CharField(label=_('Telephone'), required=False, max_length=32) # phne number
+    fax = CharField(label=_('Fax'), required=False, max_length=32) # fax number
     email = CharField(label=_('Email'), required=False) # contact email
     url = CharField(label=_('URL'), required=False) # URL
     hidden = BooleanField(label=_('System registrar'), required=False) # System registrar
