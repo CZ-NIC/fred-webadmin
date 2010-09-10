@@ -287,7 +287,7 @@ class ADIF(AdifPage):
                 return json_response(new_history)
             elif args[0] == 'service_actions.js':
                 result = filterforms.get_service_actions_javascript(
-                    cherrypy.session.get("corba_logd"))
+                    cherrypy.session.get("Logger"))
                 return result
         return super(ADIF, self).default(*args, **kwd)
 

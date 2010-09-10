@@ -139,7 +139,7 @@ def _create_logger(corba_server_spec):
         else:
             # CorbaLazyRequest needs to have the CORBA logd object in
             # cherrypy.session
-            cherrypy.session['corba_logd'] = corba_logd
+            cherrypy.session['Logger'] = corba_logd
             if config.audit_log['force_critical_logging']:
                 logger = Logger(dao=corba_logd, corba_module=ccReg)
             else:

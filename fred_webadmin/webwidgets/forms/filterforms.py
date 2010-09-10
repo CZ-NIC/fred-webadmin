@@ -381,7 +381,7 @@ class LoggerFilterForm(FilterForm):
         id="logger_service_type_id",
         label=_('Service type'),
         choices=CorbaLazyRequestIterStruct(
-            'corba_logd', None, 'getServices', ['id', 'name'], None),
+            'Logger', None, 'getServices', ['id', 'name'], None),
         onchange="filter_action_types();")
     SourceIp = CharField(label=_('Source IP'))
     UserName = CharField(label=_('Username'))
