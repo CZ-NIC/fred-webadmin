@@ -125,7 +125,7 @@ class CorbaConnectionMock(object):
         }
 
     def getObject(self, obj1, obj2):
-       return self.obj[obj2] 
+        return self.obj[obj2] 
 
     def connect(self, user, pwd):
         pass
