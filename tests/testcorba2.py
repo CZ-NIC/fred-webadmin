@@ -12,6 +12,6 @@ u2c = recoder.encode # recode from unicode to strings
 corba = Corba()
 corba.connect('jsadek', 'fred-tom')
 
-a = corba.getObject('Admin', 'Admin')
+a = corba.getObject('Admin', 'ccReg.Admin')
 s=a.getSession(a.createSession('helpdesk'))
 

@@ -564,7 +564,9 @@ class MailDetail(Detail):
     attachments = ListObjectHandleDField(label=_('Attachments'))
     content = PreCharDField(label=_('Email content'))
 
-    
+class MessageDetail(Detail):
+    pass
+
 class PaymentDetail(Detail):
     number = CharDField(label=_('Number'))
     price = CharDField(label=_('Price'))

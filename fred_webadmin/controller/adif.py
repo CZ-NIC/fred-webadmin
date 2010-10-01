@@ -68,7 +68,7 @@ from fred_webadmin.webwidgets.templates.pages import (
     DomainDetail, ContactDetail, NSSetDetail, KeySetDetail, RegistrarDetail, 
     ActionDetail, PublicRequestDetail, MailDetail, InvoiceDetail, LoggerDetail,
     RegistrarEdit, BankStatementPairingEdit, BankStatementDetail, 
-    BankStatementDetailWithPaymentPairing, GroupEditorPage
+    BankStatementDetailWithPaymentPairing, GroupEditorPage, MessageDetail
 )
 from fred_webadmin.webwidgets.gpyweb.gpyweb import WebWidget
 from fred_webadmin.webwidgets.gpyweb.gpyweb import (
@@ -308,7 +308,7 @@ class ADIF(AdifPage):
         cherrypy.session['filterforms'] = copy(filterforms.form_classes)
         self._corba_connect(corba_server_spec)
         
-        admin = corba_obj.getObject('Admin', 'Admin')
+        admin = corba_obj.getObject('Admin', 'ccReg.Admin')
         cherrypy.session['Admin'] = admin
         
         logger = utils.get_logger()
@@ -359,9 +359,10 @@ class ADIF(AdifPage):
         corba_server = int(form.cleaned_data.get('corba_server', 0))
         cherrypy.session['corba_server_name'] = form.fields['corba_server'].choices[corba_server][1]
         cherrypy.session['filter_forms_javascript'] = None
-        cherrypy.session['Mailer'] = corba_obj.getObject('Mailer', 'Mailer')
+        cherrypy.session['Mailer'] = corba_obj.getObject('Mailer', 'ccReg.Mailer')
         cherrypy.session['FileManager'] = corba_obj.getObject(
-            'FileManager', 'FileManager')
+            'FileManager', 'ccReg.FileManager')
+        cherrypy.session['Messages'] = corba_obj.getObject('Messages', 'Registry.Messages')
             
         cherrypy.session['history'] = False
         utils.get_corba_session().setHistory(False)
@@ -971,6 +972,8 @@ class BankStatement(AdifPage, ListTableMixin):
                 "cannot be a template!" % repr(template))
         return template
 
+class Message(AdifPage, ListTableMixin):
+    pass
 
 class Filter(AdifPage, ListTableMixin):
     def _get_menu_handle(self, action):
@@ -1146,6 +1149,7 @@ def prepare_root():
     root.publicrequest = PublicRequest()
     root.invoice = Invoice()
     root.bankstatement = BankStatement()
+    root.message = Message()
     root.filter = Filter()
     root.statistic = Statistics()
     root.devel = Development()

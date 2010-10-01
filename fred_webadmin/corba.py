@@ -82,10 +82,17 @@ class Corba(object):
         self.context = obj._narrow(CosNaming.NamingContext)
         self.context_name = context_name
 
-    def getObjectUsingContext(self, component, name, idltype):
+    def getObjectUsingContext(self, component, name, idl_type_str):
         cosname = [CosNaming.NameComponent(component, "context"), CosNaming.NameComponent(name, "Object")]
         obj = self.context.resolve(cosname)
-        return obj._narrow(getattr(ccReg, idltype))
+        
+        # get idl type from idl_type_str:
+        idl_type_parts = idl_type_str.split('.')
+        idl_type = sys.modules[idl_type_parts[0]]
+        for part in idl_type_parts[1:]:
+            idl_type = getattr(idl_type, part)
+            
+        return obj._narrow(idl_type)
 
     def getObject(self, name, idltype):
         return self.getObjectUsingContext(self.context_name, name, idltype)

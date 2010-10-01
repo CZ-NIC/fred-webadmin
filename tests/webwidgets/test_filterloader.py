@@ -20,7 +20,7 @@ class TestFilterLoader(object):
         corba = Corba()
         corba.connect()
         
-        self.admin = corba.getObject('Admin', 'Admin')
+        self.admin = corba.getObject('ccReg.Admin', 'ccReg.Admin')
         self.admin.authenticateUser(u2c(login), u2c(password)) 
         self.corbaSessionString = self.admin.createSession(u2c(login))
 

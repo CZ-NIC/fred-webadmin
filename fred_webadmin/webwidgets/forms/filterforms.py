@@ -33,7 +33,8 @@ __all__ = ['UnionFilterForm', 'RegistrarFilterForm', 'ObjectStateFilterForm',
            'KeySetFilterForm', 'DomainFilterForm', 
            'ActionFilterForm', 'FilterFilterForm', 'PublicRequestFilterForm', 
            'InvoiceFilterForm', 'MailFilterForm', 'FileFilterForm',
-           'LoggerFilterForm', 'BankStatementFilterForm', 'PropertyFilterForm',
+           'LoggerFilterForm', 'BankStatementFilterForm', 'MessageFilterForm',
+           'PropertyFilterForm',
            'get_filter_forms_javascript']
 
 class UnionFilterForm(Form):
@@ -428,7 +429,25 @@ class BankStatementFilterForm(FilterForm):
 
     InvoiceId = IntegerField(label=_('Invoice Id'))
 
-
+class MessageFilterForm(FilterForm):
+    default_fields_names = ['CrDate']
+    CrDate = DateTimeIntervalField(label=_('Createion date'))
+    ModDate = DateTimeIntervalField(label=_('Modification date'))
+    Attempt = IntegerField(label=_('Attempts'))
+    Status = ChoiceField(
+        label=_('Status'), 
+        choices=CorbaLazyRequestIterStruct(
+            'Messages', None, 'getStatusList', ['id', 'name'], None))
+    CommType = ChoiceField(
+        label=_('Communication type'), 
+        choices=CorbaLazyRequestIterStruct(
+            'Messages', None, 'getCommTypeList', ['id', 'name'], None))
+    MessageType = ChoiceField(
+        label=_('Message type'), 
+        choices=CorbaLazyRequestIterStruct(
+            'Messages', None, 'getMessageTypeList', ['id', 'name'], None))
+    
+    
 class FilterFilterForm(FilterForm):
     default_fields_names = ['Type']
     
@@ -522,6 +541,7 @@ form_classes = [DomainFilterForm,
                 ObjectStateFilterForm,
                 LoggerFilterForm,
                 BankStatementFilterForm,
+                MessageFilterForm,
                 PropertyFilterForm]
 
 def get_filter_forms_javascript(filter_form_classes):

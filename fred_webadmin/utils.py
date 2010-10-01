@@ -131,7 +131,7 @@ def _create_logger(corba_server_spec):
         corba = Corba()
         corba.connect(ior, nscontext)
         try:
-            corba_logd = corba.getObject('Logger', 'Logger')
+            corba_logd = corba.getObject('Logger', 'ccReg.Logger')
         except CosNaming.NamingContext.NotFound:
             if config.audit_log['force_critical_logging']:
                 raise

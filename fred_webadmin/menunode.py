@@ -169,7 +169,11 @@ log_submenu.extend(
             nperm='read.publicrequest'),
         MenuNode(
             'mail', _('Emails'), cssc='menu-item', 
-            url=f_urls['mail'] + 'allfilters/', nperm='read.mail')])
+            url=f_urls['mail'] + 'allfilters/', nperm='read.mail'),
+        MenuNode(
+            'message', _('Messages'), cssc='menu-item', 
+            url=f_urls['message'] + 'allfilters/', nperm='read.message'),
+    ])
 
 
 logs_node = MenuNode(
