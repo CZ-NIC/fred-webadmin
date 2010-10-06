@@ -353,7 +353,7 @@ class BankStatementDetailWithPaymentPairing(DetailPage):
 
 class MessageDetail(DetailPage):
     def __init__(self, context = None):
-        super(InvoiceDetail, self).__init__(context)
+        super(MessageDetail, self).__init__(context)
         c = self.context
         if c.get('result'):
             self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
