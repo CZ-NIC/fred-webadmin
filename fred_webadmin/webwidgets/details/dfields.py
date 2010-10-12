@@ -41,10 +41,13 @@ def resolve_object(obj_data):
         else:
             return None
     else:
-        if obj_data is None:
-            return fredtypes.Null()
-        else:
-            return obj_data
+        return obj_data
+
+def resolve_detail_class(detail_class, value):
+    if isinstance(detail_class, dict): # if corba field is Union of structures for inner details, switch to particular detail class according to corba union discriminant (_d)
+        return detail_class[value._d], value._v
+    else:
+        return detail_class, value
     
 class DField(WebWidget):
     ''' Base class for detail fields '''
@@ -451,7 +454,8 @@ class ObjectDField(DField):
     
     def create_inner_detail(self):
         '''Used by make_content and in custom detail layouts and custom section layouts'''
-        self.inner_detail = self.detail_class(self.value, self.owner_detail.history, display_only=self.display_only, sections=self.sections, layout_class=self.layout_class, is_nested=True, all_no_access=not self.access)
+        detail_class, value = resolve_detail_class(self.detail_class, self.value)
+        self.inner_detail = detail_class(value, self.owner_detail.history, display_only=self.display_only, sections=self.sections, layout_class=self.layout_class, is_nested=True, all_no_access=not self.access)
         
     def make_content(self):
         self.content = []
@@ -490,10 +494,12 @@ class ListObjectDField(DField):
     def _create_inner_details(self):
         '''Used by make_content and in custom detail layouts and custom section layouts'''
         self.inner_details = []
+        
         if self.value:
-            for value in self.value:
+            for value_item in self.value:
+                detail_class, value = resolve_detail_class(self.detail_class, value_item)
                 self.inner_details.append(
-                    self.detail_class(
+                    detail_class(
                         value, 
                         self.owner_detail.history, 
                         display_only=self.display_only, 
@@ -617,9 +623,11 @@ class HistoryObjectDField(HistoryDField):
     def create_inner_details(self):
         '''Used by make_content and in custom detail layouts and custom section layouts'''
         self.inner_details = []
+        
         if self.value:
             for history_row in self.value:
-                self.inner_details.append(self.detail_class(history_row.value, self.owner_detail.history, display_only=self.display_only, layout_class=self.layout_class, is_nested=True))
+                detail_class, value = resolve_detail_class(self.detail_class, history_row.value)
+                self.inner_details.append(detail_class(value, self.owner_detail.history, display_only=self.display_only, layout_class=self.layout_class, is_nested=True))
      
     def make_content(self):
         self.content = []
@@ -689,7 +697,8 @@ class HistoryListObjectDField(HistoryDField):
                 inner_detail_list = []
                 
                 for obj_data in history_row.value:
-                    inner_detail_list.append(self.detail_class(obj_data, self.owner_detail.history, display_only=self.display_only, layout_class=self.layout_class, is_nested=True))
+                    detail_class, value = resolve_detail_class(self.detail_class, obj_data)
+                    inner_detail_list.append(detail_class(value, self.owner_detail.history, display_only=self.display_only, layout_class=self.layout_class, is_nested=True))
                 self.inner_details.append(inner_detail_list)
      
     def make_content(self):
@@ -830,7 +839,7 @@ class HistoryStateDField(DField):
         if name.startswith('validation'): # strip 'server' from beginning
             name = name[10:]
             
-        abbrev = name[0]
+        abbrev = name[0] if name else 'Unknown'
         for letter in name[1:]:
             if letter.isupper() or letter.isdigit():
                 abbrev += letter

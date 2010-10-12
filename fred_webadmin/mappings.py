@@ -21,7 +21,8 @@
  {'classname': 'session', 'item': ccReg.FT_SESSION},\
  {'classname': 'bankstatement', 'item': ccReg.FT_STATEMENTITEM},\
  {'classname': 'zone', 'item': ccReg.FT_ZONE},\
- {'classname': 'statementhead', 'item': ccReg.FT_STATEMENTHEAD}]
+ {'classname': 'statementhead', 'item': ccReg.FT_STATEMENTHEAD},\
+ {'classname': 'message', 'item': ccReg.FT_MESSAGE}]
     True
 """
 
@@ -102,7 +103,8 @@ def generate_dict(suffix):
 'mail': 'MailTestSuffix', \
 'logger': 'LoggerTestSuffix', \
 'statementhead': 'StatementHeadTestSuffix',\
-'publicrequest': 'PublicRequestTestSuffix'}
+'publicrequest': 'PublicRequestTestSuffix',\
+'message': 'MessageTestSuffix'}
         True
     """
     rules = {

@@ -115,13 +115,14 @@ class AdminMock(object):
 
 
 class CorbaConnectionMock(object):
-    def __init__(self, admin=AdminMock(), logger=logger.DummyLogger(), mailer=None, filemgr=None):
+    def __init__(self, admin=AdminMock(), logger=logger.DummyLogger(), mailer=None, filemgr=None, messages=None):
         super(CorbaConnectionMock, self).__init__()
         self.obj = {
             "ccReg.Admin": admin,
             "ccReg.Logger": logger,
             "ccReg.Mailer": mailer,
             "ccReg.FileManager": filemgr,
+            "Registry.Messages": messages,
         }
 
     def getObject(self, obj1, obj2):
@@ -1123,6 +1124,7 @@ class TestBankStatement(BaseADIFTestCase):
 
 class TestLoggerNoLogView(BaseADIFTestCase):
     def setUpConfig(self):
+        fred_webadmin.config.debug = False
         fred_webadmin.config.auth_method = 'CORBA'
         fred_webadmin.config.audit_log['viewing_actions_enabled'] = False
         fred_webadmin.config.audit_log['logging_actions_enabled'] = False
@@ -1135,6 +1137,7 @@ class TestLoggerNoLogView(BaseADIFTestCase):
     def test_logger_hidden_when_log_view_is_disabled_in_config(self):
         # Replace fred_webadmin.controller.adif.auth module with CORBA
         # module.
+        print
         self.monkey_patch(
             fred_webadmin.controller.adif, 'auth', corba_auth)
 

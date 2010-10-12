@@ -214,6 +214,7 @@ class AdifPage(Page):
         cherrypy.session['Admin'] = None
         cherrypy.session['Mailer'] = None
         cherrypy.session['FileManager'] = None
+        cherrypy.session['Messages'] = None
         cherrypy.session['Logger'] = None
         cherrypy.session['filter_forms_javascript'] = None
         cherrypy.session['filterforms'] = None
@@ -363,7 +364,7 @@ class ADIF(AdifPage):
         cherrypy.session['FileManager'] = corba_obj.getObject(
             'FileManager', 'ccReg.FileManager')
         cherrypy.session['Messages'] = corba_obj.getObject('Messages', 'Registry.Messages')
-            
+        
         cherrypy.session['history'] = False
         utils.get_corba_session().setHistory(False)
         

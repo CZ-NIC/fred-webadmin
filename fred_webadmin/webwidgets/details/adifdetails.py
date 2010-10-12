@@ -564,9 +564,6 @@ class MailDetail(Detail):
     attachments = ListObjectHandleDField(label=_('Attachments'))
     content = PreCharDField(label=_('Email content'))
 
-class MessageDetail(Detail):
-    pass
-
 class PaymentDetail(Detail):
     number = CharDField(label=_('Number'))
     price = CharDField(label=_('Price'))
@@ -620,6 +617,44 @@ class BankStatementDetail(Detail):
         label=_('Invoice Id'), object_type_name="invoice", id_name="invoiceId",
         handle_name="invoiceId")
     crTime = CharDField(label=_('crTime'))
+
+
+class SMSDetail(Detail):
+    phone_number = CharDField(label=_('Phone number'))
+    content = CharDField(label=_('Content'))
+
+class LetterDetail(Detail):
+    file = ObjectHandleDField(label=_('XML'))
+    postal_address_name = CharDField(label=_('Name'))
+    postal_address_organization = CharDField(label=_('Organization'))
+    postal_address_street1 = CharDField(label=_('Street 1'))
+    postal_address_street2 = CharDField(label=_('Street 2'))
+    postal_address_street3 = CharDField(label=_('Street 3'))
+    postal_address_city = CharDField(label=_('City'))
+    postal_address_stateorprovince = CharDField(label=_('State or province'))
+    postal_address_postalcode = CharDField(label=_('Postal Code'))
+    postal_address_country = CharDField(label=_('Country'))
+    batch_id = CharDField(label=_('Post service batch id'))
+    
+class MessageDetail(Detail):
+    createDate = CharDField(label=_('Create Date'))
+    modifyDate = CharDField(label=_('Modify Date'))
+    attempt = CharDField(label=_('Attempts'))
+    status_id = ConvertDField(
+        label=_('Status'), inner_field=CharDField(), 
+        convert_table=CorbaLazyRequestIterStructToDict(
+            'Messages', None, 'getStatusList', ['id', 'name']))
+    comm_type_id = ConvertDField(
+        label=_('Communication type'), inner_field=CharDField(), 
+        convert_table=CorbaLazyRequestIterStructToDict(
+            'Messages', None, 'getCommTypeList', ['id', 'name']))
+    message_type_id = ConvertDField(
+        label=_('Message type'), inner_field=CharDField(), 
+        convert_table=CorbaLazyRequestIterStructToDict(
+            'Messages', None, 'getMessageTypeList', ['id', 'name']))
+#    sms = ObjectDField(detail_class=SMSDetail)
+#    letter = ObjectDField(detail_class=LetterDetail)
+    message_content = ObjectDField(detail_class={1: SMSDetail, 2: LetterDetail})
 
 
 class InvoiceDetail(Detail):

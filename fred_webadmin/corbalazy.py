@@ -48,7 +48,7 @@ class CorbaLazyRequest(object):
                 data = recoder.c2u(corba_func(*self.c_args, **self.c_kwargs))
             except (omniORB.CORBA.SystemException,
                 ccReg.Admin.ServiceUnavailable), e:
-                raise ServerNotAvailableError(e)
+                raise ServerNotAvailableError(('Error in CorbaLazy(function_name=%s) ' % self.function_name) + str(e))
             data = self.selector_func(data) if self.selector_func else data
             self.data = self._convert_data(data)
         
