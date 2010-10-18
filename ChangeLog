@@ -1,3 +1,7 @@
+2010-10-18 Tomas Divis (3.4.6)
+    * Support for listing messages 
+    * Implemented refactored logging interface 
+
 2010-08-11 Jan Zima (3.4.5)
 
     * Change of registrar country attribute fixed
