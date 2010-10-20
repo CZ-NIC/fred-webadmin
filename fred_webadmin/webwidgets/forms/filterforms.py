@@ -541,7 +541,7 @@ form_classes = [DomainFilterForm,
                 ObjectStateFilterForm,
                 LoggerFilterForm,
                 BankStatementFilterForm,
-#                MessageFilterForm,
+                MessageFilterForm,
                 PropertyFilterForm]
 
 def get_filter_forms_javascript(filter_form_classes):
