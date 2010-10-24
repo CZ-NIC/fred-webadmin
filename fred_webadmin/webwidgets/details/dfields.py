@@ -45,7 +45,7 @@ def resolve_object(obj_data):
 
 def resolve_detail_class(detail_class, value):
     if isinstance(detail_class, dict): # if corba field is Union of structures for inner details, switch to particular detail class according to corba union discriminant (_d)
-        return detail_class[value._d], value._v
+        return detail_class[value._d], recoder.c2u(value._v)
     else:
         return detail_class, value
     
