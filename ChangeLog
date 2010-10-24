@@ -1,5 +1,11 @@
+2010-10-24 Tomas Divis (3.5.4)
+
+    * Fixing unicode
+
 2010-10-23 Jaromir Talir (3.5.2)
+    
     * Showing messages again
+
 2010-10-18 Tomas Divis (3.5.1)
     * Temporary disabling message display
 
