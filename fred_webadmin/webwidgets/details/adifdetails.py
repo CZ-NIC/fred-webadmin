@@ -624,7 +624,7 @@ class SMSDetail(Detail):
     content = CharDField(label=_('Content'))
 
 class LetterDetail(Detail):
-    file = ObjectHandleDField(label=_('XML'))
+    file = ObjectHandleDField(label=_('PDF'))
     postal_address_name = CharDField(label=_('Name'))
     postal_address_organization = CharDField(label=_('Organization'))
     postal_address_street1 = CharDField(label=_('Street 1'))
