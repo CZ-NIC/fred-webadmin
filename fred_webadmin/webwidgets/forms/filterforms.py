@@ -431,7 +431,7 @@ class BankStatementFilterForm(FilterForm):
 
 class MessageFilterForm(FilterForm):
     default_fields_names = ['CrDate']
-    CrDate = DateTimeIntervalField(label=_('Createion date'))
+    CrDate = DateTimeIntervalField(label=_('Creation date'))
     ModDate = DateTimeIntervalField(label=_('Modification date'))
     Attempt = IntegerField(label=_('Attempts'))
     Status = ChoiceField(
