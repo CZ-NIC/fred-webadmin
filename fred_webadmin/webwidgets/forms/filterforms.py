@@ -446,6 +446,11 @@ class MessageFilterForm(FilterForm):
         label=_('Message type'), 
         choices=CorbaLazyRequestIterStruct(
             'Messages', None, 'getMessageTypeList', ['id', 'name'], None))
+    SmsPhoneNumber = CharField(label=_('SMS phone number'))
+    LetterAddrName = CharField(label=_('Letter address name'))
+    MessageContact = CompoundFilterField(
+        label=_('Message contact'), form_class=ContactFilterForm)
+
     
     
 class FilterFilterForm(FilterForm):
