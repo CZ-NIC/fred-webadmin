@@ -301,6 +301,7 @@ class ContactFilterForm(ObjectFilterForm):
     Organization = CharField(label=_('Organization'))
     Ssn = CharField(label=_('Identification'))
     Vat = CharField(label=_('VAT'))
+    PhoneNumber = CharField(label=_('Phone number'))
     
 class NSSetFilterForm(ObjectFilterForm):
     TechContact = CompoundFilterField(
