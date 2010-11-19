@@ -189,7 +189,14 @@ class ContactDetail(ObjectDetail):
                         'Time': FILTER_ACTION_TIME_LIMIT_LAST_MONTH}]],
                     [_('Emails'), 'mail', 
                         [{'Message': self.data.get('handle'),
-                        'CreateTime': FILTER_EMAIL_TIME_LIMIT_LAST_MONTH}]]],
+                        'CreateTime': FILTER_EMAIL_TIME_LIMIT_LAST_MONTH}]]\
+                ],
+                [
+                    [_('Public Requests'), 'publicrequest', 
+                        [{'Object.Handle': self.data.get('handle')}]],
+                    [_('Messages'), 'message', 
+                        [{'MessageContact.Handle': self.data.get('handle')}]]
+                ],
                 [
                     [_('UNIX Whois Actions'), 'logger', 
                         [{'ServiceType': 0, 'RequestPropertyValue.Name': 'handle',
@@ -220,7 +227,8 @@ class ContactDetail(ObjectDetail):
                         [{'ServiceType': 5, 'RequestPropertyValue.Name': 'handle',
                             'IsMonitoring': [True,True],
                             'RequestPropertyValue.Value': self.data.get('handle'),
-                            'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]]]
+                            'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]]
+                ]
             ]))
         super(ContactDetail, self).add_to_bottom()
     
