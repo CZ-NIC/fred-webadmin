@@ -1,4 +1,4 @@
-from distutils.version import StrictVersion
+from distutils.version import LooseVersion
 from distutils.dir_util import mkpath
 from distutils import util
 from distutils import log
@@ -106,7 +106,7 @@ class FredWebAdminInstall(install):
             sys.stderr.write('ImportError: %s\n fred-webadmin needs cherrypy version 3.x module.\n'%msg)
             sys.exit(1)
         
-        cherrypy_version =  StrictVersion(cherrypy.__version__)
+        cherrypy_version =  LooseVersion(cherrypy.__version__)
         if cherrypy_version < '3.0.0' or cherrypy_version >= '4.0.0':
             sys.stderr.write('ImportError: \n fred-webadmin needs cherrypy version 3.x module.\n')
             sys.exit(1)
