@@ -420,7 +420,7 @@ class BankStatementFilterForm(FilterForm):
         (editforms.PAYMENT_OTHER, 
             editforms.payment_map[editforms.PAYMENT_OTHER])])
 
-    AccountDate = DateTimeIntervalField(label=_('Account date'))
+    AccountDate = DateIntervalField(label=_('Account date'))
     
     AccountNumber = CharField(label=_('Account number'))
     BankCode = CharField(label=_('Bank code'))
@@ -429,6 +429,15 @@ class BankStatementFilterForm(FilterForm):
     VarSymb = CharField(label=_('Variable symbol'))
 
     InvoiceId = IntegerField(label=_('Invoice Id'))
+    
+    CrTime = DateTimeIntervalField(label=_('Import time'))
+    AccountMemo = CharField(label=_('Memo'))
+    
+    AccountId = ChoiceField(
+        label=_('Destination account'), 
+        choices=CorbaLazyRequestIterStruct(
+            'Admin', None, 'getBankAccounts', ['id', 'name'], None))
+     
 
 class MessageFilterForm(FilterForm):
     default_fields_names = ['CrDate']
