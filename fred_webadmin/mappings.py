@@ -33,6 +33,7 @@ from omniORB import importIDL
 
 importIDL(config.idl)
 ccReg = sys.modules['ccReg']
+Registry = sys.modules['Registry']
 
 def corbaname_to_classname(item):
     """ Return classname (class name in lowercase) for a given ccReg.FT_FILTER*
