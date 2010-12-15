@@ -23,7 +23,7 @@ from fred_webadmin.webwidgets.utils import (
     SortedDict, ErrorDict, escape_js_literal)
 from fred_webadmin.corbalazy import (
     CorbaLazyRequestIterStruct, ServerNotAvailableError)
-from fred_webadmin.corba import ccReg
+from fred_webadmin.corba import ccReg, Registry
 from fred_webadmin.mappings import f_urls
 import fred_webadmin.webwidgets.forms.editforms as editforms
 import fred_webadmin.webwidgets.forms.emptyvalue

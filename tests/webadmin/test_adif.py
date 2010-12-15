@@ -89,7 +89,7 @@ class AdminMock(object):
         self.session = None
         
     def getCountryDescList(self):
-        return [ccReg.CountryDesc(1, 'cz')]
+        return [Registry.CountryDesc(1, 'cz')]
 
     def getDefaultCountry(self):
         return 1
