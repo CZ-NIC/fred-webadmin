@@ -50,7 +50,7 @@ class BaseDetail(div):
         self.history = history
         self.data = data or {}
         if data is not None:
-            if isinstance(data, ccReg.PublicRequest.OID): # data is OID (object id)
+            if isinstance(data, Registry.PublicRequest.OID): # data is OID (object id)
                 self.data = get_detail_from_oid(data).__dict__
             elif not isinstance(data, types.DictType): # data is some corba object
                 self.data = data.__dict__

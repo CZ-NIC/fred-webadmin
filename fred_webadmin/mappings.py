@@ -77,7 +77,7 @@ f_header_ids = dict([(name, 'CT_%s_ID' % (name.upper())) for
 
 # dict {OT_*, classname}, where OT_* is from _Admin.idl ObjectType 
 f_objectType_name = dict([(item, item._n[3:].lower()) for 
-    item in ccReg.PublicRequest.ObjectType._items])
+    item in Registry.PublicRequest.ObjectType._items])
 
 def generate_dict(suffix):
     """ Returns a dict with (classname -> Classname + suffix) pairs. Note the 

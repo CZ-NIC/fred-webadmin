@@ -479,9 +479,9 @@ class PublicRequestFilterForm(FilterForm):
     
     Id = IntegerField(label=_('ID'))
     Type = CorbaEnumChoiceField(
-        label=_('Type'), corba_enum=ccReg.PublicRequest.Type)
+        label=_('Type'), corba_enum=Registry.PublicRequest.Type)
     Status = CorbaEnumChoiceField(
-        label=_('Status'), corba_enum=ccReg.PublicRequest.Status)
+        label=_('Status'), corba_enum=Registry.PublicRequest.Status)
     CreateTime = DateTimeIntervalField(label=_('Create time'))
     ResolveTime = DateTimeIntervalField(label=_('Resolve time'))
     Reason = CharField(label=_('Reason'))
