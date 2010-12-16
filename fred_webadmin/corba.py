@@ -61,14 +61,6 @@ orb = omniORB.CORBA.ORB_init(["-ORBnativeCharCodeSet", "UTF-8"], omniORB.CORBA.O
 #orb = CORBA.ORB_init(["-ORBnativeCharCodeSet", "UTF-8", "-ORBtraceLevel", "10"], CORBA.ORB_ID)
 #omniORB.setClientCallTimeout(2000)
 
-# invoice types (used both in IterTabe and ADIF)
-invoices = [
-        #{'type': _('All'), 'obj': Registry.Invoicing.IT_NONE},
-        {'type': _('Advance'), 'obj': Registry.Invoicing.IT_ADVANCE},
-        {'type': _('Account'), 'obj': Registry.Invoicing.IT_ACCOUNT},
-]
-ccReg.Invoicing.Invoices = invoices # XXX - future lang switching
-
 class Corba(object):
     def __init__(self):
         object.__init__(self)

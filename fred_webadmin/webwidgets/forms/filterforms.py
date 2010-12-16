@@ -508,7 +508,7 @@ class InvoiceFilterForm(FilterForm):
     default_fields_names = ['Type']
     
     Type = CorbaEnumChoiceField(
-        label=_('Type'), corba_enum=ccReg.Invoicing.InvoiceType)
+        label=_('Type'), corba_enum=Registry.Invoicing.InvoiceType)
     Number = CharField(label=_('Number'))
     CreateTime = DateTimeIntervalField(label=_('Create time'))
     TaxDate = DateIntervalField(label=_('Tax date'))
