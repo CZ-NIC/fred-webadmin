@@ -131,7 +131,7 @@ class IterTable(object):
         try:
             items = self._table.getRow(index)
             row_id = self.get_row_id(index)
-        except ccReg.Table.INVALID_ROW:
+        except Registry.Table.INVALID_ROW:
             import traceback 
             raise IndexError(
                 "Index %s out of bounds. Original exception: %s" % \
@@ -168,7 +168,7 @@ class IterTable(object):
         """
         try:
             return self._table.getRowId(index)
-        except ccReg.Table.INVALID_ROW:
+        except Registry.Table.INVALID_ROW:
             import traceback 
             raise IndexError(
                 "Index %s out of bounds. Original exception: %s" % \
@@ -226,7 +226,7 @@ class IterTable(object):
         """
         try:
             return self._table.getRow(index)
-        except ccReg.Table.INVALID_ROW:
+        except Registry.Table.INVALID_ROW:
             import traceback 
             raise IndexError(
                 "Index %s out of bounds. Original exception: %s" % \

@@ -300,7 +300,7 @@ class TestGetRowDict(Initializer):
                             start=0, numPageRows=1, numRows=20, pageSize=10)
         self.pagetable_mock._set_pageSize(100)
         self.itertable_update(self.pagetable_mock)
-        self.pagetable_mock.getRow(21).AndRaise(ccReg.Table.INVALID_ROW)
+        self.pagetable_mock.getRow(21).AndRaise(Registry.Table.INVALID_ROW)
         self.corba_mock.ReplayAll()
 
         table = IterTable(
@@ -331,7 +331,7 @@ class TestGetRowId(Initializer):
         """ get_row_id raises IndexError when index is too big. """
         self.init_itertable(self.pagetable_mock, columnDesc=["c1", "c2"], 
                             start=0, numPageRows=1, pageSize=50)
-        self.pagetable_mock.getRowId(10000).AndRaise(ccReg.Table.INVALID_ROW())
+        self.pagetable_mock.getRowId(10000).AndRaise(Registry.Table.INVALID_ROW())
         self.corba_mock.ReplayAll()
 
         table = IterTable("test_req_object", test_corba_session_string, pagesize=50)
@@ -343,7 +343,7 @@ class TestGetRowId(Initializer):
         """ get_row_id raises IndexError when index negative. """
         self.init_itertable(self.pagetable_mock, columnDesc=["c1", "c2"], 
                             start=0, numPageRows=1, pageSize=50)
-        self.pagetable_mock.getRowId(-1).AndRaise(ccReg.Table.INVALID_ROW())
+        self.pagetable_mock.getRowId(-1).AndRaise(Registry.Table.INVALID_ROW())
         self.corba_mock.ReplayAll()
 
         table = IterTable("test_req_object", test_corba_session_string, pagesize=50)
