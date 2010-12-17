@@ -58,7 +58,7 @@ from fred_webadmin import exposed
 from fred_webadmin.corba import Corba
 corba_obj = Corba()
 
-from fred_webadmin.corba import ccReg
+from fred_webadmin.corba import ccReg, Registry
 from fred_webadmin.translation import _
 
 # This must all be imported because of the way templates are dealt with.
