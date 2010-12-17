@@ -518,7 +518,7 @@ class Registrar(AdifPage, ListTableMixin):
         self.type_transformer['id'] = lambda val: int(val)
 
     def _get_empty_corba_struct(self):
-        """ Creates a ccReg.Registrar object representing
+        """ Creates a Registry.Registrar.Detail object representing
             a new registrar to be created on server side. """
         new = []
         new.append(0) # id
@@ -532,7 +532,7 @@ class Registrar(AdifPage, ListTableMixin):
         new.append([]) # accesses
         new.append([]) # active zones
         new.append(False) # hidden
-        return ccReg.Registrar(*new) # empty registrar
+        return Registry.Registrar.Detail(*new) # empty registrar
 
     def _fill_registrar_struct_from_form(self, registrar, cleaned_data):
         result = deepcopy(registrar)
