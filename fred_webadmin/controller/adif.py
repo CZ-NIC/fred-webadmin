@@ -514,7 +514,7 @@ class Registrar(AdifPage, ListTableMixin):
         self.type_transformer['zones'] = lambda val: map(
             lambda x: ccReg.ZoneAccess(**x), val)
         self.type_transformer['access'] = lambda val: map(
-            lambda x: ccReg.EPPAccess(**x), val)
+            lambda x: Registry.Registrar.EPPAccess(**x), val)
         self.type_transformer['id'] = lambda val: int(val)
 
     def _get_empty_corba_struct(self):
