@@ -605,7 +605,7 @@ class Registrar(AdifPage, ListTableMixin):
 
             Args:
                 registrar:
-                    The ccReg.Registrar object that is being updated or
+                    The Registry.Registrar.Deatil object that is being updated or
                     created.
                 log_request_name:
                     The type of log request that keeps log of this event.
