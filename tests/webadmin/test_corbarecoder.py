@@ -178,7 +178,7 @@ class TestDaphneCorbaRecoder(object):
             postalcode=u'', country=u'CZ', telephone=u'', fax=u'', email=u'', 
             url=u'', credit=u'0.00', unspec_credit=u"0.00", access=[], 
             zones=[
-                fredcorba.Registry.Registrar.ZoneAccess(
+                fredcorba.ccReg.ZoneAccess(
                     id=0, name=u'cz', fromDate=datetime.date(2009, 12, 11), 
                     toDate=fredtypes.NullDate())],
             hidden=False)
@@ -189,7 +189,7 @@ class TestDaphneCorbaRecoder(object):
             postalcode='', country='CZ', telephone='', fax='', 
             email='', url='', unspec_credit=u"0.00", credit='0.00', access=[], 
             zones=[
-                fredcorba.Registry.Registrar.ZoneAccess(
+                fredcorba.ccReg.ZoneAccess(
                     id=0, name='cz', fromDate=fredcorba.ccReg.DateType(
                         day=11, month=12, year=2009), 
                     toDate='')], 

@@ -476,7 +476,7 @@ class TestRegistrar(BaseADIFTestCase, RegistrarUtils):
         """
         # Submit the form.
         self.session_mock.updateRegistrar(
-            mox.IsA(Registry.Registrar.Detail)).AndReturn(42)
+            mox.IsA(ccReg.Registrar)).AndReturn(42)
 
         # Display the registar detail (we're redirected after a successful
         # submit).
@@ -510,7 +510,7 @@ class TestRegistrar(BaseADIFTestCase, RegistrarUtils):
         """ Registrar creation fails when zone 'To' date is smaller than zone
             'From' date (ticket #3530)."""
         self.session_mock.updateRegistrar(
-            mox.IsA(Registry.Registrar.Detail)).AndReturn(42)
+            mox.IsA(ccReg.Registrar)).AndReturn(42)
         self.session_mock.getDetail(ccReg.FT_REGISTRAR, 42).AndReturn(
             CORBA.Any(
                 CORBA.TypeCode("IDL:Registry/Registrar/Detail:1.0"), 
@@ -545,7 +545,7 @@ class TestRegistrar(BaseADIFTestCase, RegistrarUtils):
         """ Registrar creation passes when zone 'To' date is bigger than zone
             'From' date."""
         self.session_mock.updateRegistrar(
-            mox.IsA(Registry.Registrar.Detail)).AndReturn(42)
+            mox.IsA(ccReg.Registrar)).AndReturn(42)
         self.session_mock.getDetail(ccReg.FT_REGISTRAR, 42).AndReturn(
             CORBA.Any(
                 CORBA.TypeCode("IDL:Registry/Registrar/Detail:1.0"), 
@@ -587,7 +587,7 @@ class TestRegistrar(BaseADIFTestCase, RegistrarUtils):
         """ Creating second registrar with the same name fails.
             Ticket #3079. """
         self.session_mock.updateRegistrar(
-            mox.IsA(Registry.Registrar.Detail)).AndReturn(42)
+            mox.IsA(ccReg.Registrar)).AndReturn(42)
         self.session_mock.getDetail(ccReg.FT_REGISTRAR, 42).AndReturn(
             CORBA.Any(
                 CORBA.TypeCode("IDL:Registry/Registrar/Detail:1.0"), 
@@ -616,7 +616,7 @@ class TestRegistrar(BaseADIFTestCase, RegistrarUtils):
 
         # Now create the second one with the same name.
         self.session_mock.updateRegistrar(
-            mox.IsA(Registry.Registrar.Detail)).AndRaise(ccReg.Admin.UpdateFailed)
+            mox.IsA(ccReg.Registrar)).AndRaise(ccReg.Admin.UpdateFailed)
 
         self.corba_mock.ReplayAll()
 
