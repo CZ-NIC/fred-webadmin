@@ -58,7 +58,7 @@ from fred_webadmin import exposed
 from fred_webadmin.corba import Corba
 corba_obj = Corba()
 
-from fred_webadmin.corba import ccReg, Registry
+from fred_webadmin.corba import ccReg
 from fred_webadmin.translation import _
 
 # This must all be imported because of the way templates are dealt with.
@@ -518,7 +518,7 @@ class Registrar(AdifPage, ListTableMixin):
         self.type_transformer['id'] = lambda val: int(val)
 
     def _get_empty_corba_struct(self):
-        """ Creates a ccReg.AdminRegistrar object representing
+        """ Creates a ccReg.Registrar object representing
             a new registrar to be created on server side. """
         new = []
         new.append(0) # id
@@ -532,7 +532,7 @@ class Registrar(AdifPage, ListTableMixin):
         new.append([]) # accesses
         new.append([]) # active zones
         new.append(False) # hidden
-        return ccReg.AdminRegistrar(*new) # empty registrar
+        return ccReg.Registrar(*new) # empty registrar
 
     def _fill_registrar_struct_from_form(self, registrar, cleaned_data):
         result = deepcopy(registrar)
@@ -605,7 +605,7 @@ class Registrar(AdifPage, ListTableMixin):
 
             Args:
                 registrar:
-                    The ccReg.AdminRegistrar object that is being updated or
+                    The ccReg.Registrar object that is being updated or
                     created.
                 log_request_name:
                     The type of log request that keeps log of this event.
