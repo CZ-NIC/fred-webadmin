@@ -512,7 +512,7 @@ class Registrar(AdifPage, ListTableMixin):
         # are treated as strings.
         self.type_transformer = {}
         self.type_transformer['zones'] = lambda val: map(
-            lambda x: ccReg.ZoneAccess(**x), val)
+            lambda x: ccReg.AdminZoneAccess(**x), val)
         self.type_transformer['access'] = lambda val: map(
             lambda x: ccReg.AdminEPPAccess(**x), val)
         self.type_transformer['id'] = lambda val: int(val)
