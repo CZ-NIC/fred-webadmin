@@ -519,7 +519,7 @@ class InvoiceFilterForm(FilterForm):
 
 
 class MailFilterForm(FilterForm):
-    default_fields_names = ['Type']
+    default_fields_names = ['CreateTime', 'Type']
     
     Type = ChoiceField(
         label=_('Type'), 
