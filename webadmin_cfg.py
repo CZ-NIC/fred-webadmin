@@ -2,15 +2,15 @@
 
 import logging
 
+#debug = True
 debug = False
-#debug = False
 caching_filter_form_javascript = True # if this settings is on, then when doing changes to filter form, you should erase all sessions, because old filter forms are still in session
 
 www_dir = '/home/glin/programming/workspace/webadmin/www/'
 locale_dir = '/home/glin/programming/workspace/webadmin/locale/'
 sessions_dir = '/home/glin/programming/workspace/webadmin/sessions/'
 log_dir = '/home/glin/programming/workspace/webadmin/log/'
-log_level = logging.DEBUG
+log_level = logging.WARNING
 # logging_actions_enabled: Iff false no user actions are logged to logd.
 # viewing_actions_enabled: Iff false, users cannot display log screen in
 #                          Daphne.
@@ -32,11 +32,10 @@ audit_log = {
 #           File row format: username,action1.object1,action2.object2...
 #           e.g.: testuser,read.domain,write.registrar,read.registrar...
 permissions = {
-    'enable_checking': False,
+    'enable_checking': True,
     'backend': 'csv', #, 'nicauth'
     'csv_file': 'perms.csv',
 }
-
 
 idl = '/home/glin/programming/svn_enum_checkout/enum/idl/trunk/idl/ccReg.idl'
 #idl = '/home/glin/programming/nic/webadmin/servers/idl_devel/idl/ccReg.idl'
@@ -58,6 +57,7 @@ iors = (#(label, nshost, nscontext),
 
 
 tablesize = 45
+tabletimeout = 10000
 
 auth_method = 'CORBA' # 'LDAP', 'CORBA'
 LDAP_server = ''

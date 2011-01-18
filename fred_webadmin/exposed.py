@@ -38,6 +38,19 @@ def catch_webadmin_exceptions_decorator(view_func):
             context['message'].add(
                 pre(attr( id='traceback'), traceback.format_exc()))    
             return self._render('error', context)
+        except CORBA.UNKNOWN, e:
+            error("Exception CORBA.UNKNOWN!")
+            context = {'message': div()}
+            if config.debug:
+                context['message'].add(p('''Congratulations! Prave se vam '''
+                '''povedlo na backend serveru vyvolat neocekavanou vyjimku, '''
+                '''k cemuz samozrejme nikdy nemuze dojit!'''))
+            else:
+                context['message'].add(
+                    p(_('Error: Unknown backend server exception!')))
+            context['message'].add(
+                pre(attr( id='traceback'), traceback.format_exc()))    
+            return self._render('error', context)
         except ccReg.FileManager.IdNotFound, e:
             error("FILE NOT FOUND %s" % e)
 

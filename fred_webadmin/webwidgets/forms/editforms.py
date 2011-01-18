@@ -109,6 +109,7 @@ class ZoneEditForm(EditForm):
             layout_class=TableFormLayout, *args, **kwargs) 
 
     id = HiddenIntegerField(initial=0)
+    #credit = HiddenIntegerField(initial=0)
 
     name = CharField(label=_('Name'))
     fromDate = DateField(label=_('From'))

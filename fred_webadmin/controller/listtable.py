@@ -16,7 +16,7 @@ from fred_webadmin.mappings import (
     f_name_id, f_name_editformname, f_urls, f_name_actionfiltername, 
     f_name_actiondetailname, f_name_filterformname, f_name_req_object_type)
 import simplejson
-from fred_webadmin.webwidgets.gpyweb.gpyweb import div, p
+from fred_webadmin.webwidgets.gpyweb.gpyweb import attr, div, p, h1
 from fred_webadmin.webwidgets.utils import convert_linear_filter_to_form_output
 from fred_webadmin.webwidgets.adifwidgets import FilterListCustomUnpacked
 from fred_webadmin.customview import CustomView
@@ -26,11 +26,6 @@ from fred_webadmin.utils import get_detail, create_log_request
 from fred_webadmin.corbalazy import ServerNotAvailableError
 import fred_webadmin.webwidgets.forms.emptyvalue
 
-
-MSG_SERVER_UNAVAILABLE = ("Uh oh. We apologize, but the backend for %s "
-    "filter seems not to be working. Please check "
-    "that the appropriate server is running and then log out and log in "
-    "again.")
 
 class ListTableMixin(object):
     """ Implements common functionality for all the classes that support
@@ -45,11 +40,12 @@ class ListTableMixin(object):
         key = cherrypy.session.get('corbaSessionString', '')
         
         size = config.tablesize
+        timeout = config.tabletimeout
         user = cherrypy.session.get('user')
         if user and user.table_page_size:
             size = cherrypy.session.get('user').table_page_size
 
-        itertable = IterTable(request_object, key, size)
+        itertable = IterTable(request_object, key, size, timeout)
 
         return itertable
 
@@ -148,6 +144,9 @@ class ListTableMixin(object):
                 table.set_page(page)
                 
                 context['itertable'] = table
+        except ccReg.Filters.SqlQueryTimeout, e:
+            context['main'].add(h1(_('Timeout')), 
+                                p(_('Database timeout, please try to be more specific about requested data.')))
         finally:
             log_req.close(properties=out_props)
         return context
@@ -157,30 +156,25 @@ class ListTableMixin(object):
         context = {'main': div()}
         action = 'list' if kwd.get('list_all') else 'filter'
         
-        try:
-            if kwd.get('txt') or kwd.get('csv'):
-                res = self._get_list(context, **kwd)
-                return res
-            elif (kwd.get('cf') or kwd.get('page') or kwd.get('load') or 
-                  kwd.get('list_all') or kwd.get('filter_id') or
-                  kwd.get('sort_col')): 
-                # clear filter - whole list of objects without using filter form
-                context = self._get_list(context, **kwd)
-            elif kwd.get("jump_prev") or kwd.get("jump_next"):
-                # Increase/decrease the key time field offset and reload the
-                # table (jump to the prev./next time interval).
-                table = self._get_itertable()
-                delta = -1 if kwd.get("jump_prev") else 1
-                cleaned_filter_data = table.get_filter_data()
-                self._update_key_time_field_offset(
-                    cleaned_filter_data, kwd['field_name'], delta)
-                action = self._process_form(context, action, cleaned_filter_data, **kwd)
-            else:
-                action = self._process_form(context, action, **kwd)
-        except (omniORB.CORBA.SystemException,
-                ccReg.Admin.ServiceUnavailable):
-            context['main'] = _(MSG_SERVER_UNAVAILABLE % self.classname)
-            raise CustomView(self._render('base', ctx=context))
+        if kwd.get('txt') or kwd.get('csv'):
+            res = self._get_list(context, **kwd)
+            return res
+        elif (kwd.get('cf') or kwd.get('page') or kwd.get('load') or 
+              kwd.get('list_all') or kwd.get('filter_id') or
+              kwd.get('sort_col')): 
+            # clear filter - whole list of objects without using filter form
+            context = self._get_list(context, **kwd)
+        elif kwd.get("jump_prev") or kwd.get("jump_next"):
+            # Increase/decrease the key time field offset and reload the
+            # table (jump to the prev./next time interval).
+            table = self._get_itertable()
+            delta = -1 if kwd.get("jump_prev") else 1
+            cleaned_filter_data = table.get_filter_data()
+            self._update_key_time_field_offset(
+                cleaned_filter_data, kwd['field_name'], delta)
+            action = self._process_form(context, action, cleaned_filter_data, **kwd)
+        else:
+            action = self._process_form(context, action, **kwd)
 
         return self._render(action, context)
 
@@ -214,13 +208,8 @@ class ListTableMixin(object):
         if form.is_bound and config.debug:
             context['main'].add(p(u'kwd:' + unicode(kwd)))
 
-        try:
-            valid = form.is_valid()
-        except ServerNotAvailableError:
-            # form.is_valid connects to CORBA too. So we need to catch
-            # this.
-            context['main'] = _(MSG_SERVER_UNAVAILABLE % self.classname)
-            raise CustomView(self._render('base', ctx=context))
+
+        valid = form.is_valid()
 
         if valid:
             in_props = [] # log request properties
@@ -231,8 +220,8 @@ class ListTableMixin(object):
                 in_props.append(('negation', str(neg), True))
                 
             context = self._get_list(context, form.cleaned_data, in_log_props=in_props, **kwd)
-            context['main'].add(u"rows: " + str(
-                self._get_itertable().num_rows))
+            if config.debug:
+                context['main'].add(u"rows: " + str(self._get_itertable().num_rows))
 
             if self._should_display_jump_links(form):
                 # Key time field is active => Display prev/next links.
@@ -337,6 +326,4 @@ class ListTableMixin(object):
         except (ccReg.Admin.ObjectNotFound,):
             context['main'] = _("Object_not_found")
             raise CustomView(self._render('base', ctx=context))
-        except (omniORB.CORBA.SystemException, ccReg.Admin.ServiceUnavailable):
-            context['main'] = _(MSG_SERVER_UNAVAILABLE % self.classname)
-            raise CustomView(self._render('base', ctx=context))
+
