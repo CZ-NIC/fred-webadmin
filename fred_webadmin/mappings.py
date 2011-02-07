@@ -155,14 +155,6 @@ f_name_actionfiltername = dict([(key, value + 'Filter') for key, value in
 f_name_actiondetailname = dict([(key, value + 'Detail') for key, value in
                            f_name_actionname.items()])
 
-# This one will be deleted after getByHanle will be obsolete:
-f_name_get_by_handle = {
-    'contact': 'getContactByHandle',
-    'domain': 'getDomainByFQDN',
-    'nsset': 'getNSSetByHandle',
-    'registrar': 'getRegistrarByHandle'
-}
-
 f_name_default_sort = { 
     'filter': [['Type', 'ASC']],
     'registrar': [['Handle', 'ASC']],
