@@ -587,6 +587,9 @@ class PaymentActionDetail(Detail):
     pricePerUnit = CharDField(label=_('PPU'))
     price = CharDField(label=_('Price'))
 
+class RefDetail(Detail):
+    id = CharDField(label=_('ID'))
+    type = CharDField(label=_('Type'))
 
 class LoggerDetail(Detail):
     timeBegin = CharDField(label=_('Start time'))
@@ -599,6 +602,9 @@ class LoggerDetail(Detail):
     props = RequestPropertyDField(label=_('Properties'))
     raw_request = XMLOrCharDField(label=_("Raw request"))
     raw_response = XMLOrCharDField(label=_("Raw response"))
+    #result_code = CharDField(label=_('Result code'))
+    result_name = CharDField(label=_('Result'))
+    refs = ListObjectDField(detail_class=RefDetail, label=_('Object references'))
 
     def check_nperms(self):
         return False
@@ -688,7 +694,7 @@ class InvoiceDetail(Detail):
                )
     
     
-detail_classes = [AccessDetail, RegistrarDetail, 
+detail_classes = [AccessDetail, RegistrarDetail,
                   ObjectDetail, 
                   ContactDetail, 
                   HostDetail, NSSetDetail, 
@@ -696,4 +702,4 @@ detail_classes = [AccessDetail, RegistrarDetail,
                   DomainDetail, 
                   ActionDetail, PublicRequestDetail, MailDetail, 
                   PaymentDetail, PaymentActionDetail, InvoiceDetail,
-                  BankStatementDetail, LoggerDetail, ZoneDetail]
+                  BankStatementDetail, LoggerDetail, RefDetail, ZoneDetail]
