@@ -43,7 +43,9 @@ def corbaname_to_classname(item):
         ccReg.FT_STATEMENTITEM._v : 'bankstatement'
     }
     return rules.get(item._v, item._n[3:].lower())
-    
+
+def reverse_dict(dictionary):
+    return dict([(value, key) for key, value in dictionary.items()])
 
 filter_type_items = [dict(
     [
@@ -57,7 +59,7 @@ f_name_enum = dict([(item['classname'], item['item']) for
     item in filter_type_items])
 
 # dict {enum_item: classname}
-f_enum_name = dict([(value, key) for key, value in f_name_enum.items()])
+f_enum_name = reverse_dict(f_name_enum)
 
 #dict {classname: id_item) where id_item is item in FilterType (from corba) and 
 # url is base url of that object  
@@ -65,7 +67,7 @@ f_name_id = dict([(item['classname'], item['item']._v) for
     item in filter_type_items])
 
 # dict {id_item: classname}
-f_id_name = dict([(value, key) for key, value in f_name_id.items()])
+f_id_name = reverse_dict(f_name_id)
 
 # dict {enum_item: url} 
 f_urls = dict([(name, '/%s/' % (name)) for name in f_name_enum.keys()])
@@ -138,6 +140,7 @@ f_name_req_object_type = dict([(item['classname'], item['classname']) for
 f_name_req_object_type['logger'] = 'request'
 for key in ('action', 'filter', 'obj', 'session', 'statementhead', 'zone'): # don't log references for these types:  
     f_name_req_object_type.pop(key)
+f_req_object_type_name = reverse_dict(f_name_req_object_type)
 
 # Overwrite some remaining non-matching (class -> action) mappings.
 # This is necessary because of tight coupling between class names and action

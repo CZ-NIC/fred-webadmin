@@ -24,7 +24,7 @@ from fred_webadmin.utils import get_detail_from_oid, LateBindingProperty
 from fred_webadmin.translation import _
 from fred_webadmin.corba import ccReg, Registry
 from fred_webadmin.webwidgets.xml_prettyprint import xml_prettify_webwidget
-from fred_webadmin.mappings import f_enum_name, f_name_detailname
+from fred_webadmin.mappings import f_enum_name, f_name_detailname, f_req_object_type_name
 from fred_webadmin.corbalazy import CorbaLazyRequestIter
 import fred_webadmin.webwidgets.forms.editforms as editforms
 
@@ -534,11 +534,29 @@ class ListObjectHandleDField(DField):
             for i, oid in enumerate(self.value):
                 if oid and oid.id:
                     if i != 0:
-                        self.add(',')
+                        self.add(', ')
                     self.add(a(attr(href=f_urls[f_enum_name[oid.type]] + u'detail/?id=' + unicode(oid.id)), 
     #                           strong(oid.handle)))
                                oid.handle))
-                
+
+class ListLogObjectReferenceDField(DField):
+    ''' Data is list of Logger ObjectReference
+    '''
+    enclose_content = True
+    def make_content(self):
+        self.content = []
+        if self.value:
+            for i, ref in enumerate(self.value):
+                if ref and ref.id:
+                    if i != 0:
+                        self.add(', ')
+                    if f_req_object_type_name.get(ref.type): # only object displayable by daphne will be links, others plain text:
+                        self.add(a(attr(href=f_urls[f_req_object_type_name[ref.type]] + u'detail/?id=' + unicode(ref.id)), 
+                                   '%s:%s' % (ref.type, ref.id)))
+                    else:
+                        self.add('%s:%s' % (ref.type, ref.id))
+
+
 class ConvertDField(DField):
     ''' Converts source value to another value, rendering it to other field. 
         Parametr 'convert_table' is dict or list or tuple of couples (source_value, convert_to_value)

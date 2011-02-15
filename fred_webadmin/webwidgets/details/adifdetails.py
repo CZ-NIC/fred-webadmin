@@ -587,9 +587,6 @@ class PaymentActionDetail(Detail):
     pricePerUnit = CharDField(label=_('PPU'))
     price = CharDField(label=_('Price'))
 
-class RefDetail(Detail):
-    id = CharDField(label=_('ID'))
-    type = CharDField(label=_('Type'))
 
 class LoggerDetail(Detail):
     timeBegin = CharDField(label=_('Start time'))
@@ -604,7 +601,7 @@ class LoggerDetail(Detail):
     raw_response = XMLOrCharDField(label=_("Raw response"))
     #result_code = CharDField(label=_('Result code'))
     result_name = CharDField(label=_('Result'))
-    refs = ListObjectDField(detail_class=RefDetail, label=_('Object references'))
+    refs = ListLogObjectReferenceDField(_('Object references'))
 
     def check_nperms(self):
         return False
@@ -702,4 +699,4 @@ detail_classes = [AccessDetail, RegistrarDetail,
                   DomainDetail, 
                   ActionDetail, PublicRequestDetail, MailDetail, 
                   PaymentDetail, PaymentActionDetail, InvoiceDetail,
-                  BankStatementDetail, LoggerDetail, RefDetail, ZoneDetail]
+                  BankStatementDetail, LoggerDetail, ZoneDetail]
