@@ -767,7 +767,7 @@ class Domain(AdifPage, ListTableMixin):
                 log_req.status = 'Fail'
             # display domain name
             try:
-                context['handle'] = admin.getDomainById(int(domain_id)).fqdn
+                context['handle'] = utils.get_detail(self.classname, int(domain_id), use_cache=False).handle
             except Exception, e:
                 context['error'] = e
             
