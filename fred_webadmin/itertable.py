@@ -359,14 +359,12 @@ class CorbaFilterIterator(object):
 class FilterLoader(object):
     @classmethod
     def set_filter(cls, itertable, union_filter_data):
-#        import pdb; pdb.set_trace()
         for filter_data in union_filter_data:
             compound = itertable._table.add()
             cls._set_one_compound_filter(compound, filter_data)
 
     @classmethod
     def _set_one_compound_filter(cls, compound, filter_data):
-#        import ipdb; ipdb.set_trace()
         debug('filter_data in set_one_compound_filter: %s' % filter_data)
         for key, [neg, val] in filter_data.items():
             func = getattr(compound, "add%s" % key)

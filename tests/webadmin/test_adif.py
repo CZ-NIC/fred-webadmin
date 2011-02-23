@@ -572,8 +572,8 @@ class TestRegistrar(BaseADIFTestCase, RegistrarUtils):
         # Fill in the zone name (mandatory field).
         twill.commands.fv(2, "zones-0-name", "test zone")
         # 'To' date is bigger than 'From' date.
-        twill.commands.fv(2, "zones-0-fromDate", "2011-02-01")
-        twill.commands.fv(2, "zones-0-toDate", "2011-02-10")
+        twill.commands.fv(2, "zones-0-fromDate", datetime.date.today().isoformat())
+        twill.commands.fv(2, "zones-0-toDate", (datetime.date.today() + datetime.timedelta(7)).isoformat())
         twill.commands.submit()
 
         # Test that we've jumped to the detail page (i.e., creation has
