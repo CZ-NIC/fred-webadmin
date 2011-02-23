@@ -11,32 +11,27 @@ def load_dtd(dtd_filename='xhtml1-strict.dtd', dtd_root_elem='html'):
     dtd.root_elem = dtd_root_elem
     return dtd
 
-# elements with enclose_content flag
-enclose_elems = ['a', 'b', 'i', 'title']
-
-attr_translation = {
-        'xmllang': 'xml:lang',
-        'httpequiv': 'http-equiv',
-        'cssc': 'class'
-    }
-
-output = ''
-
-
-dtd = load_dtd()
-for elem in dtd.elems.values():
-    output += "class %s(WebWidget):\n" % elem.name
-    if elem.name in enclose_elems:
-        output += "    enclose_content = True\n"
-    tattr_string = "    tattr_list=%s\n\n" % elem.attrlist
-    for t_to, t_from in attr_translation.items():
-        tattr_string = tattr_string.replace(t_from, t_to)
-    output += tattr_string
+if __name__ == "__main__":
+    # elements with enclose_content flag
+    enclose_elems = ['a', 'b', 'i', 'title']
     
-
+    attr_translation = {
+            'xmllang': 'xml:lang',
+            'httpequiv': 'http-equiv',
+            'cssc': 'class'
+        }
     
+    output = ''
 
+    dtd = load_dtd()
+    for elem in dtd.elems.values():
+        output += "class %s(WebWidget):\n" % elem.name
+        if elem.name in enclose_elems:
+            output += "    enclose_content = True\n"
+        tattr_string = "    tattr_list=%s\n\n" % elem.attrlist
+        for t_to, t_from in attr_translation.items():
+            tattr_string = tattr_string.replace(t_from, t_to)
+        output += tattr_string
 
-
-print output
+    print output
     

@@ -1,3 +1,7 @@
+# this is output from generpyweb script
+class WebWidget(object): # this is here only for test to pass
+    pass
+ 
 class pre(WebWidget):
     tattr_list=[u'id', u'cssc', u'style', u'title', u'lang', u'xmllang', u'dir', u'onclick', u'ondblclick', u'onmousedown', u'onmouseup', u'onmouseover', u'onmousemove', u'onmouseout', u'onkeypress', u'onkeydown', u'onkeyup', u'xml:space']
 
