@@ -1,3 +1,9 @@
+2011-01-24 (3.6.0)
+    
+    * Added timeout functionality in filters, the timeout is configurable
+    * Added filter for Destination Account, AccountMemo and CRTime in BankStatementFilter
+    * Added object references and result to LogRequest detail   
+
 2010-10-24 Tomas Divis (3.5.4)
 
     * Fixing unicode
