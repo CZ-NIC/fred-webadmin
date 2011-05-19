@@ -237,7 +237,7 @@ def main(directory):
               author_email = 'tdivis@nic.cz',
               url = 'http://www.nic.cz',
               version = PACKAGE_VERSION,
-              packages = [PACKAGE_NAME] + list(all_subpackages_in(PACKAGE_NAME)),
+              packages = [PACKAGE_NAME] + subpackages(directory, PACKAGE_NAME),
               package_dir = {PACKAGE_NAME: PACKAGE_NAME},
               data_files = [
                   ('LOCALSTATEDIR/log/fred-webadmin',),
