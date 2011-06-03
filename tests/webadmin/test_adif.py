@@ -41,6 +41,9 @@ class BaseADIFTestCase(base.DaphneTestCase):
         # Create the application, mount it and start the server.
         root = fred_webadmin.controller.adif.prepare_root()
         wsgiApp = cherrypy.tree.mount(root)
+        cherrypy.config.update({'server.socket_host': '0.0.0.0',                                                                                                                                                                 
+                                 'server.socket_port': 9090,                                                                                                                                                                    
+                                                         }) 
         cherrypy.server.start()
         # Redirect HTTP requests.
         twill.add_wsgi_intercept('localhost', 8080, lambda : wsgiApp)
