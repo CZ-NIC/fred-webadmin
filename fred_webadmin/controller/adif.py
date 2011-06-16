@@ -950,6 +950,7 @@ class BankStatement(AdifPage, ListTableMixin):
                 if detail.type != editforms.PAYMENT_REGISTRAR:
                     context['detail'].invoiceId = ""
             res = self._render(action, context)
+            log_req.result = 'Success'
         finally:
             log_req.close()
         return res
