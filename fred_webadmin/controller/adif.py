@@ -550,7 +550,7 @@ class Registrar(AdifPage, ListTableMixin):
             if form.has_changed():
                 for key, field in form.fields.items():
                     if isinstance(field, formfields.FileField):
-                        if field.value.filename:
+                        if field.value and field.value.filename:
                             props.append(("set_%s" % key, field.value.filename, True))
                     else:
                         props.append(("set_%s" % key, field.value, True))

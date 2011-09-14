@@ -103,9 +103,6 @@ class AdminMock(object):
     def getCertificationManager(self):
         return CertificationManagerMock()
 
-    def authenticateUser(self):
-        pass
-
     def createSession(self, username):
         self.session = SessionMock()
         return "testSessionString"
@@ -115,6 +112,9 @@ class AdminMock(object):
 
     def authenticateUser(self, user, pwd):
         pass
+    
+    def isRegistrarBlocked(self, reg_id):
+        return False
 
 
 class CorbaConnectionMock(object):
@@ -797,8 +797,8 @@ class TestRegistrarCertifications(BaseADIFTestCase, RegistrarUtils):
 
         twill.commands.go("http://localhost:8080/registrar/edit/?id=42")
         twill.commands.showforms()
-        twill.commands.fv(2, "certifications-0-fromDate", "2010-06-01")
-        twill.commands.fv(2, "certifications-0-toDate", "2011-06-01")
+        twill.commands.fv(2, "certifications-0-fromDate", datetime.date.today().isoformat())
+        twill.commands.fv(2, "certifications-0-toDate", (datetime.date.today() + datetime.timedelta(7)).isoformat())
         twill.commands.fv(2, "certifications-0-score", "2")
         twill.commands.formfile(2, "certifications-0-evaluation_file", "./tests/webadmin/foofile.bar")
         twill.commands.submit()
@@ -830,8 +830,8 @@ class TestRegistrarCertifications(BaseADIFTestCase, RegistrarUtils):
 
         twill.commands.go("http://localhost:8080/registrar/edit/?id=42")
         twill.commands.showforms()
-        twill.commands.fv(2, "certifications-0-fromDate", "2010-06-01")
-        twill.commands.fv(2, "certifications-0-toDate", "2011-06-01")
+        twill.commands.fv(2, "certifications-0-fromDate", datetime.date.today().isoformat())
+        twill.commands.fv(2, "certifications-0-toDate", (datetime.date.today() + datetime.timedelta(7)).isoformat())
         twill.commands.fv(2, "certifications-0-score", "2")
         twill.commands.submit()
 
