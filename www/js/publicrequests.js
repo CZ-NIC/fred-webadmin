@@ -19,11 +19,23 @@ function setInZoneStatus(url) {
     }
 }
 
-function confirmAction() {
+function confirmAction(message) {
+	if (!message) {
+		message = "carry out the action."
+	}
     number = Math.floor(Math.random()*1000)
-    if (prompt("Type "+number+" to carry out the action.") == number) {
-        return true
+    if (prompt("Type " + number + " to " + message) == number) {
+        return true;
     }
-    return false
+    return false;
 }
 
+function processAction(url, message) {
+	if (!message) {
+		message = "carry out the action.";
+	}
+    number = Math.floor(Math.random()*1000);
+    if (prompt("Type "+number+" to " + message + ":") == number) {
+        location.href=url;
+    }
+}

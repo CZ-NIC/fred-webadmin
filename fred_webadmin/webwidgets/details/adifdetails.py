@@ -101,7 +101,14 @@ class RegistrarDetail(Detail):
 
     def add_to_bottom(self):
         if self.data:
-            self.add(FilterPanel([[
+            self.media_files.append('/js/publicrequests.js')
+            ###TODO: This is here temporarily till backandist will create interface for blokcing registrars with history
+            if self.data.get('is_blocked'):
+                self.add(strong(_('Registrar is blocked.')))
+            else:
+                self.add(_('Registrar is not blocked.'))
+            ### ==
+            filters = [[
                 [_('Domains sel.'), 'domain', [{'Registrar.Handle': self.data.get('handle')}]],
                 [_('Domains cr.'), 'domain', [{'CreateRegistrar.Handle': self.data.get('handle')}]],
                 [_('Contact sel.'), 'contact', [{'Registrar.Handle': self.data.get('handle')}]],
@@ -116,7 +123,16 @@ class RegistrarDetail(Detail):
                     'CreateTime': FILTER_EMAIL_TIME_LIMIT_LAST_MONTH}]],
                 [_('Invoice'), 'invoice', [
                     {'Registrar.Handle': self.data.get('handle')}]],
-            ]]))
+            ]]
+            
+            if self.data.get('is_blocked'):
+                filters.append([[_('Unblock'),
+                    "javascript:processAction('%s', '%s')" % \
+                    (f_urls['registrar'] + 'unblock/?id=%s' % \
+                        self.data.get('id'), 'unblock registrar')]])
+            
+            self.add(FilterPanel(filters))
+
         super(RegistrarDetail, self).add_to_bottom()
 
 class ObjectDetail(Detail):

@@ -663,6 +663,10 @@ class Registrar(AdifPage, ListTableMixin):
             result['certifications'] = (
                 recoder.c2u(
                     self._get_certifications_for_reg_id(int(kwd.get('id')))))
+            ###TODO: This is here temporarily till backandist will create interface for blokcing registrars with history
+            admin = cherrypy.session.get('Admin') 
+            result['is_blocked'] = admin.isRegistrarBlocked(int(kwd.get('id')))
+            ### ==
             
             context['edit'] = kwd.get('edit', False)
             context['result'] = result
@@ -709,6 +713,40 @@ class Registrar(AdifPage, ListTableMixin):
         ctx = self._update_registrar(
             registrar, "RegistrarCreate", action_is_edit=False, *params, **kwd)
         return self._render('edit', ctx)
+    
+    @check_onperm('unblock')
+    def unblock(self, id):
+        context = DictLookup()
+        try:
+            reg_id = int(id)
+        except (TypeError, ValueError):
+            context.message = _("Required_integer_as_parameter")
+            raise CustomView(self._render('error', ctx=context))
+
+        return_message = [
+            _(u'You can return back to '), 
+            a(attr(href=f_urls[self.classname] + 'detail/?id=%s' % reg_id), 
+              _('registrar.'))
+        ]
+
+        admin = cherrypy.session.get('Admin')
+        if not admin.isRegistrarBlocked(reg_id):
+            context.message = [_("This registrar is not blocked.")] + return_message
+            return self._render('error', ctx=context)
+        else:
+            log_req = utils.create_log_request('RegistrarUpdate', [['blocked', 'False']], [[self.classname, reg_id]])
+            try:
+                admin.unblockRegistrar(reg_id, log_req.request_id)
+                log_req.result = 'Success'
+            finally:
+                log_req.close()
+        
+            context.main = [_("Registrar successfully unblocked.")] + return_message 
+            return self._render('base', ctx=context)
+
+
+
+
 
 
 class Action(AdifPage, ListTableMixin):
