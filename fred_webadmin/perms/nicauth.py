@@ -1,4 +1,4 @@
-import apps.nicauth.models.user as auth_user
+#import apps.nicauth.models.user as auth_user commented out because this file is not used and only makes it hard to run nosetests with doctests
 from fred_webadmin.controller.adiferrors import AuthorizationError
 from fred_webadmin.translation import _
 
