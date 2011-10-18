@@ -1,3 +1,13 @@
+2011-10-17 Jiri Sadek, Tomas Divis, Juraj Vicenik (3.7.0)
+
+    * Registrar unblocking functionality impl.
+    * Fixed wrong result code for successfull operation in BankPaymentDetail
+    * Removed BankPayment InvoiceId filter
+    * Local distfred removed
+    * Simple filter tests
+    * Removed unused code
+    * Unused nicauth support temporarily disabled
+
 2011-01-24 (3.6.0)
     
     * Added timeout functionality in filters, the timeout is configurable
