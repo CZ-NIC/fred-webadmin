@@ -1,4 +1,4 @@
-2011-10-17 Jiri Sadek, Tomas Divis, Juraj Vicenik (3.7.0)
+2011-10-17 Jiri Sadek, Tomas Divis, Juraj Vicenik, Vit Vomacko (3.7.0)
 
     * Registrar unblocking functionality impl.
     * Fixed wrong result code for successfull operation in BankPaymentDetail
