@@ -428,8 +428,6 @@ class BankStatementFilterForm(FilterForm):
     ConstSymb = CharField(label=_('Constant symbol'))
     VarSymb = CharField(label=_('Variable symbol'))
 
-    InvoiceId = IntegerField(label=_('Invoice Id'))
-    
     CrTime = DateTimeIntervalField(label=_('Import time'))
     AccountMemo = CharField(label=_('Memo'))
     
