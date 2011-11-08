@@ -991,7 +991,7 @@ class NHDField(BaseNHDField):
             else:
                 self.normal_field.owner_detail = self.owner_detail
                 self._assign_current_field(self.normal_field)
-                return from_any(value[0].value, True)
+                return recoder.c2u(from_any(value[0].value, True))
         else:
             self.normal_field.owner_detail = self.owner_detail
             self._assign_current_field(self.normal_field)
