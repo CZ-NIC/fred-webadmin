@@ -115,9 +115,6 @@ class RegistrarDetail(Detail):
                 [_('Contact cr.'), 'contact', [{'CreateRegistrar.Handle': self.data.get('handle')}]],
                 [_('NSSet sel.'), 'nsset', [{'Registrar.Handle': self.data.get('handle')}]],
                 [_('NSSet cr.'), 'nsset', [{'CreateRegistrar.Handle': self.data.get('handle')}]],
-                [_('Actions'), 'action', [
-                    {'Registrar.Handle': self.data.get('handle'), 
-                    'Time': FILTER_ACTION_TIME_LIMIT_LAST_MONTH}]],
                 [_('Emails'), 'mail', [
                     {'Message': self.data.get('name'),
                     'CreateTime': FILTER_EMAIL_TIME_LIMIT_LAST_MONTH}]],
@@ -200,9 +197,6 @@ class ContactDetail(ObjectDetail):
                         [{'TechContact.Handle': self.data.get('handle')}]],
                     [_('KeySets'), 'keyset', 
                         [{'TechContact.Handle': self.data.get('handle')}]],
-                    [_('Actions'), 'action', 
-                        [{'RequestHandle': self.data.get('handle'),
-                        'Time': FILTER_ACTION_TIME_LIMIT_LAST_MONTH}]],
                     [_('Emails'), 'mail', 
                         [{'Message': self.data.get('handle'),
                         'CreateTime': FILTER_EMAIL_TIME_LIMIT_LAST_MONTH}]]\
@@ -285,9 +279,6 @@ class NSSetDetail(ObjectDetail):
                 [
                     [_('Domains'), 'domain', 
                         [{'NSSet.Handle': self.data.get('handle')}]],
-                    [_('Actions'), 'action', 
-                        [{'RequestHandle': self.data.get('handle'),
-                        'Time': FILTER_ACTION_TIME_LIMIT_LAST_MONTH}]],
                     [_('Emails'), 'mail', 
                         [{'Message': self.data.get('handle'),
                         'CreateTime': FILTER_EMAIL_TIME_LIMIT_LAST_MONTH}]]],
@@ -380,9 +371,6 @@ class KeySetDetail(ObjectDetail):
             self.add(FilterPanel([[
                 [_('Domains'), 'domain', 
                     [{'KeySet.Handle': self.data.get('handle')}]],
-                [_('Actions'), 'action', 
-                    [{'RequestHandle': self.data.get('handle'),
-                    'Time': FILTER_ACTION_TIME_LIMIT_LAST_MONTH}]],
                 [_('Emails'), 'mail', 
                     [{'Message': self.data.get('handle'),
                     'CreateTime': FILTER_EMAIL_TIME_LIMIT_LAST_MONTH}]],],
@@ -484,11 +472,7 @@ class DomainDetail(ObjectDetail):
         if self.data:
             self.media_files.append('/js/publicrequests.js')
             self.add(FilterPanel([
-                [[_('Actions'), 'action', 
-                    [{'RequestHandle': self.data.get('handle'),
-                    # This is here to get results for the last month only.
-                    'Time': FILTER_ACTION_TIME_LIMIT_LAST_MONTH}]],
-                [_('Emails'), 'mail', 
+                [[_('Emails'), 'mail', 
                     [{'Message': self.data.get('handle'), 
                     'CreateTime': FILTER_EMAIL_TIME_LIMIT_LAST_MONTH}]],
                 [_('dig'), f_urls['domain'] + 'dig/?handle=' + \

@@ -594,7 +594,7 @@ class HistoryDField(DField):
                 inner_field_copy.value = val
                 date_from = history_rec._from #recoder.corba_to_datetime(history_rec._from)
                 date_to = history_rec.to #recoder.corba_to_datetime(history_rec.to)
-                action_url = f_urls['action'] + 'detail/?id=%s' % history_rec.actionId
+                logger_url = f_urls['logger'] + 'detail/?id=%s' % history_rec.requestId
                 
                 history_tr = tr()
                 if i > 0:
@@ -603,7 +603,7 @@ class HistoryDField(DField):
                     td(inner_field_copy),
                     td(attr(cssc='history_dates_field'), _('from'), date_from),
                     td(attr(cssc='history_dates_field'), date_to and _('to') or '', date_to),
-                    td(attr(cssc='history_dates_field'), a(href=action_url), img(attr(src='/img/icons/open.png')))
+                    td(attr(cssc='history_dates_field'), a(href=logger_url), img(attr(src='/img/icons/open.png')))
                 )
                 
                 self.add(history_tr)
@@ -665,7 +665,7 @@ class HistoryObjectDField(HistoryDField):
                 history_rec = self.value[i]
                 date_from = history_rec._from #recoder.corba_to_datetime(history_rec._from)
                 date_to = history_rec.to #recoder.corba_to_datetime(history_rec.to)
-                action_url = f_urls['action'] + 'detail/?id=%s' % history_rec.actionId
+                logger_url = f_urls['logger'] + 'detail/?id=%s' % history_rec.requestId
                 
                 history_tr = tr()
                 if i > 0:
@@ -674,7 +674,7 @@ class HistoryObjectDField(HistoryDField):
                     detail,
                     td(attr(cssc='history_dates_field'), date_from),
                     td(attr(cssc='history_dates_field'), date_to),
-                    td(attr(cssc='history_dates_field'), a(href=action_url), img(attr(src='/img/icons/open.png')))
+                    td(attr(cssc='history_dates_field'), a(href=logger_url), img(attr(src='/img/icons/open.png')))
                 )
                 self.add(history_tr)
         else:
@@ -735,7 +735,7 @@ class HistoryListObjectDField(HistoryDField):
                 row.add(
                     td(rowspan_attr, date_from),
                     td(rowspan_attr, date_to),
-                    td(rowspan_attr, a(href=action_url), img(attr(src='/img/icons/open.png')))
+                    td(rowspan_attr, a(href=logger_url), img(attr(src='/img/icons/open.png')))
                 )
             self.add(row)
             
@@ -764,7 +764,7 @@ class HistoryListObjectDField(HistoryDField):
                 history_rec = self.value[i]
                 date_from = history_rec._from #recoder.corba_to_datetime(history_rec._from)
                 date_to = history_rec.to #recoder.corba_to_datetime(history_rec.to)
-                action_url = f_urls['action'] + 'detail/?id=%s' % history_rec.actionId
+                logger_url = f_urls['logger'] + 'detail/?id=%s' % history_rec.requestId
                 
                 if self.inner_details[i]:
                     for j, detail in enumerate(self.inner_details[i]):
@@ -1009,16 +1009,16 @@ class DiscloseCharNHDField(NHDField):
     
     def merge_histories(self, hist1, hist2):
         """ Merge histories of field and his dislose flag, If time is the same, 
-            then histories are sorted/merged according to actionId 
-            (if actionId is the same, then they are merged, otherwise sorted):
+            then histories are sorted/merged according to requestId 
+            (if requestId is the same, then they are merged, otherwise sorted):
         """
-        all_dates = {} # key is (date, action_id), value is couple list of couple [hist_number, history record]
+        all_dates = {} # key is (date, request_id), value is couple list of couple [hist_number, history record]
         
         for hist_num, hist in enumerate([hist1, hist2]):
             for rec in hist:
                 from_date = rec._from
                 if from_date: # from/to date can be empty, in that case we ignore it
-                    key = (from_date, rec.actionId)
+                    key = (from_date, rec.requestId)
                     val = [hist_num, rec]
                     if all_dates.has_key(key):
                         all_dates[key].append(val)
@@ -1036,7 +1036,7 @@ class DiscloseCharNHDField(NHDField):
                 last_hist_vals[hist_num] = from_any(rec.value, True)
                 last_hist_tos[hist_num] = rec.to 
             value = to_any([last_hist_vals[0], last_hist_vals[1]])
-            action_id = rec_list[0][1].actionId
+            request_id = rec_list[0][1].requestId
             _from = rec_list[0][1]._from
             
             # Do not add subclasses of Null (they represent empty fields).
@@ -1055,7 +1055,7 @@ class DiscloseCharNHDField(NHDField):
                 to = min(to_dict.values())
             else: # all are NULL dates, take one of them
                 to = rec_list[0][1].to
-            new_rec = Registry.HistoryRecord(_from=_from, to=to, value=value, actionId = action_id)
+            new_rec = Registry.HistoryRecord(_from=_from, to=to, value=value, requestId = request_id)
             new_hist.append(new_rec)
         
         return list(reversed(new_hist))
