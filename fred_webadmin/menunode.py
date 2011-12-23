@@ -161,9 +161,6 @@ if config.audit_log['viewing_actions_enabled']:
 log_submenu.extend(
     [
         MenuNode(
-            'action', _('Actions'), cssc='menu-item', 
-            url=f_urls['action'] + 'allfilters/', nperm='read.action'),
-        MenuNode(
             'publicrequest', _('PublicRequests'), cssc='menu-item', 
             url=f_urls['publicrequest'] + 'allfilters/', 
             nperm='read.publicrequest'),
