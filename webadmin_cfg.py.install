@@ -94,4 +94,4 @@ cherrycfg = {
 }
 
 
-properties_file = 'DU_ROOTDIR/etc/fred/properties.txt'
+properties_file = 'DU_ROOTDIR/etc/fred/webadmin_logger_property_names.txt'
