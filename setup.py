@@ -186,6 +186,7 @@ class FredWebAdminInstallData(install_data):
         values.append(('DU_IDL_DIR', self.idldir))
         values.append(('DU_DATAROOTDIR', self.getDir('datarootdir')))
         values.append(('DU_LOCALSTATEDIR', self.getDir('localstatedir')))
+        values.append(('DU_ROOTDIR', self.getDir('prefix')))
         values.append(('DU_NS_HOST', self.nshost+':'+self.nsport))
         values.append(('DU_NS_CONTEXT', self.nscontext))
         values.append(('DU_WEBADMIN_PORT', self.webadminport))

@@ -102,3 +102,4 @@ cherrycfg = {
 }
 
 
+properties_file = '/home/hh/opt/fred/root/etc/fred/properties.txt'

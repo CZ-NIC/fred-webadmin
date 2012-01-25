@@ -94,3 +94,4 @@ cherrycfg = {
 }
 
 
+properties_file = 'DU_ROOTDIR/etc/fred/properties.txt'

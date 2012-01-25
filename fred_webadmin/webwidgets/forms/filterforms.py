@@ -7,6 +7,7 @@ import cherrypy
 
 from logging import debug, error
 from fred_webadmin import config
+from fred_webadmin.utils import get_property_list
 from fred_webadmin.webwidgets.forms.forms import Form
 from fred_webadmin.webwidgets.utils import (
     ErrorList, ValidationError)
@@ -362,7 +363,13 @@ class ActionFilterForm(FilterForm):
 
 class PropertyFilterForm(FilterForm):
     default_fields_names = ['Name']
-    Name = CharField(label=_('Name'))
+    try:
+        Name = ChoiceField(
+            label=_('Name'), 
+            choices=get_property_list()
+                )
+    except Exception:
+        Name = CharField(label=_('Name'))
     Value = CharField(label=_('Value'))
     OutputFlag = BooleanField(label=_('Output Flag'))
 

@@ -187,3 +187,12 @@ def get_detail_from_oid(oid):
         #return get_detail(f_objectType_name[oid.type], oid.id)
         return get_detail(f_enum_name[oid.type], oid.id)
     
+
+def get_property_list(fname=None):
+    if fname is None:
+        fname = config.properties_file
+    result = []
+    for line in open(fname, 'r'):
+        line = line.strip()
+        result.append((line, line))
+    return result
