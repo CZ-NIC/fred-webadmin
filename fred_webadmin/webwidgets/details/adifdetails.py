@@ -538,7 +538,8 @@ class PublicRequestDetail(Detail):
     type = CorbaEnumDField(label=_('Type'))
     status = CorbaEnumDField(label=_('Status'))
     registrar = ObjectHandleDField(label=_('Registrar'))
-    action = ObjectHandleDField(label=_('Action'))
+    #action = ObjectHandleDField(label=_('Action'))
+    #TODO az se upravi idl a backend, nahradit zakomentovane action logDetailem
     email = CharDField(label=_('Email'))
     answerEmail = ObjectHandleDField(label=_('Answer email'))
     createTime = CharDField(label=_('Create time'))
