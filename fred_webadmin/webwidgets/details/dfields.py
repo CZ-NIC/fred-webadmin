@@ -603,6 +603,7 @@ class HistoryDField(DField):
                     td(inner_field_copy),
                     td(attr(cssc='history_dates_field'), _('from'), date_from),
                     td(attr(cssc='history_dates_field'), date_to and _('to') or '', date_to),
+                    td(attr(cssc='history_dates_field'), a(href=logger_url), img(attr(src='/img/icons/open.png')))
                 )
                 if history_rec.requestId > 0:
                     history_tr.add(
@@ -677,6 +678,7 @@ class HistoryObjectDField(HistoryDField):
                     detail,
                     td(attr(cssc='history_dates_field'), date_from),
                     td(attr(cssc='history_dates_field'), date_to),
+                    td(attr(cssc='history_dates_field'), a(href=logger_url), img(attr(src='/img/icons/open.png')))
                 )
                 if history_rec.requestId > 0:
                     history_tr.add(
@@ -741,6 +743,7 @@ class HistoryListObjectDField(HistoryDField):
                 row.add(
                     td(rowspan_attr, date_from),
                     td(rowspan_attr, date_to),
+                    td(rowspan_attr, a(href=logger_url), img(attr(src='/img/icons/open.png')))
                 )
                 if history_rec.requestId > 0:
                     history_tr.add(

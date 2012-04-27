@@ -32,7 +32,7 @@ import fred_webadmin.webwidgets.forms.emptyvalue
 __all__ = ['UnionFilterForm', 'RegistrarFilterForm', 'ObjectStateFilterForm', 
            'ObjectFilterForm', 'ContactFilterForm', 'NSSetFilterForm',
            'KeySetFilterForm', 'DomainFilterForm', 
-           'ActionFilterForm', 'FilterFilterForm', 'PublicRequestFilterForm', 
+           'FilterFilterForm', 'PublicRequestFilterForm', 
            'InvoiceFilterForm', 'MailFilterForm', 'FileFilterForm',
            'LoggerFilterForm', 'BankStatementFilterForm', 'MessageFilterForm',
            'PropertyFilterForm',
@@ -340,27 +340,6 @@ class DomainFilterForm(ObjectFilterForm):
 #    ValidationExpirationDate = DateIntervalField(label=_('Validation date'))
 
 
-class ActionFilterForm(FilterForm):
-    default_fields_names = ['SvTRID']
-    
-    Type = ChoiceField(
-        label=_('Request type'), 
-        choices=CorbaLazyRequestIterStruct(
-            'Admin', None, 'getEPPActionTypeList', ['id', 'name'], None))
-    Object = CompoundFilterField(label=_('Object'), form_class=ObjectFilterForm)
-    RequestHandle = CharField(label=_('Requested Handle'))
-    Time = DateTimeIntervalField(label=_('Received date'))
-    Response = CorbaEnumChoiceField(
-        label=_('Result'), corba_enum=Registry.EPPActionsFilterResultType)
-    Registrar = CompoundFilterField(
-        label=_('Registrar'), form_class=RegistrarFilterForm)
-    SvTRID = CharField(label=_('SvTRID'))
-    ClTRID = CharField(label=_('ClTRID'))
-
-    def get_key_time_field(self):
-        return self.base_fields['Time']
-
-
 class PropertyFilterForm(FilterForm):
     default_fields_names = ['Name']
     try:
@@ -499,8 +478,6 @@ class PublicRequestFilterForm(FilterForm):
     Reason = CharField(label=_('Reason'))
     EmailToAnswer = CharField(label=_('Email to answer'))
     Object = CompoundFilterField(label=_('Object'), form_class=ObjectFilterForm)
-    EppAction = CompoundFilterField(
-        label=_('Action'), form_class=ActionFilterForm)
 
 
 class FileFilterForm(FilterForm):
@@ -559,7 +536,6 @@ form_classes = [DomainFilterForm,
                 ObjectFilterForm, 
                 ContactFilterForm, 
                 RegistrarFilterForm, 
-                ActionFilterForm,
                 FilterFilterForm,
                 PublicRequestFilterForm,
                 FileFilterForm,

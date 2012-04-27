@@ -66,7 +66,7 @@ from fred_webadmin.webwidgets.templates.pages import (
     BaseSite, BaseSiteMenu, LoginPage, DisconnectedPage, NotFound404Page, 
     AllFiltersPage, FilterPage, ErrorPage, DigPage, SetInZoneStatusPage, 
     DomainDetail, ContactDetail, NSSetDetail, KeySetDetail, RegistrarDetail, 
-    ActionDetail, PublicRequestDetail, MailDetail, InvoiceDetail, LoggerDetail,
+    PublicRequestDetail, MailDetail, InvoiceDetail, LoggerDetail,
     RegistrarEdit, BankStatementPairingEdit, BankStatementDetail, 
     BankStatementDetailWithPaymentPairing, GroupEditorPage, MessageDetail
 )
@@ -747,15 +747,6 @@ class Registrar(AdifPage, ListTableMixin):
 
 
 
-
-
-class Action(AdifPage, ListTableMixin):
-    def _get_menu_handle(self, action):
-        if action == 'detail':
-            return 'logs'
-        else:
-            return super(Action, self)._get_menu_handle(action)
-
 class Domain(AdifPage, ListTableMixin):
     @check_onperm('read')
     def dig(self, **kwd):
@@ -1179,7 +1170,6 @@ def prepare_root():
     if config.audit_log['viewing_actions_enabled']:
         root.logger = Logger()
     root.registrar = Registrar()
-    root.action = Action()
     root.domain = Domain()
     root.contact = Contact()
     root.nsset = NSSet()

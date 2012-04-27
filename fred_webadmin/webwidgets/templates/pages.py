@@ -265,17 +265,6 @@ class KeySetDetail(DetailPage):
             if config.debug:
                 self.main.add('KeySetDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
 
-class ActionDetail(DetailPage):
-    def __init__(self, context = None):
-        super(ActionDetail, self).__init__(context)
-        c = self.context
-        if c.get('result'):
-            self.main.add(h1(_('Detail_of_%s' % self.get_object_name())))
-            self.main.add(adifdetails.ActionDetail(c.result, c.history))
-            if config.debug:
-                self.main.add('ACTIONDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
-        
-    
 class RegistrarDetail(DetailPage):
     def __init__(self, context = None):
         super(RegistrarDetail, self).__init__(context)

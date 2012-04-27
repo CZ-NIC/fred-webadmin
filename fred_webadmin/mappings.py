@@ -12,7 +12,6 @@
  {'classname': 'nsset', 'item': ccReg.FT_NSSET},\
  {'classname': 'keyset', 'item': ccReg.FT_KEYSET},\
  {'classname': 'domain', 'item': ccReg.FT_DOMAIN},\
- {'classname': 'action', 'item': ccReg.FT_ACTION},\
  {'classname': 'invoice', 'item': ccReg.FT_INVOICE},\
  {'classname': 'publicrequest', 'item': ccReg.FT_PUBLICREQUEST},\
  {'classname': 'mail', 'item': ccReg.FT_MAIL},\
@@ -102,7 +101,6 @@ def generate_dict(suffix):
 'contact': 'ContactTestSuffix', \
 'registrar': 'RegistrarTestSuffix', \
 'nsset': 'NSSetTestSuffix', \
-'action': 'ActionTestSuffix', \
 'mail': 'MailTestSuffix', \
 'logger': 'LoggerTestSuffix', \
 'statementhead': 'StatementHeadTestSuffix',\
@@ -138,7 +136,7 @@ f_name_actionname = generate_dict('')
 f_name_req_object_type = dict([(item['classname'], item['classname']) for 
     item in filter_type_items])
 f_name_req_object_type['logger'] = 'request'
-for key in ('action', 'filter', 'obj', 'session', 'statementhead', 'zone'): # don't log references for these types:  
+for key in ('filter', 'obj', 'session', 'statementhead', 'zone'): # don't log references for these types:  
     f_name_req_object_type.pop(key)
 f_req_object_type_name = reverse_dict(f_name_req_object_type)
 
@@ -166,7 +164,6 @@ f_name_default_sort = {
     'nsset': [['Handle', 'ASC'], ['Create date', 'DESC']],
     'keyset': [['Handle', 'ASC'], ['Create date', 'DESC']],
     'domain': [['FQDN', 'ASC'], ['Create date', 'DESC']],
-    'action': [['Time', 'DESC']],
     'invoice': [['Create Date', 'DESC']],
     'publicrequest': [['Create Time', 'DESC']],
     'mail': [['Create Time', 'DESC']],    

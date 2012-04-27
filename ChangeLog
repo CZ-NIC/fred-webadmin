@@ -1,3 +1,11 @@
+2012-04-27 Jiri Sadek, Tomas Divis (3.8.0)
+
+    * epp actions removed from fred
+
+2011-12-23 Jiri Sadek, Jan Hosek (3.7.1)
+
+    * Links to actions switched to request logger
+
 2011-10-17 Jiri Sadek, Tomas Divis, Juraj Vicenik, Vit Vomacko (3.7.0)
 
     * Registrar unblocking functionality impl.
