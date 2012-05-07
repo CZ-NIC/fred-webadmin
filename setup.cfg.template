@@ -1,3 +1,3 @@
 [bdist_rpm]
-requires=fred-pylogger, fred-idl, python-ldap, python-simplejson, python-dns, python-cherrypy, omniORBpy-devel, omniORB-servers, omniORB-bootscripts, redhat-lsb
+requires=fred-pylogger, fred-idl, python-ldap, python-simplejson, python-dns, python-cherrypy, python-omniORB, omniORB-servers, redhat-lsb
 install-extra-opts=--prefix=/usr --sysconfdir=/etc --localstatedir=/var --no-check-deps
