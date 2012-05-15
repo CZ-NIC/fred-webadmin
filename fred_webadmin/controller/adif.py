@@ -403,7 +403,7 @@ class ADIF(AdifPage):
                     form.non_field_errors().append(noesc(escape(unicode(
                         traceback.format_exc())).replace('\n', '<br/>')))
                 if log_req:
-                    log_req.status = 'Fail'
+                    log_req.result = 'Fail'
                 self._remove_session_data()
             else:
                 self._fill_session_data(form, user, corba_session_string)
@@ -790,10 +790,10 @@ class Domain(AdifPage, ListTableMixin):
 
             # if it was succefful, redirect into domain detail
             if context['error'] is None:
-                log_req.status = 'Success'
+                log_req.result = 'Success'
                 raise cherrypy.HTTPRedirect(f_urls[self.classname] + '/detail/?id=%s' % domain_id)
             else:
-                log_req.status = 'Fail'
+                log_req.result = 'Fail'
             # display domain name
             try:
                 context['handle'] = utils.get_detail(self.classname, int(domain_id), use_cache=False).handle
@@ -842,9 +842,9 @@ class File(AdifPage, ListTableMixin):
                 cd = '%s; filename=%s' % ('attachment', info.name)
                 response.headers["Content-Disposition"] = cd
                 response.headers['Content-Length'] = info.size
-                log_req.status = 'Success'
+                log_req.result = 'Success'
             except ccReg.FileManager.FileNotFound:
-                log_req.status = 'Fail'
+                log_req.result = 'Fail'
                 context['main'] = _("Object_not_found")
                 return self._render('file', ctx=context)
         finally:
