@@ -23,7 +23,7 @@ import dns.resolver
 import dns.query
 
 from fred_webadmin import config
- 
+
 # Conditional import. Business decision. User should not be forced to import
 # ldap if he does not wish to use ldap authentication.
 if config.auth_method == 'LDAP':
@@ -63,11 +63,11 @@ from fred_webadmin.translation import _
 
 # This must all be imported because of the way templates are dealt with.
 from fred_webadmin.webwidgets.templates.pages import (
-    BaseSite, BaseSiteMenu, LoginPage, DisconnectedPage, NotFound404Page, 
-    AllFiltersPage, FilterPage, ErrorPage, DigPage, SetInZoneStatusPage, 
-    DomainDetail, ContactDetail, NSSetDetail, KeySetDetail, RegistrarDetail, 
+    BaseSite, BaseSiteMenu, LoginPage, DisconnectedPage, NotFound404Page,
+    AllFiltersPage, FilterPage, ErrorPage, DigPage, SetInZoneStatusPage,
+    DomainDetail, ContactDetail, NSSetDetail, KeySetDetail, RegistrarDetail,
     PublicRequestDetail, MailDetail, InvoiceDetail, LoggerDetail,
-    RegistrarEdit, BankStatementPairingEdit, BankStatementDetail, 
+    RegistrarEdit, BankStatementPairingEdit, BankStatementDetail,
     BankStatementDetailWithPaymentPairing, GroupEditorPage, MessageDetail
 )
 from fred_webadmin.webwidgets.gpyweb.gpyweb import WebWidget
@@ -109,8 +109,8 @@ class AdifPage(Page):
         Page.__init__(self)
         self.classname = self.__class__.__name__.lower()
         self.menu_tree = menu_tree
-    
-    def _template(self, action = ''):
+
+    def _template(self, action=''):
         if action == 'base':
             return BaseSiteMenu
         if action == 'login':
@@ -142,30 +142,30 @@ class AdifPage(Page):
                 sys.modules[self.__module__], template_name, None)
             if template is None:
                 error("TEMPLATE %s IN MODULE %s NOT FOUND, USING DEFAULT: "
-                      "BaseSiteMenu" % (template_name, 
+                      "BaseSiteMenu" % (template_name,
                       sys.modules[self.__module__]))
-                template = BaseSiteMenu 
+                template = BaseSiteMenu
             else:
                 debug('...OK, template %s taken' % template_name)
             if not issubclass(template, WebWidget):
                 raise RuntimeError("%s is not derived from WebWidget - it "
                                    "cannot be template!" % repr(template))
             return template
-        
+
     def _get_menu(self, action):
         return MenuHoriz(
-            self.menu_tree, self._get_menu_handle(action), 
+            self.menu_tree, self._get_menu_handle(action),
             cherrypy.session['user'])
-    
+
     def _get_menu_handle(self, action):
         if self.classname in ('registrar'):
             if action in ('allfilters', 'filter'):
                 return self.classname + 'filter'
-            elif action in ('create', 'list'): 
+            elif action in ('create', 'list'):
                 return self.classname + action
         if self.classname == 'file':
             return 'summary'
-            
+
         return self.classname
 
     def _get_selected_menu_body_id(self, action):
@@ -174,7 +174,7 @@ class AdifPage(Page):
         if menu_node is None:
             return ''
         return menu_node.body_id
-    
+
     def _render(self, action='', ctx=None):
         context = DictLookup()
         context.approot = '/'
@@ -185,18 +185,18 @@ class AdifPage(Page):
         context.history = cherrypy.session.get('history', False)
 
         user = cherrypy.session.get('user', None)
-        if user: 
-            context.user = user 
+        if user:
+            context.user = user
             # None for Login page that has no menu.
-            context.menu = self._get_menu(action) or None 
+            context.menu = self._get_menu(action) or None
             context.body_id = self._get_selected_menu_body_id(action)
-        
+
         if ctx:
             context.update(ctx)
-        
+
         temp_class = self._template(action)(context)
         result = temp_class.render()
-        
+
         return result
 
     def default(self, *params, **kwd):
@@ -218,8 +218,8 @@ class AdifPage(Page):
         cherrypy.session['Logger'] = None
         cherrypy.session['filter_forms_javascript'] = None
         cherrypy.session['filterforms'] = None
-        
-    def _create_log_req_for_object_view(self, request_type = None, properties = None, references = None, **kwd):
+
+    def _create_log_req_for_object_view(self, request_type=None, properties=None, references=None, **kwd):
         '''
             To avoid code duplication - this is common for all views (like detail) which 
             are taking id of an object.
@@ -228,7 +228,7 @@ class AdifPage(Page):
             log request with references and object_id in properties.
             (note: object_id in properties will be obsolete when references will be everywhere)  
         '''
-        
+
         context = {}
         try:
             object_id = int(kwd.get('id'))
@@ -237,21 +237,21 @@ class AdifPage(Page):
             raise CustomView(self._render('error', ctx=context))
 
         if request_type is None:
-            request_type = f_name_actiondetailname[self.classname] 
-        
+            request_type = f_name_actiondetailname[self.classname]
+
         if properties is None:
             properties = []
         if references is None:
             references = []
-            
+
         properties.append(('object_id', object_id))
-        object_type = f_name_req_object_type.get(self.classname)    
+        object_type = f_name_req_object_type.get(self.classname)
         if object_type:
             references.append((object_type, object_id))
-        
-        log_req = utils.create_log_request(request_type, properties = properties, references = references)
+
+        log_req = utils.create_log_request(request_type, properties=properties, references=references)
         return log_req
-        
+
 
 
 class ADIF(AdifPage):
@@ -270,15 +270,15 @@ class ADIF(AdifPage):
             if args[0] == 'filter_forms_javascript.js':
                 if config.caching_filter_form_javascript:
                     if cherrypy.session.get('filter_forms_javascript') is not None:
-                        since = cherrypy.request.headers.get('If-Unmodified-Since') 
+                        since = cherrypy.request.headers.get('If-Unmodified-Since')
                         since2 = cherrypy.request.headers.get('If-Modified-Since')
                         if since or since2:
                             raise cherrypy.HTTPRedirect("", 304)
                     cherrypy.response.headers['Last-Modified'] = http.HTTPDate(time.time())
-               
+
                 result = filterforms.get_filter_forms_javascript(
                     cherrypy.session['filterforms'])
-                cherrypy.session['filter_forms_javascript'] = result 
+                cherrypy.session['filter_forms_javascript'] = result
                 return result
             elif args[0] == 'set_history':
                 new_history = simplejson.loads(kwd.get('history', 'false'))
@@ -293,7 +293,7 @@ class ADIF(AdifPage):
         return super(ADIF, self).default(*args, **kwd)
 
     def _handle_double_login(self):
-        debug('Already logged in, corbaSessionString = %s' % 
+        debug('Already logged in, corbaSessionString = %s' %
             cherrypy.session.get('corbaSessionString'))
 
     def _corba_connect(self, corba_server):
@@ -308,15 +308,15 @@ class ADIF(AdifPage):
         cherrypy.session['corba_server'] = corba_server_spec # couple [oir, context]
         cherrypy.session['filterforms'] = copy(filterforms.form_classes)
         self._corba_connect(corba_server_spec)
-        
+
         admin = corba_obj.getObject('Admin', 'ccReg.Admin')
         cherrypy.session['Admin'] = admin
-        
+
         logger = utils.get_logger()
         if getattr(logger, 'dao', None):
             cherrypy.session['Logger'] = logger.dao # needed by CorbaLazyRequest
         if isinstance(logger, DummyLogger):
-            logger_form = filterforms.LoggerFilterForm 
+            logger_form = filterforms.LoggerFilterForm
             if logger_form in cherrypy.session['filterforms']:
                 # Remove LoggerFilterForm from filterforms to prevent
                 # exceptions during filterform-related javascript 
@@ -340,7 +340,7 @@ class ADIF(AdifPage):
         except AuthenticationError:
             cherrypy.response.status = 403
             raise
-       
+
     def _authorize(self, form, admin):
         login = form.cleaned_data.get('login', '')
         corbaSessionString = admin.createSession(recoder.u2c(login))
@@ -364,16 +364,16 @@ class ADIF(AdifPage):
         cherrypy.session['FileManager'] = corba_obj.getObject(
             'FileManager', 'ccReg.FileManager')
         cherrypy.session['Messages'] = corba_obj.getObject('Messages', 'Registry.Messages')
-        
+
         cherrypy.session['history'] = False
         utils.get_corba_session().setHistory(False)
-        
+
 
     def login(self, *args, **kwd):
         """ The 'gateway' to the rest of Daphne. Handles authentication and 
             login form processing."
         """
-        if cherrypy.session.get('corbaSessionString'): 
+        if cherrypy.session.get('corbaSessionString'):
             # Already logged in, redirect to /summary.
             self._handle_double_login()
             raise cherrypy.HTTPRedirect('/summary/')
@@ -386,7 +386,7 @@ class ADIF(AdifPage):
                 form = LoginForm(kwd, action='/login/', method='post')
         else:
             form = LoginForm(action='/login/', method='post')
-        
+
         if form.is_valid():
             admin = self._init_login(form)
             log_req = utils.create_log_request('Login', [['username', form.cleaned_data.get('login')]])
@@ -413,7 +413,7 @@ class ADIF(AdifPage):
                 raise cherrypy.HTTPRedirect(form.cleaned_data.get('next', "/summary/"))
             finally:
                 if log_req:
-                    log_req.close(properties = out_props, session_id = cherrypy.session.get('logger_session_id', 0))
+                    log_req.close(properties=out_props, session_id=cherrypy.session.get('logger_session_id', 0))
 
         form.action = '/login/'
         return self._render('login', {'form': form})
@@ -435,8 +435,8 @@ class ADIF(AdifPage):
                 log_req = utils.create_log_request('Logout')
                 log_req.result = 'Success'
                 log_req.close()
-                utils.get_logger().close_session(session_id = cherrypy.session.get('logger_session_id'))
-            except (omniORB.CORBA.SystemException, 
+                utils.get_logger().close_session(session_id=cherrypy.session.get('logger_session_id'))
+            except (omniORB.CORBA.SystemException,
                 ccReg.Admin.ServiceUnavailable,
                 LoggingException):
                 # Let the user logout even when logging is critical (otherwise
@@ -453,13 +453,13 @@ class Summary(AdifPage):
             return BaseSiteMenu
         else:
             return super(Summary, self)._template(action)
-        
+
     @login_required
     def index(self):
         context = DictLookup()
         context.main = ul(li(a(attr(href='''/file/filter/?json_data=[{%22presention|CreateTime%22:%22on%22,%22CreateTime/3%22:%2210%22,%22CreateTime/0/0%22:%22%22,%22CreateTime/0/1/0%22:%220%22,%22CreateTime/0/1/1%22:%220%22,%22CreateTime/1/0%22:%22%22,%22CreateTime/1/1/0%22:%220%22,%22CreateTime/1/1/1%22:%220%22,%22CreateTime/4%22:%22-2%22,%22CreateTime/2%22:%22%22,%22presention|Type%22:%22000%22,%22Type%22:%225%22}]'''), _('Domain expiration letters'))))
         return self._render('summary', ctx=context)
-    
+
 
 class Logger(AdifPage, ListTableMixin):
     pass
@@ -479,7 +479,7 @@ class LoggerDisabled(Logger):
 
     def _get_menu_handle(self, action):
         return "logger"
-        
+
     def filter(self, *args, **kwd):
         return self.index()
 
@@ -492,7 +492,7 @@ class LoggerDisabled(Logger):
     def index(self):
         context = DictLookup()
         context.main = p(
-            "Logging has been disabled, Daphne could not connect to CORBA logd.") 
+            "Logging has been disabled, Daphne could not connect to CORBA logd.")
         return self._render('base', ctx=context)
 
 
@@ -522,12 +522,12 @@ class Registrar(AdifPage, ListTableMixin):
             a new registrar to be created on server side. """
         new = []
         new.append(0) # id
-        new.extend(['']*3)
+        new.extend([''] * 3)
         new.append(False) # vat
-        new.extend(['']*9)
-        admin = cherrypy.session.get('Admin') 
+        new.extend([''] * 9)
+        admin = cherrypy.session.get('Admin')
         new.extend([admin.getDefaultCountry()])
-        new.extend(['']*4)
+        new.extend([''] * 4)
         new.append('') # money
         new.append([]) # accesses
         new.append([]) # active zones
@@ -566,18 +566,18 @@ class Registrar(AdifPage, ListTableMixin):
                 else:
                     props.append(("set_%s" % field_name, field.value))
         return props
-    
-    def _process_valid_form(self, form, reg, reg_id, 
+
+    def _process_valid_form(self, form, reg, reg_id,
                             context, log_request_name):
         props = self._construct_changed_fields(form)
         in_refs = []
         if reg_id:
-            in_refs=[('registrar', int(reg_id))]
+            in_refs = [('registrar', int(reg_id))]
         log_req = utils.create_log_request(log_request_name, properties=props, references=in_refs)
         out_refs = []
         try:
             registrar = self._fill_registrar_struct_from_form(reg, form.cleaned_data)
-        
+
             corba_reg = recoder.u2c(registrar)
 
             result = {'reg_id': None}
@@ -596,7 +596,7 @@ class Registrar(AdifPage, ListTableMixin):
         # Jump to the registrar's detail.
         raise cherrypy.HTTPRedirect('/registrar/detail/?id=%s' % reg_id)
 
-    def _update_registrar(self, registrar, log_request_name, action_is_edit, *params,**kwd):
+    def _update_registrar(self, registrar, log_request_name, action_is_edit, *params, **kwd):
         """ Handles the actual updating/creating of a registrar.
         
             Note that we have to "glue" the registrar initial form data 
@@ -632,7 +632,7 @@ class Registrar(AdifPage, ListTableMixin):
                 # Create the log request only after the user has clicked on
                 # "save" (we only care about contacting the server, not about 
                 # user entering the edit page).
-                
+
                 context = self._process_valid_form(
                     form, registrar, kwd.get('id'), context, log_request_name)
                 return context
@@ -649,7 +649,7 @@ class Registrar(AdifPage, ListTableMixin):
     @check_onperm('read')
     def detail(self, **kwd):
         log_req = self._create_log_req_for_object_view(**kwd)
-        context = {}        
+        context = {}
         try:
             detail = self._get_detail(obj_id=kwd.get('id'))
             if detail is None:
@@ -664,10 +664,10 @@ class Registrar(AdifPage, ListTableMixin):
                 recoder.c2u(
                     self._get_certifications_for_reg_id(int(kwd.get('id')))))
             ###TODO: This is here temporarily till backandist will create interface for blokcing registrars with history
-            admin = cherrypy.session.get('Admin') 
+            admin = cherrypy.session.get('Admin')
             result['is_blocked'] = admin.isRegistrarBlocked(int(kwd.get('id')))
             ### ==
-            
+
             context['edit'] = kwd.get('edit', False)
             context['result'] = result
         finally:
@@ -683,8 +683,8 @@ class Registrar(AdifPage, ListTableMixin):
         all_groups = group_mgr.getGroups()
         memberships = group_mgr.getMembershipsByRegistar(reg_id)
         my_groups_ids = [
-            member.group_id for member in recoder.c2u(memberships) 
-            if not member.toDate 
+            member.group_id for member in recoder.c2u(memberships)
+            if not member.toDate
             #or (member.toDate and not member.toDate <= datetime.date.today()) 
             # Note: toDate should not be in the future (webadmin allow only setting it to today), so 
             # it's safe to say that if there is toDate filled, registrar is already removed from
@@ -713,7 +713,7 @@ class Registrar(AdifPage, ListTableMixin):
         ctx = self._update_registrar(
             registrar, "RegistrarCreate", action_is_edit=False, *params, **kwd)
         return self._render('edit', ctx)
-    
+
     @check_onperm('unblock')
     def unblock(self, id):
         context = DictLookup()
@@ -724,8 +724,8 @@ class Registrar(AdifPage, ListTableMixin):
             raise CustomView(self._render('error', ctx=context))
 
         return_message = [
-            _(u'You can return back to '), 
-            a(attr(href=f_urls[self.classname] + 'detail/?id=%s' % reg_id), 
+            _(u'You can return back to '),
+            a(attr(href=f_urls[self.classname] + 'detail/?id=%s' % reg_id),
               _('registrar.'))
         ]
 
@@ -740,8 +740,8 @@ class Registrar(AdifPage, ListTableMixin):
                 log_req.result = 'Success'
             finally:
                 log_req.close()
-        
-            context.main = [_("Registrar successfully unblocked.")] + return_message 
+
+            context.main = [_("Registrar successfully unblocked.")] + return_message
             return self._render('base', ctx=context)
 
 
@@ -787,7 +787,7 @@ class Domain(AdifPage, ListTableMixin):
                     context['error'] = e
             else:
                 context['error'] = _("Function setInZoneStatus() is not implemented in Admin.")
-            
+
             # if it was succefful, redirect into domain detail
             if context['error'] is None:
                 log_req.status = 'Success'
@@ -799,7 +799,7 @@ class Domain(AdifPage, ListTableMixin):
                 context['handle'] = utils.get_detail(self.classname, int(domain_id), use_cache=False).handle
             except Exception, e:
                 context['error'] = e
-            
+
             # display page with error message
             return self._render('setinzonestatus', context)
         finally:
@@ -811,13 +811,13 @@ class Contact(AdifPage, ListTableMixin):
 
 class NSSet(AdifPage, ListTableMixin):
     pass
-    
+
 class KeySet(AdifPage, ListTableMixin):
     pass
 
 class Mail(AdifPage, ListTableMixin):
     pass
-        
+
 class File(AdifPage, ListTableMixin):
     @check_onperm('read')
     def detail(self, **kwd):
@@ -850,7 +850,7 @@ class File(AdifPage, ListTableMixin):
         finally:
             log_req.close()
         return response.body
-        
+
 class PublicRequest(AdifPage, ListTableMixin):
     @check_onperm('change')
     def resolve(self, **kwd):
@@ -858,19 +858,19 @@ class PublicRequest(AdifPage, ListTableMixin):
         log_req = self._create_log_req_for_object_view('PublicRequestAccept', **kwd)
         try:
             cherrypy.session['Admin'].processPublicRequest(int(kwd['id']), False)
-            log_req.result = 'Success' 
+            log_req.result = 'Success'
         except ccReg.Admin.REQUEST_BLOCKED:
             log_req.result = 'Fail'
             raise CustomView(self._render(
                 'error', {'message': [
                     _(u'This object is blocked, request cannot be accepted.'
                     u'You can return back to '), a(attr(
-                        href=f_urls[self.classname] + 'detail/?id=%s' % kwd['id']), 
+                        href=f_urls[self.classname] + 'detail/?id=%s' % kwd['id']),
                         _('public request.'))
             ]}))
         finally:
             log_req.close()
-            
+
         raise cherrypy.HTTPRedirect(f_urls[self.classname] + 'filter/?reload=1&load=1')
 
     @check_onperm('change')
@@ -879,19 +879,19 @@ class PublicRequest(AdifPage, ListTableMixin):
         log_req = self._create_log_req_for_object_view('PublicRequestInvalidate', **kwd)
         try:
             cherrypy.session['Admin'].processPublicRequest(int(kwd['id']), True)
-            log_req.result = 'Success' 
+            log_req.result = 'Success'
         except ccReg.Admin.REQUEST_BLOCKED:
             log_req.result = 'Fail'
             raise CustomView(self._render(
                 'error', {'message': [
                     _(u'Request cannot be accepted.'
                     u'You can return back to '), a(attr(
-                        href=f_urls[self.classname] + 'detail/?id=%s' % kwd['id']), 
+                        href=f_urls[self.classname] + 'detail/?id=%s' % kwd['id']),
                         _('public request.'))
             ]}))
         finally:
             log_req.close()
-        
+
         raise cherrypy.HTTPRedirect(f_urls[self.classname] + 'filter/?reload=1&load=1')
 
 
@@ -903,13 +903,13 @@ class BankStatement(AdifPage, ListTableMixin):
     def _pair_payment_with_registrar(self, payment_id, payment_type, registrar_handle):
         """ Links the payment with registrar. """
         props = [("registrar_handle", registrar_handle)]
-        log_req = self._create_log_req_for_object_view('PaymentPair', properties = props, **{'id': str(payment_id)})
+        log_req = self._create_log_req_for_object_view('PaymentPair', properties=props, **{'id': str(payment_id)})
         try:
             invoicing = utils.get_corba_session().getBankingInvoicing()
             success = True
             if payment_type == editforms.PAYMENT_REGISTRAR:
                 success = invoicing.pairPaymentRegistrarHandle(payment_id, recoder.u2c(registrar_handle))
-            
+
             success = success and invoicing.setPaymentType(payment_id, payment_type)
             if success:
                 log_req.result = 'Success'
@@ -931,10 +931,10 @@ class BankStatement(AdifPage, ListTableMixin):
             # Indicator whether the pairing action has been carried out
             # successfully.
             pairing_success = False
-    
+
             user = cherrypy.session['user']
             user_has_change_perms = not user.check_nperms("change.bankstatement")
-            
+
             # When the user sends the pairing form we arrive at BankStatement
             # detail again, but this time we receive registrar_handle in kwd
             # => pair the payment with the registrar.
@@ -948,10 +948,10 @@ class BankStatement(AdifPage, ListTableMixin):
                     context['main'] = _('Requires integer as parameter (got %s).' % payment_type)
                     raise CustomView(self._render('base', ctx=context))
                 pairing_success = self._pair_payment_with_registrar(obj_id, payment_type, registrar_handle)
-    
+
             # Do not use cache - we want the updated BankStatementItem.
             detail = utils.get_detail(self.classname, int(obj_id), use_cache=False)
-            context['detail'] = detail 
+            context['detail'] = detail
             context['form'] = BankStatementPairingEditForm(
                 method="POST",
                 initial={
@@ -965,7 +965,7 @@ class BankStatement(AdifPage, ListTableMixin):
                 # successfully => Show an error.
                 context['form'].non_field_errors().append(
                     'Could not pair. Perhaps you have entered an invalid handle?')
-            
+
             if detail.type == editforms.PAYMENT_UNASSIGNED and user_has_change_perms:
                 # Payment not paired => show the payment pairing edit form
                 action = 'pair_payment'
@@ -984,7 +984,7 @@ class BankStatement(AdifPage, ListTableMixin):
             log_req.close()
         return res
 
-    def _template(self, action = ''):
+    def _template(self, action=''):
         if action == "pair_payment":
             # Show detail with payment pairing form.
             template_name = 'BankStatementDetailWithPaymentPairing'
@@ -996,7 +996,7 @@ class BankStatement(AdifPage, ListTableMixin):
             error(
                 "TEMPLATE %s IN MODULE %s NOT FOUND, USING DEFAULT: "
                 "BaseSiteMenu" % (template_name, sys.modules[self.__module__]))
-            template = BaseSiteMenu 
+            template = BaseSiteMenu
         if not issubclass(template, WebWidget):
             raise RuntimeError(
                 "%s is not derived from WebWidget - it "
@@ -1010,7 +1010,7 @@ class Filter(AdifPage, ListTableMixin):
     def _get_menu_handle(self, action):
         return 'summary'
 
-   
+
 class Development(object):
     __metaclass__ = exposed.AdifPageMetaClass
 
@@ -1037,14 +1037,14 @@ class Development(object):
             "config: '%s'" % cherrypy.config,
             "session: '%s'" % cherrypy.session
         ]
-        
+
         output = ''
         for dval in dvals:
             output += "<p>%s\n</p>" % dval
         count = cherrypy.session.get('count', 0) + 1
         cherrypy.session['count'] = count
         return output
-    
+
     def heapy(self):
         try:
             from guppy import hpy
@@ -1055,12 +1055,12 @@ class Development(object):
         output = _(u'''This page displays memory consumption by python object on server.
             It propably cause server threads to not work properly!!! 
             DO NOT USE THIS PAGE IN PRODUCTION SYSTEM!!!\n\n''')
-                        
+
         output += u'\n'.join(unicode(heap).split('\n')[:2]) + '\n'
         for i in xrange(heap.partition.numrows):
             item = heap[i]
             output += unicode(item).split('\n')[2] + '\n'
-        
+
         cherrypy.response.headers["Content-Type"] = "text/plain"
         return output
 
@@ -1098,7 +1098,7 @@ class OpenID(AdifPage):
 class Smaz(Page):
     def index(self):
         context = DictLookup({'main': p("hoj")})
-        
+
         return BaseSiteMenu(context).render()
 
 class Detail41(AdifPage):
@@ -1155,7 +1155,7 @@ class Group(AdifPage):
             error(
                 "TEMPLATE %s IN MODULE %s NOT FOUND, USING DEFAULT: "
                 "BaseSiteMenu" % (template_name, sys.modules[self.__module__]))
-            template = BaseSiteMenu 
+            template = BaseSiteMenu
         if not issubclass(template, WebWidget):
             raise RuntimeError(
                 "%s is not derived from WebWidget - it "
