@@ -6,10 +6,10 @@ import logging
 debug = False
 caching_filter_form_javascript = True # if this settings is on, then when doing changes to filter form, you should erase all sessions, because old filter forms are still in session
 
-www_dir = '/home/glin/programming/workspace/webadmin/www/'
-locale_dir = '/home/glin/programming/workspace/webadmin/locale/'
-sessions_dir = '/home/glin/programming/workspace/webadmin/sessions/'
-log_dir = '/home/glin/programming/workspace/webadmin/log/'
+www_dir = '/home/glin/programming/gitnic/webadmin/www/'
+locale_dir = '/home/glin/programming/gitnic/webadmin/locale/'
+sessions_dir = '/home/glin/programming/gitnic/webadmin/sessions/'
+log_dir = '/home/glin/programming/gitnic/webadmin/log/'
 log_level = logging.WARNING
 # logging_actions_enabled: Iff false no user actions are logged to logd.
 # viewing_actions_enabled: Iff false, users cannot display log screen in
@@ -20,7 +20,7 @@ log_level = logging.WARNING
 audit_log = {
     'logging_actions_enabled': True,
     'viewing_actions_enabled': True,
-    'force_critical_logging' : True 
+    'force_critical_logging' : True
 }
 
 # enable_checking: Iff false, no security policy is enforced (there is
@@ -37,7 +37,7 @@ permissions = {
     'csv_file': 'perms.csv',
 }
 
-idl = '/home/glin/programming/svn_enum_checkout/enum/idl/trunk/idl/ccReg.idl'
+idl = '/home/glin/programming/gitnic/idl/idl/ccReg.idl'
 #idl = '/home/glin/programming/nic/webadmin/servers/idl_devel/idl/ccReg.idl'
 #idl = '/home/glin/programming/nic/webadmin/servers/idl_trunk/idl/ccReg.idl' 
 
@@ -46,7 +46,7 @@ iors = (#(label, nshost, nscontext),
         (u'maňásek-tom', 'hal9000', 'fred-tom'),
         (u'maňásek', 'hal9000', 'fred'),
         (u'glin-server-maňásek-name-glin', 'jsadek', 'fred-glin'),
-        (u'hokuston2', 'pokuston', 'fred2'), 
+        (u'hokuston2', 'pokuston', 'fred2'),
         (u'hokuston', 'pokuston:50001', 'fred'),
         (u'koliha', 'curlew', 'fred'),
         (u'jarahp', 'jarahp:22346', 'fred'),
