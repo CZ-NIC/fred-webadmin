@@ -43,8 +43,8 @@ idl = '/home/glin/programming/gitnic/idl/idl/ccReg.idl'
 
 iors = (#(label, nshost, nscontext),
         (u'localní', 'localhost:20001', 'fred'),
-        (u'maňásek-tom', 'hal9000', 'fred-tom'),
-        (u'maňásek', 'hal9000', 'fred'),
+        (u'maňásek-tom', 'hal9002:30001', 'fred'),
+        (u'maňásek', 'hal9002:20001', 'fred'),
         (u'glin-server-maňásek-name-glin', 'jsadek', 'fred-glin'),
         (u'hokuston2', 'pokuston', 'fred2'),
         (u'hokuston', 'pokuston:50001', 'fred'),
