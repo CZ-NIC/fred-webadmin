@@ -514,7 +514,7 @@ class MailFilterForm(FilterForm):
         label=_('Type'), 
         choices=CorbaLazyRequestIterStruct(
             'Mailer', None, 'getMailTypes', ['id', 'name'], None))
-    Handle = CharField(label=_('Handle'))
+    #Handle = CharField(label=_('Handle'))
     CreateTime = DateTimeIntervalField(label=_('Create time'))
     ModifyTime = DateTimeIntervalField(label=_('Modify time'))
     # docasny, az bude v corba tak smazat
