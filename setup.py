@@ -22,7 +22,6 @@ def njoin(*args):
 
 PROJECT_NAME = 'fred-webadmin'
 PACKAGE_NAME = 'fred_webadmin'
-PACKAGE_VERSION = '3.9.0'
 
 SHARE_DOC = njoin('share', 'doc', PROJECT_NAME)
 SHARE_PACKAGE = njoin('share', PROJECT_NAME)
@@ -237,7 +236,6 @@ def main(directory):
               author = 'David Pospisilik, Tomas Divis, CZ.NIC',
               author_email = 'tdivis@nic.cz',
               url = 'http://www.nic.cz',
-              version = PACKAGE_VERSION,
               packages = [PACKAGE_NAME] + subpackages(directory, PACKAGE_NAME) + subpackages(directory, 'tests'),
               package_dir = {PACKAGE_NAME: PACKAGE_NAME},
               data_files = [
