@@ -8,7 +8,7 @@ import cherrypy
 from itertools import izip, chain, repeat
 
 from gpyweb.gpyweb import (
-    WebWidget, attr, save, ul, li, a, table, tr, th, td, b, form, 
+    WebWidget, attr, save, ul, li, a, table, tr, th, td, b, form,
     textarea, input, script, tagid)
 from fred_webadmin.mappings import f_urls, f_id_name, f_name_filterformname
 from fred_webadmin.translation import _
@@ -18,7 +18,7 @@ from fred_webadmin.webwidgets.forms.filterforms import *
 
 class FilterList(ul):
     def __init__(self, filters, filter_name=None, *content, **kwd):
-        ''' Filters is list of triplets [id, type, name] 
+        ''' Filters is list of triplets [id, type, name]
             If filter_name is specified, general filter for that object is added (e.g. /domains/filter/)
         '''
         super(FilterList, self).__init__(*content, **kwd)
@@ -26,10 +26,10 @@ class FilterList(ul):
         debug('LIST OF FILTERS: %s' % filters)
         for filter in filters:
             url_filter = f_urls[f_id_name[int(filter['Type'])]] + 'filter/?filter_id=' + filter['Id']
-            url_filter_with_form =  url_filter + '&show_form=1'
+            url_filter_with_form = url_filter + '&show_form=1'
             self.add(li(
                         a(attr(href=url_filter), filter['Name']),
-                        ' (', a(attr(href=url_filter_with_form), _('form')),  ')',
+                        ' (', a(attr(href=url_filter_with_form), _('form')), ')',
                        ))
         if filter_name:
             self.add(li(a(attr(href=f_urls[filter_name] + 'filter/'), _('Custom filter'))))
@@ -50,10 +50,10 @@ class FilterList(ul):
         else:
             form = ''
         return form
-                
+
 class FilterListUnpacked(FilterList):
     def __init__(self, filters, filter_name=None, *content, **kwd):
-        ''' Filters is list of triplets [id, type, name] 
+        ''' Filters is list of triplets [id, type, name]
             If filter_name is specified, general filter for that object is added (e.g. /domains/filter/)
         '''
         ul.__init__(self, *content, **kwd)
@@ -61,31 +61,31 @@ class FilterListUnpacked(FilterList):
         debug('LIST OF FILTERS(unpacked): %s' % filters)
         for filter in filters:
             url_filter = f_urls[f_id_name[int(filter['Type'])]] + 'filter/?filter_id=' + filter['Id']
-            url_filter_with_form =  url_filter + '&show_form=1'
+            url_filter_with_form = url_filter + '&show_form=1'
             form = self.get_form(filter)
             self.add(li(
                         a(attr(href=url_filter), filter['Name']),
-                        ' (', a(attr(href=url_filter_with_form), _('form')),  ')',
+                        ' (', a(attr(href=url_filter_with_form), _('form')), ')',
                         form))
         if filter_name:
             self.add(li(a(attr(href=f_urls[filter_name] + 'filter/'), _('Custom filter'))))
-            
-        self.add(script(attr(type='text/javascript'), 'Ext.onReady(function () {addFieldsButtons()})')) 
+
+        self.add(script(attr(type='text/javascript'), 'Ext.onReady(function () {addFieldsButtons()})'))
 
 class FilterListCustomUnpacked(FilterList):
-    
+
     def __init__(self, filters, filter_name=None, *content, **kwd):
-        ''' Filters is list of triplets [id, type, name] 
+        ''' Filters is list of triplets [id, type, name]
             If filter_name is specified, general filter for that object is added (e.g. /domains/filter/)
         '''
         ul.__init__(self, *content, **kwd)
         self.tag = 'ul'
         debug('LIST OF FILTERS(unpacked): %s' % filters)
-        
+
         custom_presented = False
         for filter in filters:
             url_filter = f_urls[f_id_name[int(filter['Type'])]] + 'filter/?filter_id=' + filter['Id']
-            url_filter_with_form =  url_filter + '&show_form=1'
+            url_filter_with_form = url_filter + '&show_form=1'
             if filter['Name'].lower() == 'custom':
                 form = self.get_form(filter)
                 custom_presented = True
@@ -93,21 +93,21 @@ class FilterListCustomUnpacked(FilterList):
                 form = None
             self.add(li(
                         a(attr(href=url_filter), filter['Name']),
-                        ' (', a(attr(href=url_filter_with_form), _('form')),  ')',
+                        ' (', a(attr(href=url_filter_with_form), _('form')), ')',
                         form))
         if not custom_presented and filter_name:
             self.add(li(a(attr(href=f_urls[filter_name] + 'filter/'), _('Custom filter')),
                         self.get_default_form(filter_name)
                        ))
-            
-        self.add(script(attr(type='text/javascript'), 'Ext.onReady(function () {addFieldsButtons()})')) 
+
+        self.add(script(attr(type='text/javascript'), 'Ext.onReady(function () {addFieldsButtons()})'))
 
     def get_default_form(self, filter_name):
         return UnionFilterForm(form_class=self._get_form_class(filter_name))
-        
-    
+
+
 class FilterPanel(table):
-    ''' Used in detail view of objects. It is panel with buttons to filters related to 
+    ''' Used in detail view of objects. It is panel with buttons to filters related to
         currently displayed object (like admins of domain in domain detail view).
         Button can also be just simple link.
     '''
@@ -131,7 +131,7 @@ class FilterPanel(table):
             tbl = table()
             tbl.add(attr(cssc='filter_panel'),
                  tr(th(
-                    attr(colspan=filter_count), 
+                    attr(colspan=filter_count),
                     b(_('Options')) if first else b())),
                  tr(save(self, 'filter_buttons')))
             self._create_links(chunk)
@@ -148,11 +148,11 @@ class FilterPanel(table):
                 self.filter_buttons.add(
                     td(form(
                         attr(
-                            action=f_urls[obj_name] + 'filter/', 
+                            action=f_urls[obj_name] + 'filter/',
                             method='POST'),
                         textarea(
                             attr(
-                                style='display: none', 
+                                style='display: none',
                                 name='json_linear_filter'),
                             simplejson.dumps(filter)),
                         input(attr(type='submit', value=_(button_label))))))"""
@@ -162,21 +162,21 @@ class FilterPanel(table):
             if len(button_data) == 2:
                 button_label, url = button_data
                 self.filter_buttons.add(
-                    td(a(attr(href = url), _(button_label))))
+                    td(a(attr(href=url), _(button_label))))
             elif len(button_data) == 3:
                 button_label, obj_name, filter = button_data
                 self.filter_buttons.add(
                     td(form(
                         attr(
-                            action=f_urls[obj_name] + 'filter/', 
+                            action=f_urls[obj_name] + 'filter/',
                             method='POST'),
                         textarea(
                             attr(
-                                style='display: none', 
+                                style='display: none',
                                 name='json_linear_filter'),
                             simplejson.dumps(filter)),
                         input(attr(type='submit', value=_(button_label))))))
 
 def grouper(n, iterable, padvalue=None):
     "grouper(3, 'abcdefg', 'x') --> ('a','b','c'), ('d','e','f'), ('g','x','x')"
-    return izip(*[chain(iterable, repeat(padvalue, n-1))]*n)
+    return izip(*[chain(iterable, repeat(padvalue, n - 1))] * n)

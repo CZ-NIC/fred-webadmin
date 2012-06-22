@@ -24,21 +24,21 @@ class MenuNode(object):
 
         self._cssc = None
         self.cssc = cssc
-        
+
         self._url = None
         self.url = url
-        
+
         self.default = default
 
         self.disabled = disabled
-        
+
         self.nperm = []
         if isinstance(nperm, types.StringTypes):
             self.nperm.append(nperm)
         elif nperm:
             self.nperm = nperm
         self.nperm_type = nperm_type
-        
+
         self.submenus = []
         if submenu:
             submenu_default_present = False
@@ -51,16 +51,16 @@ class MenuNode(object):
                         submenu_default_present = True
                     else:
                         raise RuntimeError('Menu specification error: there could be only one default submenu of menu!')
-        
-        self.nperm = list(set(self.nperm)) # only distinct values 
-                
+
+        self.nperm = list(set(self.nperm)) # only distinct values
+
         MenuNode._menudict[handle] = self
-        
+
     @classmethod
     def get_menu_by_handle(cls, handle):
         return MenuNode._menudict.get(handle)
-                    
-    
+
+
     def _get_body_id(self):
         if self._body_id is not None:
             return self._body_id
@@ -72,7 +72,7 @@ class MenuNode(object):
     def _set_body_id(self, value):
         self._body_id = value
     body_id = property(_get_body_id, _set_body_id)
-    
+
     def _get_cssc(self):
         if self._cssc is not None:
             return self._cssc
@@ -84,70 +84,70 @@ class MenuNode(object):
     def _set_cssc(self, value):
         self._cssc = value
     cssc = property(_get_cssc, _set_cssc)
-        
-    
+
+
     def _get_url(self):
         return self._url
     def _set_url(self, value):
         self._url = value
     url = property(_get_url, _set_url)
-    
+
     def mprint(self, level=0):
         output = ('\t' * level) + '%s (%s, %s, %s) %s' % (
-            self.caption, self.cssc, self.body_id, 
+            self.caption, self.cssc, self.body_id,
             self.url, ['', '*'][self.default]) + '\n'
         for smenu in self.submenus:
             output += smenu.mprint(level + 1)
         return output
-    
-    
+
+
 summary_node = MenuNode(
     'summary', _('Summary'), 'body-summary', 'menu-item menu-summary',
     url='/summary/')
 
 objects_node = MenuNode(
-        'object', _('Objects'), 'body-objects', 'menu-item menu-objects', 
+        'object', _('Objects'), 'body-objects', 'menu-item menu-objects',
         submenu=[
             MenuNode(
-                'domain', _('Search domains'), cssc='menu-item', 
+                'domain', _('Search domains'), cssc='menu-item',
                 url=f_urls['domain'] + 'allfilters/', nperm='read.domain'),
             MenuNode(
-                'contact', _('Search contacts'), cssc='menu-item', 
+                'contact', _('Search contacts'), cssc='menu-item',
                 url=f_urls['contact'] + 'allfilters/', nperm='read.contact'),
             MenuNode(
-                'nsset', _('Search nssets'), cssc='menu-item', 
+                'nsset', _('Search nssets'), cssc='menu-item',
                 url=f_urls['nsset'] + 'allfilters/', nperm='read.nsset'),
             MenuNode(
-                'keyset', _('Search keysets'), cssc='menu-item', 
+                'keyset', _('Search keysets'), cssc='menu-item',
                 url=f_urls['keyset'] + 'allfilters/', nperm='read.keyset')])
 
 registrars_node = MenuNode(
-        'registrar', _('Registrars'), 'body-registrars', 
-        'menu-item menu-registrars', nperm='read.registrar', 
+        'registrar', _('Registrars'), 'body-registrars',
+        'menu-item menu-registrars', nperm='read.registrar',
         submenu=[
             MenuNode(
-                'registrarlist', _('List'), cssc='menu-item', 
-                url=f_urls['registrar'] + 'filter/?list_all=1', 
+                'registrarlist', _('List'), cssc='menu-item',
+                url=f_urls['registrar'] + 'filter/?list_all=1',
                 nperm='read.registrar'),
             MenuNode(
-                'registrarfilter', _('Search'), cssc='menu-item', 
-                url=f_urls['registrar'] + 'allfilters/', 
+                'registrarfilter', _('Search'), cssc='menu-item',
+                url=f_urls['registrar'] + 'allfilters/',
                 nperm='read.registrar', default=True),
             MenuNode(
-                'registrarcreate', _('Create new'), cssc='menu-item', 
-                url=f_urls['registrar'] + 'create/', 
-                nperm=['read.registrar', 'change.registrar'], 
+                'registrarcreate', _('Create new'), cssc='menu-item',
+                url=f_urls['registrar'] + 'create/',
+                nperm=['read.registrar', 'change.registrar'],
                 nperm_type='one'),
             MenuNode(
-                'registrargroups', _('Groups'), cssc='menu-item', 
+                'registrargroups', _('Groups'), cssc='menu-item',
                 url=f_urls['group'], nperm='change.registrargroup'),
             MenuNode(
-                'invoice', _('Invoices'), cssc='menu-item', 
-                url=f_urls['invoice'] + 'allfilters/', 
+                'invoice', _('Invoices'), cssc='menu-item',
+                url=f_urls['invoice'] + 'allfilters/',
                 nperm='read.invoice'),
             MenuNode(
                 'bankstatement', _('Payments'), cssc='menu-item',
-                url=f_urls['bankstatement'] + 'allfilters/', 
+                url=f_urls['bankstatement'] + 'allfilters/',
                 nperm='read.bankstatement')])
 
 log_submenu = []
@@ -156,29 +156,29 @@ log_submenu = []
 if config.audit_log['viewing_actions_enabled']:
     log_submenu.append(
         MenuNode(
-            'logger', _('Logs'), cssc='menu-item', 
+            'logger', _('Logs'), cssc='menu-item',
             url=f_urls['logger'] + 'allfilters/', nperm='read.logger'))
 log_submenu.extend(
     [
         MenuNode(
-            'publicrequest', _('PublicRequests'), cssc='menu-item', 
-            url=f_urls['publicrequest'] + 'allfilters/', 
+            'publicrequest', _('PublicRequests'), cssc='menu-item',
+            url=f_urls['publicrequest'] + 'allfilters/',
             nperm='read.publicrequest'),
         MenuNode(
-            'mail', _('Emails'), cssc='menu-item', 
+            'mail', _('Emails'), cssc='menu-item',
             url=f_urls['mail'] + 'allfilters/', nperm='read.mail'),
         MenuNode(
-            'message', _('Messages'), cssc='menu-item', 
+            'message', _('Messages'), cssc='menu-item',
             url=f_urls['message'] + 'allfilters/', nperm='read.message'),
     ])
 
 
 logs_node = MenuNode(
-        'logs', _('Logs'), 'body-logs', 'menu-item menu-logs', 
+        'logs', _('Logs'), 'body-logs', 'menu-item menu-logs',
         submenu=log_submenu)
-    
+
 menu_tree = MenuNode(
-    'root', '', '', 'menu-item', '#', 
+    'root', '', '', 'menu-item', '#',
     [summary_node, objects_node, registrars_node, logs_node])
 
 

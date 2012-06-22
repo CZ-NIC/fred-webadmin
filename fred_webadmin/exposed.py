@@ -36,7 +36,7 @@ def catch_webadmin_exceptions_decorator(view_func):
                 context['message'].add(
                     p(_('Error: Backend server is not running!')))
             context['message'].add(
-                pre(attr( id='traceback'), traceback.format_exc()))    
+                pre(attr(id='traceback'), traceback.format_exc()))
             return self._render('error', context)
         except CORBA.UNKNOWN, e:
             error("Exception CORBA.UNKNOWN!")
@@ -49,7 +49,7 @@ def catch_webadmin_exceptions_decorator(view_func):
                 context['message'].add(
                     p(_('Error: Unknown backend server exception!')))
             context['message'].add(
-                pre(attr( id='traceback'), traceback.format_exc()))    
+                pre(attr(id='traceback'), traceback.format_exc()))
             return self._render('error', context)
         except ccReg.FileManager.IdNotFound, e:
             error("FILE NOT FOUND %s" % e)
@@ -64,7 +64,7 @@ def catch_webadmin_exceptions_decorator(view_func):
             context['message'].add(
                 p(_('Error: CORBA object could not be found!')))
             context['message'].add(
-                pre(attr( id='traceback'), traceback.format_exc()))    
+                pre(attr(id='traceback'), traceback.format_exc()))
             return self._render('error', context)
         except CustomView, e:
             return e.rendered_view
@@ -80,4 +80,3 @@ class AdifPageMetaClass(type):
                 attrs[attr_name].exposed = True
         new_class = type.__new__(mcs, name, bases, attrs)
         return new_class
-    

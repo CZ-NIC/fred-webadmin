@@ -34,17 +34,17 @@ class GPHTMLParser(HTMLParser):
             self.objects_on_level[self.level + 1] = True
         self.objects_on_level[self.level] = True
         self.level += 1
-        
+
 
     def handle_endtag(self, tag):
         self.objects_on_level[self.level] = False
-        self.level -= 1        
+        self.level -= 1
 
         print "Encountered the end of a %s tag" % tag
         self.output += ')'
 #        if self.level < 1:
-#            self.output += '\n' 
-            
+#            self.output += '\n'
+
     def handle_data(self, data):
         data = data.strip()
         if data:
@@ -63,11 +63,9 @@ if __name__ == '__main__':
         print   'Please put filename of file to conversion as argument'
         sys.exit(1)
     filename = sys.argv[1]
-    
+
     html = open(filename).read()
     parser = GPHTMLParser()
     parser.feed(html)
-    
-    print parser.output
 
-    
+    print parser.output

@@ -68,8 +68,8 @@ class Corba(object):
             #importIDL(idl or os.path.join(os.path.dirname(os.path.abspath(__file__)), IDL_FILE))[0]
             #]
         self.context = None
-        
-    def connect(self, ior = 'localhost', context_name = 'fred'):
+
+    def connect(self, ior='localhost', context_name='fred'):
         obj = orb.string_to_object('corbaname::' + ior)
         self.context = obj._narrow(CosNaming.NamingContext)
         self.context_name = context_name
@@ -77,13 +77,13 @@ class Corba(object):
     def getObjectUsingContext(self, component, name, idl_type_str):
         cosname = [CosNaming.NameComponent(component, "context"), CosNaming.NameComponent(name, "Object")]
         obj = self.context.resolve(cosname)
-        
+
         # get idl type from idl_type_str:
         idl_type_parts = idl_type_str.split('.')
         idl_type = sys.modules[idl_type_parts[0]]
         for part in idl_type_parts[1:]:
             idl_type = getattr(idl_type, part)
-            
+
         return obj._narrow(idl_type)
 
     def getObject(self, name, idltype):

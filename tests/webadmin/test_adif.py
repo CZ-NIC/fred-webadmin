@@ -41,9 +41,9 @@ class BaseADIFTestCase(base.DaphneTestCase):
         # Create the application, mount it and start the server.
         root = fred_webadmin.controller.adif.prepare_root()
         wsgiApp = cherrypy.tree.mount(root)
-        cherrypy.config.update({'server.socket_host': '0.0.0.0',                                                                                                                                                                 
-                                 'server.socket_port': 9090,                                                                                                                                                                    
-                                                         }) 
+        cherrypy.config.update({'server.socket_host': '0.0.0.0',
+                                 'server.socket_port': 9090,
+                                                         })
         cherrypy.server.start()
         # Redirect HTTP requests.
         twill.add_wsgi_intercept('localhost', 8080, lambda : wsgiApp)
@@ -54,7 +54,7 @@ class BaseADIFTestCase(base.DaphneTestCase):
     def tearDown(self):
         base.DaphneTestCase.tearDown(self)
         # Remove the intercept.
-        twill.remove_wsgi_intercept('localhost', 8080) 
+        twill.remove_wsgi_intercept('localhost', 8080)
         # Shut down Cherrypy server.
         cherrypy.server.stop()
 
@@ -90,7 +90,7 @@ class AdminMock(object):
     def __init__(self):
         super(AdminMock, self).__init__()
         self.session = None
-        
+
     def getCountryDescList(self):
         return [Registry.CountryDesc(1, 'cz')]
 
@@ -112,7 +112,7 @@ class AdminMock(object):
 
     def authenticateUser(self, user, pwd):
         pass
-    
+
     def isRegistrarBlocked(self, reg_id):
         return False
 
@@ -129,7 +129,7 @@ class CorbaConnectionMock(object):
         }
 
     def getObject(self, obj1, obj2):
-        return self.obj[obj2] 
+        return self.obj[obj2]
 
     def connect(self, user, pwd):
         pass
@@ -152,8 +152,8 @@ class SessionMock(object):
 
     def getBankingInvoicing(self):
         raise NotImplementedError("This has to be stubbed out!")
-        
-        
+
+
 class UserMock(object):
     def __init__(self):
         super(UserMock, self).__init__()
@@ -193,7 +193,7 @@ class GroupManagerMock(object):
 
     def addRegistrarToGroup(self, reg_id, group_id):
         raise NotImplementedError("This has to be stubbed out!")
-        
+
     def removeRegistrarFromGroup(self, reg_id, group_id):
         raise NotImplementedError("This has to be stubbed out!")
 
@@ -201,7 +201,7 @@ class GroupManagerMock(object):
 class TestADIF(BaseADIFTestCase):
     def setUp(self):
         BaseADIFTestCase.setUp(self)
-   
+
     def test_login_valid_corba_auth(self):
         """ Login passes when using valid corba authentication.
         """
@@ -223,7 +223,7 @@ class TestADIF(BaseADIFTestCase):
 
     '''def ignoretest_login_unicode_username(self):
         """ Login passes when using valid corba authentication.
-            THIS IS BROKEN, probably because of strange way 
+            THIS IS BROKEN, probably because of strange way
             mechanize (and twill that uses it) handles unicode strings.
         """
         fred_webadmin.config.auth_method = 'CORBA'
@@ -352,7 +352,7 @@ class TestADIF(BaseADIFTestCase):
         twill.commands.url("http://localhost:8080/login/")
 
     def test_double_login(self):
-        """ Loging in when already loged in redirects to /summary. 
+        """ Loging in when already loged in redirects to /summary.
         """
         self.web_session_mock['corbaSessionString'] = "test session string"
         self.corba_mock.ReplayAll()
@@ -375,29 +375,29 @@ class TestADIF(BaseADIFTestCase):
 
 class RegistrarUtils(object):
     def _fabricate_registrar(self):
-        """ Returns a fake Registrar object. """ 
+        """ Returns a fake Registrar object. """
         return (
             CORBA.Any(
                 CORBA.TypeCode("IDL:Registry/Registrar/Detail:1.0"),
                 Registry.Registrar.Detail(
-                    id=42L, ico='', dic='', varSymb='', vat=True, 
-                    handle='test handle', name='Company l.t.d.', 
-                    organization='test org 1', street1='', 
-                    street2='', street3='', city='', stateorprovince='', 
-                    postalcode='', country='CZ', telephone='', fax='', 
-                    email='', url='www.nic.cz', credit='0.00', 
+                    id=42L, ico='', dic='', varSymb='', vat=True,
+                    handle='test handle', name='Company l.t.d.',
+                    organization='test org 1', street1='',
+                    street2='', street3='', city='', stateorprovince='',
+                    postalcode='', country='CZ', telephone='', fax='',
+                    email='', url='www.nic.cz', credit='0.00',
                     unspec_credit=u'120.00',
                     access=[Registry.Registrar.EPPAccess(
-                        password='123456789', 
-                        md5Cert='60:7E:DF:39:62:C3:9D:3C:EB:5A:87:80:C1:73:4F:99'), 
+                        password='123456789',
+                        md5Cert='60:7E:DF:39:62:C3:9D:3C:EB:5A:87:80:C1:73:4F:99'),
                     Registry.Registrar.EPPAccess(
-                        password='passwd', 
-                        md5Cert='39:D1:0C:CA:05:3A:CC:C0:0B:EC:6F:3F:81:0D:C7:9E')], 
+                        password='passwd',
+                        md5Cert='39:D1:0C:CA:05:3A:CC:C0:0B:EC:6F:3F:81:0D:C7:9E')],
                     zones=[
                         Registry.Registrar.ZoneAccess(
-                            id=1L, name='0.2.4.e164.arpa', credit='0', 
+                            id=1L, name='0.2.4.e164.arpa', credit='0',
                             fromDate=ccReg.DateType(1, 1, 2007),
-                            toDate=ccReg.DateType(0, 0, 0)), 
+                            toDate=ccReg.DateType(0, 0, 0)),
                         Registry.Registrar.ZoneAccess(
                             id=2L, name='cz', credit='0',
                             fromDate=ccReg.DateType(1, 1, 2007),
@@ -450,7 +450,7 @@ class TestRegistrar(BaseADIFTestCase, RegistrarUtils):
         twill.commands.find("test handle")
 
     def test_edit_incorrect_zone_date_arg(self):
-        """ Registrar editation does not pass when invalid zone date 
+        """ Registrar editation does not pass when invalid zone date
             provided. """
         self.session_mock.getDetail(
             ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
@@ -485,14 +485,14 @@ class TestRegistrar(BaseADIFTestCase, RegistrarUtils):
         # submit).
         self.session_mock.getDetail(ccReg.FT_REGISTRAR, 42).AndReturn(
             CORBA.Any(
-                CORBA.TypeCode("IDL:Registry/Registrar/Detail:1.0"), 
+                CORBA.TypeCode("IDL:Registry/Registrar/Detail:1.0"),
                 Registry.Registrar.Detail(
-                    id=u'0', ico='', dic='', varSymb='', vat=True, 
-                    handle='test handle', name='', 
-                    organization='', street1='', 
-                    street2='', street3='', city='', stateorprovince='', 
-                    postalcode='', country='', telephone='', fax='', 
-                    email='', url='', credit='', 
+                    id=u'0', ico='', dic='', varSymb='', vat=True,
+                    handle='test handle', name='',
+                    organization='', street1='',
+                    street2='', street3='', city='', stateorprovince='',
+                    postalcode='', country='', telephone='', fax='',
+                    email='', url='', credit='',
                     unspec_credit=u'', access=[], zones=[], hidden=False)))
 
         self.corba_mock.ReplayAll()
@@ -516,14 +516,14 @@ class TestRegistrar(BaseADIFTestCase, RegistrarUtils):
             mox.IsA(ccReg.AdminRegistrar)).AndReturn(42)
         self.session_mock.getDetail(ccReg.FT_REGISTRAR, 42).AndReturn(
             CORBA.Any(
-                CORBA.TypeCode("IDL:Registry/Registrar/Detail:1.0"), 
+                CORBA.TypeCode("IDL:Registry/Registrar/Detail:1.0"),
                 Registry.Registrar.Detail(
-                    id=3L, ico='', dic='', varSymb='', vat=True, 
-                    handle='test handle', name='', 
-                    organization='', street1='', 
-                    street2='', street3='', city='', stateorprovince='', 
-                    postalcode='', country='', telephone='', fax='', 
-                    email='', url='', credit='', 
+                    id=3L, ico='', dic='', varSymb='', vat=True,
+                    handle='test handle', name='',
+                    organization='', street1='',
+                    street2='', street3='', city='', stateorprovince='',
+                    postalcode='', country='', telephone='', fax='',
+                    email='', url='', credit='',
                     unspec_credit=u'', access=[], zones=[], hidden=False)))
 
         self.corba_mock.ReplayAll()
@@ -551,19 +551,19 @@ class TestRegistrar(BaseADIFTestCase, RegistrarUtils):
             mox.IsA(ccReg.AdminRegistrar)).AndReturn(42)
         self.session_mock.getDetail(ccReg.FT_REGISTRAR, 42).AndReturn(
             CORBA.Any(
-                CORBA.TypeCode("IDL:Registry/Registrar/Detail:1.0"), 
+                CORBA.TypeCode("IDL:Registry/Registrar/Detail:1.0"),
                 Registry.Registrar.Detail(
-                    id=3L, ico='', dic='', varSymb='', vat=True, 
-                    handle='test handle', name='', 
-                    organization='', street1='', 
-                    street2='', street3='', city='', stateorprovince='', 
-                    postalcode='', country='', telephone='', fax='', 
-                    email='', url='', credit='', 
-                    unspec_credit=u'', access=[], 
+                    id=3L, ico='', dic='', varSymb='', vat=True,
+                    handle='test handle', name='',
+                    organization='', street1='',
+                    street2='', street3='', city='', stateorprovince='',
+                    postalcode='', country='', telephone='', fax='',
+                    email='', url='', credit='',
+                    unspec_credit=u'', access=[],
                     zones=[Registry.Registrar.ZoneAccess(
-                        id=5L, name='cz', credit='9453375', 
-                        fromDate=ccReg.DateType(day=1, month=2, year=2010), 
-                        toDate=ccReg.DateType(day=10, month=2, year=2010))], 
+                        id=5L, name='cz', credit='9453375',
+                        fromDate=ccReg.DateType(day=1, month=2, year=2010),
+                        toDate=ccReg.DateType(day=10, month=2, year=2010))],
                     hidden=False)))
 
         self.corba_mock.ReplayAll()
@@ -593,14 +593,14 @@ class TestRegistrar(BaseADIFTestCase, RegistrarUtils):
             mox.IsA(ccReg.AdminRegistrar)).AndReturn(42)
         self.session_mock.getDetail(ccReg.FT_REGISTRAR, 42).AndReturn(
             CORBA.Any(
-                CORBA.TypeCode("IDL:Registry/Registrar/Detail:1.0"), 
+                CORBA.TypeCode("IDL:Registry/Registrar/Detail:1.0"),
                 Registry.Registrar.Detail(
-                    id=3L, ico='', dic='', varSymb='', vat=True, 
-                    handle='test handle', name='', 
-                    organization='', street1='', 
-                    street2='', street3='', city='', stateorprovince='', 
-                    postalcode='', country='', telephone='', fax='', 
-                    email='', url='', credit='', 
+                    id=3L, ico='', dic='', varSymb='', vat=True,
+                    handle='test handle', name='',
+                    organization='', street1='',
+                    street2='', street3='', city='', stateorprovince='',
+                    postalcode='', country='', telephone='', fax='',
+                    email='', url='', credit='',
                     unspec_credit=u'', access=[], zones=[], hidden=False)))
 
         self.corba_mock.ReplayAll()
@@ -790,7 +790,7 @@ class TestRegistrarCertifications(BaseADIFTestCase, RegistrarUtils):
             ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
         self.cert_mgr_mock.getCertificationsByRegistrar(42).AndReturn(
             [Registry.Registrar.Certification.CertificationData(
-                1, ccReg.DateType(1, 1, 2008), 
+                1, ccReg.DateType(1, 1, 2008),
                 ccReg.DateType(1, 1, 2010), 2, 17)])
 
         self.corba_mock.ReplayAll()
@@ -858,7 +858,7 @@ class TestRegistrarCertifications(BaseADIFTestCase, RegistrarUtils):
 
         date_mock = TestRegistrarCertifications.DateMock
         self.monkey_patch(
-            fred_webadmin.webwidgets.forms.editforms, 
+            fred_webadmin.webwidgets.forms.editforms,
             'date', date_mock)
 
         # Show the edit form.
@@ -866,7 +866,7 @@ class TestRegistrarCertifications(BaseADIFTestCase, RegistrarUtils):
             ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
         self.cert_mgr_mock.getCertificationsByRegistrar(42).AndReturn(
             [Registry.Registrar.Certification.CertificationData(
-                1, ccReg.DateType(1, 1, 2008), 
+                1, ccReg.DateType(1, 1, 2008),
                 ccReg.DateType(1, 1, 2010), 2, 17)])
 
         # Process form after submitting.
@@ -878,11 +878,11 @@ class TestRegistrarCertifications(BaseADIFTestCase, RegistrarUtils):
            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
         self.cert_mgr_mock.getCertificationsByRegistrar(42).AndReturn(
             [Registry.Registrar.Certification.CertificationData(
-                1, ccReg.DateType(1, 1, 2008), 
+                1, ccReg.DateType(1, 1, 2008),
                 ccReg.DateType(1, 1, 2010), 2, 17)])
         self.file_mgr_mock.info(17).AndReturn(ccReg.FileInfo(1, "testfile",
             "testpath", "testmime", 0, ccReg.DateType(10, 10, 2010), 100))
-    
+
         self.session_mock.updateRegistrar(
             mox.IsA(Registry.Registrar.Detail)).AndReturn(42)
         self.cert_mgr_mock.shortenCertification(1, mox.IsA(ccReg.DateType))
@@ -892,7 +892,7 @@ class TestRegistrarCertifications(BaseADIFTestCase, RegistrarUtils):
             ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
         self.cert_mgr_mock.getCertificationsByRegistrar(42).AndReturn(
             [Registry.Registrar.Certification.CertificationData(
-                1, ccReg.DateType(1, 1, 2008), 
+                1, ccReg.DateType(1, 1, 2008),
                 ccReg.DateType(12, 12, 2009), 2, 17)])
         self.file_mgr_mock.info(17).AndReturn(ccReg.FileInfo(1, "testfile",
             "testpath", "testmime", 0, ccReg.DateType(10, 10, 2010), 100))
@@ -929,16 +929,16 @@ class TestBankStatement(BaseADIFTestCase):
         return CORBA.Any(
                 CORBA.TypeCode("IDL:Registry/Banking/BankItem/Detail:1.0"),
                 Registry.Banking.BankItem.Detail(
-                    id=16319L, statementId=5106L, accountNumber='756', 
-                    bankCodeId='2400', code=2, type=1, konstSym='598', 
-                    varSymb='', specSymb='', price='1.62', 
+                    id=16319L, statementId=5106L, accountNumber='756',
+                    bankCodeId='2400', code=2, type=1, konstSym='598',
+                    varSymb='', specSymb='', price='1.62',
                     accountEvid='07-14-2-756/2400', accountDate='31.07.2007',
-                    accountMemo='Urok 07/2007', invoiceId=0L, 
-                    accountName='CZ.NIC, z.s.p.o.', 
+                    accountMemo='Urok 07/2007', invoiceId=0L,
+                    accountName='CZ.NIC, z.s.p.o.',
                     crTime='31.07.2007 02:00:00'))
 
     def test_successfull_statementitem_payment_pairing(self):
-        """ Payment pairing works OK when correct registrar handle 
+        """ Payment pairing works OK when correct registrar handle
             is specified. """
         statement = self._fabricate_bank_statement_detail()
         self.session_mock.getDetail(
@@ -948,7 +948,7 @@ class TestBankStatement(BaseADIFTestCase):
         invoicing_mock.pairPaymentRegistrarHandle(
             42, "test handle").AndReturn(True)
         invoicing_mock.setPaymentType(42, 2).AndReturn(True)
-        # Create a new bank statement detail with a non-zero invoiceId value 
+        # Create a new bank statement detail with a non-zero invoiceId value
         # to simulate successfull payment pairing.
         statement_after_pairing = self._fabricate_bank_statement_detail()
         statement_after_pairing.value().invoiceId = 11L
@@ -958,7 +958,7 @@ class TestBankStatement(BaseADIFTestCase):
 
         self.corba_mock.ReplayAll()
 
-        # Go to the pairing form 
+        # Go to the pairing form
         twill.commands.go("http://localhost:8080/bankstatement/detail/?id=42")
         fs = twill.commands.showforms()
         twill.commands.fv(2, "handle", "test handle")
@@ -973,7 +973,7 @@ class TestBankStatement(BaseADIFTestCase):
         twill.commands.find("""<a href="/invoice/detail/\?id=11">.*</a>""")
 
     def test_successfull_statementitem_payment_pairing_no_reg_handle(self):
-        """ Payment pairing works OK when correct registrar handle 
+        """ Payment pairing works OK when correct registrar handle
             is not specified, but type != "from/to registrar". """
         statement = self._fabricate_bank_statement_detail()
         self.session_mock.getDetail(
@@ -981,7 +981,7 @@ class TestBankStatement(BaseADIFTestCase):
         invoicing_mock = self.corba_mock.CreateMockAnything()
         self.session_mock.getBankingInvoicing().AndReturn(invoicing_mock)
         invoicing_mock.setPaymentType(42, 3).AndReturn(True)
-        # Create a new bank statement detail with a non-zero invoiceId value 
+        # Create a new bank statement detail with a non-zero invoiceId value
         # to simulate successfull payment pairing.
         statement_after_pairing = self._fabricate_bank_statement_detail()
         statement_after_pairing.value().invoiceId = 11L
@@ -991,7 +991,7 @@ class TestBankStatement(BaseADIFTestCase):
 
         self.corba_mock.ReplayAll()
 
-        # Go to the pairing form 
+        # Go to the pairing form
         twill.commands.go("http://localhost:8080/bankstatement/detail/?id=42")
         fs = twill.commands.showforms()
         twill.commands.fv(2, "type", "3")
@@ -1005,7 +1005,7 @@ class TestBankStatement(BaseADIFTestCase):
         twill.commands.notfind("""<a href="/invoice/detail/\?id=11">.*</a>""")
 
     def test_successfull_statementitem_payment_pairing_incorrect_reg_handle(self):
-        """ Payment pairing works OK when an invalid registrar handle 
+        """ Payment pairing works OK when an invalid registrar handle
             is specified, but type != "from/to registrar". """
         statement = self._fabricate_bank_statement_detail()
         self.session_mock.getDetail(
@@ -1013,7 +1013,7 @@ class TestBankStatement(BaseADIFTestCase):
         invoicing_mock = self.corba_mock.CreateMockAnything()
         self.session_mock.getBankingInvoicing().AndReturn(invoicing_mock)
         invoicing_mock.setPaymentType(42, 3).AndReturn(True)
-        # Create a new bank statement detail with a non-zero invoiceId value 
+        # Create a new bank statement detail with a non-zero invoiceId value
         # to simulate successfull payment pairing.
         statement_after_pairing = self._fabricate_bank_statement_detail()
         statement_after_pairing.value().invoiceId = 11L
@@ -1023,7 +1023,7 @@ class TestBankStatement(BaseADIFTestCase):
 
         self.corba_mock.ReplayAll()
 
-        # Go to the pairing form 
+        # Go to the pairing form
         twill.commands.go("http://localhost:8080/bankstatement/detail/?id=42")
         fs = twill.commands.showforms()
         twill.commands.fv(2, "handle", "invalid handle")
@@ -1053,7 +1053,7 @@ class TestBankStatement(BaseADIFTestCase):
 
         self.corba_mock.ReplayAll()
 
-        # Go to the pairing form 
+        # Go to the pairing form
         twill.commands.go("http://localhost:8080/bankstatement/detail/?id=42")
         twill.commands.showforms()
         twill.commands.fv(2, "handle", "test handle")
@@ -1062,7 +1062,7 @@ class TestBankStatement(BaseADIFTestCase):
 
         twill.commands.code(200)
         twill.commands.url("http://localhost:8080/bankstatement/detail/\?id=42")
-        # Check that we do not display a link to the invoice after an 
+        # Check that we do not display a link to the invoice after an
         # unsuccessful payment attempt.
         twill.commands.notfind("""<a href="/invoice/detail/\?id=11">.*</a>""")
 
@@ -1081,7 +1081,7 @@ class TestBankStatement(BaseADIFTestCase):
 
         self.corba_mock.ReplayAll()
 
-        # Go to the pairing form 
+        # Go to the pairing form
         twill.commands.go("http://localhost:8080/bankstatement/detail/?id=42")
         twill.commands.showforms()
         twill.commands.fv(2, "handle", "test handle")
@@ -1119,7 +1119,7 @@ class TestBankStatement(BaseADIFTestCase):
 
         self.corba_mock.ReplayAll()
 
-        # Go to the pairing form 
+        # Go to the pairing form
         twill.commands.go("http://localhost:8080/bankstatement/detail/?id=42")
         twill.commands.showforms()
         twill.commands.notfind("""<input type="text" name="handle" value=\"\"""")
@@ -1170,8 +1170,8 @@ class TestRegistrarGroupEditor(BaseADIFTestCase):
         BaseADIFTestCase.setUp(self)
         self.admin_mock.createSession("testuser")
         self.reg_mgr_mock = self.corba_mock.CreateMockAnything()
-        self.reg_mgr_mock.__str__ = lambda : "reg_mgr_mock"        
-        self.corba_mock.StubOutWithMock(self.admin_mock, "getGroupManager") 
+        self.reg_mgr_mock.__str__ = lambda : "reg_mgr_mock"
+        self.corba_mock.StubOutWithMock(self.admin_mock, "getGroupManager")
 
     def test_display_two_groups(self):
         """ Two registrar groups are displayed.
@@ -1214,7 +1214,7 @@ class TestRegistrarGroupEditor(BaseADIFTestCase):
         twill.commands.code(200)
         twill.commands.find(
             '''<input type="text" name="groups-0-name" value="" />''')
-            
+
     def test_delete_group(self):
         """ Two registrar groups are displayed, one gets deleted.
         """
@@ -1302,5 +1302,3 @@ class TestRegistrarGroupEditor(BaseADIFTestCase):
         twill.commands.find(
             '''<input title="test_group_1" type="text" name="groups-0-name"'''
             ''' value="test_group_1" />''')
-
-

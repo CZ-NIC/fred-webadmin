@@ -7,7 +7,7 @@ def authenticate_user(admin, username=None, password=None):
     """ Authenticate user using CORBA backend.
     """
     try:
-        admin.authenticateUser(recoder.u2c(username), recoder.u2c(password)) 
+        admin.authenticateUser(recoder.u2c(username), recoder.u2c(password))
     except ccReg.Admin.AuthFailed:
         raise fred_webadmin.controller.adiferrors.AuthenticationError(
             _('Invalid username and/or password!'))

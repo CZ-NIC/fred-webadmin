@@ -39,7 +39,7 @@ permissions = {
 
 idl = '/home/glin/programming/gitnic/idl/idl/ccReg.idl'
 #idl = '/home/glin/programming/nic/webadmin/servers/idl_devel/idl/ccReg.idl'
-#idl = '/home/glin/programming/nic/webadmin/servers/idl_trunk/idl/ccReg.idl' 
+#idl = '/home/glin/programming/nic/webadmin/servers/idl_trunk/idl/ccReg.idl'
 
 iors = (#(label, nshost, nscontext),
         (u'localní', 'localhost:20001', 'fred'),
@@ -51,9 +51,9 @@ iors = (#(label, nshost, nscontext),
         (u'koliha', 'curlew', 'fred'),
         (u'jarahp', 'jarahp:22346', 'fred'),
         (u'jura', '172.20.20.121', 'fred'),
-	#	('Test', 'localhost:22346', 'fred'),
+#    ('Test', 'localhost:22346', 'fred'),
         ('Test', 'localhost', 'fred'),
-	   )
+)
 
 
 tablesize = 45

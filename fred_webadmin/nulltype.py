@@ -7,7 +7,7 @@
 """
 
 class Singleton(object):
-    """ Singleton pattern (only one instance is created). 
+    """ Singleton pattern (only one instance is created).
 
         Doctest:
             >>> a = Singleton()
@@ -16,7 +16,7 @@ class Singleton(object):
             True
     """
     __single = None # the one, true Singleton
-    
+
     def __new__(classtype, *args, **kwargs):
         # Check to see if a __single exists already for this class
         # Compare class types instead of just looking for None so
@@ -30,7 +30,7 @@ class Singleton(object):
 
 
 class Null(Singleton):
-    """ Object representing null value. 
+    """ Object representing null value.
         In Daphne primarily used for subclassing and the subclasses used for
         blank form field values (so that we can preserve the type information).
 

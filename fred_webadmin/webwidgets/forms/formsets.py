@@ -23,17 +23,17 @@ class ManagementForm(Form):
     increment the count field of this form as well.
     """
     def __init__(self, *args, **kwargs):
-        self.base_fields[TOTAL_FORM_COUNT] = HiddenDecimalField(name = TOTAL_FORM_COUNT)
-        self.base_fields[INITIAL_FORM_COUNT] = HiddenDecimalField(name = INITIAL_FORM_COUNT)
+        self.base_fields[TOTAL_FORM_COUNT] = HiddenDecimalField(name=TOTAL_FORM_COUNT)
+        self.base_fields[INITIAL_FORM_COUNT] = HiddenDecimalField(name=INITIAL_FORM_COUNT)
         super(ManagementForm, self).__init__(*args, **kwargs)
 
 class BaseFormSet(WebWidget):
     """
     A collection of instances of the same Form class.
     """
-    def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None, 
-            initial=None, extra_count=1, error_class=ErrorList, 
-            is_nested=False, form_class=None, layout_class=TableFormSetLayout, 
+    def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None,
+            initial=None, extra_count=1, error_class=ErrorList,
+            is_nested=False, form_class=None, layout_class=TableFormSetLayout,
             can_order=False, can_delete=False, *content, **kwd):
         super(BaseFormSet, self).__init__(*content, **kwd)
         if not is_nested:
@@ -124,7 +124,7 @@ class BaseFormSet(WebWidget):
             cleaned_data_list = []
             for form in self.forms:
                 if form.cleaned_data is not None and not form.cleaned_data.get(DELETION_FIELD_NAME):
-#                    Problem: DELETION FIELD je furt False!!! 
+#                    Problem: DELETION FIELD je furt False!!!
                     data = dict(form.cleaned_data)
                     if data.has_key(DELETION_FIELD_NAME):
                         if not data[DELETION_FIELD_NAME]: # deletion checkbox wasn't checked, just get rid of deletion field in actual data
@@ -137,12 +137,12 @@ class BaseFormSet(WebWidget):
             return cleaned_data_list
         except AttributeError:
             raise RuntimeError('Camouflaged AttributeError from _get_cleaned_data of formset, original error: \n %s' % unicode(traceback.format_exc()))
-         
+
     cleaned_data = property(_get_cleaned_data)
 
     def _get_deleted_forms(self):
         """
-        Returns a list of forms that have been marked for deletion. Raises an 
+        Returns a list of forms that have been marked for deletion. Raises an
         AttributeError is deletion is not allowed.
         """
         if not self.is_valid() or not self.can_delete:
@@ -226,7 +226,7 @@ class BaseFormSet(WebWidget):
 
         if not self.is_bound:
             return False
-        
+
         # We loop over every form.errors here rather than short circuiting on the
         # first failure to make sure validation gets triggered for every form.
         forms_valid = True
@@ -265,7 +265,7 @@ class BaseFormSet(WebWidget):
         if self.can_order:
             # Only pre-fill the ordering field for initial forms.
             if index < self._initial_form_count:
-                form.fields[ORDERING_FIELD_NAME] = DecimalField(ORDERING_FIELD_NAME, label='Order', initial=index+1, required=False)
+                form.fields[ORDERING_FIELD_NAME] = DecimalField(ORDERING_FIELD_NAME, label='Order', initial=index + 1, required=False)
             else:
                 form.fields[ORDERING_FIELD_NAME] = DecimalField(ORDERING_FIELD_NAME, label='Order', required=False)
         if self.can_delete:

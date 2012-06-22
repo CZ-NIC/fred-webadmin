@@ -31,7 +31,7 @@ class User(object):
     def has_nperm(self, nperm, obj_id=None):
         ''' Return True, if nperm in self.nperms or any of its shorter versions created
             from it by stripping right part of it from "." character to end
-            Example: 
+            Example:
              if nperm is 'read.domain.authinfo' function returns True if one of following strings are in self.nperms:
                  'read', 'read.domain', 'read.domain.authinfo'
         '''
@@ -45,7 +45,7 @@ class User(object):
                 # Detailed permission detected => ignore high-level permission.
                 has_perm = self._authorizer.has_permission_detailed(
                     parts[1], "%s.%s" % (parts[0], parts[2]), obj_id)
-            else: 
+            else:
                 # Detailed permission not present => check for high-level
                 # permission.
                 has_perm = self._authorizer.has_permission(parts[1], parts[0])
@@ -54,7 +54,7 @@ class User(object):
             has_perm = self._authorizer.has_permission(parts[1], parts[0])
         return not has_perm
 
-    
+
     def has_all_nperms(self, nperms):
         if not nperms: # nprems are empty
             return False
@@ -62,17 +62,17 @@ class User(object):
             if not self.has_nperm(nperm): # nperm not in self.nperms:
                 return False
         return True
-    
+
     def has_one_nperm(self, nperms):
         for nperm in nperms:
             if self.has_nperm(nperm):
                 return True
         return False
 
-    def check_nperms(self, nperms, check_type = 'all'):
+    def check_nperms(self, nperms, check_type='all'):
         'Returns True if user has NOT permission (has negative permission)'
-        result = ((isinstance(nperms, types.StringTypes) and self.has_nperm(nperms)) or 
-                  (isiterable(nperms) and 
+        result = ((isinstance(nperms, types.StringTypes) and self.has_nperm(nperms)) or
+                  (isiterable(nperms) and
                    (check_type == 'all' and self.has_all_nperms(nperms) or
                     check_type == 'one' and self.has_one_nperm(nperms))))
-        return result 
+        return result

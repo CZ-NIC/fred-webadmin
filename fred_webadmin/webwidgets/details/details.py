@@ -34,15 +34,15 @@ class DeclarativeDFieldsMetaclass(WebWidget.__metaclass__):
 
         new_class = type.__new__(cls, name, bases, attrs)
         return new_class
-    
-    
+
+
 class BaseDetail(div):
     editable = False
     nperm_names = ['read']
-    
-    def __init__(self, data, history, label_suffix=':', display_only = None, 
-                 sections = None, layout_class=SectionDetailLayout,
-                 is_nested = False, all_no_access=False, *content, **kwd):
+
+    def __init__(self, data, history, label_suffix=':', display_only=None,
+                 sections=None, layout_class=SectionDetailLayout,
+                 is_nested=False, all_no_access=False, *content, **kwd):
         super(BaseDetail, self).__init__(*content, **kwd)
         self.tag = u''
         self.media_files.append('/css/details.css')
@@ -54,23 +54,23 @@ class BaseDetail(div):
                 self.data = data.__dict__
             else: # data is dict
                 self.data = data
-            
+
         self.label_suffix = label_suffix
         self.layout_class = layout_class
         self.is_nested = is_nested
         self.all_no_access = all_no_access
-        
+
         # check if display_only contains correct field names
         if display_only:
             for field_name in display_only:
                 if self.base_fields.get(field_name) is None:
                     raise RuntimeError(_('Incorrect field name "%s" specified in %s. display_only list!') % (field_name, repr(self)))
-             
+
         self.display_only = display_only
-        
+
         # Sections can be defined as class attribute of detail, so take care
         # to create attribute but not override it, if it already exists.
-        if getattr(self, 'sections', None) is None: 
+        if getattr(self, 'sections', None) is None:
             self.sections = None
         if sections is not None:
             self.sections = sections
@@ -85,7 +85,7 @@ class BaseDetail(div):
             self.sections = [[None, self.fields.keys()]]
 
     def filter_base_fields(self):
-        """ Filters base fields against user negative permissions, 
+        """ Filters base fields against user negative permissions,
             so if user has nperm on field we delete it from base_fields.
         """
         user = cherrypy.session.get('user', None)
@@ -93,9 +93,9 @@ class BaseDetail(div):
             self.base_fields = SortedDict({})
         else:
             self.base_fields = SortedDict(
-                [(name, field) for name, field in self.base_fields.items() 
+                [(name, field) for name, field in self.base_fields.items()
                     if not self.display_only or field.name in self.display_only])
-    
+
     def build_fields(self):
         user = cherrypy.session.get('user', None)
         if user is None:
@@ -110,7 +110,7 @@ class BaseDetail(div):
                         nperm_name in self.nperm_names], 'one'):
                             field.access = False
                 field.owner_detail = self
-        
+
     def set_fields_values(self):
         for field in self.fields.values():
             if field.access:
@@ -118,16 +118,16 @@ class BaseDetail(div):
             else:
                 field.value = field.value_from_data({}) # emtpy dict as there are no data
                 field.make_content_no_access()
-    
+
     @classmethod
     def get_object_name(cls):
         return cls.__name__[:-len('Detail')].lower()
-    
+
     def add_to_bottom(self):
         ''' Usualy used for filterpanel and/or edit link. '''
         if self.editable:
             self.add(p(a(attr(href=u'../edit/?id=' + unicode(self.data.get('id'))), _('Edit'))))
-    
+
     def render(self, indent_level=0):
         self.content = [] # empty previous content (if render would be called moretimes, there would be multiple forms instead one )
         self.add(self.layout_class(self))
@@ -137,11 +137,11 @@ class BaseDetail(div):
             pass
         if not self.is_nested:
             self.add_to_bottom()
-        return super(BaseDetail, self).render(indent_level)        
+        return super(BaseDetail, self).render(indent_level)
 
     def check_nperms(self):
         return False
-    
+
     @classmethod
     def get_nperms(cls):
         nperms = []
@@ -151,6 +151,6 @@ class BaseDetail(div):
             nperms.extend(field_nperms)
         return nperms
 
- 
+
 class Detail(BaseDetail):
     __metaclass__ = DeclarativeDFieldsMetaclass

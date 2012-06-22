@@ -20,7 +20,7 @@ class Patched_datetype(fredcorba.ccReg.DateType):
     def __repr__(self):
         return self.__str__()
     def __ne__(self, obj):
-        """ Non-equality is defined so that we can assert using achoo's 
+        """ Non-equality is defined so that we can assert using achoo's
             equal_to method. """
         print self, obj
         return (self.day != obj.day or
@@ -37,7 +37,7 @@ class TestDaphneCorbaRecoder(object):
         """ Taken from
             http://lackingrhoticity.blogspot.com/2008/12/
             helper-for-monkey-patching-in-tests.html
-        
+
             Basically it stores the original object before monkeypatching and
             then restores it at teardown. Which is handy, because we do not
             want the object to stay monkeypatched between unit tests (if the
@@ -81,10 +81,10 @@ class TestDaphneCorbaRecoder(object):
             postalcode='', country='CZ', telephone='', fax='', email='', url='',
             credit='0.00', unspec_credit=u"0.00", access=[], zones=[], hidden=False)
         expected = fredcorba.Registry.Registrar.Detail(
-            id=19, ico=u'', dic=u'', varSymb=u'', vat=False, 
-            handle=u'NEW REG', name=u'name 1', organization=u'', street1=u'', 
-            street2=u'', street3=u'', city=u'', stateorprovince=u'state', 
-            postalcode=u'', country=u'CZ', telephone=u'', fax=u'', email=u'', 
+            id=19, ico=u'', dic=u'', varSymb=u'', vat=False,
+            handle=u'NEW REG', name=u'name 1', organization=u'', street1=u'',
+            street2=u'', street3=u'', city=u'', stateorprovince=u'state',
+            postalcode=u'', country=u'CZ', telephone=u'', fax=u'', email=u'',
             url=u'', credit=u'0.00', unspec_credit=u"0.00", access=[], zones=[], hidden=False)
 
         decoded_reg = rec.decode(reg)
@@ -95,18 +95,18 @@ class TestDaphneCorbaRecoder(object):
     def test_encode(self):
         rec = recoder.DaphneCorbaRecode("utf-8")
         python_entity = fredcorba.Registry.Registrar.Detail(
-            id=19, ico=u'', dic=u'', varSymb=u'', vat=False, 
-            handle=u'NEW REG', name=u'name 1', organization=u'', street1=u'', 
-            street2=u'', street3=u'', city=u'', stateorprovince=u'state', 
-            postalcode=u'', country=u'CZ', telephone=u'', fax=u'', email=u'', 
-            url=u'', credit=u'0.00', unspec_credit=u"0.00", access=[], 
+            id=19, ico=u'', dic=u'', varSymb=u'', vat=False,
+            handle=u'NEW REG', name=u'name 1', organization=u'', street1=u'',
+            street2=u'', street3=u'', city=u'', stateorprovince=u'state',
+            postalcode=u'', country=u'CZ', telephone=u'', fax=u'', email=u'',
+            url=u'', credit=u'0.00', unspec_credit=u"0.00", access=[],
             zones=[], hidden=False)
         expected = fredcorba.Registry.Registrar.Detail(
             id=19, ico='', dic='', varSymb='',
             vat=False, handle='NEW REG', name='name 1', organization='',
             street1='', street2='', street3='', city='', stateorprovince='state',
-            postalcode='', country='CZ', unspec_credit=u"0.00", telephone='', 
-            fax='', email='', url='', credit='0.00', access=[], zones=[], 
+            postalcode='', country='CZ', unspec_credit=u"0.00", telephone='',
+            fax='', email='', url='', credit='0.00', access=[], zones=[],
             hidden=False)
 
         encoded_entity = rec.encode(python_entity)
@@ -116,8 +116,8 @@ class TestDaphneCorbaRecoder(object):
 
     def test_encode_date(self):
         rec = recoder.DaphneCorbaRecode("utf-8")
-        p_obj = datetime.date(1,2,3)
-        expected = fredcorba.ccReg.DateType(3,2,1)
+        p_obj = datetime.date(1, 2, 3)
+        expected = fredcorba.ccReg.DateType(3, 2, 1)
         res = rec.encode(p_obj)
 
         requiring(res).is_not_none()
@@ -141,7 +141,7 @@ class TestDaphneCorbaRecoder(object):
         def __repr__(self):
             return self.__str__()
         def __ne__(self, obj):
-            """ Non-equality is defined so that we can assert using achoo's 
+            """ Non-equality is defined so that we can assert using achoo's
                 equal_to method. """
             return (self.a != obj.a or
                    self.b != obj.b or
@@ -150,7 +150,7 @@ class TestDaphneCorbaRecoder(object):
         """ Fake class for encoding testing. """
         def __str__(self):
             return "Bar(%s, %s, %s)" % (self.a, self.b, self.c)
-            
+
     def test_encode_double_nested_oldstyle_class(self):
         """ Nested class gets encoded OK.
             Note: We're using old-style classes, because that's what omniORBpy
@@ -158,13 +158,13 @@ class TestDaphneCorbaRecoder(object):
         rec = recoder.DaphneCorbaRecode("utf-8")
         p_ent = TestDaphneCorbaRecoder.Foo(
             1, TestDaphneCorbaRecoder.Bar(
-                2, TestDaphneCorbaRecoder.Bar(3, fredtypes.NullDate(), "5"), 
+                2, TestDaphneCorbaRecoder.Bar(3, fredtypes.NullDate(), "5"),
                 6.0),
             fredtypes.NullInt())
         exp = TestDaphneCorbaRecoder.Foo(
                 1, TestDaphneCorbaRecoder.Bar(
                     2, TestDaphneCorbaRecoder.Bar(
-                        3, fredcorba.ccReg.DateType(0,0,0), "5"), 6.0), 0)
+                        3, fredcorba.ccReg.DateType(0, 0, 0), "5"), 6.0), 0)
         res = rec.encode(p_ent)
         requiring(res).equal_to(exp)
 
@@ -172,27 +172,27 @@ class TestDaphneCorbaRecoder(object):
         rec = recoder.DaphneCorbaRecode("utf-8")
 
         entity = fredcorba.Registry.Registrar.Detail(
-            id=19, ico=u'', dic=u'', varSymb=u'', vat=False, 
-            handle=u'NEW REG', name=u'name 1', organization=u'', street1=u'', 
-            street2=u'', street3=u'', city=u'', stateorprovince=u'state', 
-            postalcode=u'', country=u'CZ', telephone=u'', fax=u'', email=u'', 
-            url=u'', credit=u'0.00', unspec_credit=u"0.00", access=[], 
+            id=19, ico=u'', dic=u'', varSymb=u'', vat=False,
+            handle=u'NEW REG', name=u'name 1', organization=u'', street1=u'',
+            street2=u'', street3=u'', city=u'', stateorprovince=u'state',
+            postalcode=u'', country=u'CZ', telephone=u'', fax=u'', email=u'',
+            url=u'', credit=u'0.00', unspec_credit=u"0.00", access=[],
             zones=[
                 fredcorba.ccReg.AdminZoneAccess(
-                    id=0, name=u'cz', fromDate=datetime.date(2009, 12, 11), 
+                    id=0, name=u'cz', fromDate=datetime.date(2009, 12, 11),
                     toDate=fredtypes.NullDate())],
             hidden=False)
         expected = fredcorba.Registry.Registrar.Detail(
-            id=19, ico='', dic='', varSymb='', vat=False, handle='NEW REG', 
-            name='name 1', organization='', street1='', street2='', 
-            street3='', city='', stateorprovince='state', 
-            postalcode='', country='CZ', telephone='', fax='', 
-            email='', url='', unspec_credit=u"0.00", credit='0.00', access=[], 
+            id=19, ico='', dic='', varSymb='', vat=False, handle='NEW REG',
+            name='name 1', organization='', street1='', street2='',
+            street3='', city='', stateorprovince='state',
+            postalcode='', country='CZ', telephone='', fax='',
+            email='', url='', unspec_credit=u"0.00", credit='0.00', access=[],
             zones=[
                 fredcorba.ccReg.AdminZoneAccess(
                     id=0, name='cz', fromDate=fredcorba.ccReg.DateType(
-                        day=11, month=12, year=2009), 
-                    toDate='')], 
+                        day=11, month=12, year=2009),
+                    toDate='')],
             hidden=False)
         res = rec.encode(entity)
 
@@ -210,10 +210,10 @@ class TestDaphneCorbaRecoder(object):
             postalcode='', country='CZ', telephone='', fax='', email='', url='',
             credit='0.00', unspec_credit=u"0.00", access=[], zones=[], hidden=False)
         expected = fredcorba.Registry.Registrar.Detail(
-            id=19, ico=u'', dic=u'', varSymb=u'', vat=False, 
-            handle=u'NEW REG', name=u'name 1', organization=u'', street1=u'', 
-            street2=u'', street3=u'', city=u'', stateorprovince=u'state', 
-            postalcode=u'', country=u'CZ', telephone=u'', fax=u'', email=u'', 
+            id=19, ico=u'', dic=u'', varSymb=u'', vat=False,
+            handle=u'NEW REG', name=u'name 1', organization=u'', street1=u'',
+            street2=u'', street3=u'', city=u'', stateorprovince=u'state',
+            postalcode=u'', country=u'CZ', telephone=u'', fax=u'', email=u'',
             url=u'', credit=u'0.00', unspec_credit=u"0.00", access=[], zones=[], hidden=False)
 
         decoded_reg = rec.decode(reg)

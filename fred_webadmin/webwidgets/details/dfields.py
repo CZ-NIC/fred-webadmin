@@ -29,7 +29,7 @@ from fred_webadmin.corbalazy import CorbaLazyRequestIter
 import fred_webadmin.webwidgets.forms.editforms as editforms
 
 def resolve_object(obj_data):
-    """ Returns object from data, where data could be OID, OID in CORBA.Any, 
+    """ Returns object from data, where data could be OID, OID in CORBA.Any,
         or just data itself
     """
     if isinstance(obj_data, CORBA.Any):
@@ -204,7 +204,7 @@ class CorbaEnumDField(CharDField):
 
 
 class RequestPropertyDField(DField):
-    """ ccReg.RequestProperty detail field. 
+    """ ccReg.RequestProperty detail field.
         Note: Currently only used by LoggerDetail.
     """
     def __init__(self, name='', label=None, *content, **kwd):
@@ -246,7 +246,7 @@ class RequestPropertyDField(DField):
         return (inp, out)
 
     def _process_negations(self, props):
-        """ Converts ccReg.RequestProperty object to a list of 
+        """ Converts ccReg.RequestProperty object to a list of
             {name:, out:, neg:} dicts.
 
             Args:
@@ -254,9 +254,9 @@ class RequestPropertyDField(DField):
                     List of ccReg.RequestProperty objects.
 
             Returns:
-                List of {name:, out:, neg:} dicts, where 
+                List of {name:, out:, neg:} dicts, where
                 neg == True <=> request property describes a filter with
-                negation flag set to true. 
+                negation flag set to true.
         """
         res = []
         last = None
@@ -341,7 +341,7 @@ class FileHandleDField(ObjectHandleDField):
 
 
 class MultiValueDField(DField):
-    ''' Field that takes some values from data of form and store them to self.value as dict. 
+    ''' Field that takes some values from data of form and store them to self.value as dict.
         Method that takes value from data of form can be overriden,
         so it can be used to create data from 2 HistoryRecordList fields etc.
     '''
@@ -359,8 +359,8 @@ class MultiValueDField(DField):
 
 
 class ObjectHandleURLDField(MultiValueDField):
-    ''' Field that is not from OID. It creates link from id and handle paramaters. 
-        object_type_name (e.g. 'domain') is eigther given as parametr to constructor or just read from fields owner_detail name, 
+    ''' Field that is not from OID. It creates link from id and handle paramaters.
+        object_type_name (e.g. 'domain') is eigther given as parametr to constructor or just read from fields owner_detail name,
         It reads data from fields given in constructor (usualy "id" and "handle").
     '''
     enclose_content = True
@@ -464,7 +464,7 @@ class ObjectDField(DField):
 
 
 class ListObjectDField(DField):
-    ''' Field with inner list of objects - displayed in table where headers are labels, 
+    ''' Field with inner list of objects - displayed in table where headers are labels,
     '''
     tattr_list = table.tattr_list
     def __init__(self, detail_class=None, display_only=None, layout_class=TableRowDetailLayout, *content, **kwd):
@@ -474,7 +474,7 @@ class ListObjectDField(DField):
         self.display_only = display_only
         self.layout_class = layout_class
 
-        # Although this is not a section table, it is mostly used in 
+        # Although this is not a section table, it is mostly used in
         # DirectSectionLayout, so it is in the same place as SectionTable.
         # Ergo it should have the same style.
         self.cssc = u'section_table history_list_table'
@@ -558,7 +558,7 @@ class ListLogObjectReferenceDField(DField):
 
 
 class ConvertDField(DField):
-    ''' Converts source value to another value, rendering it to other field. 
+    ''' Converts source value to another value, rendering it to other field.
         Parametr 'convert_table' is dict or list or tuple of couples (source_value, convert_to_value)
     '''
     def __init__(self, name='', label=None, inner_field=None, convert_table=None, *content, **kwd):
@@ -617,7 +617,7 @@ class HistoryDField(DField):
 
 
 class HistoryObjectDField(HistoryDField):
-    ''' History field of inner object - displayed in table where headers are labels, 
+    ''' History field of inner object - displayed in table where headers are labels,
     '''
     tattr_list = table.tattr_list
     def __init__(self, detail_class=None, display_only=None, layout_class=TableColumnsDetailLayout, *content, **kwd):
@@ -810,7 +810,7 @@ class HistoryStateDField(DField):
     def compute_state_data(self):
         all_dates = {}
 
-        # all dates dict (from AND to), keys are dates, values are lists of [ couples 'from' or 'to' strings and state dicts (references to states in self.value)] 
+        # all dates dict (from AND to), keys are dates, values are lists of [ couples 'from' or 'to' strings and state dicts (references to states in self.value)]
         for state in self.value:
             if state['from']:
                 if all_dates.get(state['from']) is None:
@@ -1009,8 +1009,8 @@ class DiscloseCharNHDField(NHDField):
         self.disclose_name = disclose_name
 
     def merge_histories(self, hist1, hist2):
-        """ Merge histories of field and his dislose flag, If time is the same, 
-            then histories are sorted/merged according to requestId 
+        """ Merge histories of field and his dislose flag, If time is the same,
+            then histories are sorted/merged according to requestId
             (if requestId is the same, then they are merged, otherwise sorted):
         """
         all_dates = {} # key is (date, request_id), value is couple list of couple [hist_number, history record]

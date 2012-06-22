@@ -1,5 +1,5 @@
 '''
-This module connects to corba and retrieves data, 
+This module connects to corba and retrieves data,
 that are needed befor any user logs in,
 so before connectoin to concrete corba server choosen by user.
 Thus this data should be only constant (same for all server) as action type etc.
@@ -16,7 +16,7 @@ import fred_webadmin.corbarecoder as recoder
 from fred_webadmin.corba import ccReg
 
 class ServerNotAvailableError(Exception):
-    """ CORBA server could not be connected to. 
+    """ CORBA server could not be connected to.
     """
     pass
 
@@ -30,10 +30,10 @@ class CorbaLazyRequest(object):
         self.c_kwargs = recoder.u2c(kwargs) or {}
         self.selector_func = selector
         self.data = None
-    
+
     def _convert_data(self, data):
         return data
-    
+
     def _get_data(self):
         """ Get data from CORBA and cache it to self.data, next call is ignored,
             because data are already cached.
@@ -51,14 +51,14 @@ class CorbaLazyRequest(object):
                 raise ServerNotAvailableError(('Error in CorbaLazy(function_name=%s) ' % self.function_name) + str(e))
             data = self.selector_func(data) if self.selector_func else data
             self.data = self._convert_data(data)
-        
+
     def __str__(self):
         self._get_data()
         return str(self.data)
-    
+
     def __repr__(self):
         return self.__str__()
-            
+
 class CorbaLazyRequestIter(CorbaLazyRequest):
     '''
     Because some classes (as forms) are initialized when start of webadmin, this
@@ -68,11 +68,11 @@ class CorbaLazyRequestIter(CorbaLazyRequest):
     def __init__(self, object_name, mgr_getter_name, function_name,
                  selector=None, *args, **kwargs):
         super(CorbaLazyRequestIter, self).__init__(
-            object_name, mgr_getter_name, function_name, selector, 
+            object_name, mgr_getter_name, function_name, selector,
             *args, **kwargs)
         self.index = -1
-        self.data_len = 0 
-    
+        self.data_len = 0
+
     def _get_data(self):
         super(CorbaLazyRequestIter, self)._get_data()
         self.data_len = len(self.data)
@@ -85,16 +85,16 @@ class CorbaLazyRequestIter(CorbaLazyRequest):
         else:
             self.index = -1
             raise StopIteration
-        
+
     def insert(self, index, obj):
         self._get_data()
         self.data.insert(index, obj)
-    
+
     def pop(self, index):
         self._get_data()
         return self.data.pop(index)
 
-    
+
     def __getitem__(self, index):
         self._get_data()
         return self.data[index]
@@ -105,18 +105,18 @@ class CorbaLazyRequestIter(CorbaLazyRequest):
 
     def __iter__(self):
         return self
-    
-    
+
+
 class CorbaLazyRequest1V2L(CorbaLazyRequestIter):
     '''In corba is list of one value and output is generator of couples of that value: ([x,x] for x in corbaData)'''
     def _convert_data(self, data):
         return [[x, x] for x in data]
-    
+
 class CorbaLazyRequestIterStruct(CorbaLazyRequestIter):
     def __init__(self, object_name, mgr_getter_name, function_name, mapping,
                  selector=None, *args, **kwargs):
         """ Arguments:
-                object_name: Key of thne respective CORBA object in 
+                object_name: Key of thne respective CORBA object in
                     cherrypy.session dict.
                 mgr_getter_name: Getter function to be called on the admin. If
                     None, then function @function_name is called directly on
@@ -125,7 +125,7 @@ class CorbaLazyRequestIterStruct(CorbaLazyRequestIter):
                     by calling mgr_getter_name on @object_name.
                 function_name: See @mgr_getter_name doc above.
                 mapping: Specifies fields of the result object to be displayed.
-                selector: If not None, only include items in the result that 
+                selector: If not None, only include items in the result that
                     the selector function returns True when called on.
         """
         super(CorbaLazyRequestIterStruct, self).__init__(

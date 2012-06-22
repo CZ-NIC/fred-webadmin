@@ -37,7 +37,7 @@ class DeclarativeFieldsMetaclass(WebWidget.__metaclass__):
 
         new_class = type.__new__(cls, name, bases, attrs)
         return new_class
-    
+
 class BaseForm(form):
     # This is the main implementation of all the Form logic. Note that this
     # class is different than Form. See the comments by the Form class for more
@@ -46,10 +46,10 @@ class BaseForm(form):
     nperm_names = []
     name_postfix = ''
     def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None,
-                 initial=None, error_class=ErrorList, label_suffix=':', layout_class=TableFormLayout, 
-                 is_nested = False, empty_permitted=False, *content, **kwd):
+                 initial=None, error_class=ErrorList, label_suffix=':', layout_class=TableFormLayout,
+                 is_nested=False, empty_permitted=False, *content, **kwd):
         super(BaseForm, self).__init__(*content, **kwd)
-        
+
         if not is_nested:
             self.tag = u'form'
         else:
@@ -76,9 +76,9 @@ class BaseForm(form):
         self.filter_base_fields()
         self.build_fields()
         self.set_fields_values()
-    
+
     def filter_base_fields(self):
-        """ Filters base fields against user negative permissions, so if 
+        """ Filters base fields against user negative permissions, so if
             the user has nperm on the field we delete it from base_fields.
         """
         if self.nperm_names:
@@ -93,17 +93,17 @@ class BaseForm(form):
                     ]
                 )
                 self.base_fields = filtered_base_fields
-    
+
     @classmethod
     def get_object_name(cls):
         return cls.__name__[:-len(cls.name_postfix)].lower()
-    
+
     def build_fields(self):
         self.fields = self.base_fields.deepcopy()
         for field in self.fields.values():
             field.owner_form = self
             field.name = self.add_prefix(field.name_orig)
-        
+
     def set_fields_values(self):
         # setting initials is independent on whether form is bound or not:
         for field in self.fields.values():
@@ -122,7 +122,7 @@ class BaseForm(form):
         else:
             for field in self.fields.values():
                 field.value = field.value_from_datadict(self.data)
-        
+
     def __iter__(self):
         for field in self.fields.values():
             yield field
@@ -143,7 +143,7 @@ class BaseForm(form):
             return self._errors
         except AttributeError:
             raise RuntimeError('Camouflaged AttributeError from _get_errors, original error: \n %s' % unicode(traceback.format_exc()))
-            
+
     errors = property(_get_errors)
 
     def is_valid(self):
@@ -238,13 +238,13 @@ class BaseForm(form):
         association with the field named '__all__'.
         """
         return self.cleaned_data
-    
-    def has_changed(self):  
+
+    def has_changed(self):
         """
         Returns True if data differs from initial.
         """
         return bool(self.changed_data)
-    
+
     def _get_changed_data(self):
         if self._changed_data is None:
             self._changed_data = []
@@ -261,7 +261,7 @@ class BaseForm(form):
                     self._changed_data.append(name)
         return self._changed_data
     changed_data = LateBindingProperty(_get_changed_data)
-    
+
     def reset(self):
         """Return this form to the state it was in before data was passed to it."""
         self.data = {}
@@ -277,7 +277,7 @@ class BaseForm(form):
             if field.widget.needs_multipart_form:
                 return True
         return False
-    
+
     @classmethod
     def get_nperms(cls):
         if cls.nperm_names:
@@ -301,4 +301,3 @@ class Form(BaseForm):
     # to define a form using declarative syntax.
     # BaseForm itself has no way of designating self.fields.
     __metaclass__ = DeclarativeFieldsMetaclass
-

@@ -5,10 +5,10 @@ import logging
 #debug = True
 debug = False
 
-# If this settings is on, then when doing changes to filter form, 
-# you should erase all sessions, because old filter forms are still 
+# If this settings is on, then when doing changes to filter form,
+# you should erase all sessions, because old filter forms are still
 # in session.
-caching_filter_form_javascript = True 
+caching_filter_form_javascript = True
 
 www_dir = 'DU_DATAROOTDIR/fred-webadmin/www/'
 locale_dir = 'DU_DATAROOTDIR/fred-webadmin/locale/'
@@ -25,7 +25,7 @@ log_level = logging.ERROR
 audit_log = {
     'logging_actions_enabled': True,
     'viewing_actions_enabled': True,
-    'force_critical_logging' : False 
+    'force_critical_logging' : False
 }
 
 # enable_checking: Iff false, no security policy is enforced (there is
@@ -45,8 +45,8 @@ permissions = {
 
 idl = 'DU_IDL_DIR/ccReg.idl' #'/usr/share/idl/fred/ccReg.idl'
 iors = (#(label, nshost, nscontext), # note: not everything works properly if more servers specified
-		('Test', 'DU_NS_HOST', 'DU_NS_CONTEXT'),
-	   )
+        ('Test', 'DU_NS_HOST', 'DU_NS_CONTEXT'),
+       )
 
 tablesize = 45
 tabletimeout = 10000

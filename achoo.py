@@ -55,9 +55,9 @@ For example::
 
         def testSplit(self):
             s = 'foo,bar'
-            calling(s.split).passing(',').returns()\ 
-                .length(2)\ 
-                .index(0).equal_to('foo')\ 
+            calling(s.split).passing(',').returns()\
+                .length(2)\
+                .index(0).equal_to('foo')\
                 .index(1).equal_to('bar')
 
         def testBadIndex(self):
@@ -451,4 +451,3 @@ class CallableAssertionBuilder(object):
         if self.kwargs:
             return self.callable(**self.kwargs)
         return self.callable()
-

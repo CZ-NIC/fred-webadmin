@@ -23,7 +23,7 @@ class Authorizer(object):
         return has_perm
 
     def check_detailed_present(self, obj, action):
-        """ Check whether there is any 4-parts permission starting with  
+        """ Check whether there is any 4-parts permission starting with
             'obj.action'.
             model in icauth is e.g. "Domain"
             perm_action is e.g. "read.nic_auth"

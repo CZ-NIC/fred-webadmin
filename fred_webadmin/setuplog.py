@@ -11,10 +11,10 @@ def setup_log():
     logfilename = os.path.join(config.log_dir, 'fred-webadmin-%s.log' % time.strftime('%Y%m%d'))
     if os.path.isfile(logfilename):
         print 'KEEP LOGGING TO', logfilename
-        mode='a'
+        mode = 'a'
     else:
         print 'OPENING NEW LOG', logfilename
-        mode='w'
+        mode = 'w'
     logging.basicConfig(level=config.log_level,
                         format='%(asctime)s %(levelname)-8s %(message)s',
                         filename=logfilename,

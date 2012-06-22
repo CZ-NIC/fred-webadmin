@@ -133,9 +133,9 @@ class AdifPage(Page):
         elif action == 'setinzonestatus':
             return SetInZoneStatusPage
         else:
-            # returns ClassName + Action (e.g. DomainDetail) class from 
-            # module of this class, if there is no such, then it returns 
-            # BaseSiteMenu: 
+            # returns ClassName + Action (e.g. DomainDetail) class from
+            # module of this class, if there is no such, then it returns
+            # BaseSiteMenu:
             template_name = self.__class__.__name__ + action.capitalize()
             debug('Snazim se vzit templatu jmenem:' + template_name)
             template = getattr(
@@ -221,12 +221,12 @@ class AdifPage(Page):
 
     def _create_log_req_for_object_view(self, request_type=None, properties=None, references=None, **kwd):
         '''
-            To avoid code duplication - this is common for all views (like detail) which 
+            To avoid code duplication - this is common for all views (like detail) which
             are taking id of an object.
             request_type - default is view detail
             It checks if ID is integer, returns errorpage if not otherwise creates new
             log request with references and object_id in properties.
-            (note: object_id in properties will be obsolete when references will be everywhere)  
+            (note: object_id in properties will be obsolete when references will be everywhere)
         '''
 
         context = {}
@@ -297,7 +297,7 @@ class ADIF(AdifPage):
             cherrypy.session.get('corbaSessionString'))
 
     def _corba_connect(self, corba_server):
-        """ Connect to corba. 
+        """ Connect to corba.
         """
         ior = config.iors[corba_server][1]
         nscontext = config.iors[corba_server][2]
@@ -319,7 +319,7 @@ class ADIF(AdifPage):
             logger_form = filterforms.LoggerFilterForm
             if logger_form in cherrypy.session['filterforms']:
                 # Remove LoggerFilterForm from filterforms to prevent
-                # exceptions during filterform-related javascript 
+                # exceptions during filterform-related javascript
                 # generation.
                 cherrypy.session['filterforms'].remove(logger_form)
         return admin
@@ -370,7 +370,7 @@ class ADIF(AdifPage):
 
 
     def login(self, *args, **kwd):
-        """ The 'gateway' to the rest of Daphne. Handles authentication and 
+        """ The 'gateway' to the rest of Daphne. Handles authentication and
             login form processing."
         """
         if cherrypy.session.get('corbaSessionString'):
@@ -466,12 +466,12 @@ class Logger(AdifPage, ListTableMixin):
 
 
 class LoggerDisabled(Logger):
-    """ Substitute class used instead of normal Logger when the application 
-        cannot connect to CORBA logd. 
+    """ Substitute class used instead of normal Logger when the application
+        cannot connect to CORBA logd.
         We need to disable access to the logger from the menu. Hiding the menu
         item is not enough (the user could still use the logger URL).
 
-        TODO: Perhaps we should rather hide the logger menu item and delete 
+        TODO: Perhaps we should rather hide the logger menu item and delete
         the logger item from the app tree.
     """
     def __init__(self, *args, **kwargs):
@@ -508,7 +508,7 @@ class Registrar(AdifPage, ListTableMixin):
         # Some fields must be treated specially (their value must be converted
         # to a corba type first). We use self.type_transformer to map the names
         # of these fields to their respective converting functions.
-        # All the other fields (i.e., those not in the transformer mapping) 
+        # All the other fields (i.e., those not in the transformer mapping)
         # are treated as strings.
         self.type_transformer = {}
         self.type_transformer['zones'] = lambda val: map(
@@ -598,9 +598,9 @@ class Registrar(AdifPage, ListTableMixin):
 
     def _update_registrar(self, registrar, log_request_name, action_is_edit, *params, **kwd):
         """ Handles the actual updating/creating of a registrar.
-        
-            Note that we have to "glue" the registrar initial form data 
-            together. This is unfortunate, but it's caused by the design 
+
+            Note that we have to "glue" the registrar initial form data
+            together. This is unfortunate, but it's caused by the design
             of IDL.
 
             Args:
@@ -630,7 +630,7 @@ class Registrar(AdifPage, ListTableMixin):
             form = reg_data_form_class(kwd, initial=initial, method='post')
             if form.is_valid():
                 # Create the log request only after the user has clicked on
-                # "save" (we only care about contacting the server, not about 
+                # "save" (we only care about contacting the server, not about
                 # user entering the edit page).
 
                 context = self._process_valid_form(
@@ -676,7 +676,7 @@ class Registrar(AdifPage, ListTableMixin):
 
     def _get_groups_for_reg_id(self, reg_id):
         """ Returns groups that the registrar with reg_id belongs to under the
-            condition that their membership toDate value is not set (i.e., the 
+            condition that their membership toDate value is not set (i.e., the
             membership is active).
         """
         group_mgr = cherrypy.session['Admin'].getGroupManager()
@@ -685,8 +685,8 @@ class Registrar(AdifPage, ListTableMixin):
         my_groups_ids = [
             member.group_id for member in recoder.c2u(memberships)
             if not member.toDate
-            #or (member.toDate and not member.toDate <= datetime.date.today()) 
-            # Note: toDate should not be in the future (webadmin allow only setting it to today), so 
+            #or (member.toDate and not member.toDate <= datetime.date.today())
+            # Note: toDate should not be in the future (webadmin allow only setting it to today), so
             # it's safe to say that if there is toDate filled, registrar is already removed from
             # the group. The only problem is that commandline fred_admin allow to set the toDate to the
             # future, so it can couse some problems (then we would have to display such group but
@@ -971,7 +971,7 @@ class BankStatement(AdifPage, ListTableMixin):
                 action = 'pair_payment'
                 # invoiceId is a link to detail, but for id == 0 this detail does
                 # not exist => hide invoiceId value so the link is not "clickable".
-                # Note: No information is lost, because id == 0 semantically means 
+                # Note: No information is lost, because id == 0 semantically means
                 # that there is no id.
                 context['detail'].invoiceId = ""
             else:
@@ -1053,7 +1053,7 @@ class Development(object):
         h = hpy()
         heap = h.heap()
         output = _(u'''This page displays memory consumption by python object on server.
-            It propably cause server threads to not work properly!!! 
+            It propably cause server threads to not work properly!!!
             DO NOT USE THIS PAGE IN PRODUCTION SYSTEM!!!\n\n''')
 
         output += u'\n'.join(unicode(heap).split('\n')[:2]) + '\n'

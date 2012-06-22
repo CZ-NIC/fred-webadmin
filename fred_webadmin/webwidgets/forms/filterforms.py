@@ -13,9 +13,9 @@ from fred_webadmin.webwidgets.utils import (
     ErrorList, ValidationError)
 from fred_webadmin.webwidgets.forms.fields import (
     CharField, ChoiceField, BooleanField, IntegerChoiceField,
-    IntegerField) 
+    IntegerField)
 from fred_webadmin.webwidgets.forms.adiffields import (
-    DateTimeIntervalField, CompoundFilterField, 
+    DateTimeIntervalField, CompoundFilterField,
     CorbaEnumChoiceField, DateIntervalField)
 from fred_webadmin.webwidgets.forms.filterformlayouts import (
     FilterTableFormLayout, UnionFilterFormLayout)
@@ -29,10 +29,10 @@ from fred_webadmin.mappings import f_urls
 import fred_webadmin.webwidgets.forms.editforms as editforms
 import fred_webadmin.webwidgets.forms.emptyvalue
 
-__all__ = ['UnionFilterForm', 'RegistrarFilterForm', 'ObjectStateFilterForm', 
+__all__ = ['UnionFilterForm', 'RegistrarFilterForm', 'ObjectStateFilterForm',
            'ObjectFilterForm', 'ContactFilterForm', 'NSSetFilterForm',
-           'KeySetFilterForm', 'DomainFilterForm', 
-           'FilterFilterForm', 'PublicRequestFilterForm', 
+           'KeySetFilterForm', 'DomainFilterForm',
+           'FilterFilterForm', 'PublicRequestFilterForm',
            'InvoiceFilterForm', 'MailFilterForm', 'FileFilterForm',
            'LoggerFilterForm', 'BankStatementFilterForm', 'MessageFilterForm',
            'PropertyFilterForm',
@@ -41,15 +41,15 @@ __all__ = ['UnionFilterForm', 'RegistrarFilterForm', 'ObjectStateFilterForm',
 class UnionFilterForm(Form):
     ''' Form that contains more Filter Forms, data for this form is list of data
         for its Filter Forms. '''
-    def __init__(self, data=None, data_cleaned=False, initial=None, 
-                 layout_class=UnionFilterFormLayout, form_class=None, 
+    def __init__(self, data=None, data_cleaned=False, initial=None,
+                 layout_class=UnionFilterFormLayout, form_class=None,
                  *content, **kwd):
-        """ Form containting CompoundFilterForms (class FilterForms), between 
-            them is logical OR. 
-            Can be initilalized using data parametr data - normal form data, or 
-            if data_cleaned=True, then data parametr is considered to be 
+        """ Form containting CompoundFilterForms (class FilterForms), between
+            them is logical OR.
+            Can be initilalized using data parametr data - normal form data, or
+            if data_cleaned=True, then data parametr is considered to be
             cleaned_data (used when loaded from corba backend).
-        """ 
+        """
         if not form_class:
             raise RuntimeError(
                 "You have to specify form_class for UnionFilterForm!")
@@ -57,7 +57,7 @@ class UnionFilterForm(Form):
         if data:
             if not data_cleaned and data.has_key('json_data'):
                 data = simplejson.loads(data['json_data'])
-            else: 
+            else:
                 debug('data aren\'t json')
 
         self.form_class = form_class
@@ -65,10 +65,10 @@ class UnionFilterForm(Form):
         self.data_cleaned = data_cleaned
         super(UnionFilterForm, self).__init__(
             data, initial=initial, layout_class=layout_class, *content, **kwd)
-        self.set_tattr(action = kwd.get('action') or self.get_default_url())
-        self.media_files = ['/js/filtertable.js', 
-                            '/js/scw.js', 
-                            '/js/interval_fields.js', 
+        self.set_tattr(action=kwd.get('action') or self.get_default_url())
+        self.media_files = ['/js/filtertable.js',
+                            '/js/scw.js',
+                            '/js/interval_fields.js',
                             '/js/scwLanguages.js',
                             '/js/form_content.js',
                             '/service_actions.js',
@@ -77,7 +77,7 @@ class UnionFilterForm(Form):
                            ]
         # Submit on enter.
         self.onkeypress = 'if (event.keyCode == 13) {sendUnionForm(this);}'
-    
+
     def set_fields_values(self):
         if not self.is_bound: # if not bound, then create one empty dictionary
             self.forms.append(self.form_class())
@@ -88,59 +88,59 @@ class UnionFilterForm(Form):
                 form = self.form_class(
                     form_data, data_cleaned=self.data_cleaned)
                 self.forms.append(form)
-    
-        
+
+
     def is_empty(self, exceptions=None):
         for form in self.forms:
             if form.is_empty(exceptions):
                 return False
         return True
-    
+
     def full_clean(self):
         self._errors = ErrorDict()
         if not self.is_bound: # Stop further processing.
             return
         self.cleaned_data = []
-        
+
         for form in self.forms:
             self._errors.update(form.errors)
             if hasattr(form, 'cleaned_data'):
                 self.cleaned_data.append(form.cleaned_data)
-        
+
         if self._errors:
             delattr(self, 'cleaned_data')
-            
+
     def get_default_url(self):
         '''
         Returns url for snadard path /OBJECTs/filter where OBJECT taken from self.form_class name OBJECTsFilterForm.
         If class name is not in format, than returns ''.
         '''
-        class_name = self.form_class.__name__ 
+        class_name = self.form_class.__name__
         if class_name.endswith('FilterForm'):
             return '%sfilter/' % f_urls[class_name[:-10].lower()]
         else:
             return ''
-         
-            
+
+
 class FilterForm(Form):
     "Form for one coumpund filter (e.g. Domain Filter)"
     tattr_list = []
     default_fields_names = []
     name_postfix = 'FilterForm'
     nperm_names = ['read']
-    
-    def __init__(self, data=None, data_cleaned=False, files=None, 
-                 auto_id='id_%s', prefix=None, initial=None, 
-                 error_class=ErrorList, label_suffix=':', 
+
+    def __init__(self, data=None, data_cleaned=False, files=None,
+                 auto_id='id_%s', prefix=None, initial=None,
+                 error_class=ErrorList, label_suffix=':',
                  layout_class=FilterTableFormLayout, *content, **kwd):
 
         for field in self.base_fields.values():
             field.required = False
             field.negation = False
-        
+
         self.data_cleaned = data_cleaned
         super(FilterForm, self).__init__(
-            data, files, auto_id, prefix, initial, error_class, label_suffix, 
+            data, files, auto_id, prefix, initial, error_class, label_suffix,
             layout_class, *content, **kwd)
         self.tag = None
 
@@ -148,13 +148,13 @@ class FilterForm(Form):
         return _(self.__class__.__name__[:-len('FilterForm')] + 's')
 
     def get_key_time_field(self):
-        """ Returns the filter form field used to jump to the previous/page 
-            when displaying only the results for last day, month, year etc. 
-            We increment this field's offset and re-submit the form to display 
+        """ Returns the filter form field used to jump to the previous/page
+            when displaying only the results for last day, month, year etc.
+            We increment this field's offset and re-submit the form to display
             the results for the previous/next time interval.
         """
         return None
-    
+
     def filter_base_fields(self):
         super(FilterForm, self).filter_base_fields()
         user = cherrypy.session.get('user', None)
@@ -164,23 +164,23 @@ class FilterForm(Form):
             self.default_fields_names = [field_name for field_name in \
                 self.default_fields_names \
                 if field_name in self.base_fields.keys()]
-            
+
     def set_fields_values(self):
         pass # setting values is done in build_fields()
-    
+
     def build_fields(self):
-        """ Creates self.fields from given data or set default field (if not 
+        """ Creates self.fields from given data or set default field (if not
            is_bound).
-            Data for filter forms are in following format: list of dictionaries, 
-            where between each dictionary is OR. In dictionary, key is name of 
-            field and value is value of that field. If field is compound filter, 
+            Data for filter forms are in following format: list of dictionaries,
+            where between each dictionary is OR. In dictionary, key is name of
+            field and value is value of that field. If field is compound filter,
             then value is dictionary again.
         """
-        # self.fields are deepcopied from self.base_fields (in BaseForm) 
-        base_fields = self.base_fields 
+        # self.fields are deepcopied from self.base_fields (in BaseForm)
+        base_fields = self.base_fields
         self.fields = SortedDict()
 
-        fields_for_sort = []  
+        fields_for_sort = []
         if self.is_bound:
             if not self.data_cleaned:
                 for name_str in self.data.keys():
@@ -192,21 +192,21 @@ class FilterForm(Form):
                             field.parent_form = self
                         field.name = filter_name
                         field.value = field.value_from_datadict(self.data)
-                        
+
                         negation = (self.data.get(
                             '%s|%s' % ('negation', filter_name)) is not None)
                         field.negation = negation
                         fields_for_sort.append(field)
-            else: 
-                # Data passed to t6he form in constructor are cleaned_data 
+            else:
+                # Data passed to t6he form in constructor are cleaned_data
                 # (e.g. from itertable.get_filter).
                 for field_name, [neg, value] in self.data.items():
                     debug('field %s, setting value %s' % (field_name, value))
                     if not base_fields.get(field_name):
                         debug('field %s is in npermission -> skiping')
-                        break 
-                    # When field is in npermissions, it can still be here 
-                    # if user loads saved filter -> 
+                        break
+                    # When field is in npermissions, it can still be here
+                    # if user loads saved filter ->
                     field = deepcopy(base_fields[field_name])
                     if isinstance(field, CompoundFilterField):
                         field.parent_form = self
@@ -219,13 +219,13 @@ class FilterForm(Form):
                 field = deepcopy(base_fields[field_name])
                 field.name = field_name
                 fields_for_sort.append(field)
-        
+
         # adding fields in order according to field.order
         for pos, field in sorted(
                 [[field.order, field] for field in fields_for_sort]):
             self.fields[field.name] = field
             field.owner_form = self
-    
+
     def clean_field(self, name, field):
         try:
             value = field.clean()
@@ -235,7 +235,7 @@ class FilterForm(Form):
             if hasattr(self, 'clean_%s' % name):
                 value = getattr(self, 'clean_%s' % name)()
                 # Cleaned data of filterform is couple [negation, value].
-                self.cleaned_data[name] = [field.negation, value] 
+                self.cleaned_data[name] = [field.negation, value]
         except ValidationError, e:
             self._errors[name] = e.messages
             if name in self.cleaned_data:
@@ -244,7 +244,7 @@ class FilterForm(Form):
 
 class RegistrarFilterForm(FilterForm):
     default_fields_names = ['Handle']
-    
+
     Handle = CharField(label=_('Handle'))
     Name = CharField(label=_('Name'))
     Organization = CharField(label=_('Organization'))
@@ -252,19 +252,19 @@ class RegistrarFilterForm(FilterForm):
     CountryCode = CharField(label=_('Country'))
     ZoneFqdn = CharField(label=_('Zone fqdn'))
     GroupId = ChoiceField(
-        label=_('Group'), 
+        label=_('Group'),
         choices=CorbaLazyRequestIterStruct(
-            'Admin', 'getGroupManager', 'getGroups', ['id', 'name'], 
+            'Admin', 'getGroupManager', 'getGroups', ['id', 'name'],
             lambda groups: [g for g in groups if not g.cancelled]))
 
-    
+
 class ObjectStateFilterForm(FilterForm):
     default_field_names = ['StateId']
 
     StateId = ChoiceField(
-        label=_('State Type'), 
+        label=_('State Type'),
         choices=CorbaLazyRequestIterStruct(
-            'Admin', None, 'getObjectStatusDescList', 
+            'Admin', None, 'getObjectStatusDescList',
             ['id', 'shortName'], None, config.lang[:2]))
 
     ValidFrom = DateTimeIntervalField(label=_('Valid from'))
@@ -273,7 +273,7 @@ class ObjectStateFilterForm(FilterForm):
 
 class ObjectFilterForm(FilterForm):
     default_fields_names = ['Handle']
-    
+
     Handle = CharField(label=_('Handle'))
     AuthInfo = CharField(label=_('AuthInfo'))
 
@@ -283,7 +283,7 @@ class ObjectFilterForm(FilterForm):
         label=_('Creation registrar'), form_class=RegistrarFilterForm)
     UpdateRegistrar = CompoundFilterField(
         label=_('Update registrar'), form_class=RegistrarFilterForm)
-    
+
     CreateTime = DateTimeIntervalField(label=_('Registration date'))
     UpdateTime = DateTimeIntervalField(label=_('Update date'))
     TransferTime = DateTimeIntervalField(label=_('Transfer date'))
@@ -292,10 +292,10 @@ class ObjectFilterForm(FilterForm):
     ObjectState = CompoundFilterField(
         label=_('Object state'), form_class=ObjectStateFilterForm)
 
-    
+
 class ContactFilterForm(ObjectFilterForm):
     default_fields_names = ObjectFilterForm.default_fields_names + ['Name']
-    
+
     Email = CharField(label=_('Email'))
     NotifyEmail = CharField(label=_('Notify email'))
     Name = CharField(label=_('Name'))
@@ -303,13 +303,13 @@ class ContactFilterForm(ObjectFilterForm):
     Ssn = CharField(label=_('Identification'))
     Vat = CharField(label=_('VAT'))
     PhoneNumber = CharField(label=_('Phone number'))
-    
+
 class NSSetFilterForm(ObjectFilterForm):
     TechContact = CompoundFilterField(
         label=_('Technical contact'), form_class=ContactFilterForm)
     HostIP = CharField(label=_('IP address'))
     HostFQDN = CharField(label=_('Nameserver name'))
-    
+
     def clean(self):
         cleaned_data = super(NSSetFilterForm, self).clean()
         return cleaned_data
@@ -317,11 +317,11 @@ class NSSetFilterForm(ObjectFilterForm):
 class KeySetFilterForm(ObjectFilterForm):
     TechContact = CompoundFilterField(
         label=_('Technical contact'), form_class=ContactFilterForm)
-        
-    
+
+
 class DomainFilterForm(ObjectFilterForm):
     default_fields_names = ['Handle']
-    
+
     Registrant = CompoundFilterField(
         label=_('Owner'), form_class=ContactFilterForm)
     AdminContact = CompoundFilterField(
@@ -331,8 +331,8 @@ class DomainFilterForm(ObjectFilterForm):
     NSSet = CompoundFilterField(
         label=_('Nameserver set'), form_class=NSSetFilterForm)
     KeySet = CompoundFilterField(
-        label=_('Key set'), form_class=KeySetFilterForm)    
-    
+        label=_('Key set'), form_class=KeySetFilterForm)
+
     ExpirationDate = DateIntervalField(label=_('Expiry date'))
     OutZoneDate = DateIntervalField(label=_('OutZone date'))
     CancelDate = DateIntervalField(label=_('Cancel date'))
@@ -344,7 +344,7 @@ class PropertyFilterForm(FilterForm):
     default_fields_names = ['Name']
     try:
         Name = ChoiceField(
-            label=_('Name'), 
+            label=_('Name'),
             choices=get_property_list()
                 )
     except Exception:
@@ -380,7 +380,7 @@ class LoggerFilterForm(FilterForm):
     UserName = CharField(label=_('Username'))
     RequestType = IntegerChoiceField(
         id="logger_action_type_id",
-        label=_('Request type'), 
+        label=_('Request type'),
         choices=[],
         validate=False,
         onfocus="filter_action_types();")
@@ -398,23 +398,23 @@ class BankStatementFilterForm(FilterForm):
         return _("Payments")
 
     default_fields_names = ['Type']
-    
+
     Type = IntegerChoiceField(label=_('Type'), choices=[
         (editforms.PAYMENT_UNASSIGNED,
             editforms.payment_map[editforms.PAYMENT_UNASSIGNED]),
-        (editforms.PAYMENT_REGISTRAR, 
+        (editforms.PAYMENT_REGISTRAR,
             editforms.payment_map[editforms.PAYMENT_REGISTRAR]),
-        (editforms.PAYMENT_BANK, 
-            editforms.payment_map[editforms.PAYMENT_BANK]), 
-        (editforms.PAYMENT_ACCOUNTS, 
-            editforms.payment_map[editforms.PAYMENT_ACCOUNTS]), 
+        (editforms.PAYMENT_BANK,
+            editforms.payment_map[editforms.PAYMENT_BANK]),
+        (editforms.PAYMENT_ACCOUNTS,
+            editforms.payment_map[editforms.PAYMENT_ACCOUNTS]),
         (editforms.PAYMENT_ACADEMIA,
-            editforms.payment_map[editforms.PAYMENT_ACADEMIA]), 
-        (editforms.PAYMENT_OTHER, 
+            editforms.payment_map[editforms.PAYMENT_ACADEMIA]),
+        (editforms.PAYMENT_OTHER,
             editforms.payment_map[editforms.PAYMENT_OTHER])])
 
     AccountDate = DateIntervalField(label=_('Account date'))
-    
+
     AccountNumber = CharField(label=_('Account number'))
     BankCode = CharField(label=_('Bank code'))
 
@@ -423,12 +423,12 @@ class BankStatementFilterForm(FilterForm):
 
     CrTime = DateTimeIntervalField(label=_('Import time'))
     AccountMemo = CharField(label=_('Memo'))
-    
+
     AccountId = ChoiceField(
-        label=_('Destination account'), 
+        label=_('Destination account'),
         choices=CorbaLazyRequestIterStruct(
             'Admin', None, 'getBankAccounts', ['id', 'name'], None))
-     
+
 
 class MessageFilterForm(FilterForm):
     default_fields_names = ['CrDate']
@@ -436,15 +436,15 @@ class MessageFilterForm(FilterForm):
     ModDate = DateTimeIntervalField(label=_('Modification date'))
     Attempt = IntegerField(label=_('Attempts'))
     Status = ChoiceField(
-        label=_('Status'), 
+        label=_('Status'),
         choices=CorbaLazyRequestIterStruct(
             'Messages', None, 'getStatusList', ['id', 'name'], None))
     CommType = ChoiceField(
-        label=_('Communication type'), 
+        label=_('Communication type'),
         choices=CorbaLazyRequestIterStruct(
             'Messages', None, 'getCommTypeList', ['id', 'name'], None))
     MessageType = ChoiceField(
-        label=_('Message type'), 
+        label=_('Message type'),
         choices=CorbaLazyRequestIterStruct(
             'Messages', None, 'getMessageTypeList', ['id', 'name'], None))
     SmsPhoneNumber = CharField(label=_('SMS phone number'))
@@ -452,22 +452,22 @@ class MessageFilterForm(FilterForm):
     MessageContact = CompoundFilterField(
         label=_('Message contact'), form_class=ContactFilterForm)
 
-    
-    
+
+
 class FilterFilterForm(FilterForm):
     default_fields_names = ['Type']
-    
+
     UserID = CharField(label=_('User name'))
     GroupID = CharField(label=_('Group name'))
     Type = ChoiceField(
-        label=_('Result'), 
-        choices=[(1, u'Poraněn'), (2, u'Preživší'), 
+        label=_('Result'),
+        choices=[(1, u'Poraněn'), (2, u'Preživší'),
                  (3, u'Mrtev'), (4, u'Nemrtvý')])
 
 
 class PublicRequestFilterForm(FilterForm):
     default_fields_names = ['Id']
-    
+
     Id = IntegerField(label=_('ID'))
     Type = CorbaEnumChoiceField(
         label=_('Type'), corba_enum=Registry.PublicRequest.Type)
@@ -482,20 +482,20 @@ class PublicRequestFilterForm(FilterForm):
 
 class FileFilterForm(FilterForm):
     default_fields_names = ['Type']
-    
+
     Name = CharField(label=_('Name'))
     Path = CharField(label=_('Path'))
     MimeType = CharField(label=_('Mime type'))
     CreateTime = DateTimeIntervalField(label=_('Create time'))
     Type = ChoiceField(
-        label=_('Type'), 
+        label=_('Type'),
         choices=CorbaLazyRequestIterStruct(
             'FileManager', None, 'getTypeEnum', ['id', 'name'], None))
 
 
 class InvoiceFilterForm(FilterForm):
     default_fields_names = ['Type']
-    
+
     Type = CorbaEnumChoiceField(
         label=_('Type'), corba_enum=Registry.Invoicing.InvoiceType)
     Number = CharField(label=_('Number'))
@@ -509,9 +509,9 @@ class InvoiceFilterForm(FilterForm):
 
 class MailFilterForm(FilterForm):
     default_fields_names = ['CreateTime', 'Type']
-    
+
     Type = ChoiceField(
-        label=_('Type'), 
+        label=_('Type'),
         choices=CorbaLazyRequestIterStruct(
             'Mailer', None, 'getMailTypes', ['id', 'name'], None))
     #Handle = CharField(label=_('Handle'))
@@ -527,15 +527,15 @@ class MailFilterForm(FilterForm):
     def get_key_time_field(self):
         return self.base_fields['CreateTime']
 
-      
+
 # This has to be a list and not a tuple, because ADIF can remove e.g. logger
 # filter during login when logging is disabled.
-form_classes = [DomainFilterForm, 
-                NSSetFilterForm, 
-                KeySetFilterForm,                 
-                ObjectFilterForm, 
-                ContactFilterForm, 
-                RegistrarFilterForm, 
+form_classes = [DomainFilterForm,
+                NSSetFilterForm,
+                KeySetFilterForm,
+                ObjectFilterForm,
+                ContactFilterForm,
+                RegistrarFilterForm,
                 FilterFilterForm,
                 PublicRequestFilterForm,
                 FileFilterForm,
@@ -549,13 +549,13 @@ form_classes = [DomainFilterForm,
                 ResultCodeFilterForm]
 
 def get_filter_forms_javascript(filter_form_classes):
-    """ Javascript is cached in user session (must be there, beucause each user 
-        can have other forms, because of different permissions. 
+    """ Javascript is cached in user session (must be there, beucause each user
+        can have other forms, because of different permissions.
     """
     output = u''
     all_fields_dict = {}
 #    import ipdb; ipdb.set_trace()
-    for form_class in filter_form_classes: 
+    for form_class in filter_form_classes:
         form = form_class()
         # Function for generating field of form
         try:
@@ -567,9 +567,9 @@ def get_filter_forms_javascript(filter_form_classes):
             error("Could not get filter for object %s!" % form_class)
             continue
         output += output_part
-        
+
         all_fields_dict[form.get_object_name()] = fields_js_dict
-        
+
         # Function that generates empty form:
         output += "function getEmpty%s() {\n" % form.__class__.__name__
         output += "    return '%s'\n" % escape_js_literal(unicode(form))

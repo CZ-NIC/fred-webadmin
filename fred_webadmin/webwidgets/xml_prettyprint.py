@@ -28,7 +28,7 @@ def format_xml(xml_string):
         doc.normalize()
         f = StringIO.StringIO()
         PrettyPrint(doc, f)
-        f.seek(0,0)
+        f.seek(0, 0)
         formated_xml = f.read().decode('utf-8')
         return formated_xml
     else:
@@ -41,16 +41,16 @@ def xml_highlight(xml_string):
         return highlight_xml
     else:
         return ''
-    
+
 def uglify(xml):
     return '\n'.join('\n<'.join('>\n'.join(xml.split('>')).split('<')).split('\n\n'))
 
 
 if python_xml_imported:
     if pygments_imported:
-        xml_prettify =  xml_highlight
+        xml_prettify = xml_highlight
     else:
-        xml_prettify = format_xml 
+        xml_prettify = format_xml
 else:
     xml_prettify = uglify # :-)
 
@@ -65,5 +65,3 @@ def xml_prettify_webwidget(xml_string):
     else:
         result = noesc(escape(xml_output_string).replace('\n', '<br />\n'))
     return result
-        
-

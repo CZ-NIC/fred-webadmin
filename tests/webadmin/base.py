@@ -34,7 +34,7 @@ class DaphneTestCase(object):
         """ Taken from
             http://lackingrhoticity.blogspot.com/2008/12/
             helper-for-monkey-patching-in-tests.html
-        
+
             Basically it stores the original object before monkeypatching and
             then restores it at teardown. Which is handy, because we do not
             want the object to stay monkeypatched between unit tests (if the
@@ -60,7 +60,7 @@ class DaphneTestCase(object):
             func()
         self.corba_mock.UnsetStubs()
         self.corba_mock.ResetAll()
-        
+
     def setUp(self, ldap=True):
         self._on_teardown = []
 
@@ -88,4 +88,3 @@ class DaphneTestCase(object):
         self.monkey_patch(fred_webadmin.utils, 'get_logger', lambda : logger.DummyLogger())
 
         cherrypy.config.update({ "environment": "embedded" })
-

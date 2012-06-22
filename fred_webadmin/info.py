@@ -3,8 +3,8 @@
 
 from itertools import chain
 
-import fred_webadmin.webwidgets.forms.filterforms as filterforms #form_classes 
-#from fred_webadmin.webwidgets.forms.filterforms import form_classes as filter_form_classes 
+import fred_webadmin.webwidgets.forms.filterforms as filterforms #form_classes
+#from fred_webadmin.webwidgets.forms.filterforms import form_classes as filter_form_classes
 from fred_webadmin.webwidgets.forms.editforms import form_classes as edit_form_classes
 from fred_webadmin.webwidgets.details.adifdetails import detail_classes
 
@@ -29,4 +29,3 @@ def print_nperms_for_class(class_name):
         print '\n'.join(form_class.get_nperms())
     else:
         print '\nNo such class: %s' % class_name
-    

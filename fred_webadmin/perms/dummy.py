@@ -13,4 +13,3 @@ class Authorizer(object):
 
     def check_detailed_present(self, obj, action):
         return False
-

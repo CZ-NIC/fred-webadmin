@@ -13,7 +13,7 @@ from fred_webadmin.controller.perms import check_onperm, login_required
 from fred_webadmin.webwidgets.forms.filterforms import UnionFilterForm
 from fred_webadmin.itertable import IterTable, fileGenerator
 from fred_webadmin.mappings import (
-    f_name_id, f_name_editformname, f_urls, f_name_actionfiltername, 
+    f_name_id, f_name_editformname, f_urls, f_name_actionfiltername,
     f_name_actiondetailname, f_name_filterformname, f_name_req_object_type)
 import simplejson
 from fred_webadmin.webwidgets.gpyweb.gpyweb import attr, div, p, h1
@@ -34,11 +34,11 @@ class ListTableMixin(object):
 
     __metaclass__ = exposed.AdifPageMetaClass
 
-    def _get_itertable(self, request_object = None):
+    def _get_itertable(self, request_object=None):
         if not request_object:
             request_object = self.classname
         key = cherrypy.session.get('corbaSessionString', '')
-        
+
         size = config.tablesize
         timeout = config.tabletimeout
         user = cherrypy.session.get('user')
@@ -69,13 +69,13 @@ class ListTableMixin(object):
                 sort_dir = bool(int(kwd.get('sort_dir', 1)))
             except (ValueError, TypeError):
                 sort_dir = True
-            
+
             if cleaned_filters is not None:
                 table.set_filter(cleaned_filters)
                 if kwd.get('save_input'): # save filter
                     props = (('name', kwd['save_input']),
                              ('type', f_name_actionfiltername[self.__class__.__name__.lower()]))
-                    save_log_req = create_log_request('SaveFilter', properties = props)
+                    save_log_req = create_log_request('SaveFilter', properties=props)
                     try:
                         table.save_filter(kwd['save_input'])
                         save_log_req.result = 'Success'
@@ -85,7 +85,7 @@ class ListTableMixin(object):
                     show_result = False
                 else: # normal setting filter
                     table.reload()
-    
+
             if kwd.get('filter_id'): # load filter
                 # Do not log filter load (Jara's decision - it would just clutter
                 # the log output).
@@ -98,7 +98,7 @@ class ListTableMixin(object):
                         filter_data, data_cleaned=True, form_class=form_class)
                 else:
                     table.reload()
-                    
+
             if kwd.get('cf'):
                 table.clear_filter()
             if kwd.get('reload'):
@@ -119,7 +119,7 @@ class ListTableMixin(object):
                 table.reload()
             if sort_col is not None:
                 table.set_sort(sort_col, sort_dir)
-            
+
             log_req.result = 'Success'
             if show_result:
                 out_props.append(('result_size', table.num_rows))
@@ -127,7 +127,7 @@ class ListTableMixin(object):
                     context['result'] = _("No_entries_found")
                 if table.num_rows == 1:
                     rowId = table.get_row_id(0)
-                    raise (cherrypy.HTTPRedirect(f_urls[self.classname] + 
+                    raise (cherrypy.HTTPRedirect(f_urls[self.classname] +
                         'detail/?id=%s' % rowId))
                 if kwd.get('txt', None):
                     cherrypy.response.headers["Content-Type"] = "text/plain"
@@ -142,10 +142,10 @@ class ListTableMixin(object):
                             self.classname, time.strftime('%Y-%m-%d'))
                     return fileGenerator(table)
                 table.set_page(page)
-                
+
                 context['itertable'] = table
         except ccReg.Filters.SqlQueryTimeout, e:
-            context['main'].add(h1(_('Timeout')), 
+            context['main'].add(h1(_('Timeout')),
                                 p(_('Database timeout, please try to be more specific about requested data.')))
         finally:
             log_req.close(properties=out_props)
@@ -155,13 +155,13 @@ class ListTableMixin(object):
     def filter(self, *args, **kwd):
         context = {'main': div()}
         action = 'list' if kwd.get('list_all') else 'filter'
-        
+
         if kwd.get('txt') or kwd.get('csv'):
             res = self._get_list(context, **kwd)
             return res
-        elif (kwd.get('cf') or kwd.get('page') or kwd.get('load') or 
+        elif (kwd.get('cf') or kwd.get('page') or kwd.get('load') or
               kwd.get('list_all') or kwd.get('filter_id') or
-              kwd.get('sort_col')): 
+              kwd.get('sort_col')):
             # clear filter - whole list of objects without using filter form
             context = self._get_list(context, **kwd)
         elif kwd.get("jump_prev") or kwd.get("jump_next"):
@@ -178,7 +178,7 @@ class ListTableMixin(object):
 
         return self._render(action, context)
 
-    def _update_key_time_field_offset(self, filter_data, key_field_name, 
+    def _update_key_time_field_offset(self, filter_data, key_field_name,
             delta):
         try:
             key_time_field = filter_data[0][key_field_name]
@@ -218,7 +218,7 @@ class ListTableMixin(object):
             for name, value, neg in form_utils.flatten_form_data(form.cleaned_data):
                 in_props.append(('filter_%s' % name, value, False))
                 in_props.append(('negation', str(neg), True))
-                
+
             context = self._get_list(context, form.cleaned_data, in_log_props=in_props, **kwd)
             if config.debug:
                 context['main'].add(u"rows: " + str(self._get_itertable().num_rows))
@@ -229,7 +229,7 @@ class ListTableMixin(object):
                 context['display_jump_links'] = {
                     'url': f_urls[self.classname],
                     'field_name': key_time_field.name}
-            
+
             action = 'filter'
         else:
             if form.is_bound and config.debug:
@@ -254,7 +254,7 @@ class ListTableMixin(object):
         key_filter_field = form.cleaned_data[0][key_time_field.name][1]
         if isinstance(key_filter_field, fred_webadmin.webwidgets.forms.emptyvalue.FilterFormEmptyValue):
             return False
-        if (int(form.cleaned_data[0][key_time_field.name][1][3]) in 
+        if (int(form.cleaned_data[0][key_time_field.name][1][3]) in
                     (int(ccReg.DAY._v), int(ccReg.INTERVAL._v))):
             return False
         return True
@@ -262,7 +262,7 @@ class ListTableMixin(object):
     @check_onperm('read')
     def allfilters(self, *args, **kwd):
         context = {'main': div()}
-        
+
         itertable = self._get_itertable('filter')
         itertable.set_filter(
             [{'Type': [False, f_name_id[self.classname]]}])
@@ -281,7 +281,7 @@ class ListTableMixin(object):
                 log_req.result = 'Fail'
             else:
                 log_req.result = 'Success'
-    
+
             context['edit'] = kwd.get('edit', False)
             context['result'] = detail
         finally:
@@ -294,20 +294,20 @@ class ListTableMixin(object):
         if not form_class:
             raise RuntimeError('No such formclass in modules "%s"' % form_name)
         return form_class
-    
+
     def _get_filterform_class(self):
         form_name = f_name_filterformname[self.classname]
         form_class = getattr(sys.modules[self.__module__], form_name, None)
         if not form_class:
             raise RuntimeError('No such formclass in modules "%s"' % form_name)
         return form_class
-    
+
     @login_required
     def index(self):
         if (config.debug or f_urls.has_key(self.classname)):
             raise cherrypy.HTTPRedirect(f_urls[self.classname] + 'allfilters/')
         else:
-            # In production (non-debug) environment we just fall back to 
+            # In production (non-debug) environment we just fall back to
             # /summary.
             raise NotImplementedError("Support for '%s' has not yet been "
                                       "implemented." % self.classname)
@@ -326,4 +326,3 @@ class ListTableMixin(object):
         except (ccReg.Admin.ObjectNotFound,):
             context['main'] = _("Object_not_found")
             raise CustomView(self._render('base', ctx=context))
-

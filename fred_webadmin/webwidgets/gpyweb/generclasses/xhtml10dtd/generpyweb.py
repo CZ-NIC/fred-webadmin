@@ -14,13 +14,13 @@ def load_dtd(dtd_filename='xhtml1-strict.dtd', dtd_root_elem='html'):
 if __name__ == "__main__":
     # elements with enclose_content flag
     enclose_elems = ['a', 'b', 'i', 'title']
-    
+
     attr_translation = {
             'xmllang': 'xml:lang',
             'httpequiv': 'http-equiv',
             'cssc': 'class'
         }
-    
+
     output = ''
 
     dtd = load_dtd()
@@ -34,4 +34,3 @@ if __name__ == "__main__":
         output += tattr_string
 
     print output
-    

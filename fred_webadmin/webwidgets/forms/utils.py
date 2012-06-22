@@ -15,8 +15,8 @@ def _get_field_names(key, value, sep='.'):
         return ["%s" % (key,)]
 
     items = value[1].items()
-    return ["%s%s%s" % (key, sep, _get_field_names(k2, v2, 
-        sep)[0]) for k2,v2 in items]
+    return ["%s%s%s" % (key, sep, _get_field_names(k2, v2,
+        sep)[0]) for k2, v2 in items]
 
 def _get_values(value):
     """ Returns an array of form field values. """
@@ -69,7 +69,7 @@ def flatten_form_data(data, sep='.'):
                 flag)].
 
         Doctests:
-    
+
         Try nested form fields.
 
         >>> tmp = [{u'TransferTime': [False, "aaa"], \
@@ -159,9 +159,8 @@ u'Type': [True, 1]}, {u'Type': [False, 1]}]
     flattened_data = []
     # Merge the flattened lists into an array of tuples.
     for index, name in enumerate(field_names):
-        flattened_data.append((name, 
+        flattened_data.append((name,
             field_values[index],
             field_negations[index]))
 
     return flattened_data
-

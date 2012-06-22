@@ -50,13 +50,13 @@ class FredWebAdminInstall(install):
         ('webadminport=', None, 'Port of fred-webadmin  [18456]'),
         ('ldapserver=', None, 'LDAP server'),
         ('ldapscope=', None, 'LDAP scope'),
-        #('nodepcheck',  None, 'Install script will not check for dependencies.'), 
-        ("idldir=",  "d", "directory where IDL files reside [PREFIX/share/idl/fred/]"),
+        #('nodepcheck',  None, 'Install script will not check for dependencies.'),
+        ("idldir=", "d", "directory where IDL files reside [PREFIX/share/idl/fred/]"),
     ])
 
     # boolean_options = install.boolean_options
     # boolean_options.append('nodepcheck')
-    
+
     def initialize_options(self):
         install.initialize_options(self)
 
@@ -69,43 +69,43 @@ class FredWebAdminInstall(install):
         self.ldapscope = ''
         self.authentization = 'CORBA'
         #self.nodepcheck = None
-        
+
     def finalize_options(self):
         install.finalize_options(self)
         if not self.idldir:
             self.idldir = njoin(self.getDir('datarootdir'), 'idl', 'fred')
-        
+
         self.idldir = self.idldir.rstrip('/') # remove trailing slash
 
     def check_simplejson(self):
         try:
             import simplejson
         except ImportError, msg:
-            sys.stderr.write('ImportError: %s\n fred-webadmin needs simplejson module.\n'%msg)
+            sys.stderr.write('ImportError: %s\n fred-webadmin needs simplejson module.\n' % msg)
             sys.exit(1)
-    
+
     def check_CORBA(self):
         try:
             from omniORB import CORBA
         except ImportError, msg:
-            sys.stderr.write('ImportError: %s\n fred-webadmin needs omniORB module.\n'%msg)
+            sys.stderr.write('ImportError: %s\n fred-webadmin needs omniORB module.\n' % msg)
             sys.exit(1)
-            
+
     def check_dns(self):
         try:
             import dns
         except ImportError, msg:
-            sys.stderr.write('ImportError: %s\n fred-webadmin needs dnspython module.\n'%msg)
+            sys.stderr.write('ImportError: %s\n fred-webadmin needs dnspython module.\n' % msg)
             sys.exit(1)
 
     def check_cherrypy(self):
         try:
             import cherrypy
         except ImportError, msg:
-            sys.stderr.write('ImportError: %s\n fred-webadmin needs cherrypy version 3.x module.\n'%msg)
+            sys.stderr.write('ImportError: %s\n fred-webadmin needs cherrypy version 3.x module.\n' % msg)
             sys.exit(1)
-        
-        cherrypy_version =  LooseVersion(cherrypy.__version__)
+
+        cherrypy_version = LooseVersion(cherrypy.__version__)
         if cherrypy_version < '3.0.0' or cherrypy_version >= '4.0.0':
             sys.stderr.write('ImportError: \n fred-webadmin needs cherrypy version 3.x module.\n')
             sys.exit(1)
@@ -124,7 +124,7 @@ class FredWebAdminInstall(install):
             self.check_dependencies()
 
         install.run(self)
-        
+
         #self.update_config_and_run_file()
         #mkpath(njoin(self.root, self.localstatedir, SESSION_DIR))
 
@@ -139,7 +139,7 @@ class FredWebAdminInstallLib(install_lib):
     def run(self):
         self.update_config_py()
         install_lib.run(self)
-        
+
 class FredWebAdminInstallData(install_data):
     user_options = install_data.user_options
     user_options.extend([
@@ -147,7 +147,7 @@ class FredWebAdminInstallData(install_data):
         ('nshost=', None, 'CORBA nameservice host [localhost]'),
         ('nsport=', None, 'Port where CORBA nameservice listen [2809]'),
         ('webadminport=', None, 'Port of fred-webadmin  [18456]'),
-        ("idldir=",  "d", "directory where IDL files reside [PREFIX/share/idl/fred/]"),
+        ("idldir=", "d", "directory where IDL files reside [PREFIX/share/idl/fred/]"),
         ('ldapserver=', None, 'LDAP server'),
         ('ldapscope=', None, 'LDAP scope'),
     ])
@@ -172,7 +172,7 @@ class FredWebAdminInstallData(install_data):
                 ('ldapserver', 'ldapserver'),
                 ('ldapscope', 'ldapscope'),
         )
-        
+
         install_data.finalize_options(self)
         if self.ldapserver and self.ldapscope:
             self.authentization = 'LDAP'
@@ -186,7 +186,7 @@ class FredWebAdminInstallData(install_data):
         values.append(('DU_DATAROOTDIR', self.getDir('datarootdir')))
         values.append(('DU_LOCALSTATEDIR', self.getDir('localstatedir')))
         values.append(('DU_ROOTDIR', self.getDir('prefix')))
-        values.append(('DU_NS_HOST', self.nshost+':'+self.nsport))
+        values.append(('DU_NS_HOST', self.nshost + ':' + self.nsport))
         values.append(('DU_NS_CONTEXT', self.nscontext))
         values.append(('DU_WEBADMIN_PORT', self.webadminport))
         values.append(('DU_AUTHENTICATION', self.authentization))
@@ -231,14 +231,14 @@ def main(directory):
     else:
         cut = directory.count(os.path.sep) + 1
     try:
-        setup(name = PROJECT_NAME,
-              description = 'Admin Interface for FRED (Fast Registry for Enum and Domains)',
-              author = 'David Pospisilik, Tomas Divis, CZ.NIC',
-              author_email = 'tdivis@nic.cz',
-              url = 'http://www.nic.cz',
-              packages = [PACKAGE_NAME] + subpackages(directory, PACKAGE_NAME) + subpackages(directory, 'tests'),
-              package_dir = {PACKAGE_NAME: PACKAGE_NAME},
-              data_files = [
+        setup(name=PROJECT_NAME,
+              description='Admin Interface for FRED (Fast Registry for Enum and Domains)',
+              author='David Pospisilik, Tomas Divis, CZ.NIC',
+              author_email='tdivis@nic.cz',
+              url='http://www.nic.cz',
+              packages=[PACKAGE_NAME] + subpackages(directory, PACKAGE_NAME) + subpackages(directory, 'tests'),
+              package_dir={PACKAGE_NAME: PACKAGE_NAME},
+              data_files=[
                   ('LOCALSTATEDIR/log/fred-webadmin',),
                   (os.path.join('LOCALSTATEDIR', 'lib', PROJECT_NAME, 'sessions'),),
                   ('SBINDIR', ['build/fred-webadmin']),
@@ -261,7 +261,7 @@ def main(directory):
                   + all_files_in_4(
                       os.path.join('DATAROOTDIR', PROJECT_NAME, 'www'),
                       os.path.join(directory, 'www')),
-              cmdclass = {
+              cmdclass={
                           'install': FredWebAdminInstall,
                           'install_data': FredWebAdminInstallData,
                           'install_lib': FredWebAdminInstallLib,
@@ -271,7 +271,7 @@ def main(directory):
     except Exception, e:
         log.error("Error: %s", e)
         return False
-    
+
 if __name__ == '__main__':
     dir = ''
     if 'bdist' in sys.argv:

@@ -14,20 +14,20 @@ class EditFormLayout(TableFormLayout):
             self.cssc += u' editform_table'
         else:
             self.cssc = u'editform_table'
-            
-        self.media_files=['/css/editform.css',
+
+        self.media_files = ['/css/editform.css',
                           '/js/ext/ext-base.js',
                           '/js/ext/ext-all.js',
-                          '/js/editform.js', 
-                          '/js/logging.js', 
+                          '/js/editform.js',
+                          '/js/logging.js',
                          ]
-        
+
     def create_layout(self):
         super(EditFormLayout, self).create_layout()
 
     def get_submit_row(self, hidden_fields=None):
-        return tr(td(attr(colspan=self.columns_count, cssc='center'), 
-                     hidden_fields, 
+        return tr(td(attr(colspan=self.columns_count, cssc='center'),
+                     hidden_fields,
                      input(attr(type=u'submit', value=_(u'Save'), name=u'submit'))
                     ))
 
@@ -55,6 +55,5 @@ class RegistrarEditFormLayout(FormLayout):
             self.add(self.get_submit_row())
 
     def get_submit_row(self):
-        return div(attr(cssc='center'), 
+        return div(attr(cssc='center'),
             input(attr(type=u'submit', value=u'Save', name=u'submit')))
-

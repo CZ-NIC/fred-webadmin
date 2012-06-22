@@ -14,7 +14,7 @@ class Authorizer(object):
         "testuser2","read.bankstatement"
 
         Doctests:
-            Mock the _get_reader call, so that we do not actually read 
+            Mock the _get_reader call, so that we do not actually read
             from a file.
             >>> Authorizer._get_reader = lambda x : ([["user", "a1.o1", \
 "a2.o2"], ["user2", "a3.o3", "a4.o4"]])
@@ -51,7 +51,7 @@ unknown user
                 self.perms = row[1:]
         if not self.perms:
             raise AuthorizationError(
-                    _("Authorization record does not exist for user ") +\
+                    _("Authorization record does not exist for user ") + \
                         username)
         self._check_for_malformed_perms()
 
@@ -63,11 +63,11 @@ unknown user
                     _("Malformed authorization record in csv file!"))
 
     def check_detailed_present(self, obj, action):
-        """ Check whether there is any 4-parts permission starting with  
+        """ Check whether there is any 4-parts permission starting with
             'obj.action'.
         """
         return any([perm for perm in [item.split(".") for item in self.perms]
-            if perm[1] == obj and perm[0] == action and 
+            if perm[1] == obj and perm[0] == action and
             len(perm) == 4])
 
     def has_permission(self, obj, action):
@@ -87,7 +87,7 @@ unknown user
                 continue
 #            import ipdb; ipdb.set_trace()
             composed_part = "%s.%s" % (parts[0], parts[2]) #example: read.auth_info
-            if (composed_part == action and parts[1] == obj and 
+            if (composed_part == action and parts[1] == obj and
                     parts[3] == str(obj_id)):
                 return True
         return False

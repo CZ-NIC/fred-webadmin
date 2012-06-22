@@ -23,13 +23,13 @@ class CompoundFilterField(Field):
         self._value = value
         self.form = None
         self.initialized = True
-        
+
     def _get_value(self):
         return self._value
     def _set_value(self, value):
         self._value = value
         if self.initialized: # to form not instantiate at time, while form classes are being built
-            
+
             if value is None:
                 self.form = self.form_class(is_nested=True)
             else:
@@ -37,8 +37,8 @@ class CompoundFilterField(Field):
                 if self.parent_form and self.parent_form.data_cleaned:
                     data_cleaned = True
                 self.form = self.form_class(data=value, data_cleaned=data_cleaned, is_nested=True)
-    value = property(_get_value, _set_value) 
-    
+    value = property(_get_value, _set_value)
+
     def clean(self):
         if self.form:
             if self.form.is_valid():
@@ -47,7 +47,7 @@ class CompoundFilterField(Field):
                 raise ValidationError(_(u'Correct errors below.'))
         elif self.required and not self.value:
             raise ValidationError(_(u'This field is required.'))
-    
+
     def render(self, indent_level=0):
         if not self.form:
             if self.value is None:
@@ -58,10 +58,10 @@ class CompoundFilterField(Field):
 
 class FormSetField(Field):
     "Field that wraps formset"
-    def __init__(self, name='', value='', formset_class=BaseFormSet, 
-        formset_layout=TableFormSetLayout, form_class=None, 
-        can_order=False, can_delete=False, extra_count=1, *args, **kwargs): 
-    
+    def __init__(self, name='', value='', formset_class=BaseFormSet,
+        formset_layout=TableFormSetLayout, form_class=None,
+        can_order=False, can_delete=False, extra_count=1, *args, **kwargs):
+
         self.initialized = False
         self.form_class = form_class
         self.formset_class = formset_class
@@ -75,16 +75,16 @@ class FormSetField(Field):
         self.changed_data_values = []
         self.formset_layout = formset_layout
         self.extra_count = extra_count
-    
+
     def create_formset_once(self):
         ''' If formset han't yet been created, this function will create it. '''
         if not self.formset:
             self.formset = self.formset_class(
-                data=self.value, initial=self.initial, 
-                form_class=self.form_class, prefix=self.name, is_nested=True, 
+                data=self.value, initial=self.initial,
+                form_class=self.form_class, prefix=self.name, is_nested=True,
                 can_order=self.can_order, can_delete=self.can_delete,
                 extra_count=self.extra_count)
-    
+
     def _get_value(self):
         return self._value
 
@@ -102,13 +102,13 @@ class FormSetField(Field):
         if initial:
             for i in range(len(initial)):
                 if not isinstance(initial[i], dict):
-                    # A little hack to convert object (like from corba) to 
-                    # a dictionary, so it is not nessesary to convert it 
+                    # A little hack to convert object (like from corba) to
+                    # a dictionary, so it is not nessesary to convert it
                     # manually.
-                    initial[i] = initial[i].__dict__ 
+                    initial[i] = initial[i].__dict__
         self._initial = initial
     initial = property(_get_initial, _set_initial)
-    
+
     def clean(self):
         self.create_formset_once()
         if self.formset:
@@ -118,16 +118,16 @@ class FormSetField(Field):
                 raise ValidationError(_(u'Correct errors below.'))
         elif self.required and not self.value:
             raise ValidationError(_(u'This field is required.'))
-    
+
     def render(self, indent_level=0):
         self.create_formset_once()
         return self.formset.render(indent_level)
 
     def value_from_datadict(self, data):
-        # Take data dict items starting with self.name to fields 
+        # Take data dict items starting with self.name to fields
         # of formsets can access them.
-        return dict([[key, val] for key, val in data.items() 
-            if key.startswith(self.name)])  
+        return dict([[key, val] for key, val in data.items()
+            if key.startswith(self.name)])
 
     def _has_changed(self, initial, data):
         """ Returns True if data differs from initial.
@@ -167,59 +167,59 @@ class CorbaEnumChoiceField(ChoiceField):
         choices = [(unicode(item._v), _(item._n)) for item in corba_enum._items]
         self.corba_enum = corba_enum
         super(CorbaEnumChoiceField, self).__init__(name, value, choices, required, label, initial, help_text, *arg, **kwargs)
-        
-        
+
+
     def clean(self):
         cleaned_data = super(CorbaEnumChoiceField, self).clean()
         if cleaned_data != u'':
             return int(cleaned_data)
-    
+
     def is_empty(self):
         if self.value == self.empty_choice[0]:
             return True
         else:
             return False
-            
+
 
 class AbstractIntervalField(MultiValueField):
     ''' Abstract class field for DateIntervalField and DateTimeIntervalField'''
     def __init__(self, name='', value='', fields=None, *args, **kwargs):
         self.__dict__['content_initialized'] = False
         # fields = (FROM, TO, DAY, TYPE, OFFSET)
- 
+
         super(AbstractIntervalField, self).__init__(name, value, fields, *args, **kwargs)
         self.fields[3].required = True # intertnal type is required
         self.media_files.append('/js/interval_fields.js')
-    
+
     def _set_value(self, value):
         if not value:
             value = [None, None, None, 1, 0]
         super(AbstractIntervalField, self)._set_value(value)
         self.set_iterval_date_display()
-    
+
     def set_from_clean(self, value):
         super(AbstractIntervalField, self).set_from_clean(value)
         self.set_iterval_date_display()
-            
+
     def set_iterval_date_display(self):
         #if hasattr(self, 'date_interval_span'): # when initializing value, make_content method is not yet called, so this checks if it already was
         if self.content_initialized: # when initializing value, make_content method is not yet called, so this checks if it already was
             date_interval_display = 'none'
             date_day_display = 'none'
             date_interval_offset_span = 'none'
-            
+
             if int(self.value[3]) == ccReg.DAY._v: # day
                 date_day_display = 'inline'
             elif int(self.value[3]) == ccReg.INTERVAL._v: # not normal interval
                 date_interval_display = 'inline'
             elif int(self.value[3]) > ccReg.INTERVAL._v: # not normal interval
                 date_interval_offset_span = 'inline'
-                    
-            
+
+
             self.date_interval_span.style = 'display: %s' % date_interval_display
             self.date_day_span.style = 'display: %s' % date_day_display
             self.date_interval_offset_span.style = 'display: %s' % date_interval_offset_span
-    
+
     def make_content(self):
         self.add(self.fields[3],
                  span(attr(cssc='date_interval'),
@@ -229,7 +229,7 @@ class AbstractIntervalField(MultiValueField):
                  ),
                  span(save(self, 'date_interval_offset_span'),
                       attr(cssc='date_interval_offset'), _('offset') + ':', self.fields[4]),
-                     
+
                  span(attr(cssc='date_day'),
                       save(self, 'date_day_span'),
                       _('day') + ':', self.fields[2]
@@ -237,7 +237,7 @@ class AbstractIntervalField(MultiValueField):
                 )
         self.content_initialized = True
         self.set_iterval_date_display()
-        
+
     def clean(self):
         cleaned_data = super(AbstractIntervalField, self).clean()
         if cleaned_data and int(cleaned_data[3]) == ccReg.INTERVAL._v and cleaned_data[0] and cleaned_data[1]: # if from and to field filled, and not day filled
@@ -246,32 +246,32 @@ class AbstractIntervalField(MultiValueField):
                 raise ValidationError(errors)
         cleaned_data[3] = int(cleaned_data[3]) # choicefield intervaltype type to int
         cleaned_data[4] = int(cleaned_data[4] or 0) # (offset) decmal to int
-            
+
         return cleaned_data
 
     def compress(self, data_list):
         return data_list #retrun couple [from, to]
-        
+
     def decompress(self, value):
         return value
-    
+
     def is_empty(self):
-        return ((int(self.value[3]) == ccReg.DAY._v and self.fields[2].is_empty()) or 
+        return ((int(self.value[3]) == ccReg.DAY._v and self.fields[2].is_empty()) or
                 (int(self.value[3]) == ccReg.INTERVAL._v and self.fields[0].is_empty() and self.fields[1].is_empty()) or
                 (int(self.value[3]) == ccReg.INTERVAL._v and self.fields[4].is_empty())
                )
-    
+
 
 class DateIntervalField(AbstractIntervalField):
     def __init__(self, name='', value='', *args, **kwargs):
-        fields = (DateField(size=10), DateField(size=10), DateField(size=10), 
-                  ChoiceField(content=[attr(onchange='onChangeDateIntervalType(this)')], choices=INTERVAL_CHOICES_DATE_ONLY), 
-                  DecimalField(initial=1, size=5, min_value=-32768, max_value=32767))
+        fields = (DateField(size=10), DateField(size=10), DateField(size=10),
+                  ChoiceField(content=[attr(onchange='onChangeDateIntervalType(this)')], choices=INTERVAL_CHOICES_DATE_ONLY),
+                  DecimalField(initial=1, size=5, min_value= -32768, max_value=32767))
         super(DateIntervalField, self).__init__(name, value, fields, *args, **kwargs)
-    
+
 class DateTimeIntervalField(AbstractIntervalField):
     def __init__(self, name='', value='', *args, **kwargs):
-        fields = (SplitDateSplitTimeField(), SplitDateSplitTimeField(), DateField(size=10), 
-                  ChoiceField(content=attr(onchange='onChangeDateIntervalType(this)'), choices=INTERVAL_CHOICES), 
-                  DecimalField(initial=1, size=5, min_value=-32768, max_value=32767))
+        fields = (SplitDateSplitTimeField(), SplitDateSplitTimeField(), DateField(size=10),
+                  ChoiceField(content=attr(onchange='onChangeDateIntervalType(this)'), choices=INTERVAL_CHOICES),
+                  DecimalField(initial=1, size=5, min_value= -32768, max_value=32767))
         super(DateTimeIntervalField, self).__init__(name, value, fields, *args, **kwargs)

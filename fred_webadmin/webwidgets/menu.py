@@ -16,19 +16,19 @@ class Menu(ul):
         self.selected_menu_handle = selected_menu_handle
         self.user = user
 #        self.disabled = disabled
-        
-        self.open_nodes = [] 
+
+        self.open_nodes = []
         self.set_open_nodes()
         self.create_menu_tree()
-        
-        
+
+
     def set_open_nodes(self):
         '''Set selected node and all its parent nodes to open=True'''
         node = MenuNode.get_menu_by_handle(self.selected_menu_handle)
         while node:
             self.open_nodes.append(node)
             node = node.parent
-    
+
     def get_url(self, menu):
         if menu.url:
             return menu.url
@@ -42,22 +42,22 @@ class Menu(ul):
             # no default menu, take first available:
             if first_available_menu:
                 return self.get_url(first_available_menu)
-    
+
     def create_menu_tree(self):
         for menu in self.menutree.submenus:
             if self.user.check_nperms(menu.nperm, menu.nperm_type):
                 continue # user has negative permission for this menu -> don't display it
-                
-                
+
+
             menu_open = menu in self.open_nodes
             cssc = menu.cssc
-                
+
             submenu = None
             if menu_open:
                 cssc += ' selected-menu'
                 if menu.submenus:
                     submenu = Menu(menu, self.selected_menu_handle, self.user)
-            
+
             url = self.get_url(menu)
 
             self.add(li(attr(cssc=cssc), a(attr(href=url), menu.caption), submenu))
@@ -68,8 +68,8 @@ class MenuHoriz(Menu):
         self.submenu = None
         super(MenuHoriz, self).__init__(menutree, selected_menu_handle, user, *content, **kwd)
         self.tag = 'div'
-        
-        
+
+
     def create_menu_tree(self):
         self.add(ul(tagid('_menu1')))
         for menu in self.menutree.submenus:
@@ -79,18 +79,17 @@ class MenuHoriz(Menu):
             menu_open = menu in self.open_nodes
             cssc = menu.cssc
 #            disabled = menu.disabled
-                
+
             if menu_open:
                 cssc += ' selected-menu'
 #                if disabled:
 #                    cssc += ' disabled-menu'
                 if menu.submenus:
                     self.submenu = MenuHoriz(menu, self.selected_menu_handle, self.user)
-            
+
             url = self.get_url(menu)
-            
+
             self._menu1.add(li(attr(cssc=cssc), a(attr(href=url), menu.caption)))
         self.add(div(attr(cssc='cleaner'), ''))
         if self.submenu:
             self.add(div(attr(cssc='submenu'), self.submenu, div(attr(cssc='cleaner'), '')))
-    

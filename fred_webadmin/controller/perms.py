@@ -44,7 +44,7 @@ def check_nperm(nperms, nperm_type='all'):
 
             redir_addr = '/login/?next=%s' % get_current_url(cherrypy.request)
             raise cherrypy.HTTPRedirect(redir_addr)
-        
+
         return _wrapper
     return _decorator
 
@@ -81,6 +81,6 @@ def check_onperm(objects_nperms, check_type='all'):
 
             redir_addr = '/login/?next=%s' % get_current_url(cherrypy.request)
             raise cherrypy.HTTPRedirect(redir_addr)
-        
+
         return _wrapper
     return _decorator

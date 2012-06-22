@@ -12,50 +12,50 @@ def test_change_tag():
     output1 = str(pp)
     pp.tag = 'span'
     assert str(pp) != output1
-    
-    pp = p('text', tag = 'span')
+
+    pp = p('text', tag='span')
     ss = span('text')
     print str(pp)
     print str(ss)
     assert str(pp) == str(ss)
-    
+
 def test_content_kwd_attr():
     pp1 = p(attr(style='color: red'), 'text', br())
-    
+
     pp2 = p(style='color: red', content='text')
     pp2.add(br())
-    
+
     pp3 = p(style='color: red', content=['text', br()])
-    
+
     pp4 = p('text', style='color: red', content=br())
-    
+
     print pp1
     print pp2
     print pp3
     print pp4
-    
+
     assert str(pp1) == str(pp2) == str(pp3) == str(pp4)
-    
+
 def test_parent():
     p1 = p()
     span(parent=p1)
-    
+
     p2 = p(span())
-    
+
     print p1
     print p2
-    
+
     assert str(p1) == str(p2)
-    
-    
-    
-    
+
+
+
+
 
 def test_gpyweb_tagid_save():
     mydiv = div()
-    
+
     myspan = span(attr(style='color: red'), span(save(mydiv, 'spaninspan')))
-    
+
     mydiv.add(p(tagid('myp'),
                 'Text of p'),
                 myspan
@@ -64,7 +64,7 @@ def test_gpyweb_tagid_save():
     mydiv.spaninspan.add('text in span')
     mydiv.style = 'color: blue'
 
-    
+
     desired_output = '''<div style="color: blue">
 \t<p>
 \t\tText of p
@@ -83,23 +83,23 @@ def test_gpyweb_tagid_save():
     print desired_output
     print '---'
 
-    assert str(mydiv) == desired_output 
-    
+    assert str(mydiv) == desired_output
+
 #def test_media():
 #    med = Media('ahoj.js')
 #    print med
 #    assert med.render_after() == '<script src="ahoj.js" type="text/javascript"></script>\n'
-#    
+#
 #    med = Media(['ahoj.js', 'cau.css'])
 #    assert med.render_after() == '''<script src="ahoj.js" type="text/javascript"></script>
 #<link href="cau.css" type="text/css" rel="stylesheet" />
-#''', 'Note: if this test failes, it is possible that it only is due to different order of media fields (because they are stored in unordered set)' 
+#''', 'Note: if this test failes, it is possible that it only is due to different order of media fields (because they are stored in unordered set)'
 #
 #    med.media_files.update(['ajaj.js'])
 #    assert med.render_after() == '''<script src="ajaj.js" type="text/javascript"></script>
 #<script src="ahoj.js" type="text/javascript"></script>
 #<link href="cau.css" type="text/css" rel="stylesheet" />
-#''', 'Note: if this test failes, it is possible that it only is due to different order of media fields (because they are stored in unordered set)' 
+#''', 'Note: if this test failes, it is possible that it only is due to different order of media fields (because they are stored in unordered set)'
 
 def test_getitem_notation():
     p1 = p(attr(cssc='top'), 'Hi ', i('how'), 'are you?') # tradicional notation
@@ -107,16 +107,16 @@ def test_getitem_notation():
 
     p2 = p(cssc='top')['Hi ', i()['how'], 'are you?'] # empty field for attributes is ugly
     print p2
-    
-    p3 = p(cssc='top')['Hi ', i('how'), 'are you?'] # shortest but combination of () a [] for inserting content can be confusing 
+
+    p3 = p(cssc='top')['Hi ', i('how'), 'are you?'] # shortest but combination of () a [] for inserting content can be confusing
     print p3
-    
+
     p4 = p(cssc='top')['Hi ', i['how'], 'are you?'] # and finally shortest and withou mixing () and [] for inseting context!!! :) (must be added metaclass
     print p4
-    
-    
+
+
     assert str(p1) == str(p2) == str(p3) == str(p4)
-    
+
 def test_getitem_notation2():
     p1 = p(cssc='ca')[
            div(cssc='top')[
@@ -136,9 +136,9 @@ def test_getitem_notation2():
               )
           )
     print p4
-    
+
     assert str(p1) == str(p2)
-    assert str(p1) == str(p3) 
+    assert str(p1) == str(p3)
     assert str(p3) == str(p4)
 
 def test_getitem_nontation3():
@@ -166,32 +166,32 @@ def test_getitem_nontation3():
                             i('napinaveho'),
                             ' textu'
                            )
-                      ) 
+                      )
                  )
                 )
     print page2
     assert str(page1) == str(page2)
-    
+
 #def test_benchmark_getitem_notation():
 #    exp = 4
 #    import time
-#    
+#
 #    t = time.time()
 #    for q in xrange(10**exp):
 #        unicode(p(cssc='top')['ahoj', i['jou']])
 #    print time.time() - t
-#    
+#
 #    t = time.time()
 #    for q in xrange(10**exp):
 #        unicode(p(attr(cssc='top'), 'ahoj', i('jou')))
 #    print time.time() - t
-#    
+#
 #    assert False
     # results: both notation have the same speed (about 1.5sec for exp = 4)
 
 def test_http_page():
     context = {
-        'doctype': 'xhtml10strict', 
+        'doctype': 'xhtml10strict',
         'charset': 'utf-8',
         'lang': 'cs',
         'title': 'titulka',
@@ -220,7 +220,7 @@ def test_http_page():
     page.add_media_files('caues.css')
     page.add_media_files(['cusik.js', 'ahojik.css'])
     print page
-    
+
     assert str(page) == '''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="cs">
 \t<head>
@@ -239,12 +239,12 @@ def test_http_page():
 \t\t</div>
 \t</body>
 </html>
-''' 
+'''
 
 
 def test_media_in_childs():
     context = {
-        'doctype': 'xhtml10strict', 
+        'doctype': 'xhtml10strict',
         'charset': 'utf-8',
         'lang': 'cs',
         'title': 'titulka',
@@ -268,7 +268,7 @@ def test_media_in_childs():
 \t\t</div>
 \t</body>
 </html>
-''' 
+'''
 
 def test_root_tag():
     'Test when widget is addet to another widget during render(), if root_widget is really root of tree, after calling render()'
@@ -280,29 +280,29 @@ def test_root_tag():
     d = div()
     mv = MyWidget()
     d.add(mv)
-    
+
     d.render()
     print 'my_p.rootwidget: ', repr(mv.my_p.root_widget)
-    
+
     assert mv.my_p.root_widget == d
-    
+
 def test_escape():
     p1 = p('first<br />second')
     assert str(p1) == '''<p>
 \tfirst&lt;br /&gt;second
 </p>
 '''
-    
+
     p2 = p(noesc('first<br />second'))
     print str(p2)
     assert str(p2) == '''<p>
 \tfirst<br />second
 </p>
 '''
-        
+
 def test_enclose():
     p1 = p(attr(enclose_content=True), 'Visit our ', a(attr(href='http://www.example.com'), 'website'), '.') # tag "a" has enclose_content = True by default
     corect_result = '''<p>Visit our <a href="http://www.example.com">website</a>.</p>
 '''
     print str(p1)
-    assert str(p1) == corect_result 
+    assert str(p1) == corect_result

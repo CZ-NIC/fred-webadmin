@@ -20,10 +20,10 @@ print afilter
 print 'nastavuji filtery'
 #afilter.addObject().addHandle()._set_value("blabla.cz")
 di = ccReg.DateTimeInterval(
-    ccReg.DateTimeType(ccReg.DateType(24,9,2007),0,0,0),
-    ccReg.DateTimeType(ccReg.DateType(0,0,0),0,0,0),
+    ccReg.DateTimeType(ccReg.DateType(24, 9, 2007), 0, 0, 0),
+    ccReg.DateTimeType(ccReg.DateType(0, 0, 0), 0, 0, 0),
     ccReg.DAY,
-    -1
+    - 1
   )
 afilter.addTime()._set_value(di)
 print 'pred reloadF()'
@@ -36,5 +36,3 @@ print 'RADKY(celkem:%s):' % actions._get_numRows()
 #for i in range(actions._get_numRows()):
 #    print actions.getRow(i);
 print 'KONEC'
-
-

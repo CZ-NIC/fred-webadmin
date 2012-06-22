@@ -13,21 +13,21 @@ class ErrorDict(dict, ul):
         ul.__init__(self, *content, **kwd)
         self.tag = 'ul'
         self.cssc = 'errorlist'
-        
-    def render(self, indent_level = 0):
+
+    def render(self, indent_level=0):
         self.content = []
         for message in self.values():
             self.add(li(message))
         return super(ErrorDict, self).render(indent_level)
 
 class ErrorList(list, ul):
-    def __init__(self, from_list = None, *content, **kwd):
+    def __init__(self, from_list=None, *content, **kwd):
         list.__init__(self, from_list or [])
         ul.__init__(self, *content, **kwd)
         self.tag = 'ul'
         self.cssc = 'errorlist'
-        
-    def render(self, indent_level = 0):
+
+    def render(self, indent_level=0):
         self.content = []
         for message in self:
             self.add(li(message))
@@ -63,7 +63,7 @@ class SortedDict(dict):
         else:
             self.keyOrder = [key for key, value in data]
 
-    def __deepcopy__(self,memo):
+    def __deepcopy__(self, memo):
         from copy import deepcopy
         obj = self.__class__()
         for k, v in self.items():
@@ -146,7 +146,7 @@ class SortedDict(dict):
         obj = self.__class__(self)
         obj.keyOrder = self.keyOrder
         return obj
-    
+
     def deepcopy(self):
         return SortedDict([(k, deepcopy(v)) for k, v in self.items()])
 
@@ -177,7 +177,7 @@ def escape_js_literal(literal):
 
 
 def convert_linear_filter_to_form_output(or_filters):
-    ''' Get filters in linear form (see FilterPanel) and converts it to 
+    ''' Get filters in linear form (see FilterPanel) and converts it to
         the same output as FilterForm (see UnionFilterForm and FilterForm)
     '''
     def create_or_get_filter(new_or_filter, fname):
@@ -203,24 +203,24 @@ def convert_linear_filter_to_form_output(or_filters):
                 current_filter, last_fname = create_or_get_filter_multifield(new_or_filter, fname)
             else:
                 current_filter, last_fname = create_or_get_filter(new_or_filter, fname)
-            
+
             # negation is expressed by fval==[True, fval] instead on just fval,
-            # here could be problem, if some field could return list of 
-            # 2 booleans or so, but it is unlikely, and we get much cleaner 
-            # notation of filter (as negation is rarely used) 
+            # here could be problem, if some field could return list of
+            # 2 booleans or so, but it is unlikely, and we get much cleaner
+            # notation of filter (as negation is rarely used)
             if isinstance(fval, (types.ListType, types.TupleType)) and \
                len(fval) == 2 and isinstance(fval[0], types.BooleanType):
                 negation = True
                 fval = fval[1]
             else:
                 negation = False
-            
+
             # TODO(tom): REFACTOR!
             if not isinstance(fval, dict):
-                current_filter['presention|' + last_fname] = 'on'  
-                current_filter[last_fname] =  fval
+                current_filter['presention|' + last_fname] = 'on'
+                current_filter[last_fname] = fval
             else:
-                current_filter['presention|' + last_fname] = 'on'  
+                current_filter['presention|' + last_fname] = 'on'
                 current_filter.update(fval)
             if negation:
                 current_filter['negation|' + last_fname] = 'on'
@@ -256,7 +256,7 @@ def find_and_update_datetime_offset_in_json(json_data, delta):
     offset = offset + delta
     json_data['Time/4'] = unicode(offset)
     return json_data
-        
+
 def convert_corba_obj_to_form_data(corba_obj):
     data = corba_obj.__dict__
     for key in dict:
@@ -272,5 +272,5 @@ def convert_corba_obj_to_form_data(corba_obj):
             dict[key] = unicode(val)
         else:
             raise RuntimeError('Unknown corba type, unable to convert it to form data')
-                 
+
     return data

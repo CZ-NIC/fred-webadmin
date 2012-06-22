@@ -38,9 +38,9 @@ PAYMENT_OTHER = 6
 # Mapping between id and user description of invoice types.
 payment_map = dict([(PAYMENT_UNASSIGNED, u'Not assigned'),
 (PAYMENT_REGISTRAR, u'From/to registrar'),
-(PAYMENT_BANK, u"From/to bank"), 
-(PAYMENT_ACCOUNTS, u'Between our own accounts'), 
-(PAYMENT_ACADEMIA, u'Related to Academia'), 
+(PAYMENT_BANK, u"From/to bank"),
+(PAYMENT_ACCOUNTS, u'Between our own accounts'),
+(PAYMENT_ACADEMIA, u'Related to Academia'),
 (PAYMENT_OTHER, u'Other transfers')])
 
 
@@ -51,7 +51,7 @@ class UpdateFailedError(adiferrors.AdifError):
 
 
 class EditForm(Form):
-    """ Base class for all forms used for editing objects. 
+    """ Base class for all forms used for editing objects.
     """
     nperm_names = ['read', 'change']
     # XXX: Tak tohle se bude muset predelat, protoze pro editform nelze
@@ -60,23 +60,23 @@ class EditForm(Form):
     # XXX: Takze bud bude nutne to tam nejak dodelat, aby se ty schovany kopirovaly z initial, nebo tak ne.
     # XXX: Dale je take mozna problem v pridanych fieldech
     name_postfix = 'EditForm'
-    
+
     def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None,
-                 initial=None, error_class=ErrorList, label_suffix=':', 
+                 initial=None, error_class=ErrorList, label_suffix=':',
                  layout_class=EditFormLayout, *content, **kwd):
         super(EditForm, self).__init__(
-            data, files, auto_id, prefix, initial, error_class, label_suffix, 
+            data, files, auto_id, prefix, initial, error_class, label_suffix,
             layout_class, *content, **kwd)
-        self.media_files = ['/js/scw.js', 
+        self.media_files = ['/js/scw.js',
                             '/js/scwLanguages.js',
                             '/js/MochiKit/MochiKit.js',
                             '/js/editform.js',
                             '/js/publicrequests.js']
-    
+
     def filter_base_fields(self):
 #        super(EditForm, self).filter_base_fields()
         pass # viz. XXX: poznamky nahore
-    
+
     def set_fields_values(self):
         super(EditForm, self).set_fields_values()
         for field in self.fields.values():
@@ -90,13 +90,13 @@ class EditForm(Form):
                 else: # usual field
                     field.title = initial_value
 
-    def fire_actions(self, *args, **kwargs): 
+    def fire_actions(self, *args, **kwargs):
         """ To be called after the form is submitted. Calls field.fire_actions
             for each field in the form.
         """
         for field in self.fields.values():
             field.fire_actions(*args, **kwargs)
-                
+
 
 class AccessEditForm(EditForm):
     password = CharField(label=_('Password'))
@@ -106,7 +106,7 @@ class AccessEditForm(EditForm):
 class ZoneEditForm(EditForm):
     def __init__(self, *args, **kwargs):
         super(ZoneEditForm, self).__init__(
-            layout_class=TableFormLayout, *args, **kwargs) 
+            layout_class=TableFormLayout, *args, **kwargs)
 
     id = HiddenIntegerField(initial=0)
     #credit = HiddenIntegerField(initial=0)
@@ -116,7 +116,7 @@ class ZoneEditForm(EditForm):
     toDate = DateField(label=_('To'), required=False)
 
     def clean(self):
-        """ Check that 'To' date is bigger than 'From' date. 
+        """ Check that 'To' date is bigger than 'From' date.
         """
         to_date = self.fields['toDate'].value
         from_date = self.fields['fromDate'].value
@@ -132,13 +132,13 @@ class ZoneEditForm(EditForm):
 
 class SingleGroupEditForm(EditForm):
     id = ChoiceField(
-        label=_('name'), 
+        label=_('name'),
         choices=CorbaLazyRequestIterStruct(
-            'Admin', 'getGroupManager', 'getGroups', ['id', 'name'], 
+            'Admin', 'getGroupManager', 'getGroups', ['id', 'name'],
             lambda groups: [g for g in groups if not g.cancelled]),
         required=False)
 
-    def fire_actions(self, reg_id, *args, **kwargs): 
+    def fire_actions(self, reg_id, *args, **kwargs):
         mgr = cherrypy.session['Admin'].getGroupManager()
         group_id = self.fields['id'].value
         if not group_id:
@@ -151,7 +151,7 @@ class SingleGroupEditForm(EditForm):
                 if old_group_id:
                     # We're chaning an already existing groups membership.
                     mgr.removeRegistrarFromGroup(reg_id, old_group_id)
-                memberships = mgr.getMembershipsByRegistar(reg_id) 
+                memberships = mgr.getMembershipsByRegistar(reg_id)
                 is_member = any(
                     item.group_id == group_id and not \
                     recoder.corba_to_date(item.toDate) for item in memberships)
@@ -181,7 +181,7 @@ class CertificationEditForm(EditForm):
     fromDate = DateField(label=_("From"))
     toDate = DateField(label=_("To"))
     score = IntegerChoiceField(
-        choices=[(0,0), (1, 1), (2, 2), (3, 3), (4, 4), (5, 5)], label=_("Score")) 
+        choices=[(0, 0), (1, 1), (2, 2), (3, 3), (4, 4), (5, 5)], label=_("Score"))
 
     uploaded_file = CharField(
         label=_("Uploaded file"), required=False, disabled=True)
@@ -195,7 +195,7 @@ class CertificationEditForm(EditForm):
         to_date = self.fields['toDate'].value
         from_date = date.today()
         if to_date:
-            if ('toDate' in self.changed_data and 
+            if ('toDate' in self.changed_data and
                     to_date < from_date.strftime("%Y-%m-%d")):
                 raise ValidationError(
                     "'To' date must be bigger than current date.")
@@ -237,13 +237,13 @@ class CertificationEditForm(EditForm):
         if not self.initial.get("id"):
             now = date.today()
             initToDate = datetime.date(
-                year=now.year+1, month=now.month, day=now.day)
+                year=now.year + 1, month=now.month, day=now.day)
             # TODO(Tom): Some funny stuff is happening here, take a look at it.
             if (self.fields['toDate'].is_empty() or
                 self.fields['fromDate'].is_empty()):
                 # At least one of the date fields is empty => it's a new
                 # certification form => fill in the defult values. If both
-                # fields are filled, it's just a reload of a submitte form, 
+                # fields are filled, it's just a reload of a submitte form,
                 # so keep the data (don't change them).
                 self.fields['toDate'].value = initToDate.strftime("%Y-%m-%d")
                 self.fields['fromDate'].value = now.strftime("%Y-%m-%d")
@@ -269,10 +269,10 @@ class CertificationEditForm(EditForm):
         if "evaluation_file" in self.changed_data:
             # User wants to upload a new file.
             file_upload_obj = file_mgr.save(file_obj.filename, file_obj.content.type, 6)
-            chunk = file_obj.content.file.read(2**14)
+            chunk = file_obj.content.file.read(2 ** 14)
             while chunk:
                 file_upload_obj.upload(chunk)
-                chunk = file_obj.content.file.read(2**14)
+                chunk = file_obj.content.file.read(2 ** 14)
             file_id = file_upload_obj.finalize_upload()
         else:
             file_id = self.cleaned_data['evaluation_file_id']
@@ -280,18 +280,18 @@ class CertificationEditForm(EditForm):
                 # This can happen when user changes something in the edit form,
                 # but specifies no file to upload.
                 # TODO(tom): This is wrong. Specifying file upload should be
-                # mandatory. However making it mandatory breaks FormSetField 
+                # mandatory. However making it mandatory breaks FormSetField
                 # validation...
                 raise UpdateFailedError(
                     "You have not specified the upload file "
                     "for a certification!")
-        certs_mgr = cherrypy.session['Admin'].getCertificationManager() 
+        certs_mgr = cherrypy.session['Admin'].getCertificationManager()
         if not self.cleaned_data['id']:
             # Create a new certification.
             try:
                 certs_mgr.createCertification(
-                    reg_id,recoder.u2c(self.cleaned_data['fromDate']),
-                    recoder.u2c(self.cleaned_data['toDate']), 
+                    reg_id, recoder.u2c(self.cleaned_data['fromDate']),
+                    recoder.u2c(self.cleaned_data['toDate']),
                     self.cleaned_data['score'], file_id)
             except Registry.Registrar.InvalidValue, e:
                 error(e)
@@ -302,7 +302,7 @@ class CertificationEditForm(EditForm):
             # Update an existing certifications.
             try:
                 certs_mgr.updateCertification(
-                    self.cleaned_data['id'], 
+                    self.cleaned_data['id'],
                     recoder.u2c(self.cleaned_data['score']), file_id)
             except Registry.Registrar.InvalidValue:
                 raise UpdateFailedError(
@@ -335,12 +335,12 @@ class RegistrarEditForm(EditForm):
     stateorprovince = CharField(label=_('State'), required=False) # address part
     postalcode = CharField(label=_('ZIP'), required=False, max_length=32) # address part
     country = ChoiceField(
-        label=_('Country'), 
+        label=_('Country'),
         choices=CorbaLazyRequestIterStruct(
-            'Admin', None, 'getCountryDescList', ['cc', 'name'], None), 
-        initial=CorbaLazyRequest('Admin', None, 'getDefaultCountry', None), 
+            'Admin', None, 'getCountryDescList', ['cc', 'name'], None),
+        initial=CorbaLazyRequest('Admin', None, 'getDefaultCountry', None),
         required=False) # country code
-    
+
     ico = CharField(label=_('ICO'), required=False, max_length=50)
     dic = CharField(label=_('DIC'), required=False, max_length=50)
     varSymb = CharField(label=_('Var. Symbol'), required=False, max_length=10)
@@ -354,37 +354,37 @@ class RegistrarEditForm(EditForm):
 
     visible_fieldsets_ids = HiddenField(
         required=False, id="visible_fieldsets_ids_field_id")
-    
+
     access = FormSetField(
         label=_('Authentication'), form_class=AccessEditForm, can_delete=True,
         formset_layout=DivFormSetLayout)
     zones = FormSetField(
-        label=_('Zones'), form_class=ZoneEditForm, 
+        label=_('Zones'), form_class=ZoneEditForm,
         can_delete=False, formset_layout=DivFormSetLayout)
     groups = FormSetField(
         label=_('Groups'), form_class=SingleGroupEditForm, can_delete=True)
     certifications = FormSetField(
-        label=_('Certifications'), form_class=CertificationEditForm, 
+        label=_('Certifications'), form_class=CertificationEditForm,
         can_delete=False)
 
     sections = (
         (_("Registrar data"), ("registrar_data_id"), (
-            "handle", "name", "organization", 'street1', 'street2', 
+            "handle", "name", "organization", 'street1', 'street2',
             'street3', 'city', 'postalcode', 'stateorprovince', 'country',
             "postalCode", "ico", "dic", "varSymb", "vat", "telephone", "fax",
             "email", "url", "hidden", "id", "visible_fieldsets_ids"),
             HideableSimpleFieldsetFormSectionLayout),
-        (_("Authentication"), ("authentications_id"), ("access"), 
+        (_("Authentication"), ("authentications_id"), ("access"),
             HideableNestedFieldsetFormSectionLayout),
-        (_("Zones"), ("zones_id"), ("zones"), 
+        (_("Zones"), ("zones_id"), ("zones"),
             HideableNestedFieldsetFormSectionLayout),
-        (_("Groups"), ("groups_id"), ("groups"), 
+        (_("Groups"), ("groups_id"), ("groups"),
             HideableNestedFieldsetFormSectionLayout),
-        (_("Certifications"), ("certifications_id"), ("certifications"), 
+        (_("Certifications"), ("certifications_id"), ("certifications"),
             HideableNestedFieldsetFormSectionLayout))
-    
+
     def filter_base_fields(self):
-        """ Filters base fields against user negative permissions, so if 
+        """ Filters base fields against user negative permissions, so if
             the user has nperm on the field we delete it from base_fields.
         """
         if self.nperm_names:
@@ -400,7 +400,7 @@ class RegistrarEditForm(EditForm):
                     self.base_fields['certifications']]
                 for field in formset_fields:
                     if not user.check_nperms(['%s.%s.%s' % (
-                            nperm_name, object_name, field.get_nperm()) for 
+                            nperm_name, object_name, field.get_nperm()) for
                             nperm_name in self.nperm_names], 'one'):
                         field.permitted = True
                     else:
@@ -431,15 +431,15 @@ class RegistrarEditForm(EditForm):
         self.fields["groups"].fire_actions(reg_id=reg_id, *args, **kwargs)
         self.fields["certifications"].fire_actions(
             reg_id=reg_id, *args, **kwargs)
-   
+
 
 class BankStatementPairingEditForm(EditForm):
     type = IntegerChoiceField(
         label=_('Type'), choices=[
             (PAYMENT_REGISTRAR, payment_map[PAYMENT_REGISTRAR]),
-            (PAYMENT_BANK, payment_map[PAYMENT_BANK]), 
-            (PAYMENT_ACCOUNTS, payment_map[PAYMENT_ACCOUNTS]), 
-            (PAYMENT_ACADEMIA, payment_map[PAYMENT_ACADEMIA]), 
+            (PAYMENT_BANK, payment_map[PAYMENT_BANK]),
+            (PAYMENT_ACCOUNTS, payment_map[PAYMENT_ACCOUNTS]),
+            (PAYMENT_ACADEMIA, payment_map[PAYMENT_ACADEMIA]),
             (PAYMENT_OTHER, payment_map[PAYMENT_OTHER])],
         onchange="disableRegistrarHandle();")#, onload="disableRegistrarHandle();")
     handle = CharField(
@@ -458,7 +458,7 @@ class RegistrarGroupsEditForm(EditForm):
         if not group_id:
             if ('name' in self.changed_data):
                 props = [('group_name', group_name)]
-                log_req = utils.create_log_request('CreateRegistrarGroup', properties = props)
+                log_req = utils.create_log_request('CreateRegistrarGroup', properties=props)
                 out_props = []
                 try:
                     gid = mgr.createGroup(group_name)
@@ -476,7 +476,7 @@ class RegistrarGroupsEditForm(EditForm):
             group_id = int(group_id)
             if 'DELETE' in self.changed_data:
                 props = [('group_name', group_name), ('group_id', group_id)]
-                log_req = utils.create_log_request('DeleteRegistrarGroup', properties = props)
+                log_req = utils.create_log_request('DeleteRegistrarGroup', properties=props)
                 try:
                     mgr.deleteGroup(group_id)
                     log_req.result = 'Success'
@@ -488,7 +488,7 @@ class RegistrarGroupsEditForm(EditForm):
                     log_req.close()
             elif 'name' in self.changed_data:
                 props = [('group_name', group_name), ('group_id', group_id)]
-                log_req = utils.create_log_request('UpdateRegistrarGroup', properties = props)
+                log_req = utils.create_log_request('UpdateRegistrarGroup', properties=props)
                 try:
                     mgr.updateGroup(group_id, group_name)
                     log_req.result = 'Success'
@@ -503,11 +503,11 @@ class RegistrarGroupsEditForm(EditForm):
 
 class GroupManagerEditForm(EditForm):
     groups = FormSetField(
-        label=_('Registrar groups'), form_class=RegistrarGroupsEditForm, 
+        label=_('Registrar groups'), form_class=RegistrarGroupsEditForm,
         can_delete=True)
 
 
 form_classes = [
-    AccessEditForm, RegistrarEditForm, BankStatementPairingEditForm, 
+    AccessEditForm, RegistrarEditForm, BankStatementPairingEditForm,
     ZoneEditForm, RegistrarGroupsEditForm, SingleGroupEditForm,
     GroupManagerEditForm, CertificationEditForm]

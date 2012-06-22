@@ -11,20 +11,20 @@ from fred_webadmin.corbalazy import CorbaLazyRequestIterStructToDict
 # Limit the number of filter results for actions (when pressing the actions
 # button) by only asking for the results for the last month.
 FILTER_ACTION_TIME_LIMIT_LAST_MONTH = {
-    u'Time/4': u'0', u'Time/1/1/0': u'0', u'Time/0/0': u'', u'Time/2': u'', 
-    u'Time/3': unicode(ccReg.LAST_MONTH._v), u'Time/0/1/1': u'0', 
+    u'Time/4': u'0', u'Time/1/1/0': u'0', u'Time/0/0': u'', u'Time/2': u'',
+    u'Time/3': unicode(ccReg.LAST_MONTH._v), u'Time/0/1/1': u'0',
     u'Time/0/1/0': u'0', u'Time/1/0': u'', u'Time/1/1/1': u'0'}
 
 # Limit the number of filter results for e-mails (when pressing the emails
 # button) by only asking for the results for the last month.
 FILTER_EMAIL_TIME_LIMIT_LAST_MONTH = {
-    u'CreateTime/4': u'0', u'CreateTime/1/1/0': u'0', u'CreateTime/0/0': u'', u'CreateTime/2': u'', 
-    u'CreateTime/3': unicode(ccReg.LAST_MONTH._v), u'CreateTime/0/1/1': u'0', 
+    u'CreateTime/4': u'0', u'CreateTime/1/1/0': u'0', u'CreateTime/0/0': u'', u'CreateTime/2': u'',
+    u'CreateTime/3': unicode(ccReg.LAST_MONTH._v), u'CreateTime/0/1/1': u'0',
     u'CreateTime/0/1/0': u'0', u'CreateTime/1/0': u'', u'CreateTime/1/1/1': u'0'}
 
 FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH = {
-    u'TimeBegin/4': u'0', u'TimeBegin/1/1/0': u'0', u'TimeBegin/0/0': u'', u'TimeBegin/2': u'', 
-    u'TimeBegin/3': unicode(ccReg.LAST_MONTH._v), u'TimeBegin/0/1/1': u'0', 
+    u'TimeBegin/4': u'0', u'TimeBegin/1/1/0': u'0', u'TimeBegin/0/0': u'', u'TimeBegin/2': u'',
+    u'TimeBegin/3': unicode(ccReg.LAST_MONTH._v), u'TimeBegin/0/1/1': u'0',
     u'TimeBegin/0/1/0': u'0', u'TimeBegin/1/0': u'', u'TimeBegin/1/1/1': u'0'}
 
 
@@ -56,10 +56,10 @@ class GroupDetail(Detail):
 
 class RegistrarDetail(Detail):
     editable = True
-    
+
     handle = CharDField(label=_('Handle')) # registrar identification
-    handle_url =  ObjectHandleURLDField(label=_('Handle'))
-    
+    handle_url = ObjectHandleURLDField(label=_('Handle'))
+
     name = CharDField(label=_('Name')) # registrar name
     organization = CharDField(label=_('Organization')) # organization name
     credit = CharDField(label=_('Total credit')) # credit
@@ -82,7 +82,7 @@ class RegistrarDetail(Detail):
     varSymb = CharDField(label=_('Var. Symbol'))
     vat = CharDField(label=_('DPH'))
     hidden = CharDField(label=_('System registrar')) # hidden in PIF
-    
+
     access = ListObjectDField(detail_class=AccessDetail)
     zones = ListObjectDField(detail_class=ZoneDetail)
 
@@ -94,10 +94,10 @@ class RegistrarDetail(Detail):
         (None, ('handle', 'organization', 'name', 'credit', 'unspec_credit')),
         (_('Address'), ('street1', 'street2', 'street3', 'city', 'postalcode', 'stateorprovince', 'country')),
         (_('Other_data'), ('telephone', 'fax', 'email', 'url', 'ico', 'dic', 'varSymb', 'vat', 'hidden')),
-        (_('Authentication'), ('access', ), DirectSectionLayout),
-        (_('Zones'), ('zones', ), DirectSectionLayout),
-        (_('Groups'), ('groups', ), DirectSectionLayout),
-        (_('Certifications'), ('certifications', ), DirectSectionLayout))
+        (_('Authentication'), ('access',), DirectSectionLayout),
+        (_('Zones'), ('zones',), DirectSectionLayout),
+        (_('Groups'), ('groups',), DirectSectionLayout),
+        (_('Certifications'), ('certifications',), DirectSectionLayout))
 
     def add_to_bottom(self):
         if self.data:
@@ -121,29 +121,29 @@ class RegistrarDetail(Detail):
                 [_('Invoice'), 'invoice', [
                     {'Registrar.Handle': self.data.get('handle')}]],
             ]]
-            
+
             if self.data.get('is_blocked'):
                 filters.append([[_('Unblock'),
                     "javascript:processAction('%s', '%s')" % \
                     (f_urls['registrar'] + 'unblock/?id=%s' % \
                         self.data.get('id'), 'unblock registrar')]])
-            
+
             self.add(FilterPanel(filters))
 
         super(RegistrarDetail, self).add_to_bottom()
 
 class ObjectDetail(Detail):
-    handle_url =  ObjectHandleURLDField(label=_('Handle'))
+    handle_url = ObjectHandleURLDField(label=_('Handle'))
     handleEPPId = ObjectHandleEPPIdDField(label=('Handle'))
     handle = CharDField(label=_('Handle'))
 
     registrar = NHDField(
         ObjectDField(
-            detail_class=RegistrarDetail, 
-            display_only=['handle_url', 'name'], 
+            detail_class=RegistrarDetail,
+            display_only=['handle_url', 'name'],
             layout_class=DirectSectionDetailLayout, sections='all_in_one'),
             HistoryObjectDField(detail_class=RegistrarDetail, display_only=['handle_url', 'name']))
-    
+
     createDate = CharDField(label=_('Create date'))
     updateDate = CharDField(label=_('Update date'))
     transferDate = CharDField(label=_('Transfer date'))
@@ -151,97 +151,97 @@ class ObjectDetail(Detail):
     createRegistrar = ObjectDField(label=_('Create_registrar'), detail_class=RegistrarDetail)
     updateRegistrar = ObjectDField(label=('Update_registrar'), detail_class=RegistrarDetail)
     authInfo = CharNHDField(label=_('AuthInfo'))
-    
+
     states = HistoryStateDField()
 
 class ContactDetail(ObjectDetail):
     organization = DiscloseCharNHDField(label=_('Organization'))
     name = DiscloseCharNHDField(label=_('Name'))
     ident = DiscloseCharNHDField(label=_('Identification data'))
-    
+
     vat = DiscloseCharNHDField(label=_('DPH'))
     telephone = DiscloseCharNHDField(label=_('Phone'))
     fax = DiscloseCharNHDField(label=_('Fax'))
     email = DiscloseCharNHDField(label=_('Email'))
     notifyEmail = DiscloseCharNHDField(label=_('Notify email'))
-    
+
     street1 = DiscloseCharNHDField(label=_('Street'), disclose_name='discloseAddress')
     street2 = DiscloseCharNHDField(label='', disclose_name='discloseAddress')
     street3 = DiscloseCharNHDField(label='', disclose_name='discloseAddress')
-    
+
     postalcode = DiscloseCharNHDField(label=_('ZIP'), disclose_name='discloseAddress')
     city = DiscloseCharNHDField(label=_('City'), disclose_name='discloseAddress')
     country = DiscloseCharNHDField(label=_('Country'), disclose_name='discloseAddress')
-    
+
     sections = (
         (None, ('handleEPPId', 'organization', 'name', 'ident', 'vat', 'vat', 'telephone', 'fax', 'email', 'notifyEmail', 'authInfo')),
-        (_('Selected registrar'), ('registrar', ), DirectSectionLayout),
+        (_('Selected registrar'), ('registrar',), DirectSectionLayout),
         (_('Dates'), (), DatesSectionLayout),
         (_('Address'), ('street1', 'street2', 'street3', 'postalcode', 'city', 'country')),
-        (_('States'), ('states', ), DirectSectionLayout)
+        (_('States'), ('states',), DirectSectionLayout)
     )
-    
+
     def add_to_bottom(self):
         if self.data:
             self.add(FilterPanel([
                 [
-                    [_('Domains_owner'), 'domain', 
+                    [_('Domains_owner'), 'domain',
                         [{'Registrant.Handle': self.data.get('handle')}]],
-                    [_('Domains_admin'), 'domain', 
+                    [_('Domains_admin'), 'domain',
                         [{'AdminContact.Handle': self.data.get('handle')}]],
-                    [_('Domains_all'), 'domain', 
-                        [{'Registrant.Handle': self.data.get('handle')}, 
-                            {'AdminContact.Handle': self.data.get('handle')}, 
+                    [_('Domains_all'), 'domain',
+                        [{'Registrant.Handle': self.data.get('handle')},
+                            {'AdminContact.Handle': self.data.get('handle')},
                             {'TempContact.Handle': self.data.get('handle')}]],
-                    [_('NSSets'), 'nsset', 
+                    [_('NSSets'), 'nsset',
                         [{'TechContact.Handle': self.data.get('handle')}]],
-                    [_('KeySets'), 'keyset', 
+                    [_('KeySets'), 'keyset',
                         [{'TechContact.Handle': self.data.get('handle')}]],
-                    [_('Emails'), 'mail', 
+                    [_('Emails'), 'mail',
                         [{'Message': self.data.get('handle'),
                         'CreateTime': FILTER_EMAIL_TIME_LIMIT_LAST_MONTH}]]\
                 ],
                 [
-                    [_('Public Requests'), 'publicrequest', 
+                    [_('Public Requests'), 'publicrequest',
                         [{'Object.Handle': self.data.get('handle')}]],
-                    [_('Messages'), 'message', 
+                    [_('Messages'), 'message',
                         [{'MessageContact.Handle': self.data.get('handle')}]]
                 ],
                 [
-                    [_('UNIX Whois Actions'), 'logger', 
+                    [_('UNIX Whois Actions'), 'logger',
                         [{'ServiceType': 0, 'RequestPropertyValue.Name': 'handle',
-                            'IsMonitoring': [True,True],
+                            'IsMonitoring': [True, True],
                             'RequestPropertyValue.Value': self.data.get('handle'),
                             'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
-                    [_('Web Whois Actions'), 'logger', 
+                    [_('Web Whois Actions'), 'logger',
                         [{'ServiceType': 1, 'RequestPropertyValue.Name': 'handle',
-                            'IsMonitoring': [True,True],
+                            'IsMonitoring': [True, True],
                             'RequestPropertyValue.Value': self.data.get('handle'),
                             'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
-                    [_('Public Request Actions'), 'logger', 
+                    [_('Public Request Actions'), 'logger',
                         [{'ServiceType': 2, 'RequestPropertyValue.Name': 'handle',
-                            'IsMonitoring': [True,True],
+                            'IsMonitoring': [True, True],
                             'RequestPropertyValue.Value': self.data.get('handle'),
                             'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
-                    [_('EPP Actions'), 'logger', 
+                    [_('EPP Actions'), 'logger',
                         [{'ServiceType': 3, 'RequestPropertyValue.Name': 'handle',
-                            'IsMonitoring': [True,True],
+                            'IsMonitoring': [True, True],
                             'RequestPropertyValue.Value': self.data.get('handle'),
                             'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
-                    [_('Webadmin Actions'), 'logger', 
+                    [_('Webadmin Actions'), 'logger',
                         [{'ServiceType': 4, 'RequestPropertyValue.Name': 'object_id',
-                            'IsMonitoring': [True,True],
+                            'IsMonitoring': [True, True],
                             'RequestPropertyValue.Value': str(self.data.get('id')),
                             'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
-                    [_('Intranet Actions'), 'logger', 
+                    [_('Intranet Actions'), 'logger',
                         [{'ServiceType': 5, 'RequestPropertyValue.Name': 'handle',
-                            'IsMonitoring': [True,True],
+                            'IsMonitoring': [True, True],
                             'RequestPropertyValue.Value': self.data.get('handle'),
                             'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]]
                 ]
             ]))
         super(ContactDetail, self).add_to_bottom()
-    
+
 class HostDetail(Detail):
     fqdn = CharDField(label=_('fqdn'))
     inet = ListCharDField(label=_('IP addresses'))
@@ -249,12 +249,12 @@ class HostDetail(Detail):
 class NSSetDetail(ObjectDetail):
     admins = NHDField(
         ListObjectDField(
-            detail_class=ContactDetail, 
-            display_only=['handle_url', 'organization', 'name', 'email']), 
+            detail_class=ContactDetail,
+            display_only=['handle_url', 'organization', 'name', 'email']),
         HistoryListObjectDField(
-            detail_class=ContactDetail, 
+            detail_class=ContactDetail,
             display_only=['handle_url', 'organization', 'name', 'email']))
-    
+
     hosts = NHDField(
         ListObjectDField(
             detail_class=HostDetail, display_only=['fqdn', 'inet']),
@@ -265,52 +265,52 @@ class NSSetDetail(ObjectDetail):
 
     sections = (
         (None, ('handleEPPId', 'authInfo', 'reportLevel')),
-        (_('Selected registrar'), ('registrar', ), DirectSectionLayout),
-        (_('Tech. contacts'), ('admins', ), DirectSectionLayout),
-        (_('Hosts'), ('hosts', ), DirectSectionLayout),
-        (_('Dates'), ('createRegistrar', 'updateRegistrar'), 
+        (_('Selected registrar'), ('registrar',), DirectSectionLayout),
+        (_('Tech. contacts'), ('admins',), DirectSectionLayout),
+        (_('Hosts'), ('hosts',), DirectSectionLayout),
+        (_('Dates'), ('createRegistrar', 'updateRegistrar'),
             DatesSectionLayout),
-        (_('States'), ('states', ), DirectSectionLayout)
+        (_('States'), ('states',), DirectSectionLayout)
     )
-        
+
     def add_to_bottom(self):
         if self.data:
             self.add(FilterPanel([
                 [
-                    [_('Domains'), 'domain', 
+                    [_('Domains'), 'domain',
                         [{'NSSet.Handle': self.data.get('handle')}]],
-                    [_('Emails'), 'mail', 
+                    [_('Emails'), 'mail',
                         [{'Message': self.data.get('handle'),
                         'CreateTime': FILTER_EMAIL_TIME_LIMIT_LAST_MONTH}]]],
                 [
-                    [_('UNIX Whois Actions'), 'logger', 
+                    [_('UNIX Whois Actions'), 'logger',
                         [{'ServiceType': 0, 'RequestPropertyValue.Name': 'handle',
-                            'IsMonitoring': [True,True],
+                            'IsMonitoring': [True, True],
                             'RequestPropertyValue.Value': self.data.get('handle'),
                             'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
-                    [_('Web Whois Actions'), 'logger', 
+                    [_('Web Whois Actions'), 'logger',
                         [{'ServiceType': 1, 'RequestPropertyValue.Name': 'handle',
-                            'IsMonitoring': [True,True],
+                            'IsMonitoring': [True, True],
                             'RequestPropertyValue.Value': self.data.get('handle'),
                             'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
-                    [_('Public Request Actions'), 'logger', 
+                    [_('Public Request Actions'), 'logger',
                         [{'ServiceType': 2, 'RequestPropertyValue.Name': 'handle',
-                            'IsMonitoring': [True,True],
+                            'IsMonitoring': [True, True],
                             'RequestPropertyValue.Value': self.data.get('handle'),
                             'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
-                    [_('EPP Actions'), 'logger', 
+                    [_('EPP Actions'), 'logger',
                         [{'ServiceType': 3, 'RequestPropertyValue.Name': 'handle',
-                            'IsMonitoring': [True,True],
+                            'IsMonitoring': [True, True],
                             'RequestPropertyValue.Value': self.data.get('handle'),
                             'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
-                    [_('Webadmin Actions'), 'logger', 
+                    [_('Webadmin Actions'), 'logger',
                         [{'ServiceType': 4, 'RequestPropertyValue.Name': 'object_id',
-                            'IsMonitoring': [True,True],
+                            'IsMonitoring': [True, True],
                             'RequestPropertyValue.Value': str(self.data.get('id')),
                             'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
-                    [_('Intranet Actions'), 'logger', 
+                    [_('Intranet Actions'), 'logger',
                         [{'ServiceType': 5, 'RequestPropertyValue.Name': 'handle',
-                            'IsMonitoring': [True,True],
+                            'IsMonitoring': [True, True],
                             'RequestPropertyValue.Value': self.data.get('handle'),
                             'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]]]
             ]))
@@ -328,81 +328,81 @@ class DNSKeyDetail(Detail):
     protocol = CharDField(label=_('Protocol'))
     alg = CharDField(label=_('Algorithm'))
     key = LongCharDField(label=_('Public key'))
-    
+
 class KeySetDetail(ObjectDetail):
     admins = NHDField(
         ListObjectDField(
-            detail_class=ContactDetail, 
+            detail_class=ContactDetail,
             display_only=['handle_url', 'organization', 'name', 'email']),
         HistoryListObjectDField(
-            detail_class=ContactDetail, 
+            detail_class=ContactDetail,
             display_only=['handle_url', 'organization', 'name', 'email']))
-    
+
     dsrecords = NHDField(
         ListObjectDField(
-            detail_class=DSRecordDetail, 
-            display_only=['keyTag', 'alg', 'digestType', 'digest', 
+            detail_class=DSRecordDetail,
+            display_only=['keyTag', 'alg', 'digestType', 'digest',
                           'maxSigLife']),
         HistoryListObjectDField(
-            detail_class=DSRecordDetail, 
-            display_only=['keyTag', 'alg', 'digestType', 'digest', 
+            detail_class=DSRecordDetail,
+            display_only=['keyTag', 'alg', 'digestType', 'digest',
                           'maxSigLife']))
 
     dnskeys = NHDField(
         ListObjectDField(
-            detail_class=DNSKeyDetail, 
+            detail_class=DNSKeyDetail,
             display_only=['flags', 'protocol', 'alg', 'key']),
         HistoryListObjectDField(
-            detail_class=DNSKeyDetail, 
+            detail_class=DNSKeyDetail,
             display_only=['flags', 'protocol', 'alg', 'key']))
-    
+
     sections = (
         (None, ('handleEPPId', 'authInfo')),
-        (_('Selected registrar'), ('registrar', ), DirectSectionLayout),
-        (_('Tech. contacts'), ('admins', ), DirectSectionLayout),
-        (_('DS records'), ('dsrecords', ), DirectSectionLayout),
-        (_('DNSKeys'), ('dnskeys', ), DirectSectionLayout),
+        (_('Selected registrar'), ('registrar',), DirectSectionLayout),
+        (_('Tech. contacts'), ('admins',), DirectSectionLayout),
+        (_('DS records'), ('dsrecords',), DirectSectionLayout),
+        (_('DNSKeys'), ('dnskeys',), DirectSectionLayout),
         (_('Dates'), ('createRegistrar', 'updateRegistrar'), DatesSectionLayout),
-        (_('States'), ('states', ), DirectSectionLayout)
+        (_('States'), ('states',), DirectSectionLayout)
     )
-    
+
     def add_to_bottom(self):
         if self.data:
             self.add(FilterPanel([[
-                [_('Domains'), 'domain', 
+                [_('Domains'), 'domain',
                     [{'KeySet.Handle': self.data.get('handle')}]],
-                [_('Emails'), 'mail', 
+                [_('Emails'), 'mail',
                     [{'Message': self.data.get('handle'),
-                    'CreateTime': FILTER_EMAIL_TIME_LIMIT_LAST_MONTH}]],],
+                    'CreateTime': FILTER_EMAIL_TIME_LIMIT_LAST_MONTH}]], ],
                 [
-                    [_('UNIX Whois Actions'), 'logger', 
+                    [_('UNIX Whois Actions'), 'logger',
                         [{'ServiceType': 0, 'RequestPropertyValue.Name': 'handle',
-                            'IsMonitoring': [True,True],
+                            'IsMonitoring': [True, True],
                             'RequestPropertyValue.Value': self.data.get('handle'),
                             'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
-                    [_('Web Whois Actions'), 'logger', 
+                    [_('Web Whois Actions'), 'logger',
                         [{'ServiceType': 1, 'RequestPropertyValue.Name': 'handle',
-                            'IsMonitoring': [True,True],
+                            'IsMonitoring': [True, True],
                             'RequestPropertyValue.Value': self.data.get('handle'),
                             'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
-                    [_('Public Request Actions'), 'logger', 
+                    [_('Public Request Actions'), 'logger',
                         [{'ServiceType': 2, 'RequestPropertyValue.Name': 'handle',
-                            'IsMonitoring': [True,True],
+                            'IsMonitoring': [True, True],
                             'RequestPropertyValue.Value': self.data.get('handle'),
                             'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
-                    [_('EPP Actions'), 'logger', 
+                    [_('EPP Actions'), 'logger',
                         [{'ServiceType': 3, 'RequestPropertyValue.Name': 'handle',
-                            'IsMonitoring': [True,True],
+                            'IsMonitoring': [True, True],
                             'RequestPropertyValue.Value': self.data.get('handle'),
                             'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
-                    [_('Webadmin Actions'), 'logger', 
+                    [_('Webadmin Actions'), 'logger',
                         [{'ServiceType': 4, 'RequestPropertyValue.Name': 'object_id',
-                            'IsMonitoring': [True,True],
+                            'IsMonitoring': [True, True],
                             'RequestPropertyValue.Value': str(self.data.get('id')),
                             'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
-                    [_('Intranet Actions'), 'logger', 
+                    [_('Intranet Actions'), 'logger',
                         [{'ServiceType': 5, 'RequestPropertyValue.Name': 'handle',
-                            'IsMonitoring': [True,True],
+                            'IsMonitoring': [True, True],
                             'RequestPropertyValue.Value': self.data.get('handle'),
                             'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]]]
             ]))
@@ -416,103 +416,103 @@ class DomainDetail(ObjectDetail):
 
     registrant = NHDField(
         ObjectDField(
-            detail_class=ContactDetail, 
-            display_only=['handle_url', 'organization', 'name'], 
+            detail_class=ContactDetail,
+            display_only=['handle_url', 'organization', 'name'],
             layout_class=DirectSectionDetailLayout, sections='all_in_one'),
         HistoryObjectDField(
-            detail_class=ContactDetail, 
+            detail_class=ContactDetail,
             display_only=['handle_url', 'organization', 'name']))
 
     nsset = NHDField(
         ObjectDField(
-            detail_class=NSSetDetail, 
-            display_only=['handle_url', 'registrar', 'admins', 'hosts'], 
+            detail_class=NSSetDetail,
+            display_only=['handle_url', 'registrar', 'admins', 'hosts'],
             layout_class=DomainsNSSetDetailLayout, sections='all_in_one'),
         HistoryObjectDField(
             detail_class=NSSetDetail, display_only=['handle_url']))
 
     keyset = NHDField(
         ObjectDField(
-            detail_class=KeySetDetail, 
-            display_only=['handle_url', 'registrar', 'admins', 'dsrecords', 
-                          'dnskeys'], 
+            detail_class=KeySetDetail,
+            display_only=['handle_url', 'registrar', 'admins', 'dsrecords',
+                          'dnskeys'],
             layout_class=DomainsKeySetDetailLayout, sections='all_in_one'),
         HistoryObjectDField(
             detail_class=KeySetDetail, display_only=['handle_url']))
-    
+
     admins = NHDField(
         ListObjectDField(
-            detail_class=ContactDetail, 
+            detail_class=ContactDetail,
             display_only=['handle_url', 'organization', 'name', 'email']),
         HistoryListObjectDField(
-                detail_class=ContactDetail, 
+                detail_class=ContactDetail,
                 display_only=['handle_url', 'organization', 'name', 'email']))
 
     temps = NHDField(
         ListObjectDField(
-            detail_class=ContactDetail, 
+            detail_class=ContactDetail,
             display_only=['handle_url', 'organization', 'name', 'email']),
         HistoryListObjectDField(
-                detail_class=ContactDetail, 
+                detail_class=ContactDetail,
                 display_only=['handle_url', 'organization', 'name', 'email']))
 
     sections = (
         (None, ('handleEPPId', 'authInfo', 'publish')),
         (_('Dates'), ('createRegistrar', 'updateRegistrar'), DatesSectionLayout),
-        (_('Owner'), ('registrant', ), DirectSectionLayout),
-        (_('Selected registrar'), ('registrar', ), DirectSectionLayout),
-        (_('Admin contacts'), ('admins', ), DirectSectionLayout),
-        (_('Temporary contacts'), ('temps', ), DirectSectionLayout),
-        (_('NSSet'), ('nsset', ), DirectSectionLayout),
-        (_('KeySet'), ('keyset', ), DirectSectionLayout),
-        (_('States'), ('states', ), DirectSectionLayout),
+        (_('Owner'), ('registrant',), DirectSectionLayout),
+        (_('Selected registrar'), ('registrar',), DirectSectionLayout),
+        (_('Admin contacts'), ('admins',), DirectSectionLayout),
+        (_('Temporary contacts'), ('temps',), DirectSectionLayout),
+        (_('NSSet'), ('nsset',), DirectSectionLayout),
+        (_('KeySet'), ('keyset',), DirectSectionLayout),
+        (_('States'), ('states',), DirectSectionLayout),
     )
-    
+
     def add_to_bottom(self):
         if self.data:
             self.media_files.append('/js/publicrequests.js')
             self.add(FilterPanel([
-                [[_('Emails'), 'mail', 
-                    [{'Message': self.data.get('handle'), 
+                [[_('Emails'), 'mail',
+                    [{'Message': self.data.get('handle'),
                     'CreateTime': FILTER_EMAIL_TIME_LIMIT_LAST_MONTH}]],
                 [_('dig'), f_urls['domain'] + 'dig/?handle=' + \
-                    self.data.get('handle')], 
-                [_('Set InZone Status'), "javascript:setInZoneStatus('%s')" % 
+                    self.data.get('handle')],
+                [_('Set InZone Status'), "javascript:setInZoneStatus('%s')" %
                     (f_urls['domain'] + 'setinzonestatus/?id=%d' % \
-                        self.data.get('id'))]],          
-                [[_('UNIX Whois Actions'), 'logger', 
+                        self.data.get('id'))]],
+                [[_('UNIX Whois Actions'), 'logger',
                     [{'ServiceType': 0, 'RequestPropertyValue.Name': 'handle',
-                            'IsMonitoring': [True,True],
+                            'IsMonitoring': [True, True],
                         'RequestPropertyValue.Value': self.data.get('handle'),
                         'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
-                [_('Web Whois Actions'), 'logger', 
+                [_('Web Whois Actions'), 'logger',
                     [{'ServiceType': 1, 'RequestPropertyValue.Name': 'handle',
-                            'IsMonitoring': [True,True],
+                            'IsMonitoring': [True, True],
                         'RequestPropertyValue.Value': self.data.get('handle'),
                         'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
-                [_('Public Request Actions'), 'logger', 
+                [_('Public Request Actions'), 'logger',
                     [{'ServiceType': 2, 'RequestPropertyValue.Name': 'handle',
-                            'IsMonitoring': [True,True],
+                            'IsMonitoring': [True, True],
                         'RequestPropertyValue.Value': self.data.get('handle'),
                         'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
-                [_('EPP Actions'), 'logger', 
+                [_('EPP Actions'), 'logger',
                     [{'ServiceType': 3, 'RequestPropertyValue.Name': 'handle',
-                            'IsMonitoring': [True,True],
+                            'IsMonitoring': [True, True],
                         'RequestPropertyValue.Value': self.data.get('handle'),
                         'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
-                [_('Webadmin Actions'), 'logger', 
+                [_('Webadmin Actions'), 'logger',
                     [{'ServiceType': 4, 'RequestPropertyValue.Name': 'object_id',
-                            'IsMonitoring': [True,True],
+                            'IsMonitoring': [True, True],
                         'RequestPropertyValue.Value': str(self.data.get('id')),
                         'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
-                [_('Intranet Actions'), 'logger', 
+                [_('Intranet Actions'), 'logger',
                     [{'ServiceType': 5, 'RequestPropertyValue.Name': 'handle',
-                            'IsMonitoring': [True,True],
+                            'IsMonitoring': [True, True],
                         'RequestPropertyValue.Value': self.data.get('handle'),
                         'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]]]
             ]))
         super(DomainDetail, self).add_to_bottom()
-        
+
 
 class ActionDetail(Detail):
     time = CharDField(label=_('Received_date'))
@@ -526,12 +526,12 @@ class ActionDetail(Detail):
     xml = XMLDField(label=_('XML in'))
 
     sections = (
-        (None, ('time', 'registrar', 'objectHandle', 'type', 'result', 
+        (None, ('time', 'registrar', 'objectHandle', 'type', 'result',
                 'clTRID', 'svTRID')),
-        (_('XML In'), ('xml', ), DirectSectionLayout),
-        (_('XML Out'), ('xml_out', ), DirectSectionLayout),
+        (_('XML In'), ('xml',), DirectSectionLayout),
+        (_('XML Out'), ('xml_out',), DirectSectionLayout),
     )
-    
+
 class PublicRequestDetail(Detail):
     id = CharDField(label=_('ID'))
     objects = ListObjectHandleDField(label=_('Objects'))
@@ -542,27 +542,27 @@ class PublicRequestDetail(Detail):
     answerEmail = ObjectHandleDField(label=_('Answer email'))
     createTime = CharDField(label=_('Create time'))
     resolveTime = CharDField(label=_('Close time'))
-    
+
     def add_to_bottom(self):
         if self.data and \
             self.data.get('status') == Registry.PublicRequest.PRS_NEW:
                 self.media_files.append('/js/publicrequests.js')
                 self.add(FilterPanel([[
-                    [_('Accept_and_send'), 
+                    [_('Accept_and_send'),
                         "javascript:processPublicRequest('%s')" % \
                         (f_urls['publicrequest'] + 'resolve/?id=%s' % \
                             self.data.get('id'))],
-                    [_('Invalidate_and_close'), 
+                    [_('Invalidate_and_close'),
                         "javascript:closePublicRequest('%s')" % \
                             (f_urls['publicrequest'] + 'close/?id=%s' % \
                                 self.data.get('id'))],
                 ]]))
         super(PublicRequestDetail, self).add_to_bottom()
-    
+
 class MailDetail(Detail):
     objects = ListCharDField(label=_('Objects'))
     type = ConvertDField(
-        label=_('Type'), inner_field=CharDField(), 
+        label=_('Type'), inner_field=CharDField(),
         convert_table=CorbaLazyRequestIterStructToDict(
             'Mailer', None, 'getMailTypes', ['id', 'name']))
     status = CharDField(label=_('Status'))
@@ -575,7 +575,7 @@ class PaymentDetail(Detail):
     number = CharDField(label=_('Number'))
     price = CharDField(label=_('Price'))
     balance = CharDField(label=_('Balance'))
-    
+
 
 class PaymentActionDetail(Detail):
     paidObject = ObjectHandleDField(label=_('Object'))
@@ -606,7 +606,7 @@ class LoggerDetail(Detail):
         return False
         """
         critical_field = self.fields['service_type']
-        nperms = [nperms for nperms in self.get_nperms() if 
+        nperms = [nperms for nperms in self.get_nperms() if
             nperms.split('.')[-1] == critical_field.get_nperm()]
         return True"""
 
@@ -623,7 +623,7 @@ class BankStatementDetail(Detail):
     accountEvid = CharDField(label=_('Account Evid.'))
     accountMemo = CharDField(label=_('Account Memo'))
     accountName = CharDField(label=_('Account Name'))
-    invoiceId =  ObjectHandleURLDField(
+    invoiceId = ObjectHandleURLDField(
         label=_('Invoice Id'), object_type_name="invoice", id_name="invoiceId",
         handle_name="invoiceId")
     crTime = CharDField(label=_('crTime'))
@@ -645,21 +645,21 @@ class LetterDetail(Detail):
     postal_address_postalcode = CharDField(label=_('Postal Code'))
     postal_address_country = CharDField(label=_('Country'))
     batch_id = CharDField(label=_('Post service batch id'))
-    
+
 class MessageDetail(Detail):
     createDate = CharDField(label=_('Create Date'))
     modifyDate = CharDField(label=_('Modify Date'))
     attempt = CharDField(label=_('Attempts'))
     status_id = ConvertDField(
-        label=_('Status'), inner_field=CharDField(), 
+        label=_('Status'), inner_field=CharDField(),
         convert_table=CorbaLazyRequestIterStructToDict(
             'Messages', None, 'getStatusList', ['id', 'name']))
     comm_type_id = ConvertDField(
-        label=_('Communication type'), inner_field=CharDField(), 
+        label=_('Communication type'), inner_field=CharDField(),
         convert_table=CorbaLazyRequestIterStructToDict(
             'Messages', None, 'getCommTypeList', ['id', 'name']))
     message_type_id = ConvertDField(
-        label=_('Message type'), inner_field=CharDField(), 
+        label=_('Message type'), inner_field=CharDField(),
         convert_table=CorbaLazyRequestIterStructToDict(
             'Messages', None, 'getMessageTypeList', ['id', 'name']))
 #    sms = ObjectDField(detail_class=SMSDetail)
@@ -682,20 +682,20 @@ class InvoiceDetail(Detail):
     fileXML = ObjectHandleDField(label=_('PDF'))
     payments = ListObjectDField(detail_class=PaymentDetail)
     paymentActions = ListObjectDField(detail_class=PaymentActionDetail)
-    
-    sections = ((None, ('number', 'registrar', 'credit', 'createTime', 'taxDate', 'fromDate', 'toDate', 
+
+    sections = ((None, ('number', 'registrar', 'credit', 'createTime', 'taxDate', 'fromDate', 'toDate',
                        'type', 'price', 'varSymbol', 'filePDF', 'fileXML')),
-                (_('Payments'), ('payments', ), DirectSectionLayout),
-                (_('Payment actions'), ('paymentActions', ), DirectSectionLayout),
+                (_('Payments'), ('payments',), DirectSectionLayout),
+                (_('Payment actions'), ('paymentActions',), DirectSectionLayout),
                )
-    
-    
+
+
 detail_classes = [AccessDetail, RegistrarDetail,
-                  ObjectDetail, 
-                  ContactDetail, 
-                  HostDetail, NSSetDetail, 
-                  DSRecordDetail, DNSKeyDetail, KeySetDetail, 
-                  DomainDetail, 
-                  ActionDetail, PublicRequestDetail, MailDetail, 
+                  ObjectDetail,
+                  ContactDetail,
+                  HostDetail, NSSetDetail,
+                  DSRecordDetail, DNSKeyDetail, KeySetDetail,
+                  DomainDetail,
+                  ActionDetail, PublicRequestDetail, MailDetail,
                   PaymentDetail, PaymentActionDetail, InvoiceDetail,
                   BankStatementDetail, LoggerDetail, ZoneDetail]

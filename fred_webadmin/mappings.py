@@ -36,7 +36,7 @@ Registry = sys.modules['Registry']
 
 def corbaname_to_classname(item):
     """ Return classname (class name in lowercase) for a given ccReg.FT_FILTER*
-        type. 
+        type.
     """
     rules = {
         ccReg.FT_STATEMENTITEM._v : 'bankstatement'
@@ -48,44 +48,44 @@ def reverse_dict(dictionary):
 
 filter_type_items = [dict(
     [
-        ("classname", corbaname_to_classname(item)), 
+        ("classname", corbaname_to_classname(item)),
         ("item", item)
     ]) for item in ccReg.FilterType._items]
 
 #dict {classname: enum_item) where enum_item is item in FilterType (from corba)
-# and url is base url of that object  
-f_name_enum = dict([(item['classname'], item['item']) for 
+# and url is base url of that object
+f_name_enum = dict([(item['classname'], item['item']) for
     item in filter_type_items])
 
 # dict {enum_item: classname}
 f_enum_name = reverse_dict(f_name_enum)
 
-#dict {classname: id_item) where id_item is item in FilterType (from corba) and 
-# url is base url of that object  
-f_name_id = dict([(item['classname'], item['item']._v) for 
+#dict {classname: id_item) where id_item is item in FilterType (from corba) and
+# url is base url of that object
+f_name_id = dict([(item['classname'], item['item']._v) for
     item in filter_type_items])
 
 # dict {id_item: classname}
 f_id_name = reverse_dict(f_name_id)
 
-# dict {enum_item: url} 
+# dict {enum_item: url}
 f_urls = dict([(name, '/%s/' % (name)) for name in f_name_enum.keys()])
 f_urls['group'] = "/group/"
 
 # dict {classname: CT_*_ID}, where * is uppercase classname (used in itertable
 # headers for 'Id' column)
-f_header_ids = dict([(name, 'CT_%s_ID' % (name.upper())) for 
+f_header_ids = dict([(name, 'CT_%s_ID' % (name.upper())) for
     name in f_name_enum.keys()])
 
-# dict {OT_*, classname}, where OT_* is from _Admin.idl ObjectType 
-f_objectType_name = dict([(item, item._n[3:].lower()) for 
+# dict {OT_*, classname}, where OT_* is from _Admin.idl ObjectType
+f_objectType_name = dict([(item, item._n[3:].lower()) for
     item in Registry.PublicRequest.ObjectType._items])
 
 def generate_dict(suffix):
-    """ Returns a dict with (classname -> Classname + suffix) pairs. Note the 
-        capital letter. 
+    """ Returns a dict with (classname -> Classname + suffix) pairs. Note the
+        capital letter.
 
-        Anyway, this is really just an utility function to prevent 
+        Anyway, this is really just an utility function to prevent
         boilerplate code.
 
         doctests:
@@ -120,7 +120,7 @@ def generate_dict(suffix):
     result = dict(
         [
             (
-                item['classname'], 
+                item['classname'],
                 rules.get(
                     item['classname'], item['classname'].capitalize()) + suffix)
             for item in filter_type_items
@@ -133,10 +133,10 @@ f_name_detailname = generate_dict('Detail')
 
 f_name_actionname = generate_dict('')
 
-f_name_req_object_type = dict([(item['classname'], item['classname']) for 
+f_name_req_object_type = dict([(item['classname'], item['classname']) for
     item in filter_type_items])
 f_name_req_object_type['logger'] = 'request'
-for key in ('filter', 'obj', 'session', 'statementhead', 'zone'): # don't log references for these types:  
+for key in ('filter', 'obj', 'session', 'statementhead', 'zone'): # don't log references for these types:
     f_name_req_object_type.pop(key)
 f_req_object_type_name = reverse_dict(f_name_req_object_type)
 
@@ -156,7 +156,7 @@ f_name_actionfiltername = dict([(key, value + 'Filter') for key, value in
 f_name_actiondetailname = dict([(key, value + 'Detail') for key, value in
                            f_name_actionname.items()])
 
-f_name_default_sort = { 
+f_name_default_sort = {
     'filter': [['Type', 'ASC']],
     'registrar': [['Handle', 'ASC']],
     'obj': [],
@@ -166,8 +166,8 @@ f_name_default_sort = {
     'domain': [['FQDN', 'ASC'], ['Create date', 'DESC']],
     'invoice': [['Create Date', 'DESC']],
     'publicrequest': [['Create Time', 'DESC']],
-    'mail': [['Create Time', 'DESC']],    
-    'file': [['Create Time', 'DESC']],    
+    'mail': [['Create Time', 'DESC']],
+    'file': [['Create Time', 'DESC']],
 }
 
 if __name__ == '__main__':
@@ -182,9 +182,7 @@ if __name__ == '__main__':
         ('f_name_formname', f_name_editformname),
         ('f_name_req_object_type', f_name_req_object_type),
     )
-                        
+
     for printed_mapping in printed_mappings:
         print('\n%s:' % printed_mapping[0])
         pprint(printed_mapping[1])
-    
-    

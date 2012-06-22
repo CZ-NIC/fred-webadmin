@@ -29,7 +29,7 @@ loggers = {}
 def json_response(data):
     ''' Sets cherrypy contentype of response to text/javascript and return data as JSON '''
     cherrypy.response.headers['Content-Type'] = 'text/javascript'
-    return simplejson.dumps(data) 
+    return simplejson.dumps(data)
 
 
 def update_meta (self, other):
@@ -69,7 +69,7 @@ class LateBindingProperty(property):
         return property(fget, fset, fdel, doc)
 
 
-def get_current_url(request = None):
+def get_current_url(request=None):
     ''' Returns requested url of request. '''
     if request is None:
         request = cherrypy.request
@@ -79,7 +79,7 @@ def get_current_url(request = None):
         addr += '?' + request.query_string
     return addr
 
-def append_getpar_to_url(url=None, add_par_dict = None, del_par_list = None):
+def append_getpar_to_url(url=None, add_par_dict=None, del_par_list=None):
     ''' Appends HTTP GET parameters to url from add_par_dict
         and deletes HTTP GET parameters of name given in del_par_list.
         If url is not specified, current url is taken
@@ -90,17 +90,17 @@ def append_getpar_to_url(url=None, add_par_dict = None, del_par_list = None):
     else:
         get_pars = {}
         raise NotImplementedError('Appending parametr to custom url was not yet added (need to parse url)')
-    
+
     if add_par_dict:
         get_pars.update(add_par_dict)
-        
+
     if del_par_list:
         for par_name in del_par_list:
             if get_pars.has_key(par_name):
                 get_pars.pop(par_name)
-    
+
     url += '?' + '&'.join(['%s=%s' % par for par in get_pars.items()])
-    
+
     return url
 
 
@@ -127,7 +127,7 @@ def _create_logger(corba_server_spec):
         logging.debug('Created Logger for server %s', config.iors[corba_server_spec])
         ior = config.iors[corba_server_spec][1]
         nscontext = config.iors[corba_server_spec][2]
-        
+
         corba = Corba()
         corba.connect(ior, nscontext)
         try:
@@ -154,9 +154,9 @@ def get_logger():
         loggers[current_corba_server] = logger = _create_logger(current_corba_server)
     return logger
 
-def create_log_request(request_type, properties = None, references = None):
+def create_log_request(request_type, properties=None, references=None):
     log_req = get_logger().create_request(
-        cherrypy.request.headers['Remote-Addr'], 'WebAdmin', request_type, 
+        cherrypy.request.headers['Remote-Addr'], 'WebAdmin', request_type,
         properties, references, cherrypy.session.get('logger_session_id', 0)
     )
     return log_req
@@ -177,7 +177,7 @@ def get_detail(obj_type_name, obj_id, use_cache=True):
         f_name_enum[obj_type_name], recoder.u2c(obj_id))
     corba_obj = from_any(c_any, True)
     result = recoder.c2u(corba_obj)
-    
+
     details_cache[(obj_type_name, obj_id)] = result
     return result
 
@@ -186,7 +186,7 @@ def get_detail_from_oid(oid):
     if oid:
         #return get_detail(f_objectType_name[oid.type], oid.id)
         return get_detail(f_enum_name[oid.type], oid.id)
-    
+
 
 def get_property_list(fname=None):
     if fname is None:

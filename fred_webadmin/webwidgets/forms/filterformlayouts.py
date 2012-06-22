@@ -10,7 +10,7 @@ import forms
 import filterforms
 from adiffields import CompoundFilterField
 from fred_webadmin.webwidgets.gpyweb.gpyweb import (WebWidget, noesc, tagid,
-    attr, notag, div, span, table, tbody, tr, th, td, input, label, select, 
+    attr, notag, div, span, table, tbody, tr, th, td, input, label, select,
     option, ul, li, script, a, img, strong)
 from fields import ChoiceField, BooleanField, HiddenField
 from fred_webadmin.webwidgets.utils import SortedDict
@@ -26,13 +26,13 @@ class UnionFilterFormLayout(TableFormLayout):
         super(UnionFilterFormLayout, self).__init__(form, *content, **kwd)
         self.cssc = u'unionfiltertable'
         self.id = u'unionfiltertable'
-        self.media_files=['/css/filtertable.css', 
+        self.media_files = ['/css/filtertable.css',
                           '/css/ext/css/ext-all.css',
-                          '/js/logging.js', 
-                          '/js/ext/ext-base.js', 
+                          '/js/logging.js',
+                          '/js/ext/ext-base.js',
                           '/js/ext/ext-all.js'
                           ]
-        
+
     def create_layout(self):
         self.add(tbody(tagid('tbody')))
         form_count = len(self.form.forms)
@@ -43,50 +43,50 @@ class UnionFilterFormLayout(TableFormLayout):
         self.tbody.add(self.get_submit_row())
         self.tbody.add(script(attr(type='text/javascript'), noesc(self.union_form_js())))
         debug('After create unionlayout')
-            
+
     def union_form_js(self):
         output = u'function buildOrRow() {\n'
         output += u"var row = '%s';\n" % escape_js_literal(unicode(self.build_or_row()))
         output += u'return row;\n'
         output += u'}\n\n'
-        
+
         output += u'function buildForm() {\n'
         output += u"var row = '<td>';\n"
         output += u"row += getEmpty%s();\n" % self.form.form_class.__name__
         output += u"row += '</td>';\n"
         output += u'return row;\n'
         output += u'}\n\n'
-        
+
 
         return output
-            
+
     def build_or_row(self):
         return td(
-            attr(cssc='or_cell', colspan=self.columns_count), 
+            attr(cssc='or_cell', colspan=self.columns_count),
             input(attr(
-                type="button", value="OR-", onclick="removeOr(this)", 
-                style="float: left;")), 
+                type="button", value="OR-", onclick="removeOr(this)",
+                style="float: left;")),
             div(attr(style="padding-top: 0.3em"), 'OR'))
-            
+
     def get_submit_row(self, hidden_fields=None):
         or_plus_button = input(attr(
-            type="button", value="OR+", onclick="addOrForm(this)", 
+            type="button", value="OR+", onclick="addOrForm(this)",
             style="float: left;"))
         save_input = input(attr(
-            id='save_input', type="text", name="save_input", 
-            value=_('name'), disabled='disabled', 
+            id='save_input', type="text", name="save_input",
+            value=_('name'), disabled='disabled',
             style="float: left; margin-left: 0.4em; display:none;"))
         save_button = input(attr(
-            type="button", value="Save", onclick="saveUnionForm(this)", 
+            type="button", value="Save", onclick="saveUnionForm(this)",
             style="float: left; margin-left: 0.4em"))
         submit_button = input(attr(
-            type=u'button', value=u'OK', onclick='sendUnionForm(this)', 
+            type=u'button', value=u'OK', onclick='sendUnionForm(this)',
             style="float: right;"))
         return tr(attr(cssc='submit_row'), td(
-            or_plus_button, save_input, save_button, hidden_fields, 
+            or_plus_button, save_input, save_button, hidden_fields,
             submit_button),)
 
-        
+
 class FilterTableFormLayout(TableFormLayout):
     columns_count = 3
     def __init__(self, form, *content, **kwd):
@@ -95,23 +95,23 @@ class FilterTableFormLayout(TableFormLayout):
         self.all_errors = {}
         super(FilterTableFormLayout, self).__init__(form, *content, **kwd)
         self.cssc = u'filtertable'
-        
+
     def create_layout(self):
         form = self.form
         self.add(tbody(tagid('tbody')))
 
-        # Following block creates self.all_fields, self.errors and 
-        # non_field_errors from fields and their forms (if they are 
-        # compound fields) recursively (obtaining linear structure 
+        # Following block creates self.all_fields, self.errors and
+        # non_field_errors from fields and their forms (if they are
+        # compound fields) recursively (obtaining linear structure
         # from tree structure).
         non_field_errors = []
         # [names, labels, form or field], it is stack (depth-first-search)
-        open_nodes = [[[], [], self.form]] 
-        
+        open_nodes = [[[], [], self.form]]
+
         while open_nodes:
             names, labels, tmp_node = open_nodes.pop()
-            
-            # Add errors from this tmp_node - for fields using composed name 
+
+            # Add errors from this tmp_node - for fields using composed name
             # and join all non_field_errors together.
             if isinstance(tmp_node, filterforms.FilterForm):
                 if tmp_node.is_bound:
@@ -120,26 +120,26 @@ class FilterTableFormLayout(TableFormLayout):
                         if error_name == forms.NON_FIELD_ERRORS:
                             continue
                         self.all_errors['-'.join(names + [error_name])] = error
-            
-                # 'reversed': compensation for the reverse order onstack 
-                for field in reversed(tmp_node.fields.values()): 
-                    if not isinstance(field,  CompoundFilterField):
+
+                # 'reversed': compensation for the reverse order onstack
+                for field in reversed(tmp_node.fields.values()):
+                    if not isinstance(field, CompoundFilterField):
                         open_nodes.append([names, labels, field])
                     else:
                         open_nodes.append([
-                            names + [field.name], 
+                            names + [field.name],
                             labels + [field.label], field.form])
             else:
                 filter_name = tmp_node.name
                 composed_name = '-'.join(names + [filter_name])
                 tmp_node.label = '.'.join(labels + [tmp_node.label])
                 self.all_fields.append([composed_name, tmp_node])
-        
+
         if non_field_errors:
             self.tbody.add(tr(td(
-                attr(colspan=self.columns_count), 
+                attr(colspan=self.columns_count),
                 'Errors:', form.non_field_errors())))
-        
+
         self.tbody.add(tr(
             attr(cssc='filtertable_header'), th(attr(colspan='2'),
             self.form._get_header_title()),
@@ -148,41 +148,41 @@ class FilterTableFormLayout(TableFormLayout):
         for composed_name, field in self.all_fields:
             errors = self.all_errors.get(composed_name, None)
             self.tbody.add(tr(
-                attr(cssc='field_row ' + composed_name), 
+                attr(cssc='field_row ' + composed_name),
                 self.build_field_row(field, errors)))
         self.add(script(
-            attr(type='text/javascript'), 
+            attr(type='text/javascript'),
             'filterObjectName = "%s"' % self.form.get_object_name())) # global javascript variable
         self.tbody.add(self.build_fields_button())
-        
+
     def build_field_row(self, field, errors=None, for_javascript=False):
         if for_javascript:
             label_str = REPLACE_ME_WITH_LABEL + ':'
         else:
             label_str = self.get_label_name(field)
-        
+
         negation_field = BooleanField('negation|' + field.name, field.negation)
         if for_javascript:
-            # Needed for detecting presence of fields such as checkboxes 
-            # and multiple selects, because they do not send data if they 
+            # Needed for detecting presence of fields such as checkboxes
+            # and multiple selects, because they do not send data if they
             # are not checked or no option is selected.
-            presention_field = HiddenField('presention|' + field.name, 'on') 
-        else: 
+            presention_field = HiddenField('presention|' + field.name, 'on')
+        else:
             # Dtto.
-            presention_field = HiddenField('presention|' + field.name, '%03d' % self.field_counter) 
+            presention_field = HiddenField('presention|' + field.name, '%03d' % self.field_counter)
             self.field_counter += 1
 
-        if not isinstance(field,  CompoundFilterField):
+        if not isinstance(field, CompoundFilterField):
             return notag(
                 td(label_str), td(presention_field, errors, field),
                 td(negation_field, 'NOT'))
-            
-    def build_fields_button(self): 
+
+    def build_fields_button(self):
         pass
 
     def get_javascript_gener_field(self):
         # --- function createRow and variable allFieldsDict---
-        
+
         output = u'function createRow%s(fieldName, fieldLabel) {\n' % self.form.get_object_name()
         output += u'var row = "";\n'
 
@@ -208,6 +208,5 @@ class FilterTableFormLayout(TableFormLayout):
         output += u'row = row.replace(/%s/g, fieldLabel);\n' % REPLACE_ME_WITH_LABEL
         output += u'return row;\n'
         output += u'}\n' # end of createRow function
-        
+
         return (output, fields_js_dict)
-    

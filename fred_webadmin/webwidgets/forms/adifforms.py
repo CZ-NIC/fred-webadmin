@@ -26,4 +26,3 @@ class OpenIDLoginForm(Form):
     password = HiddenField(max_length=30)
     next = HiddenField(initial='/')
     media_files = 'form_files.js'
-

@@ -22,9 +22,9 @@ EMPTY_VALUES = (None, '', u'')
 class Field(WebWidget):
     creation_counter = 0
     is_hidden = False
-    
-    def __init__(self, name='', value='', required=True, label=None, 
-                 initial=None, nperm = None, help_text=None, permitted=True,
+
+    def __init__(self, name='', value='', required=True, label=None,
+                 initial=None, nperm=None, help_text=None, permitted=True,
                  *content, **kwd):
         super(Field, self).__init__(*content, **kwd)
         self.tag = ''
@@ -39,14 +39,14 @@ class Field(WebWidget):
         self.owner_form = None
         self.value_is_from_initial = False
         self.permitted = permitted
-        
+
         self.name_orig = self.name = name
         if value == '' and initial is not None:
             self.value_is_from_initial = True
             self.value = initial
         else:
             self.value = value
-        
+
         # Increase the creation counter, and save our local copy.
         self.creation_counter = Field.creation_counter
         Field.creation_counter += 1
@@ -67,17 +67,17 @@ class Field(WebWidget):
         if self.required and self.value in EMPTY_VALUES:
             raise ValidationError(_(u'This field is required.'))
         return self.value
-    
+
     def set_from_clean(self, value):
         self.value = value
-    
+
     def value_from_datadict(self, data):
         debug('Jsem %s (orig %s) a beru si data %s' % (self.name, self.name_orig, data.get(self.name, None)))
         return data.get(self.name, None)
-    
+
     def is_empty(self):
         return self.value in EMPTY_VALUES
-    
+
     def _has_changed(self, initial, data):
         """ Returns True if data differs from initial.
         """
@@ -95,7 +95,7 @@ class Field(WebWidget):
         if unicode(initial_value).strip() != unicode(data_value).strip():
             return True
         return False
-    
+
     def get_nperm(self):
         if self._nperm:
             return self._nperm.lower()
@@ -114,10 +114,10 @@ class CharField(Field):
         self.min_length = min_length
         self.tag = self.tag or u'input'
         self.strip_spaces = strip_spaces
-        
+
         if self.tag == u'input':
             self.type = u'text'
-             
+
     def clean(self):
         "Validates max_length and min_length. Returns a Unicode object."
         if self.strip_spaces and isinstance(self.value, types.StringTypes):
@@ -132,14 +132,14 @@ class CharField(Field):
             raise ValidationError(_(u'Ensure this value has at least %(min)d characters (it has %(length)d).') % {'min': self.min_length, 'length': value_length})
         return self.value
 
-        
+
 class PasswordField(CharField):
     def __init__(self, name='', value='', max_length=None, min_length=None, *args, **kwargs):
         super(PasswordField, self).__init__(name, value, max_length, min_length, *args, **kwargs)
         if self.tag == u'input':
             self.type = u'password'
-       
-   
+
+
 class FloatField(Field):
     tattr_list = input.tattr_list
     def __init__(self, name='', value='', max_value=None, min_value=None, *args, **kwargs):
@@ -149,8 +149,8 @@ class FloatField(Field):
         self.tag = self.tag or u'input'
         if self.tag == u'input':
             self.type = u'text'
-        
-        
+
+
     def clean(self):
         """Validates that float() can be called on the input. Returns a float.
             Returns None for empty values.
@@ -171,7 +171,7 @@ class FloatField(Field):
 class DecimalField(Field):
     tattr_list = input.tattr_list
     def __init__(self, name='', value='', max_value=None, min_value=None, max_digits=None, decimal_places=None, *args, **kwargs):
-        super(DecimalField, self).__init__(name, value,  *args, **kwargs)
+        super(DecimalField, self).__init__(name, value, *args, **kwargs)
         self.max_value, self.min_value = max_value, min_value
         self.max_digits, self.decimal_places = max_digits, decimal_places
         self.tag = self.tag or u'input'
@@ -207,25 +207,25 @@ class DecimalField(Field):
         if self.max_digits is not None and self.decimal_places is not None and digits > (self.max_digits - self.decimal_places):
             raise ValidationError(_(u'Ensure that there are no more than %s digits before the decimal point.') % (self.max_digits - self.decimal_places))
         return value
-    
+
     def set_from_clean(self, value):
         self.value = unicode(value)
-        
+
 class IntegerField(DecimalField):
     def __init__(self, name='', value='', max_value=None, min_value=None, *args, **kwargs):
         super(IntegerField, self).__init__(name='', value='', max_value=max_value, min_value=min_value, decimal_places=0, *args, **kwargs)
     def clean(self):
         if self.is_empty():
-            return fredtypes.NullInt() 
+            return fredtypes.NullInt()
         return int(super(IntegerField, self).clean())
 
 DEFAULT_DATE_INPUT_FORMATS = (
-    u'%d.%m.%Y',                          # '25.10.2006'
+    u'%d.%m.%Y', # '25.10.2006'
     u'%Y-%m-%d', u'%m/%d/%Y', '%m/%d/%y', # '2006-10-25', '10/25/2006', '10/25/06'
-    u'%b %d %Y', u'%b %d, %Y',            # 'Oct 25 2006', 'Oct 25, 2006'
-    u'%d %b %Y', u'%d %b, %Y',            # '25 Oct 2006', '25 Oct, 2006'
-    u'%B %d %Y', u'%B %d, %Y',            # 'October 25 2006', 'October 25, 2006'
-    u'%d %B %Y', u'%d %B, %Y',            # '25 October 2006', '25 October, 2006'
+    u'%b %d %Y', u'%b %d, %Y', # 'Oct 25 2006', 'Oct 25, 2006'
+    u'%d %b %Y', u'%d %b, %Y', # '25 Oct 2006', '25 Oct, 2006'
+    u'%B %d %Y', u'%B %d, %Y', # 'October 25 2006', 'October 25, 2006'
+    u'%d %B %Y', u'%d %B, %Y', # '25 October 2006', '25 October, 2006'
 )
 
 class DateField(CharField):
@@ -236,8 +236,8 @@ class DateField(CharField):
         self.js_calendar = js_calendar
         if js_calendar:
             self.media_files = ['/js/scw.js', '/js/scwLanguages.js']
-            self.onclick = 'scwShow(this,event);' 
-        
+            self.onclick = 'scwShow(this,event);'
+
     def clean(self):
         """
         Validates that the input can be converted to a date. Returns a Python
@@ -256,7 +256,7 @@ class DateField(CharField):
             except ValueError:
                 continue
         raise ValidationError(_(u'Enter a valid date.'))
-    
+
     def set_from_clean(self, value):
         date_format = self.input_formats[0]
         if value:
@@ -266,8 +266,8 @@ class DateField(CharField):
 
 
 DEFAULT_TIME_INPUT_FORMATS = (
-    u'%H:%M:%S',     # '14:30:59'
-    u'%H:%M',        # '14:30'
+    u'%H:%M:%S', # '14:30:59'
+    u'%H:%M', # '14:30'
 )
 
 class TimeField(CharField):
@@ -299,18 +299,18 @@ class TimeField(CharField):
 
 
 DEFAULT_DATETIME_INPUT_FORMATS = (
-    u'%Y-%m-%d %H:%M:%S',     # '2006-10-25 14:30:59'
-    u'%Y-%m-%d %H:%M',        # '2006-10-25 14:30'
-    u'%Y-%m-%d',              # '2006-10-25'
-    u'%m/%d/%Y %H:%M:%S',     # '10/25/2006 14:30:59'
-    u'%m/%d/%Y %H:%M',        # '10/25/2006 14:30'
-    u'%m/%d/%Y',              # '10/25/2006'
-    u'%m/%d/%y %H:%M:%S',     # '10/25/06 14:30:59'
-    u'%m/%d/%y %H:%M',        # '10/25/06 14:30'
-    u'%m/%d/%y',              # '10/25/06'
+    u'%Y-%m-%d %H:%M:%S', # '2006-10-25 14:30:59'
+    u'%Y-%m-%d %H:%M', # '2006-10-25 14:30'
+    u'%Y-%m-%d', # '2006-10-25'
+    u'%m/%d/%Y %H:%M:%S', # '10/25/2006 14:30:59'
+    u'%m/%d/%Y %H:%M', # '10/25/2006 14:30'
+    u'%m/%d/%Y', # '10/25/2006'
+    u'%m/%d/%y %H:%M:%S', # '10/25/06 14:30:59'
+    u'%m/%d/%y %H:%M', # '10/25/06 14:30'
+    u'%m/%d/%y', # '10/25/06'
     u'%d.%m.%Y'               # '25.10.2007'
     u'%d.%m.%Y %H:%M'         # '25.10.2007 15:30'
-    
+
 )
 
 class DateTimeField(Field):
@@ -362,7 +362,7 @@ class RegexField(CharField):
         result.label = self.label
         result.initial = self.initial
         result.help_text = self.help_text
-        memo[id(self)] = result 
+        memo[id(self)] = result
         return result
 
     def clean(self):
@@ -394,7 +394,7 @@ class EmailField(RegexField):
         result.initial = self.initial
         result.help_text = self.help_text
         result.order = self.order
-        memo[id(self)] = result 
+        memo[id(self)] = result
         return result
 
 
@@ -417,7 +417,7 @@ class UploadedFile(object): #types.StringType):
 class FileField(Field):
     tattr_list = input.tattr_list
     def __init__(self, name='', value='', *args, **kwargs):
-        super(FileField, self).__init__(name, value,  *args, **kwargs)
+        super(FileField, self).__init__(name, value, *args, **kwargs)
         self.tag = "input"
 
 #    def _get_value(self):
@@ -536,10 +536,10 @@ class BooleanField(Field):
         self.checked = None
         self.tattr['value'] = 1
         self.__setattr__('value', value) # because it is not called from Parent class
-            
+
     def __setattr__(self, name, value):
         """
-        Owerriden __setattr__ because value is field attribute and tag attribute and thus we cannot make it property, 
+        Owerriden __setattr__ because value is field attribute and tag attribute and thus we cannot make it property,
         because _setattr__ of WebWidget would just store it to tattr and wouldn't call _set_item method
         """
         if name == 'value':
@@ -558,7 +558,7 @@ class BooleanField(Field):
     def clean(self):
         "Returns a Python boolean object."
         return bool(self.checked)
-    
+
     def _has_changed(self, initial, data):
         # Sometimes data or initial could be None or u'' which should be the
         # same thing as False.
@@ -576,10 +576,10 @@ class HiddenField(CharField):
 class HiddenDecimalField(DecimalField):
     is_hidden = True
 
-    def __init__(self, name='', value='', max_value=None, min_value=None, 
+    def __init__(self, name='', value='', max_value=None, min_value=None,
                  max_digits=None, decimal_places=None, *args, **kwargs):
         super(HiddenDecimalField, self).__init__(
-            name, value, max_value, min_value, max_digits, decimal_places, 
+            name, value, max_value, min_value, max_digits, decimal_places,
             *args, **kwargs)
         if self.tag == u'input':
             self.type = u'hidden'
@@ -588,13 +588,13 @@ class HiddenDecimalField(DecimalField):
 class HiddenIntegerField(IntegerField):
     is_hidden = True
 
-    def __init__(self, name='', value='', max_value=None, min_value=None, 
+    def __init__(self, name='', value='', max_value=None, min_value=None,
                  *args, **kwargs):
         super(HiddenIntegerField, self).__init__(
             name, value, max_value, min_value, *args, **kwargs)
         if self.tag == u'input':
             self.type = u'hidden'
-    
+
 
 class ChoiceField(Field):
     tattr_list = select.tattr_list
@@ -610,16 +610,16 @@ class ChoiceField(Field):
     def make_content(self):
         nperm = None
         if self.owner_form:
-            nperms = [nperms for nperms in self.owner_form.get_nperms() if 
+            nperms = [nperms for nperms in self.owner_form.get_nperms() if
                 nperms.split('.')[-1] == self.get_nperm()]
             nperm = nperms[0] if nperms else None
         self.content = []
-        # add/remove emtpy choice according 
+        # add/remove emtpy choice according
         if self.required and self.choices and self.choices[0] == self.empty_choice: # remove empty choice:
             self.choices.pop(0)
         elif not self.required and (not self.choices or (self.choices and self.choices[0] != self.empty_choice)): # add empty choice:
             self.choices.insert(0, self.empty_choice)
-            
+
         if self.choices:
             user = cherrypy.session.get('user')
             for value, caption in list(self.choices):
@@ -629,7 +629,7 @@ class ChoiceField(Field):
                     self.add(option(attr(value=value, selected='selected'), caption))
                 else:
                     self.add(option(attr(value=value), caption))
-                    
+
     def render(self, indent_level=0):
         self.make_content()
         return super(ChoiceField, self).render(indent_level)
@@ -648,7 +648,7 @@ class ChoiceField(Field):
             raise ValidationError(_(u'Select a valid choice. That choice is not one of the available choices.'))
 
         return value
-    
+
     def set_from_clean(self, value):
         self.value = unicode(value)
 
@@ -677,7 +677,7 @@ class IntegerChoiceField(ChoiceField):
             raise ValidationError(_(u'Select a valid choice. That choice is not one of the available choices.'))
         return value
 
-    def _has_changed(self, initial, data): 
+    def _has_changed(self, initial, data):
         if data is None:
             data = self.choices[0][0]
         data = int(data)
@@ -691,13 +691,13 @@ class NullBooleanField(ChoiceField):
     A field whose valid values are None, True and False. Invalid values are
     cleaned to None.
     """
-    def __init__(self, name='', value='',required=True, label=None, initial=None, help_text=None, *arg, **kwargs):
+    def __init__(self, name='', value='', required=True, label=None, initial=None, help_text=None, *arg, **kwargs):
         choices = ((u'1', _('Unknown')), (u'2', _('Yes')), (u'3', ('No')))
         super(NullBooleanField, self).__init__(name, value, choices, required, label, initial, help_text, *arg, **kwargs)
-        
+
     def clean(self):
         return {True: True, False: False}.get(self.value, None)
-    
+
     def _has_changed(self, initial, data):
         # Sometimes data or initial could be None or u'' which should be the
         # same thing as False.
@@ -708,7 +708,7 @@ class MultipleChoiceField(ChoiceField):
         super(MultipleChoiceField, self).__init__(name, value, choices, required, label, initial, help_text, *args, **kwargs)
         if self.tag == u'select':
             self.add(attr(multiple=u"multiple"))
-   
+
     def make_content(self):
         self.content = []
         if self.choices:
@@ -735,7 +735,7 @@ class MultipleChoiceField(ChoiceField):
             if val not in valid_values:
                 raise ValidationError(_(u'Select a valid choice. %s is not one of the available choices.') % val)
         return value
-    
+
     def value_from_datadict(self, data):
         value = data.get(self.name, None)
         if value is None:
@@ -743,7 +743,7 @@ class MultipleChoiceField(ChoiceField):
         if not isinstance(value, (list, tuple)):
             value = [value]
         return value
-    
+
     def _has_changed(self, initial, data):
         if initial is None:
             initial = []
@@ -778,7 +778,7 @@ class ComboField(Field):
         for field in self.fields:
             value = field.clean()
         return value
-    
+
 
 class MultiValueField(Field):
     """
@@ -798,14 +798,14 @@ class MultiValueField(Field):
     """
     tattr_list = span.tattr_list
     def __init__(self, name='', value='', fields=(), *args, **kwargs):
-        
+
         # Set 'required' to False on the individual fields, because the
         # required validation will be handled by MultiValueField, not by those
         # individual fields.
         for field in fields:
             field.required = False
         self.fields = fields
-        self._name = '' 
+        self._name = ''
         super(MultiValueField, self).__init__(name, value, *args, **kwargs)
         self.tag = 'span'
 
@@ -816,7 +816,7 @@ class MultiValueField(Field):
     def _get_name(self):
         return self._name
     name = property(_get_name, _set_name)
-        
+
     def _set_value(self, value):
         if not value:
             self._value = [None] * len(self.fields)
@@ -833,18 +833,18 @@ class MultiValueField(Field):
         return self._value
     value = LateBindingProperty(_get_value, _set_value)
 
-        
+
     def make_content(self):
         for field in self.fields:
             label_str = field.label or ''
             if label_str:
                 label_str += ':'
             self.add(label_str, field)
-            
+
     def render(self, indent_level=0):
         self.make_content()
         return super(MultiValueField, self).render(indent_level)
-    
+
     def clean(self):
         """
         Validates every value of self.fields.
@@ -892,7 +892,7 @@ class MultiValueField(Field):
     def set_from_clean(self, value):
         val = self.decompress(value)
         if value:
-            self._value = val 
+            self._value = val
     #        if not isiterable(val) and len(val) != len(self.fields):
     #            raise TypeError(u'value of MultiValueField must be sequence with same length as number of fields in multifield (was %s)' % unicode(val))
         else: # value is empty string (comes from _set_one_compound_filter in FilterLoader)
@@ -903,13 +903,13 @@ class MultiValueField(Field):
     def value_from_datadict(self, data):
         debug('beru data z %s k fieldum se jmeny %s' % (str(data), str([f.name for f in self.fields])))
         return [field.value_from_datadict(data) for field in self.fields]
-    
+
     def is_empty(self):
         for field in self.fields:
             if not field.is_empty():
                 return False
         return True
-            
+
     def _has_changed(self, initial, data):
         if initial is None:
             initial = [u'' for x in range(0, len(data))]
@@ -941,12 +941,12 @@ class SplitDateTimeField(MultiValueField):
         if value:
             import datetime
             t = value.time()
-            the_time = datetime.time(t.hour,t.minute,t.second)
+            the_time = datetime.time(t.hour, t.minute, t.second)
             return [value.date(), the_time]
         #TODO(tom): Should we return a Null type here?
         return [None, None]
-    
-    
+
+
 
 ipv4_re = re.compile(r'^(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}$')
 
@@ -958,7 +958,7 @@ class IPAddressField(RegexField):
 
 class SplitTimeField(MultiValueField):
     def __init__(self, name='', value='', *args, **kwargs):
-        fields = (ChoiceField(choices=[[u'%d' % c, u'%02d' % c] for c in range(24)]), 
+        fields = (ChoiceField(choices=[[u'%d' % c, u'%02d' % c] for c in range(24)]),
                   ChoiceField(choices=[[u'%d' % c, u'%02d' % c] for c in range(0, 60, 5)]))
         super(SplitTimeField, self).__init__(name, value, fields, *args, **kwargs)
         for field in self.fields:
@@ -973,16 +973,12 @@ class SplitTimeField(MultiValueField):
         if value:
             return [value.hour, value.minute]
         return [u'0', u'0']
-    
+
 class SplitDateSplitTimeField(SplitDateTimeField):
-    def __init__(self, name='', value='', *args, **kwargs): #  pylint: disable-msg=E1003 
+    def __init__(self, name='', value='', *args, **kwargs): #  pylint: disable-msg=E1003
         fields = (DateField(size=10), SplitTimeField())
         # Here is called really parent of parent of this class, to avoid self.fields initialization from parent:
-        super(SplitDateTimeField, self).__init__(name, value, fields, *args, **kwargs) 
+        super(SplitDateTimeField, self).__init__(name, value, fields, *args, **kwargs)
 
     def is_empty(self):
         return self.fields[0].is_empty()
-    
-    
-
-

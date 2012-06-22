@@ -13,5 +13,4 @@ corba = Corba()
 corba.connect('jsadek', 'fred-tom')
 
 a = corba.getObject('Admin', 'ccReg.Admin')
-s=a.getSession(a.createSession('helpdesk'))
-
+s = a.getSession(a.createSession('helpdesk'))
