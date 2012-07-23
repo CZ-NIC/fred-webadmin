@@ -1,0 +1,9 @@
+fred_webadmin/webwidgets/gpyweb/generclasses/xhtml10dtd/*.dtd -whitespace
+fred_webadmin/webwidgets/gpyweb/generclasses/xhtml10dtd/*.ent -whitespace
+tests/selenium/default/* -whitespace
+www/css/SyntaxHighlighter.css -whitespace
+www/css/ext/css/* -whitespace
+www/css/ext/legacy/* -whitespace
+www/js/boxover.js -whitespace
+www/js/ext/* -whitespace
+www/js/scw.js -whitespace
