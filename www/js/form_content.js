@@ -1,6 +1,6 @@
 function formContents(elem/* = document.body */) {
-	function processElement(elem) {
-	    /* Recursive function for processing element and putting form data into `names' and `values'*/
+    function processElement(elem) {
+        /* Recursive function for processing element and putting form data into `names' and `values'*/
         var name = elem.name;
         if (name) {
             var tagName = elem.tagName.toUpperCase();

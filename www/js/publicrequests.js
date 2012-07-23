@@ -20,9 +20,9 @@ function setInZoneStatus(url) {
 }
 
 function confirmAction(message) {
-	if (!message) {
-		message = "carry out the action."
-	}
+    if (!message) {
+        message = "carry out the action."
+    }
     number = Math.floor(Math.random()*1000)
     if (prompt("Type " + number + " to " + message) == number) {
         return true;
@@ -31,9 +31,9 @@ function confirmAction(message) {
 }
 
 function processAction(url, message) {
-	if (!message) {
-		message = "carry out the action.";
-	}
+    if (!message) {
+        message = "carry out the action.";
+    }
     number = Math.floor(Math.random()*1000);
     if (prompt("Type "+number+" to " + message + ":") == number) {
         location.href=url;

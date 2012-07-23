@@ -1,74 +1,73 @@
 table.itertable {
-	border:1px solid #DDDDDD;
-	border-collapse: collapse;
-	margin-bottom: 1em;
+    border:1px solid #DDDDDD;
+    border-collapse: collapse;
+    margin-bottom: 1em;
 }
 
-.itertable td, .itertable th { 
-	/*border: 1px solid #CCC;*/
-	padding: 2px 5px;
-	vertical-align: top;
-	font-family:arial,tahoma,helvetica,sans-serif;
-	font-size:12px;
-	white-space: nowrap;
+.itertable td, .itertable th {
+    /*border: 1px solid #CCC;*/
+    padding: 2px 5px;
+    vertical-align: top;
+    font-family:arial,tahoma,helvetica,sans-serif;
+    font-size:12px;
+    white-space: nowrap;
 }
 
 .itertable thead th, .itertable thead td {
- 	white-space:nowrap;
- 	background: #E1E1E1 url(../img/admin/nav-bg.gif) repeat-x scroll left top;
-	text-align: left;>
-	border-bottom:1px solid #DDDDDD;
-	border-left:1px solid #DDDDDD;
-	color:#666666;
-	padding:5px;
+     white-space:nowrap;
+     background: #E1E1E1 url(../img/admin/nav-bg.gif) repeat-x scroll left top;
+    text-align: left;>
+    border-bottom:1px solid #DDDDDD;
+    border-left:1px solid #DDDDDD;
+    color:#666666;
+    padding:5px;
 }
 
 .itertable .row1 {
-	background:#EDF3FE none repeat scroll 0%;
+    background:#EDF3FE none repeat scroll 0%;
 }
 
 .itertable .row1:hover {
-	background:#DDE3EE none repeat scroll 0%;
+    background:#DDE3EE none repeat scroll 0%;
 }
 
 .itertable .row2 {
-	background:white none repeat scroll 0%;
+    background:white none repeat scroll 0%;
 }
 
 .itertable .row2:hover {
-	background:#DDE3EE none repeat scroll 0%;
+    background:#DDE3EE none repeat scroll 0%;
 }
 
 
 table thead th.sorted {
-	background-position:left bottom !important;
+    background-position:left bottom !important;
 }
 
 .itertable thead th a {
-	display: block;
+    display: block;
 }
 
 .itertable thead th.sorted a {
-	padding-right: 13px;
+    padding-right: 13px;
 
 }
 
 .itertable thead th.ascending a {
-	background: transparent url(../img/admin/arrow-down.gif) no-repeat scroll right 0.4em;
+    background: transparent url(../img/admin/arrow-down.gif) no-repeat scroll right 0.4em;
 }
 
 .itertable thead th.descending a {
-	background: transparent url(../img/admin/arrow-up.gif) no-repeat scroll right 0.4em;
+    background: transparent url(../img/admin/arrow-up.gif) no-repeat scroll right 0.4em;
 }
 
 .itertable tfoot td, .itertable tfoot th {
-	vertical-align: middle;
-	background: #E1E1E1 url(../img/admin/nav-bg.gif) repeat-x scroll left top;
+    vertical-align: middle;
+    background: #E1E1E1 url(../img/admin/nav-bg.gif) repeat-x scroll left top;
 }
 
 
 .itertable .pager_text {
-	float: right;
-	margin-top:5px;
+    float: right;
+    margin-top:5px;
 }
-

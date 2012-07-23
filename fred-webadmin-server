@@ -1,9 +1,9 @@
 #!/bin/sh
 
 if [ -d /lib/lsb/ ]; then
-	uselsb=1
+    uselsb=1
 else
-	uselsb=0
+    uselsb=0
 fi
 
 if [ $uselsb -eq 1 ]; then
@@ -74,5 +74,3 @@ stop)
 esac
 
 exit 0
-
-

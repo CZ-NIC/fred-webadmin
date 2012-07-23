@@ -1,14 +1,14 @@
 
 function checkFilterFormsJavascriptLoaded() {
-	if (typeof(allFieldsDict) == 'undefined') {
-		var elems = Ext.query('.for_fields_button');
-		for (var i = 0; i < elems.length; i++) {
-			var elem = elems[i];
-			var err = document.createElement('p');
-			err.appendChild(document.createTextNode('Error loading data for filter button!'));
-			err.className = 'error';
-			elem.appendChild(err);
-		}
+    if (typeof(allFieldsDict) == 'undefined') {
+        var elems = Ext.query('.for_fields_button');
+        for (var i = 0; i < elems.length; i++) {
+            var elem = elems[i];
+            var err = document.createElement('p');
+            err.appendChild(document.createTextNode('Error loading data for filter button!'));
+            err.className = 'error';
+            elem.appendChild(err);
+        }
         }
 }
 
@@ -32,7 +32,7 @@ function filter_action_types() {
     } else {
         /* Only display the actions for the given service type. */
         // Minus one for the empty type.
-        var index = service_select.selectedIndex - 1; 
+        var index = service_select.selectedIndex - 1;
         var actions_by_types = get_actions();
         actions = actions_by_types[index]
     }

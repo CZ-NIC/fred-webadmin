@@ -22,25 +22,25 @@
     * Unused nicauth support temporarily disabled
 
 2011-01-24 (3.6.0)
-    
+
     * Added timeout functionality in filters, the timeout is configurable
     * Added filter for Destination Account, AccountMemo and CRTime in BankStatementFilter
-    * Added object references and result to LogRequest detail   
+    * Added object references and result to LogRequest detail
 
 2010-10-24 Tomas Divis (3.5.4)
 
     * Fixing unicode
 
 2010-10-23 Jaromir Talir (3.5.2)
-    
+
     * Showing messages again
 
 2010-10-18 Tomas Divis (3.5.1)
     * Temporary disabling message display
 
 2010-10-18 Tomas Divis (3.5.0)
-    * Support for listing messages 
-    * Implemented refactored logging interface 
+    * Support for listing messages
+    * Implemented refactored logging interface
 
 2010-08-11 Jan Zima (3.4.5)
 
@@ -52,8 +52,8 @@
 
 2010-07-22 Tomas Brambora, Jiri Sadek (3.4.3)
     * Keyset detail display fix
-	* Enhance permissions granularity (initial version)
-	* Typo fixes
+    * Enhance permissions granularity (initial version)
+    * Typo fixes
 
 2010-07-02 Jiri Sadek (3.4.2)
     * Registrar edit form fix (system registrar bug)
@@ -69,8 +69,8 @@
     * Added registrar groups editor (creating/deleting/renaming groups).
     * Logging only changes in registrar editation.
     * Added group filter to registrar filter form.
-    * Added "next/prev." links to filter form page (briefly - if there is a 
-    time field with an offset (e.g. last month) displayed, this links jump to 
+    * Added "next/prev." links to filter form page (briefly - if there is a
+    time field with an offset (e.g. last month) displayed, this links jump to
     the results for the prev./next time period).
     * Buttons in Dahne detail pages that jump directly to filter forms now only
     return results for the last month.
@@ -122,14 +122,14 @@
 
 2009-07-02 Jaromir Talir (version 3.1.6)
 
-    * Fixing default listening host in template config file 
+    * Fixing default listening host in template config file
 
 2009-06-30 Tomas Divis, Zdenek Bohm, Jaroslav Benkovsky (version 3.1.5)
 
     * Adding possibility to set serverInZoneManual state on domain
-	
+
     * Support for Python 2.6
-	
+
     * Fixing startup script
 
 2009-05-25 Tomas Divis, Jaromir Talir (version 3.1.4)
@@ -142,7 +142,7 @@
 
     * In In pagetable export to csv, separator have change to ',' (from '|'),
       and changed to use standard python csv module.
-	
+
 2009-02-04 Jaromir Talir (version 3.1.2)
 
     * Bugfix in mousover on history status field of objects
@@ -164,25 +164,25 @@
     * Updated MANIFEST.in
 
 2008-10-18 Tomas Divis (version 3.1.0)
-	
+
     * Adding DNSKEY record to keyset details
-	
+
 2008-10-15 Tomas Divis (version 3.0.4)
- 
+
     * Fixing search for domains by admin contact
 
-    * Fixing invoicing 
+    * Fixing invoicing
         - no PDF and XML icons in invoice list when there are no PDF and XML
         - PDF and XML links back in invoice details
 
     * Fixing public request detail
-	- buttons formatting
+        - buttons formatting
         - buttons hiding after request processing
 
 2008-10-02 Tomas Divis (version 3.0.3)
 
-    * Fixing CSV and TXT export 
-	
+    * Fixing CSV and TXT export
+
 2008-09-28 Tomas Divis (version 3.0.2)
 
     * Fixing colors in disclosed elements
@@ -206,7 +206,7 @@
     * release
 
 2008-06-24 Jaromir Talir (version 2.1.0)
-	
+
     * release
 
 2008-06-24 Ales Dolezal
@@ -221,8 +221,7 @@
 
     * added filtr for outzone date end cancel date into domains
 
-    * lot's of internal refactoring 
-	
+    * lot's of internal refactoring
 
 2008-06-05 Ales Dolezal
 

@@ -1,6 +1,6 @@
 
 function setCleanOrDirty(field, defaultValue, newValue) {
-    if ((field.type == 'hidden') || (field.type == 'submit')) 
+    if ((field.type == 'hidden') || (field.type == 'submit'))
         return;
     if (newValue == defaultValue) {
         Ext.get(field).parent('tr').dom.style.backgroundColor='white';
@@ -47,22 +47,22 @@ function fieldOnClick(event) {
 
 function setSpecialBehaviourToFields() {
     Ext.select('.editform_table').each(function (form) {
-	    log('form: ', form);
-	    log('fields:', form.select('input'));
+        log('form: ', form);
+        log('fields:', form.select('input'));
         // "select:not([multiple])"
-	    form.select('input, select').each(function (field) {
-	        log('Pridavam onchange to field', field);
+        form.select('input, select').each(function (field) {
+            log('Pridavam onchange to field', field);
             // field.set({'title': field.dom.value}); tohle musi delat server, pac ty data se mohli zmenit pokud je chyba ve formulari a formular je zobrazen znova
-	        field.on('change', fieldOnChange);
+            field.on('change', fieldOnChange);
             field.on('keypress', fieldOnKeyPress);
             field.on('blur', fieldOnChange); // this line is here because firefox bug - onchange is not called when using form history, si it is called here manually
             field.on('click', fieldOnClick); // this is here for the same reason as line above (but it is propably not helping so much :))
             fieldOnChange(field.dom);
-	    });
+        });
     });
 }
 
-/** Disables registrar handle field when associating a Payment with 
+/** Disables registrar handle field when associating a Payment with
  *  a different type than "to/from registrar". **/
 function disableRegistrarHandle() {
     registrar_handle_input_array = document.getElementsByName("handle");
@@ -109,7 +109,7 @@ function show_hide(element_id, button_id, skip_effect) {
     }
 }
 
-connect(window, 'onload', onload_hide_registrar_editform_fields); 
+connect(window, 'onload', onload_hide_registrar_editform_fields);
 
 function onload_hide_registrar_editform_fields(e) {
     var ids = document.getElementById("visible_fieldsets_ids_field_id").value.split(",");

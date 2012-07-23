@@ -1,5 +1,5 @@
 Ext.ItertablesPagingToolbar = Ext.extend(Ext.PagingToolbar, {
-    /* overrides updateInfo to expect 4 arguments in displayMsg string (added num_row_in_db as last argument) */ 
+    /* overrides updateInfo to expect 4 arguments in displayMsg string (added num_row_in_db as last argument) */
     updateInfo : function() {
         if(this.displayEl){
             var count = this.store.getCount();
@@ -28,10 +28,9 @@ Ext.ItertablesPagingToolbar = Ext.extend(Ext.PagingToolbar, {
         };
     }*/
 });
-    
 
 
-var IterTableUI = function() { 
+var IterTableUI = function() {
     var store; //hold our data
     var grid; //component
     var cm; // definition of the columns
@@ -41,41 +40,40 @@ var IterTableUI = function() {
     var pageIndex;
     var objectName;
     var totalInDB;
-    
+
     function setupDataSource() {
-	    // create the Data Store
+        // create the Data Store
         log('header pred create Store:' + Ext.encode(header));
-	    store = new Ext.data.Store({
-	        proxy: new Ext.data.HttpProxy({            
-	            url: './jsondata'
-	        }),
-	
-	        reader: new Ext.data.JsonReader({
+        store = new Ext.data.Store({
+            proxy: new Ext.data.HttpProxy({
+                url: './jsondata'
+            }),
+
+            reader: new Ext.data.JsonReader({
                 //start: 'start', // have to be 'start', because of ItertablesPagingToolbar.getPageData count on that
-	            totalProperty: 'num_rows',
-	            totalInDB: 'num_rows_in_db',
-	            root: 'rows',
-	            id: 'Id', // id must be unique identifier of row
-	            fields: header /*[
-	                'id'/*'title', 'forumtitle', 'forumid', 'author',
-	                {name: 'replycount', type: 'int'},
-	                {name: 'lastpost', mapping: 'lastpost', type: 'date', dateFormat: 'timestamp'},
-	                'lastposter', 'excerpt'
-	            ]*/
-	        }),
-	
-	        // turn on remote sorting
-	        remoteSort: true
-	    });
-	    //store.setDefaultSort('Id', 'ASC');
-        
+                totalProperty: 'num_rows',
+                totalInDB: 'num_rows_in_db',
+                root: 'rows',
+                id: 'Id', // id must be unique identifier of row
+                fields: header /*[
+                    'id'/*'title', 'forumtitle', 'forumid', 'author',
+                    {name: 'replycount', type: 'int'},
+                    {name: 'lastpost', mapping: 'lastpost', type: 'date', dateFormat: 'timestamp'},
+                    'lastposter', 'excerpt'
+                ]*/
+            }),
+
+            // turn on remote sorting
+            remoteSort: true
+        });
+        //store.setDefaultSort('Id', 'ASC');
+
         store.load();
-        
+
         window.store = store;
-        
+
     }
-    
-            
+
 
     // pluggable renders
     function renderTopic(value, p, record) {
@@ -122,7 +120,7 @@ var IterTableUI = function() {
                 if (colHeaderType.substr(colHeaderType.length - '_ID'.length) == '_ID') {// endsWith('_ID')
                     colSpec['sortable'] = false;
                     colSpec['width'] = 30;
-                    //colSpec['hidden'] = true; 
+                    //colSpec['hidden'] = true;
                 }
                 var reHandle = new RegExp(/CT_([^_]*)_HANDLE/);
                 var reId     = new RegExp(/CT_([^_]*)_ID/);
@@ -137,52 +135,51 @@ var IterTableUI = function() {
                 /*switch (colHeaderType) {
                     case 'CT_ACTION_ID':
                         colSpec['renderer'] = renderIDFunc('action');
-                        
                         break;
-                        
+
                     case 'CT_DOMAIN_HANDLE':
                         colSpec['renderer'] = renderHandleFunc('domain');
                         break;
-                        
+
                     case 'CT_REGISTRAR_HANDLE':
                         colSpec['renderer'] = renderHandleFunc('registrar');
                         break;
-                        
+
                     //here are special renderers
                     default:;
                 }*/
-                
+
                 colsSpec.push(colSpec);
             }
             log('colsSpec:' + Ext.encode(colsSpec));
             cm = new Ext.grid.ColumnModel(colsSpec);
-		    /*cm = new Ext.grid.ColumnModel([{
-		           header: 'id',
-		           dataIndex: 'id',
-		           renderer: function(val){if (val) {return '<a href="./detail?id=' + val + '" >id</a>'} else {return 'bezcislacico'}}
-		        },{
-		           id: 'topic', // id assigned so we can apply custom css (e.g. .x-grid-col-topic b { color:#333 })
-		           header: "Topic",
-		           dataIndex: 'title',
-		           width: 420,
-		           renderer: renderTopic
-		        },{
-		           header: "Author",
-		           dataIndex: 'author',
-		           width: 100,
-		           hidden: true
-		        },{
-		           header: "Replies",
-		           dataIndex: 'replycount',
-		           width: 70,
-		           align: 'right'
-		        },{
-		           id: 'last',
-		           header: "Last Post",
-		           dataIndex: 'lastpost',
-		           width: 150,
-		           renderer: renderLast
-		        }]);
+            /*cm = new Ext.grid.ColumnModel([{
+                   header: 'id',
+                   dataIndex: 'id',
+                   renderer: function(val){if (val) {return '<a href="./detail?id=' + val + '" >id</a>'} else {return 'bezcislacico'}}
+                },{
+                   id: 'topic', // id assigned so we can apply custom css (e.g. .x-grid-col-topic b { color:#333 })
+                   header: "Topic",
+                   dataIndex: 'title',
+                   width: 420,
+                   renderer: renderTopic
+                },{
+                   header: "Author",
+                   dataIndex: 'author',
+                   width: 100,
+                   hidden: true
+                },{
+                   header: "Replies",
+                   dataIndex: 'replycount',
+                   width: 70,
+                   align: 'right'
+                },{
+                   id: 'last',
+                   header: "Last Post",
+                   dataIndex: 'lastpost',
+                   width: 150,
+                   renderer: renderLast
+                }]);
             }*/
             cm.defaultSortable = true;
         }
@@ -192,39 +189,38 @@ var IterTableUI = function() {
     function buildGrid() {
 
         grid = new Ext.grid.GridPanel({
-	        el:'div_for_itertable',
-	        //width:700,
-	        height:700,
+            el:'div_for_itertable',
+            //width:700,
+            height:700,
             //autoExpandColumn:'common',
             //autoHeight: true,
             //autoScroll: true,
-	        //title:'',
-	        store: store,
-	        cm: cm,
+            //title:'',
+            store: store,
+            cm: cm,
             //viewConfig:{forceFit: true},
-	        //trackMouseOver:false,
-	        //sm: new Ext.grid.RowSelectionModel({selectRow:Ext.emptyFn}),
+            //trackMouseOver:false,
+            //sm: new Ext.grid.RowSelectionModel({selectRow:Ext.emptyFn}),
             //sm: new Ext.grid.CellSelectionModel(),//{selectRow:Ext.emptyFn}),
             //disableSelection: true,
-	        loadMask: true,
-	        bbar: new Ext.ItertablesPagingToolbar({
-	            pageSize: pageSize,
-	            store: store,
-	            displayInfo: true,
+            loadMask: true,
+            bbar: new Ext.ItertablesPagingToolbar({
+                pageSize: pageSize,
+                store: store,
+                displayInfo: true,
                 displayMsg: 'Displaying results {0} - {1} of {2} ({3})',
-	            emptyMsg: "No results to display"
-	            /*items:[
-	                '-', {
-	                pressed: true,
-	                enableToggle:true,
-	                text: 'Show Preview',
-	                cls: 'x-btn-text-icon details',
-	                toggleHandler: toggleDetails
-	            }]*/
-	        })
-	    });
-        
-        
+                emptyMsg: "No results to display"
+                /*items:[
+                    '-', {
+                    pressed: true,
+                    enableToggle:true,
+                    text: 'Show Preview',
+                    cls: 'x-btn-text-icon details',
+                    toggleHandler: toggleDetails
+                }]*/
+            })
+        });
+
         //grid.on('beforeColMenuShow', setCSSExtjsMenu);
         // render it
         grid.render();
@@ -236,19 +232,18 @@ var IterTableUI = function() {
         grid.getView().hmenu.getEl().addClass('extjs');
         window.grid = grid;
         //grid.on('rowclick', function(grid, rowNum) {location.href='/' + objectName + '/detail/?id=' + grid.getStore().getAt(rowNum)['id']});
-        
+
     }
 
-    
     function getHeaderAndSetupGrid() {
         //log(header);
         //log(header_type);
         Ext.Ajax.request({
             url: './jsonheader',
-            success: function (result, request) { 
-                //Ext.MessageBox.alert('Success', 'Data return from the server: '+ result.responseText);        
+            success: function (result, request) {
+                //Ext.MessageBox.alert('Success', 'Data return from the server: '+ result.responseText);
                 result = Ext.decode(result.responseText);
-                
+
                 header = result['header'];
                 headerType = result['header_type'];
                 pageSize = result['page_size'];
@@ -257,9 +252,9 @@ var IterTableUI = function() {
                 getColumnModel();
                 buildGrid();
             },
-            failure: function (result, request) { 
-                Ext.MessageBox.alert('Failed', 'Retrieving header failed.'); 
-            } 
+            failure: function (result, request) {
+                Ext.MessageBox.alert('Failed', 'Retrieving header failed.');
+            }
         });
     }
     function setCSSExtjsMenu() {
@@ -272,13 +267,13 @@ var IterTableUI = function() {
         view.showPreview = pressed;
         view.refresh();
     } */
-    
+
     return {
         // trigger the data store load
         init: function() {
             getHeaderAndSetupGrid();
         },
-        
+
         getDataStore: function() {
             return store;
         }

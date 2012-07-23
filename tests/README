@@ -1,4 +1,4 @@
-In order to run unit tests, you need the following python packages: 
+In order to run unit tests, you need the following python packages:
 
 nose (python-nose)
 achoo (download from http://web.quuxo.com/products/achoo/)

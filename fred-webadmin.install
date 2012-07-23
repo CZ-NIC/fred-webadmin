@@ -3,7 +3,7 @@
 import sys
 from optparse import OptionParser
 for python_path in [DU_PYTHON_PATHS]: #DU_PYTHON_PATH is replaced by /etc/fred and /usr/lib/python2.4 by distutils install
-	sys.path.insert(0, python_path)
+    sys.path.insert(0, python_path)
 #import psyco
 #psyco.full()
 

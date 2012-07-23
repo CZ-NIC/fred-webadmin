@@ -1,70 +1,69 @@
 /* Normal Filter Table */
 .filtertable {
-	border-collapse: collapse;
-	border: 1px solid gray;
-	padding: 0px;
-	margin: 0px;
+    border-collapse: collapse;
+    border: 1px solid gray;
+    padding: 0px;
+    margin: 0px;
 }
 .filtertable .filtertable {
-	width: 100%;	
+    width: 100%;
 }
 
 .filtertable td, .filtertable th {
-	padding: 3px;
+    padding: 3px;
 }
 
 .filtertable th {
-	border-bottom: 1px solid black;
+    border-bottom: 1px solid black;
 }
 
 .filtertable .and_row td {
-	text-align: center;
+    text-align: center;
 }
 
 /* Union Filter Table */
 .unionfiltertable {
-	border-collapse: collapse;
-	border: 3px solid black;
-	margin: 1em 0em;
+    border-collapse: collapse;
+    border: 3px solid black;
+    margin: 1em 0em;
 }
 
 .unionfiltertable td {
-	/*padding: 0px;
-	margin: 0px;*/
-		
+    /*padding: 0px;
+    margin: 0px;*/
 }
 .unionfiltertable .or_cell {
-	border-top: 2px solid black;
-	border-bottom: 2px solid black;
-	text-align: center;
-	vertical-align: middle;
-	font-weight: bold;
+    border-top: 2px solid black;
+    border-bottom: 2px solid black;
+    text-align: center;
+    vertical-align: middle;
+    font-weight: bold;
 }
 
 .unionfiltertable .submit_row td {
-	border-top: 2px solid black;
-	text-align: center;
+    border-top: 2px solid black;
+    text-align: center;
 }
 
 .unionfiltertable td {
-	vertical-align: top;	
+    vertical-align: top;
 }
 
 .unionfiltertable .submit_row td, .unionfiltertable .or_cell {
-	padding: 0.1em 0.3em;	
+    padding: 0.1em 0.3em;
 }
 
 .filtertable .filtertable .filtertable_header{
-	display: none;
+    display: none;
 }
 
 /* Exjt grid row mouse over*/
-.extjs .x-grid3-row-over { 
+.extjs .x-grid3-row-over {
     background-color:#D0DEF0;
-    background-image: none; 
+    background-image: none;
 }
 
 .extjs .x-grid3-row td, .extjs .x-grid3-summary-row td {
-	-moz-user-select:text!important; /* it is not possible to set it to 'normal', but 'text' has propably same effect
-/*	-khtml-user-select: normal !important;*/
+    -moz-user-select:text!important; /* it is not possible to set it to 'normal', but 'text' has propably same effect
+/*    -khtml-user-select: normal !important;*/
 }

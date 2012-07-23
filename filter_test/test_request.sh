@@ -13,8 +13,3 @@ python test_request_tweak3.py
 sleep 10
 
 kill %1
-
-
-
-
-

@@ -1,12 +1,12 @@
 @import url('forms.css');
 
 #content-main {
-	padding: 0em 1em 1em 1em;
+    padding: 0em 1em 1em 1em;
 }
 
 #right_menu_container {
-	float: right;
-	margin: 0.5em 1em;
+    float: right;
+    margin: 0.5em 1em;
 }
 
 #main-menu li {
@@ -20,21 +20,21 @@
 
 
 #main-menu ul {
-	/*padding: 3px;*/
-	margin: 0px;	
+    /*padding: 3px;*/
+    margin: 0px;
 }
 
 #main-menu ul li {
-	list-style: None;
-	/*float: left;*/
-	display: inline;
-	margin-right: 0.8em;
-	margin-left: 0.8em;
+    list-style: None;
+    /*float: left;*/
+    display: inline;
+    margin-right: 0.8em;
+    margin-left: 0.8em;
 }
 
 #main-menu ul ul {
-	/*position: absolute;*/
-	/*left: 0px;*/
+    /*position: absolute;*/
+    /*left: 0px;*/
 }
 
 .menu-item { padding: 0.2em }
