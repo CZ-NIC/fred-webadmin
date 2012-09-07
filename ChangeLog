@@ -1,3 +1,9 @@
+2012-09-07 Tomas Divis, Vlastimil Zima (3.9.3)
+
+    * Whitespace normalization and PEP8-ification
+
+    * Update due to distutils changes (setup.cfg)
+
 2012-05-14 Jiri Sadek, Tomas Divis (3.9.0)
 
     * fixes - request_id history links (id=0)
