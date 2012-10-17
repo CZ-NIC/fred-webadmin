@@ -239,8 +239,8 @@ def main(directory):
               packages=[PACKAGE_NAME] + subpackages(directory, PACKAGE_NAME) + subpackages(directory, 'tests'),
               package_dir={PACKAGE_NAME: PACKAGE_NAME},
               data_files=[
-                  ('LOCALSTATEDIR/log/fred-webadmin',),
-                  (os.path.join('LOCALSTATEDIR', 'lib', PROJECT_NAME, 'sessions'),),
+                  ('LOCALSTATEDIR/log/fred-webadmin', []),
+                  (os.path.join('LOCALSTATEDIR', 'lib', PROJECT_NAME, 'sessions'), []),
                   ('SBINDIR', ['build/fred-webadmin']),
                   ('SYSCONFDIR/init.d', ['build/fred-webadmin-server']),
                   ('SYSCONFDIR/fred', ['build/webadmin_cfg.py']),
