@@ -1,3 +1,7 @@
+2012-10-18 Vlastimil Zima (3.9.4)
+
+    * Fix installation of additional directories
+	
 2012-09-07 Tomas Divis, Vlastimil Zima (3.9.3)
 
     * Whitespace normalization and PEP8-ification
