@@ -427,7 +427,7 @@ class var(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
 
 class input(WebWidget):
-    tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'accesskey', 'tabindex', 'onfocus', 'onblur', 'type', 'name', 'value', 'checked', 'disabled', 'readonly', 'size', 'maxlength', 'src', 'alt', 'usemap', 'onselect', 'onchange', 'accept']
+    tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'accesskey', 'tabindex', 'onfocus', 'onblur', 'type', 'name', 'value', 'checked', 'disabled', 'readonly', 'size', 'maxlength', 'src', 'alt', 'usemap', 'onselect', 'onchange', 'accept', 'autofocus']
 
 class td(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'abbr', 'axis', 'headers', 'scope', 'rowspan', 'colspan', 'align', 'char', 'charoff', 'valign']

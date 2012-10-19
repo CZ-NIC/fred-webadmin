@@ -14,7 +14,7 @@ from fred_webadmin.translation import _
 
 class LoginForm(Form):
     corba_server = ChoiceField(choices=[(str(i), ior[0]) for i, ior in enumerate(config.iors)], label=_("Server"))
-    login = CharField(max_length=30, label=_('Username'))
+    login = CharField(max_length=30, label=_('Username'), autofocus='autofocus')
     password = PasswordField(max_length=30)
     next = HiddenField(initial='/')
     media_files = 'form_files.js'
