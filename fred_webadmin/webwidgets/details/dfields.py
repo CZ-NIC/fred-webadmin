@@ -224,9 +224,9 @@ class RequestPropertyDField(DField):
                 (input_props, output_props)
 
             >>> props = [\
-                    ccReg.RequestProperty(name='foo', value='0', \
+                    ccReg.RequestPropertyDetail(name='foo', value='0', \
                         output=True, child=False), \
-                    ccReg.RequestProperty(\
+                    ccReg.RequestPropertyDetail(\
                         name='bar', value='4', \
                         output=False, child=False)]
             >>> field = RequestPropertyDField()
