@@ -70,6 +70,13 @@ def flatten_form_data(data, sep='.'):
 
         Doctests:
 
+        Try nested empty form fields.
+
+        >>> tmp = []
+
+        >>> flatten_form_data(tmp)
+        []
+
         Try nested form fields.
 
         >>> tmp = [{u'TransferTime': [False, "aaa"], \
@@ -152,9 +159,10 @@ u'Type': [True, 1]}, {u'Type': [False, 1]}]
         field_values.append("")
         field_negations.append(str(False))
     # Get rid of the last OR
-    field_names.pop()
-    field_values.pop()
-    field_negations.pop()
+    if field_names:
+        field_names.pop()
+        field_values.pop()
+        field_negations.pop()
 
     flattened_data = []
     # Merge the flattened lists into an array of tuples.
