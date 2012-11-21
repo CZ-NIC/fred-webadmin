@@ -1,7 +1,16 @@
+2012-11-21 Tomas Divis (3.9.5)
+
+    * Add autofocus to username input field at login screen
+
+    * Fix internal error when loading pagetable result with no filter
+      set in backend
+
+    * Fix tests
+
 2012-10-18 Vlastimil Zima (3.9.4)
 
     * Fix installation of additional directories
-	
+
 2012-09-07 Tomas Divis, Vlastimil Zima (3.9.3)
 
     * Whitespace normalization and PEP8-ification
