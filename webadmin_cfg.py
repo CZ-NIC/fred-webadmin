@@ -1,29 +1,33 @@
 # -*- coding: utf-8 -*-
-
 import logging
 
 #debug = True
 debug = False
-caching_filter_form_javascript = True # if this settings is on, then when doing changes to filter form, you should erase all sessions, because old filter forms are still in session
 
-www_dir = '/home/glin/programming/gitnic/webadmin/www/'
-locale_dir = '/home/glin/programming/gitnic/webadmin/locale/'
-sessions_dir = '/home/glin/programming/gitnic/webadmin/sessions/'
-log_dir = '/home/glin/programming/gitnic/webadmin/log/'
-log_level = logging.WARNING
-# logging_actions_enabled: Iff false no user actions are logged to logd.
-# viewing_actions_enabled: Iff false, users cannot display log screen in
+# If this settings is on, then when doing changes to filter form,
+# you should erase all sessions, because old filter forms are still
+# in session.
+caching_filter_form_javascript = True
+
+www_dir = 'DU_DATAROOTDIR/fred-webadmin/www/'
+locale_dir = 'DU_LOCALE_DIR'
+sessions_dir = 'DU_LOCALSTATEDIR/lib/fred-webadmin/sessions/'
+log_dir = 'DU_LOCALSTATEDIR/log/fred-webadmin/'
+log_level = logging.ERROR
+
+# logging_actions_enabled: If false no user actions are logged to logd.
+# viewing_actions_enabled: If false, users cannot display log screen in
 #                          Daphne.
-# force_critical_logging: Iff False, any logger-related failure will silently
-#                         be ignored. Iff True, failures will shoot Daphne
+# force_critical_logging: If False, any logger-related failure will silently
+#                         be ignored. If True, failures will shoot Daphne
 #                         down.
 audit_log = {
     'logging_actions_enabled': True,
     'viewing_actions_enabled': True,
-    'force_critical_logging' : True
+    'force_critical_logging': True,
 }
 
-# enable_checking: Iff false, no security policy is enforced (there is
+# enable_checking: If false, no security policy is enforced (there is
 #                  no authorization).
 # backend: Select from 'csv', 'nicauth' to specify the backend for permission
 #          data.
@@ -34,34 +38,21 @@ audit_log = {
 permissions = {
     'enable_checking': True,
     'backend': 'csv', #, 'nicauth'
-    'csv_file': 'perms.csv',
+    'csv_file': 'DU_DATAROOTDIR/perms.csv',
 }
 
-idl = '/home/glin/programming/gitnic/idl/idl/ccReg.idl'
-#idl = '/home/glin/programming/nic/webadmin/servers/idl_devel/idl/ccReg.idl'
-#idl = '/home/glin/programming/nic/webadmin/servers/idl_trunk/idl/ccReg.idl'
-
-iors = (#(label, nshost, nscontext),
-        (u'localní', 'localhost:20001', 'fred'),
-        (u'maňásek-tom', 'hal9002:30001', 'fred'),
-        (u'maňásek', 'hal9002:20001', 'fred'),
-        (u'glin-server-maňásek-name-glin', 'jsadek', 'fred-glin'),
-        (u'hokuston2', 'pokuston', 'fred2'),
-        (u'hokuston', 'pokuston:50001', 'fred'),
-        (u'koliha', 'curlew', 'fred'),
-        (u'jarahp', 'jarahp:22346', 'fred'),
-        (u'jura', '172.20.20.121', 'fred'),
-#    ('Test', 'localhost:22346', 'fred'),
-        ('Test', 'localhost', 'fred'),
-)
-
+#'/usr/share/idl/fred/ccReg.idl'
+idl = 'DU_IDL_DIR/ccReg.idl'
+# (label, nshost, nscontext),
+iors = (('Fred', 'DU_NS_HOST', 'DU_NS_CONTEXT'), )
 
 tablesize = 45
 tabletimeout = 10000
 
-auth_method = 'CORBA' # 'LDAP', 'CORBA'
-LDAP_server = ''
-LDAP_scope = ''
+# 'LDAP', 'CORBA'
+auth_method = 'DU_AUTHENTICATION'
+LDAP_server = 'DU_LDAP_SERVER'
+LDAP_scope = 'DU_LDAP_SCOPE'
 
 # gettext
 gettext_domain = 'adif'
@@ -75,7 +66,7 @@ js_calendar_date_format_edit = 'YYYY-MM-DD'
 
 cherrycfg = {
     'global': {
-        'server.socket_port': 18456,
+        'server.socket_port': DU_WEBADMIN_PORT,
         'server.socket_host': "0.0.0.0",
         'server.thread_pool': 10,
         'server.environment': 'production',
@@ -101,5 +92,4 @@ cherrycfg = {
                      'tools.staticfile.filename': www_dir + 'img/favicon.png'}
 }
 
-
-properties_file = '/home/hh/opt/fred/root/etc/fred/properties.txt'
+properties_file = 'DU_SYSCONFDIR/fred/webadmin_logger_property_names.txt'

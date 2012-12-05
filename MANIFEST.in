@@ -1,11 +1,2 @@
-recursive-include fred_webadmin *
 recursive-include doc *
-recursive-include locale *
-recursive-include www *
-
-include webadmin_cfg.py.install
-include fred-webadmin.install
-include fred-webadmin-server.install
 include MANIFEST.in
-
-recursive-include freddist *.py README
