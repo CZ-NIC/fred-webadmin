@@ -58,7 +58,7 @@ class FredWebAdminInstall(install):
     def update_webadmin_cfg(self, filename):
         content = open(filename).read()
         content = content.replace('DU_IDL_DIR', os.path.normpath(self.idldir))
-        content = content.replace('DU_DATAROOTDIR', self.expand_filename('$data'))
+        content = content.replace('DU_DATAROOTDIR', self.expand_filename('$data/share'))
         content = content.replace('DU_LOCALSTATEDIR', self.expand_filename('$localstate'))
         content = content.replace('DU_SYSCONFDIR', self.expand_filename('$sysconf'))
         content = content.replace('DU_LOCALE_DIR', self.expand_filename('$purelib/fred_webadmin/locale'))
