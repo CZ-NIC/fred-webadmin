@@ -36,7 +36,7 @@ audit_log = {
 #           File row format: username,action1.object1,action2.object2...
 #           e.g.: testuser,read.domain,write.registrar,read.registrar...
 permissions = {
-    'enable_checking': True,
+    'enable_checking': False,
     'backend': 'csv', #, 'nicauth'
     'csv_file': 'DU_DATAROOTDIR/perms.csv',
 }
