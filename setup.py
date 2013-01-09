@@ -87,7 +87,7 @@ class FredWebAdminInstall(install):
 
 
 def main():
-    srcdir = os.path.dirname(__file__)
+    srcdir = os.path.dirname(os.path.abspath(__file__))
 
     packages = find_packages(srcdir)
     data_files = [
