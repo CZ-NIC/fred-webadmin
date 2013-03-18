@@ -52,7 +52,7 @@ fred_start() {
     if check_pidfile $PIDFILE; then
         log_success_msg "${MSG_START}"
     else
-        ${WEBADMIN_EXEC} >/dev/null 2>&1 &
+        PYTHONPATH="PYTHONPATH:DU_PYTHON_PATHS" ${WEBADMIN_EXEC} >/dev/null 2>&1 &
         if store_pid "${WEBADMIN_EXEC}" $PIDFILE
         then
             log_success_msg "${MSG_START}"

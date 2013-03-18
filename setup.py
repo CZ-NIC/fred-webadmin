@@ -71,15 +71,10 @@ class FredWebAdminInstall(install):
         open(filename, 'w').write(content)
         self.announce("File '%s' was updated" % filename)
 
-    def update_fred_webadmin(self, filename):
-        content = open(filename).read()
-        paths = [self.expand_filename('$sysconf/fred'), self.expand_filename('$purelib')]
-        content = content.replace('DU_PYTHON_PATHS', str(paths))
-        open(filename, 'w').write(content)
-        self.announce("File '%s' was updated" % filename)
-
     def update_webadmin_server(self, filename):
         content = open(filename).read()
+        paths = ':'.join([self.expand_filename('$sysconf/fred'), self.expand_filename('$purelib')])
+        content = content.replace('DU_PYTHON_PATHS', str(paths))
         content = content.replace('DU_WEBADMIN_BIN', self.expand_filename('$scripts/fred-webadmin'))
         content = content.replace('DU_LOCALSTATEDIR', self.expand_filename('$localstate'))
         open(filename, 'w').write(content)
@@ -94,7 +89,7 @@ def main():
         ('$localstate/log/fred-webadmin', []),
         ('$localstate/lib/%s/sessions' % PROJECT_NAME, []),
         ('$sysconf/init.d', ['fred-webadmin-server']),
-        ('$sysconf/fred', ['webadmin_cfg.py'])] + \
+        ('$sysconf/fred', ['conf/webadmin_cfg.py'])] + \
         [(os.path.join('share/%s/www' % PROJECT_NAME, dest), files)
          for dest, files in find_data_files(srcdir, 'www')]
 
@@ -110,7 +105,6 @@ def main():
           data_files=data_files,
           modify_files={'$purelib/fred_webadmin/config.py': 'update_config_py',
                         '$sysconf/fred/webadmin_cfg.py': 'update_webadmin_cfg',
-                        '$scripts/fred-webadmin': 'update_fred_webadmin',
                         '$sysconf/init.d/fred-webadmin-server': 'update_webadmin_server'},
           cmdclass={'install': FredWebAdminInstall})
 
