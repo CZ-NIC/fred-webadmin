@@ -20,7 +20,7 @@ try:
 except:
     error("Could not import auth module, some test will probably fail...")
 
-import tests.webadmin.base as base
+from fred_webadmin.tests.webadmin import base
 import fred_webadmin.controller.adif
 
 from fred_webadmin.corba import Registry, ccReg
@@ -779,7 +779,7 @@ class TestRegistrarCertifications(BaseADIFTestCase, RegistrarUtils):
             mox.IsA(Registry.Registrar.Detail)).AndReturn(42)
         file_upload_mock = self.corba_mock.CreateMockAnything()
         self.file_mgr_mock.save(
-            "./tests/webadmin/foofile.bar", "application/octet-stream",
+            "./fred_webadmin/tests/webadmin/foofile.bar", "application/octet-stream",
             6).AndReturn(file_upload_mock)
         file_upload_mock.finalize_upload().AndReturn(17)
         self.cert_mgr_mock.createCertification(
@@ -800,7 +800,7 @@ class TestRegistrarCertifications(BaseADIFTestCase, RegistrarUtils):
         twill.commands.fv(2, "certifications-0-fromDate", datetime.date.today().isoformat())
         twill.commands.fv(2, "certifications-0-toDate", (datetime.date.today() + datetime.timedelta(7)).isoformat())
         twill.commands.fv(2, "certifications-0-score", "2")
-        twill.commands.formfile(2, "certifications-0-evaluation_file", "./tests/webadmin/foofile.bar")
+        twill.commands.formfile(2, "certifications-0-evaluation_file", "./fred_webadmin/tests/webadmin/foofile.bar")
         twill.commands.submit()
 
         twill.commands.code(200)
