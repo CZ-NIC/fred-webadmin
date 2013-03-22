@@ -24,7 +24,7 @@ class User(object):
         self.login = recoder.c2u(user._get_username())
         self.firstname = recoder.c2u(user._get_firstname())
         self.surname = recoder.c2u(user._get_surname())
-        self.table_page_size = config.tablesize
+        self.table_page_size = config.table_page_size
 
         self._authorizer = auth_user.Authorizer(self.login)
 

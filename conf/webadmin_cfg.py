@@ -46,8 +46,8 @@ idl = 'DU_IDL_DIR/ccReg.idl'
 # (label, nshost, nscontext),
 iors = (('Fred', 'DU_NS_HOST', 'DU_NS_CONTEXT'), )
 
-tablesize = 45
-tabletimeout = 10000
+table_page_size = 45
+table_timeout = 10000
 
 # 'LDAP', 'CORBA'
 auth_method = 'DU_AUTHENTICATION'

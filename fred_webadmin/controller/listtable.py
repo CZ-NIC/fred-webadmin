@@ -39,13 +39,13 @@ class ListTableMixin(object):
             request_object = self.classname
         key = cherrypy.session.get('corbaSessionString', '')
 
-        size = config.tablesize
-        timeout = config.tabletimeout
+        page_size = config.table_page_size
+        timeout = config.table_timeout
         user = cherrypy.session.get('user')
         if user and user.table_page_size:
-            size = cherrypy.session.get('user').table_page_size
+            page_size = cherrypy.session.get('user').table_page_size
 
-        itertable = IterTable(request_object, key, size, timeout)
+        itertable = IterTable(request_object, key, page_size, timeout)
 
         return itertable
 
