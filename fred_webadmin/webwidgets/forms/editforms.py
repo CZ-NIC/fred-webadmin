@@ -268,7 +268,7 @@ class CertificationEditForm(EditForm):
         file_obj = self.cleaned_data['evaluation_file']
         if "evaluation_file" in self.changed_data:
             # User wants to upload a new file.
-            file_upload_obj = file_mgr.save(file_obj.filename, file_obj.content.type, 6)
+            file_upload_obj = file_mgr.save(file_obj.filename, str(file_obj.content.type), 6)
             chunk = file_obj.content.file.read(2 ** 14)
             while chunk:
                 file_upload_obj.upload(chunk)
@@ -323,7 +323,6 @@ class RegistrarEditForm(EditForm):
             layout_class=RegistrarEditFormLayout,
             enctype="multipart/form-data", *args, **kwargs)
 
-    id = HiddenDecimalField()
     handle = CharField(label=_('Handle')) # registrar identification
     name = CharField(label=_('Name'), required=False) # registrar name
     organization = CharField(label=_('Organization'), required=False) # organization name
@@ -444,7 +443,6 @@ class BankStatementPairingEditForm(EditForm):
         onchange="disableRegistrarHandle();")#, onload="disableRegistrarHandle();")
     handle = CharField(
         label=_('Pair with Registrar Handle'), name="registrar_handle_input")
-    id = HiddenIntegerField()
 
 
 class RegistrarGroupsEditForm(EditForm):

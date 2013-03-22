@@ -924,6 +924,7 @@ class BankStatement(AdifPage, ListTableMixin):
         """ Detail for Payment. If the payment is not paired with any
             Registrar, we display a pairing form too.
         """
+
         log_req = self._create_log_req_for_object_view(**kwd)
         try:
             obj_id = int(kwd.get('id'))
@@ -958,7 +959,7 @@ class BankStatement(AdifPage, ListTableMixin):
                     'handle': kwd.get('handle', None),
                     'statementId': kwd.get('statementId', None),
                     'type': kwd.get('type', 2),
-                    'id': obj_id},
+                },
                 onsubmit='return confirmAction();')
             if cherrypy.request.method == 'POST' and not pairing_success:
                 # Pairing form was submitted, but pairing did not finish
