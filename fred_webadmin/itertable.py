@@ -46,16 +46,18 @@ class IterTable(object):
         access to rows (fetches them on demand), thus it can access very large
         data sets without running out of memory.
     """
-    def __init__(self, request_object, session_key, pagesize=50, timeout=10000):
+    def __init__(self, request_object, session_key, pagesize=50, timeout=10000, max_row_limit=1000):
         super(IterTable, self).__init__()
 
         self.iterable = True
         self.request_object = request_object
+        self.max_row_limit = max_row_limit
 
         table, header_id = self._map_request(session_key)
         self._table = table
         self._table._set_pageSize(pagesize)
         self._table.setTimeout(timeout)
+        self._table.setLimit(self.max_row_limit)
 
         columnHeaders = table.getColumnHeaders()
         self.rawheader = [x.name for x in columnHeaders]

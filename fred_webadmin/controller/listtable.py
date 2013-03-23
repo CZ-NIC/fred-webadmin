@@ -44,8 +44,9 @@ class ListTableMixin(object):
         user = cherrypy.session.get('user')
         if user and user.table_page_size:
             page_size = cherrypy.session.get('user').table_page_size
+        max_row_limit = config.table_max_row_limit_per_obj.get(request_object, config.table_max_row_limit)
 
-        itertable = IterTable(request_object, key, page_size, timeout)
+        itertable = IterTable(request_object, key, page_size, timeout, max_row_limit)
 
         return itertable
 

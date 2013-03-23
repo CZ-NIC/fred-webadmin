@@ -86,7 +86,7 @@ class Initializer(object):
             monkey_patched_f_urls)
 
     def init_itertable(self, pagetable_mock, columnDesc=None, page=1,
-                       pageSize=5, timeout=10000, start=1, numRows=50,
+                       pageSize=5, timeout=10000, max_row_limit=1000, start=1, numRows=50,
                        numPageRows=5, rowsOverLimit=False):
         """ Utility method to prevent boilerplate code.
             Provides methods that are called by Itertable.__init__.
@@ -99,6 +99,7 @@ class Initializer(object):
             [Registry.Table.ColumnDesc(desc, Registry.Table.CT_OTHER) for
              desc in columnDesc])
         pagetable_mock._set_pageSize(pageSize).InAnyOrder("initpt")
+        pagetable_mock.setLimit(max_row_limit).InAnyOrder("initpt")
         pagetable_mock.setTimeout(timeout).InAnyOrder("initpt")
         self.itertable_update(
             pagetable_mock, page, pageSize, start, numRows,
