@@ -49,6 +49,13 @@ iors = (('Fred', 'DU_NS_HOST', 'DU_NS_CONTEXT'), )
 table_page_size = 45
 table_timeout = 10000
 
+# default max row limit for tables
+table_max_row_limit = 1000
+# specific max row to override limit for particular objects:
+table_max_row_limit_per_obj = {
+    'domain': 2000,
+}
+
 # 'LDAP', 'CORBA'
 auth_method = 'DU_AUTHENTICATION'
 LDAP_server = 'DU_LDAP_SERVER'
