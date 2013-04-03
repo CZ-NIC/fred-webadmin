@@ -1,3 +1,13 @@
+2013-04-03 Tomas Divis, Jiri Sadek, Jaromir Talir (3.10.0)
+
+    * setup.py changes for new freddist
+
+    * CherryPy 3.2 ready
+
+    * Fix tests
+
+    * Add configurable pagetable row limit (defaults + per pagetable override)
+
 2012-11-21 Tomas Divis (3.9.5)
 
     * Add autofocus to username input field at login screen
