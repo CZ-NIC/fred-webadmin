@@ -28,6 +28,26 @@ import pylogger.dummylogger as logger
 import fred_webadmin.user as fred_webadmin_user
 
 
+twill_output = StringIO()
+def setup_module():
+    root = fred_webadmin.controller.adif.prepare_root()
+    wsgiApp = cherrypy.tree.mount(root)
+    cherrypy.config.update({'server.socket_host': '0.0.0.0',
+                             'server.socket_port': 8080,
+                           })
+    cherrypy.server.start()
+    # Redirect HTTP requests.
+    twill.add_wsgi_intercept('localhost', 8080, lambda : wsgiApp)
+    # Keep Twill quiet (suppress normal Twill output).
+    twill.set_output(twill_output)
+
+def teardown_module():
+    # Remove the intercept.
+    twill.remove_wsgi_intercept('localhost', 8080)
+    # Shut down Cherrypy server.
+    cherrypy.server.stop()
+
+
 
 class BaseADIFTestCase(DaphneTestCase):
     def setUp(self):
@@ -41,24 +61,6 @@ class BaseADIFTestCase(DaphneTestCase):
         self.monkey_patch(
             fred_webadmin.controller.adif, 'corba_obj', self.corba_conn_mock)
         # Create the application, mount it and start the server.
-        root = fred_webadmin.controller.adif.prepare_root()
-        wsgiApp = cherrypy.tree.mount(root)
-        cherrypy.config.update({'server.socket_host': '0.0.0.0',
-                                 'server.socket_port': 9090,
-                                                         })
-        cherrypy.server.start()
-        # Redirect HTTP requests.
-        twill.add_wsgi_intercept('localhost', 8080, lambda : wsgiApp)
-        # Keep Twill quiet (suppress normal Twill output).
-        self.outp = StringIO()
-        twill.set_output(self.outp)
-
-    def tearDown(self):
-        super(BaseADIFTestCase, self).tearDown()
-        # Remove the intercept.
-        twill.remove_wsgi_intercept('localhost', 8080)
-        # Shut down Cherrypy server.
-        cherrypy.server.stop()
 
 
 # pylint: disable=W0613
@@ -221,8 +223,7 @@ class TestADIFAuthentication(BaseADIFTestCase):
         """ Login fails when using invalid corba authentication.
         """
         fred_webadmin.config.auth_method = 'CORBA'
-        self.monkey_patch(
-            fred_webadmin.controller.adif, 'auth', corba_auth)
+        self.monkey_patch(fred_webadmin.controller.adif, 'auth', corba_auth)
 
         with patch.object(AdminMock, 'authenticateUser') as mocked_authenticateUser:
             mocked_authenticateUser.side_effect = ccReg.Admin.AuthFailed
@@ -783,11 +784,21 @@ class TestLoggerNoLogView(BaseADIFTestCase):
         self.monkey_patch(fred_webadmin.config, 'audit_log', audit_log)
         super(TestLoggerNoLogView, self).setUp()
 
+        root = fred_webadmin.controller.adif.prepare_root()
+        wsgiApp = cherrypy.tree.mount(root)
+        twill.add_wsgi_intercept('localhost', 8080, lambda : wsgiApp)
+
+    def tearDown(self):
+        super(TestLoggerNoLogView, self).tearDown()
+        # return back normal web root
+        root = fred_webadmin.controller.adif.prepare_root()
+        wsgiApp = cherrypy.tree.mount(root)
+        twill.add_wsgi_intercept('localhost', 8080, lambda : wsgiApp)
+
     def test_logger_hidden_when_log_view_is_disabled_in_config(self):
         # Replace fred_webadmin.controller.adif.auth module with CORBA
         # module.
-        self.monkey_patch(
-            fred_webadmin.controller.adif, 'auth', corba_auth)
+        self.monkey_patch(fred_webadmin.controller.adif, 'auth', corba_auth)
 
         twill.commands.go("http://localhost:8080/login")
         twill.commands.showforms()
