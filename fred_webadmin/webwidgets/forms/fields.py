@@ -637,7 +637,6 @@ class ChoiceField(Field):
     def clean(self):
         """ Validates that the input is in self.choices.
         """
-#        import ipdb; ipdb.set_trace()
         value = super(ChoiceField, self).clean()
         if self.is_empty():
             value = u''
