@@ -268,7 +268,7 @@ class CertificationEditForm(EditForm):
         file_obj = self.cleaned_data['evaluation_file']
         if "evaluation_file" in self.changed_data:
             # User wants to upload a new file.
-            file_upload_obj = file_mgr.save(file_obj.filename, str(file_obj.content.type), 6)
+            file_upload_obj = file_mgr.save(recoder.u2c(file_obj.filename), str(file_obj.content.type), 6)
             chunk = file_obj.content.file.read(2 ** 14)
             while chunk:
                 file_upload_obj.upload(chunk)
