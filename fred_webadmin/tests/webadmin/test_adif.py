@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*
 
-import mox
+import mock
+from mock import call
+from nose.tools import assert_equal #@UnresolvedImport pylint: disable=E0611
 from omniORB import CORBA
 import cherrypy
-import twill
 import datetime
 from logging import error
-from achoo import calling
 try:
     import ldap
-except:
+except ImportError:
     error("Could not import ldap, some test will probably fail...")
 
 from StringIO import StringIO
@@ -17,46 +17,77 @@ import twill.commands
 
 try:
     from fred_webadmin.auth import ldap_auth, corba_auth
-except:
+except Exception: # pylint: disable=W0703
     error("Could not import auth module, some test will probably fail...")
 
-from fred_webadmin.tests.webadmin import base
+from fred_webadmin.tests.webadmin.base import DaphneTestCase
 import fred_webadmin.controller.adif
+import fred_webadmin.webwidgets.forms
 
 from fred_webadmin.corba import Registry, ccReg
 import pylogger.dummylogger as logger
-import fred_webadmin.user as user
+import fred_webadmin.user as fred_webadmin_user
 
-class BaseADIFTestCase(base.DaphneTestCase):
+
+twill_output = StringIO()
+def setup_module():
+    root = fred_webadmin.controller.adif.prepare_root()
+    wsgiApp = cherrypy.tree.mount(root)
+    cherrypy.config.update({'server.socket_host': '0.0.0.0',
+                             'server.socket_port': 8080,
+                           })
+    cherrypy.server.start()
+    # Redirect HTTP requests.
+    twill.add_wsgi_intercept('localhost', 8080, lambda : wsgiApp)
+    # Keep Twill quiet (suppress normal Twill output).
+    twill.set_output(twill_output)
+
+def teardown_module():
+    # Remove the intercept.
+    twill.remove_wsgi_intercept('localhost', 8080)
+    # Shut down Cherrypy server.
+    cherrypy.server.stop()
+
+
+
+class BaseADIFTestCase(DaphneTestCase):
     def setUp(self):
-        base.DaphneTestCase.setUp(self)
+        super(BaseADIFTestCase, self).setUp()
         self.admin_mock = AdminMock()
         self.web_session_mock['Admin'] = self.admin_mock
-        self.web_session_mock['user'] = user.User(UserMock())
-        self.file_mgr_mock = FileManagerMock()
+        self.web_session_mock['user'] = fred_webadmin_user.User(UserMock())
+        self.file_mgr_mock = mock.Mock(ccReg._objref_FileManager)  # pylint: disable=W0212
         self.web_session_mock['FileManager'] = self.file_mgr_mock
         self.corba_conn_mock = CorbaConnectionMock(admin=self.admin_mock)
-        self.monkey_patch(
-            fred_webadmin.controller.adif, 'corba_obj', self.corba_conn_mock)
+        self.monkey_patch(fred_webadmin.controller.adif, 'corba_obj', self.corba_conn_mock)
         # Create the application, mount it and start the server.
-        root = fred_webadmin.controller.adif.prepare_root()
-        wsgiApp = cherrypy.tree.mount(root)
-        cherrypy.config.update({'server.socket_host': '0.0.0.0',
-                                 'server.socket_port': 9090,
-                                                         })
-        cherrypy.server.start()
-        # Redirect HTTP requests.
-        twill.add_wsgi_intercept('localhost', 8080, lambda : wsgiApp)
-        # Keep Twill quiet (suppress normal Twill output).
-        self.outp = StringIO()
-        twill.set_output(self.outp)
 
-    def tearDown(self):
-        base.DaphneTestCase.tearDown(self)
-        # Remove the intercept.
-        twill.remove_wsgi_intercept('localhost', 8080)
-        # Shut down Cherrypy server.
-        cherrypy.server.stop()
+
+# pylint: disable=W0613
+class GroupManagerMock(object):
+    def getGroups(self):
+        return [
+            Registry.Registrar.Group.GroupData(
+                1, "test_group_1", ccReg.DateType(0, 0, 0)),
+            Registry.Registrar.Group.GroupData(
+                10, "test_group_2", ccReg.DateType(20, 10, 2009)),
+            Registry.Registrar.Group.GroupData(
+                7, "test_group_3", ccReg.DateType(0, 0, 0))]
+
+    def getMembershipsByRegistar(self, reg_id):
+        return []
+
+    def deleteGroup(self, group_id):
+        pass
+
+    def addRegistrarToGroup(self, reg_id, group_id):
+        pass
+
+    def removeRegistrarFromGroup(self, reg_id, group_id):
+        pass
+
+    def updateGroup(self, group_id, name):
+        pass
 
 
 class CertificationManagerMock(object):
@@ -65,7 +96,7 @@ class CertificationManagerMock(object):
 
     def getCertificationsByRegistrar(self, reg_id):
         return []
-        #[Registry.Registrar.Certification.CertificationData(
+        # [Registry.Registrar.Certification.CertificationData(
         #    1, ccReg.DateType(1, 1, 2008), ccReg.DateType(1, 1, 2010), 2, 17)]
 
     def createCertification(self, reg_id, from_date, to_date, score, file_id):
@@ -75,21 +106,15 @@ class CertificationManagerMock(object):
         pass
 
     def shortenCertification(self, crt_id, to_date):
-        raise NotImplementedError("This has to be stubbed out!")
-
-
-class FileManagerMock(object):
-    def info(self, file_id):
-        raise NotImplementedError("This has to be stubbed out!")
-
-    def save(self, name, mimetype, filetype):
-        raise NotImplementedError("This has to be stubbed out!")
+        pass
 
 
 class AdminMock(object):
     def __init__(self):
         super(AdminMock, self).__init__()
         self.session = None
+        self.group_manager_mock = GroupManagerMock() # helper reference to GrouManagerMock
+        self.certification_manager_mock = CertificationManagerMock()
 
     def getCountryDescList(self):
         return [Registry.CountryDesc(1, 'cz')]
@@ -98,13 +123,14 @@ class AdminMock(object):
         return 1
 
     def getGroupManager(self):
-        return GroupManagerMock()
+        return self.group_manager_mock
 
     def getCertificationManager(self):
-        return CertificationManagerMock()
+        return self.certification_manager_mock
 
     def createSession(self, username):
-        self.session = SessionMock()
+        self.session = mock.Mock(spec=ccReg._objref_Session) # pylint: disable=W0212
+        self.session.getUser.return_value = UserMock()
         return "testSessionString"
 
     def getSession(self, session_str):
@@ -118,11 +144,11 @@ class AdminMock(object):
 
 
 class CorbaConnectionMock(object):
-    def __init__(self, admin=AdminMock(), logger=logger.DummyLogger(), mailer=None, filemgr=None, messages=None):
+    def __init__(self, admin=AdminMock(), logger_obj=logger.DummyLogger(), mailer=None, filemgr=None, messages=None):
         super(CorbaConnectionMock, self).__init__()
         self.obj = {
             "ccReg.Admin": admin,
-            "ccReg.Logger": logger,
+            "ccReg.Logger": logger_obj,
             "ccReg.Mailer": mailer,
             "ccReg.FileManager": filemgr,
             "Registry.Messages": messages,
@@ -133,25 +159,6 @@ class CorbaConnectionMock(object):
 
     def connect(self, user, pwd):
         pass
-
-class SessionMock(object):
-    def __init__(self):
-        super(SessionMock, self).__init__()
-
-    def getUser(self):
-        return UserMock()
-
-    def setHistory(self, val):
-        pass
-
-    def getDetail(self, obj, id):
-        pass
-
-    def updateRegistrar(self, reg):
-        raise NotImplementedError("This has to be stubbed out!")
-
-    def getBankingInvoicing(self):
-        raise NotImplementedError("This has to be stubbed out!")
 
 
 class UserMock(object):
@@ -169,39 +176,10 @@ class UserMock(object):
 
     def _get_surname(self):
         return "test_surname"
-
-class GroupManagerMock(object):
-    def __init__(self):
-        self.groups = [
-            Registry.Registrar.Group.GroupData(
-                1, "test_group_1", ccReg.DateType(0, 0, 0)),
-            Registry.Registrar.Group.GroupData(
-                10, "test_group_2", ccReg.DateType(20, 10, 2009)),
-            Registry.Registrar.Group.GroupData(
-                7, "test_group_3", ccReg.DateType(0, 0, 0))]
-
-    def getGroups(self):
-        return self.groups
-
-    def getMembershipsByRegistar(self, reg_id):
-        return []
-#        return [Registry.Registrar.Group.MembershipByRegistrar(1, 7,
-#            ccReg.DateType(1, 1, 2008), ccReg.DateType(20, 10, 2010))]
-
-    def deleteGroup(self, group_id):
-        raise NotImplementedError("This has to be stubbed out!")
-
-    def addRegistrarToGroup(self, reg_id, group_id):
-        raise NotImplementedError("This has to be stubbed out!")
-
-    def removeRegistrarFromGroup(self, reg_id, group_id):
-        raise NotImplementedError("This has to be stubbed out!")
+# pylint: enable=W0613
 
 
-class TestADIF(BaseADIFTestCase):
-    def setUp(self):
-        BaseADIFTestCase.setUp(self)
-
+class TestADIFAuthentication(BaseADIFTestCase):
     def test_login_valid_corba_auth(self):
         """ Login passes when using valid corba authentication.
         """
@@ -210,7 +188,6 @@ class TestADIF(BaseADIFTestCase):
         # module.
         self.monkey_patch(
             fred_webadmin.controller.adif, 'auth', corba_auth)
-        self.corba_mock.ReplayAll()
 
         twill.commands.go("http://localhost:8080/login")
         twill.commands.showforms()
@@ -221,141 +198,51 @@ class TestADIF(BaseADIFTestCase):
         twill.commands.url("http://localhost:8080/summary/")
         twill.commands.code(200)
 
-    '''def ignoretest_login_unicode_username(self):
-        """ Login passes when using valid corba authentication.
-            THIS IS BROKEN, probably because of strange way
-            mechanize (and twill that uses it) handles unicode strings.
-        """
-        fred_webadmin.config.auth_method = 'CORBA'
-        # Replace fred_webadmin.controller.adif.auth module with CORBA
-        # module.
-        self.monkey_patch(
-            fred_webadmin.controller.adif, 'auth', corba_auth)
-        self.corba_mock.ReplayAll()
-
-        twill.commands.go("http://localhost:8080/login")
-        twill.commands.showforms()
-        twill.commands.fv(1, "login", u"ěščěšřéýí汉语unicode")
-        twill.commands.fv(1, "password", "test pwd")
-        twill.commands.fv(1, "corba_server", "0")
-        twill.commands.submit()
-        twill.commands.url("http://localhost:8080/summary/")
-        twill.commands.code(200)'''
-
+#    def ignoretest_login_unicode_username(self):
+#        """ Login passes when using valid corba authentication.
+#            THIS IS BROKEN, probably because of strange way
+#            mechanize (and twill that uses it) handles unicode strings.
+#        """
+#        fred_webadmin.config.auth_method = 'CORBA'
+#        # Replace fred_webadmin.controller.adif.auth module with CORBA
+#        # module.
+#        self.monkey_patch(
+#            fred_webadmin.controller.adif, 'auth', corba_auth)
+#        self.corba_mock.ReplayAll()
+#
+#        twill.commands.go("http://localhost:8080/login")
+#        twill.commands.showforms()
+#        twill.commands.fv(1, "login", u"ěščěšřéýí汉语unicode")
+#        twill.commands.fv(1, "password", "test pwd")
+#        twill.commands.fv(1, "corba_server", "0")
+#        twill.commands.submit()
+#        twill.commands.url("http://localhost:8080/summary/")
+#        twill.commands.code(200)
 
     def test_login_invalid_corba_auth(self):
         """ Login fails when using invalid corba authentication.
         """
         fred_webadmin.config.auth_method = 'CORBA'
-        self.monkey_patch(
-            fred_webadmin.controller.adif, 'auth', corba_auth)
-        self.corba_mock.StubOutWithMock(self.admin_mock, "authenticateUser")
-        self.admin_mock.authenticateUser(
-            "test", "test pwd").AndRaise(ccReg.Admin.AuthFailed)
-        self.corba_mock.ReplayAll()
+        self.monkey_patch(fred_webadmin.controller.adif, 'auth', corba_auth)
 
-        twill.commands.go("http://localhost:8080/login")
-        twill.commands.showforms()
-        twill.commands.fv(1, "login", "test")
-        twill.commands.fv(1, "password", "test pwd")
-        twill.commands.fv(1, "corba_server", "0")
-        twill.commands.submit()
-        twill.commands.url("http://localhost:8080/login/")
-        twill.commands.code(403)
+        with mock.patch.object(AdminMock, 'authenticateUser') as mocked_authenticateUser:
+            mocked_authenticateUser.side_effect = ccReg.Admin.AuthFailed
 
+            twill.commands.go("http://localhost:8080/login")
+            twill.commands.showforms()
+            twill.commands.fv(1, "login", "test")
+            twill.commands.fv(1, "password", "test pwd")
+            twill.commands.fv(1, "corba_server", "0")
+            twill.commands.submit()
+            twill.commands.url("http://localhost:8080/login/")
+            twill.commands.code(403)
 
-    def test_login_ldap_valid_credentials(self):
-        """ Login passes when valid credentials are supplied when using LDAP.
-        """
-        fred_webadmin.config.auth_method = 'LDAP'
-        fred_webadmin.config.LDAP_scope = "test ldap scope %s"
-        fred_webadmin.config.LDAP_server = "test ldap server"
-        # Replace fred_webadmin.controller.adif.auth module with ldap
-        # module.
-        self.monkey_patch(
-            fred_webadmin.controller.adif, 'auth', ldap_auth)
-        # Mock out ldap.open method. We must not mock the whole ldap package,
-        # because ldap_auth uses ldap exceptions.
-        self.monkey_patch(
-            fred_webadmin.auth.ldap_auth.ldap, 'open', self.ldap_mock)
-        fred_webadmin.auth.ldap_auth.ldap.open.__call__(
-            "test ldap server").AndReturn(self.ldap_mock)
-        self.ldap_mock.simple_bind_s("test ldap scope test", "test pwd")
-        self.corba_mock.ReplayAll()
-
-        twill.commands.go("http://localhost:8080/login")
-        twill.commands.showforms()
-        twill.commands.fv(1, "login", "test")
-        twill.commands.fv(1, "password", "test pwd")
-        twill.commands.fv(1, "corba_server", "0")
-        twill.commands.submit()
-        # Invalid credentials => stay at login page.
-        twill.commands.url("http://localhost:8080/summary/")
-        twill.commands.code(200)
-
-    def test_login_ldap_invalid_credentials(self):
-        """ Login fails when invalid credentials are supplied when using LDAP.
-        """
-        # Use LDAP for authenication.
-        fred_webadmin.config.auth_method = 'LDAP'
-        fred_webadmin.config.LDAP_scope = "test ldap scope %s"
-        fred_webadmin.config.LDAP_server = "test ldap server"
-        # Replace fred_webadmin.controller.adif.auth module with ldap
-        # module.
-        self.monkey_patch(
-            fred_webadmin.controller.adif, 'auth', ldap_auth)
-        # Mock out ldap.open method.
-        self.monkey_patch(
-            fred_webadmin.auth.ldap_auth.ldap, 'open', self.ldap_mock)
-        fred_webadmin.auth.ldap_auth.ldap.open.__call__(
-            "test ldap server").AndReturn(self.ldap_mock)
-        self.ldap_mock.simple_bind_s(
-            "test ldap scope test", "test pwd").AndRaise(
-                ldap.INVALID_CREDENTIALS)
-        self.corba_mock.ReplayAll()
-
-        twill.commands.go("http://localhost:8080/login")
-        twill.commands.showforms()
-        twill.commands.fv(1, "login", "test")
-        twill.commands.fv(1, "password", "test pwd")
-        twill.commands.fv(1, "corba_server", "0")
-        twill.commands.submit()
-        # Invalid credentials => stay at login page.
-        twill.commands.url("http://localhost:8080/login/")
-        twill.commands.code(403)
-
-    def test_login_ldap_server_down(self):
-        """ Login fails when using LDAP and LDAP server is down.
-        """
-        # Use LDAP for authenication.
-        fred_webadmin.config.auth_method = 'LDAP'
-        fred_webadmin.config.LDAP_scope = "test ldap scope %s"
-        fred_webadmin.config.LDAP_server = "test ldap server"
-        # Replace fred_webadmin.controller.adif.auth module with ldap
-        # module.
-        self.monkey_patch(
-            fred_webadmin.controller.adif, 'auth', ldap_auth)
-        # Mock out ldap.open method.
-        self.monkey_patch(
-            fred_webadmin.auth.ldap_auth.ldap, 'open', self.ldap_mock)
-        fred_webadmin.auth.ldap_auth.ldap.open.__call__(
-            "test ldap server").AndRaise(ldap.SERVER_DOWN)
-        self.corba_mock.ReplayAll()
-
-        twill.commands.go("http://localhost:8080/login")
-        twill.commands.showforms()
-        twill.commands.fv(1, "login", "test")
-        twill.commands.fv(1, "password", "test pwd")
-        twill.commands.fv(1, "corba_server", "0")
-        twill.commands.submit()
-        # Invalid credentials => stay at login page.
-        twill.commands.url("http://localhost:8080/login/")
+        mocked_authenticateUser.assert_called_once_with('test', 'test pwd')
 
     def test_double_login(self):
         """ Loging in when already loged in redirects to /summary.
         """
         self.web_session_mock['corbaSessionString'] = "test session string"
-        self.corba_mock.ReplayAll()
         twill.commands.go("http://localhost:8080/login/")
         twill.commands.code(200)
         twill.commands.url("http://localhost:8080/summary/")
@@ -363,7 +250,6 @@ class TestADIF(BaseADIFTestCase):
     def test_login_invalid_form(self):
         """ Login fails when submitting invalid form.
         """
-        self.corba_mock.ReplayAll()
         twill.commands.go("http://localhost:8080/login/")
         twill.commands.showforms()
         twill.commands.fv(1, "login", "")
@@ -372,8 +258,85 @@ class TestADIF(BaseADIFTestCase):
         # Check that we did not leave the login page.
         twill.commands.url("http://localhost:8080/login/")
 
+class TestADIFAuthenticationLDAP(BaseADIFTestCase):
+    def setUp(self):
+        super(TestADIFAuthenticationLDAP, self).setUp()
+        self.monkey_patch(fred_webadmin.controller.adif, 'auth', ldap_auth)
+        self.monkey_patch(fred_webadmin.config, 'auth_method', 'LDAP')
+        self.monkey_patch(fred_webadmin.config, 'LDAP_scope', 'test ldap scope %s')
+        self.monkey_patch(fred_webadmin.config, 'LDAP_server', 'test ldap server')
+        # Mock out ldap.open method. We must not mock the whole ldap package,
+        # because ldap_auth uses ldap exceptions.
+        self.ldap_open_mock = mock.create_autospec(ldap.open)
+        self.monkey_patch(fred_webadmin.auth.ldap_auth.ldap, 'open', self.ldap_open_mock) #@UndefinedVariable
 
-class RegistrarUtils(object):
+    def assert_ldap_called(self):
+        assert_equal(self.ldap_open_mock.mock_calls, [call('test ldap server'),
+                                                      call().simple_bind_s('test ldap scope test', 'test pwd')])
+    def test_login_ldap_valid_credentials(self):
+        """ Login passes when valid credentials are supplied when using LDAP.
+        """
+        twill.commands.go("http://localhost:8080/login")
+        twill.commands.showforms()
+        twill.commands.fv(1, "login", "test")
+        twill.commands.fv(1, "password", "test pwd")
+        twill.commands.fv(1, "corba_server", "0")
+        twill.commands.submit()
+        # Invalid credentials => stay at login page.
+        twill.commands.url("http://localhost:8080/summary/")
+        twill.commands.code(200)
+
+        self.assert_ldap_called()
+
+
+    def test_login_ldap_invalid_credentials(self):
+        """ Login fails when invalid credentials are supplied when using LDAP.
+        """
+        self.ldap_open_mock.return_value.simple_bind_s.side_effect = ldap.INVALID_CREDENTIALS
+
+        twill.commands.go("http://localhost:8080/login")
+        twill.commands.showforms()
+        twill.commands.fv(1, "login", "test")
+        twill.commands.fv(1, "password", "test pwd")
+        twill.commands.fv(1, "corba_server", "0")
+        twill.commands.submit()
+        # Invalid credentials => stay at login page.
+        twill.commands.url("http://localhost:8080/login/")
+        twill.commands.code(403)
+
+        self.assert_ldap_called()
+
+    def test_login_ldap_server_down(self):
+        """ Login fails when using LDAP and LDAP server is down.
+        """
+        self.ldap_open_mock.return_value.simple_bind_s.side_effect = ldap.SERVER_DOWN
+
+        twill.commands.go("http://localhost:8080/login")
+        twill.commands.showforms()
+        twill.commands.fv(1, "login", "test")
+        twill.commands.fv(1, "password", "test pwd")
+        twill.commands.fv(1, "corba_server", "0")
+        twill.commands.submit()
+        # Invalid credentials => stay at login page.
+        twill.commands.url("http://localhost:8080/login/")
+
+        self.assert_ldap_called()
+
+
+class TestRegistrarBase(BaseADIFTestCase):
+    def setUp(self):
+        super(TestRegistrarBase, self).setUp()
+        self.admin_mock.createSession('testuser')
+        self.session_mock = self.admin_mock.getSession('testSessionString')
+        # when called with argument 17, return this FileInfo:
+        self.file_mgr_mock.info.side_effect = lambda fileinfo_id: \
+            ccReg.FileInfo(1, 'testfile', 'testpath', 'testmime', 0, ccReg.DateType(10, 10, 2010), 100) \
+            if fileinfo_id == 17 else None
+        self.session_mock.updateRegistrar.side_effect = lambda reg: \
+            42 if isinstance(reg, (ccReg.AdminRegistrar, Registry.Registrar.Detail)) else None
+        self.session_mock.getDetail.side_effect = lambda ft_type, obj_id: \
+            self._fabricate_registrar() if (ft_type, obj_id) == (ccReg.FT_REGISTRAR, 42) else None
+
     def _fabricate_registrar(self):
         """ Returns a fake Registrar object. """
         return (
@@ -404,65 +367,21 @@ class RegistrarUtils(object):
                             toDate=ccReg.DateType(0, 0, 0))], hidden=False)))
 
 
-class TestRegistrar(BaseADIFTestCase, RegistrarUtils):
-    def __init__(self):
-        super(TestRegistrar, self).__init__()
-
-    def setUp(self):
-        super(TestRegistrar, self).setUp()
-        # We have to return our special session (createSession would
-        # instantiate a new one).
-        self.admin_mock.createSession("testuser")
-        self.session_mock = self.admin_mock.getSession("testSessionString")
-        self.corba_mock.StubOutWithMock(self.session_mock, "getDetail")
-        self.corba_mock.StubOutWithMock(self.session_mock, "updateRegistrar")
-
+class TestRegistrar(TestRegistrarBase):
     def test_edit_correct_args(self):
         """ Registrar editation passes. """
-        self.corba_mock.StubOutWithMock(self.file_mgr_mock, "info")
-        self.file_mgr_mock.info(17).AndReturn(ccReg.FileInfo(1, "testfile",
-            "testpath", "testmime", 0, ccReg.DateType(10, 10, 2010), 100))
-        self.session_mock.getDetail(
-            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
-        self.file_mgr_mock.info(17).AndReturn(ccReg.FileInfo(1, "testfile",
-            "testpath", "testmime", 0, ccReg.DateType(10, 10, 2010), 100))
-        self.session_mock.getDetail(
-            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
-        self.file_mgr_mock.info(17).AndReturn(ccReg.FileInfo(1, "testfile",
-            "testpath", "testmime", 0, ccReg.DateType(10, 10, 2010), 100))
-        self.session_mock.updateRegistrar(
-            mox.IsA(Registry.Registrar.Detail)).AndReturn(42)
-        # Jumps to detail after updating.
-        self.session_mock.getDetail(
-            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
-        self.file_mgr_mock.info(17).AndReturn(ccReg.FileInfo(1, "testfile",
-            "testpath", "testmime", 0, ccReg.DateType(10, 10, 2010), 100))
-
-        self.corba_mock.ReplayAll()
-
         twill.commands.go("http://localhost:8080/registrar/edit/?id=42")
         twill.commands.showforms()
         twill.commands.fv(2, "handle", "test handle")
         twill.commands.submit()
 
         twill.commands.code(200)
-        twill.commands.url("http://localhost:8080/registrar/detail/\?id=42")
+        twill.commands.url(r"http://localhost:8080/registrar/detail/\?id=42")
         twill.commands.find("test handle")
 
     def test_edit_incorrect_zone_date_arg(self):
         """ Registrar editation does not pass when invalid zone date
             provided. """
-        self.session_mock.getDetail(
-            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
-        self.session_mock.getDetail(
-            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
-        self.session_mock.updateRegistrar(
-            mox.IsA(Registry.Registrar.Detail)).AndReturn(42)
-        self.session_mock.getDetail(
-            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
-
-        self.corba_mock.ReplayAll()
-
         twill.commands.go("http://localhost:8080/registrar/edit/?id=42")
         twill.commands.showforms()
 
@@ -472,31 +391,11 @@ class TestRegistrar(BaseADIFTestCase, RegistrarUtils):
 
         # Test that we stay in edit, because the form is not valid.
         twill.commands.code(200)
-        twill.commands.url("http://localhost:8080/registrar/edit/\?id=42")
+        twill.commands.url(r"http://localhost:8080/registrar/edit/\?id=42")
 
     def test_create(self):
         """ Registrar creation passes.
         """
-        # Submit the form.
-        self.session_mock.updateRegistrar(
-            mox.IsA(ccReg.AdminRegistrar)).AndReturn(42)
-
-        # Display the registar detail (we're redirected after a successful
-        # submit).
-        self.session_mock.getDetail(ccReg.FT_REGISTRAR, 42).AndReturn(
-            CORBA.Any(
-                CORBA.TypeCode("IDL:Registry/Registrar/Detail:1.0"),
-                Registry.Registrar.Detail(
-                    id=u'0', ico='', dic='', varSymb='', vat=True,
-                    handle='test handle', name='',
-                    organization='', street1='',
-                    street2='', street3='', city='', stateorprovince='',
-                    postalcode='', country='', telephone='', fax='',
-                    email='', url='', credit='',
-                    unspec_credit=u'', access=[], zones=[], hidden=False)))
-
-        self.corba_mock.ReplayAll()
-
         # Create the registrar.
         twill.commands.go("http://localhost:8080/registrar/create")
         twill.commands.showforms()
@@ -506,28 +405,12 @@ class TestRegistrar(BaseADIFTestCase, RegistrarUtils):
         # Test that we've jumped to the detail page (i.e., creation has
         # completed successfully).
         twill.commands.code(200)
-        twill.commands.url("http://localhost:8080/registrar/detail/\?id=42")
+        twill.commands.url(r"http://localhost:8080/registrar/detail/\?id=42")
         twill.commands.find("test handle")
 
     def test_create_registrar_zone_to_date_smaller_than_zone_from_date(self):
         """ Registrar creation fails when zone 'To' date is smaller than zone
             'From' date (ticket #3530)."""
-        self.session_mock.updateRegistrar(
-            mox.IsA(ccReg.AdminRegistrar)).AndReturn(42)
-        self.session_mock.getDetail(ccReg.FT_REGISTRAR, 42).AndReturn(
-            CORBA.Any(
-                CORBA.TypeCode("IDL:Registry/Registrar/Detail:1.0"),
-                Registry.Registrar.Detail(
-                    id=3L, ico='', dic='', varSymb='', vat=True,
-                    handle='test handle', name='',
-                    organization='', street1='',
-                    street2='', street3='', city='', stateorprovince='',
-                    postalcode='', country='', telephone='', fax='',
-                    email='', url='', credit='',
-                    unspec_credit=u'', access=[], zones=[], hidden=False)))
-
-        self.corba_mock.ReplayAll()
-
         # Create the registrar.
         twill.commands.go("http://localhost:8080/registrar/create")
         twill.commands.showforms()
@@ -543,31 +426,11 @@ class TestRegistrar(BaseADIFTestCase, RegistrarUtils):
         # not been created.
         twill.commands.code(200)
         twill.commands.url("http://localhost:8080/registrar/create")
+        twill.commands.find('must be bigger')
 
     def test_create_registrar_zone_to_date_bigger_than_zone_from_date(self):
         """ Registrar creation passes when zone 'To' date is bigger than zone
             'From' date."""
-        self.session_mock.updateRegistrar(
-            mox.IsA(ccReg.AdminRegistrar)).AndReturn(42)
-        self.session_mock.getDetail(ccReg.FT_REGISTRAR, 42).AndReturn(
-            CORBA.Any(
-                CORBA.TypeCode("IDL:Registry/Registrar/Detail:1.0"),
-                Registry.Registrar.Detail(
-                    id=3L, ico='', dic='', varSymb='', vat=True,
-                    handle='test handle', name='',
-                    organization='', street1='',
-                    street2='', street3='', city='', stateorprovince='',
-                    postalcode='', country='', telephone='', fax='',
-                    email='', url='', credit='',
-                    unspec_credit=u'', access=[],
-                    zones=[Registry.Registrar.ZoneAccess(
-                        id=5L, name='cz', credit='9453375',
-                        fromDate=ccReg.DateType(day=1, month=2, year=2010),
-                        toDate=ccReg.DateType(day=10, month=2, year=2010))],
-                    hidden=False)))
-
-        self.corba_mock.ReplayAll()
-
         # Create the registrar.
         twill.commands.go("http://localhost:8080/registrar/create")
         twill.commands.showforms()
@@ -582,29 +445,12 @@ class TestRegistrar(BaseADIFTestCase, RegistrarUtils):
         # Test that we've jumped to the detail page (i.e., creation has
         # completed successfully).
         twill.commands.code(200)
-        twill.commands.url("http://localhost:8080/registrar/detail/\?id=42")
+        twill.commands.url(r"http://localhost:8080/registrar/detail/\?id=42")
         twill.commands.find("test handle")
-
 
     def test_create_two_registrars_with_same_name(self):
         """ Creating second registrar with the same name fails.
             Ticket #3079. """
-        self.session_mock.updateRegistrar(
-            mox.IsA(ccReg.AdminRegistrar)).AndReturn(42)
-        self.session_mock.getDetail(ccReg.FT_REGISTRAR, 42).AndReturn(
-            CORBA.Any(
-                CORBA.TypeCode("IDL:Registry/Registrar/Detail:1.0"),
-                Registry.Registrar.Detail(
-                    id=3L, ico='', dic='', varSymb='', vat=True,
-                    handle='test handle', name='',
-                    organization='', street1='',
-                    street2='', street3='', city='', stateorprovince='',
-                    postalcode='', country='', telephone='', fax='',
-                    email='', url='', credit='',
-                    unspec_credit=u'', access=[], zones=[], hidden=False)))
-
-        self.corba_mock.ReplayAll()
-
         # Create the first registrar.
         twill.commands.go("http://localhost:8080/registrar/create")
         twill.commands.showforms()
@@ -612,16 +458,11 @@ class TestRegistrar(BaseADIFTestCase, RegistrarUtils):
         twill.commands.submit()
 
         twill.commands.code(200)
-        twill.commands.url("http://localhost:8080/registrar/detail/\?id=42")
+        twill.commands.url(r"http://localhost:8080/registrar/detail/\?id=42")
         twill.commands.find("test handle")
 
-        self.corba_mock.ResetAll()
-
         # Now create the second one with the same name.
-        self.session_mock.updateRegistrar(
-            mox.IsA(ccReg.AdminRegistrar)).AndRaise(ccReg.Admin.UpdateFailed)
-
-        self.corba_mock.ReplayAll()
+        self.session_mock.updateRegistrar.side_effect = ccReg.Admin.UpdateFailed
 
         twill.commands.go("http://localhost:8080/registrar/create")
         twill.commands.showforms()
@@ -632,58 +473,17 @@ class TestRegistrar(BaseADIFTestCase, RegistrarUtils):
         # failed).
         twill.commands.url("http://localhost:8080/registrar/create")
         twill.commands.code(200)
+        twill.commands.find('Updating registrar failed')
 
 
-class TestRegistrarGroups(BaseADIFTestCase, RegistrarUtils):
-    def setUp(self):
-        BaseADIFTestCase.setUp(self)
-        self.admin_mock.createSession("testuser")
-        self.session_mock = self.admin_mock.getSession("testSessionString")
-        self.corba_mock.StubOutWithMock(self.session_mock, "getDetail")
-        self.corba_mock.StubOutWithMock(self.session_mock, "updateRegistrar")
-        self.group_mgr_mock = GroupManagerMock()
-        self.admin_mock.getGroupManager = lambda : self.group_mgr_mock
-
-
+class TestRegistrarGroups(TestRegistrarBase):
     def test_add_registrar_to_group(self):
-        self.corba_mock.StubOutWithMock(
-            self.group_mgr_mock, "getMembershipsByRegistar")
-        self.corba_mock.StubOutWithMock(
-            self.group_mgr_mock, "addRegistrarToGroup")
-
-        # Prepare the groups.
-        self.group_mgr_mock.getGroups = lambda : (
-            [Registry.Registrar.Group.GroupData(
-                1, "test_group_1", ccReg.DateType(0, 0, 0)),
-            Registry.Registrar.Group.GroupData(
-                3, "test_group_3", ccReg.DateType(20, 10, 2009)),
-            Registry.Registrar.Group.GroupData(
-                2, "test_group_2", ccReg.DateType(0, 0, 0))])
-
-        # Show the edit form.
-        self.session_mock.getDetail(
-            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
-        self.group_mgr_mock.getMembershipsByRegistar(42).AndReturn([])
-
-        # Process form after submitting.
-        self.session_mock.getDetail(
-            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
-        self.group_mgr_mock.getMembershipsByRegistar(42).AndReturn([])
-        self.session_mock.updateRegistrar(
-            mox.IsA(Registry.Registrar.Detail)).AndReturn(42)
-        self.group_mgr_mock.getMembershipsByRegistar(42).AndReturn([])
-        self.group_mgr_mock.addRegistrarToGroup(42, 1)
-
-        # Jump to detail after updating.
-        self.session_mock.getDetail(
-            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
-        self.group_mgr_mock.getMembershipsByRegistar(42).AndReturn(
-            [Registry.Registrar.Group.MembershipByRegistrar(1, 1,
-            ccReg.DateType(1, 1, 2008), ccReg.DateType(0, 0, 0))])
-
-        self.corba_mock.ReplayAll()
-
         twill.commands.go("http://localhost:8080/registrar/edit/?id=42")
+
+        self.monkey_patch(self.admin_mock.group_manager_mock, 'getMembershipsByRegistar',
+            lambda reg_id: [Registry.Registrar.Group.MembershipByRegistrar(1, 1,
+                            ccReg.DateType(1, 1, 2008), ccReg.DateType(0, 0, 0))])
+
         twill.commands.showforms()
         twill.commands.fv(2, "groups-0-id", "1")
         twill.commands.submit()
@@ -691,48 +491,16 @@ class TestRegistrarGroups(BaseADIFTestCase, RegistrarUtils):
         twill.commands.code(200)
         twill.commands.find("test_group_1")
 
-        self.corba_mock.VerifyAll()
-
     def test_remove_registrar_from_group(self):
-        self.corba_mock.StubOutWithMock(
-            self.group_mgr_mock, "getMembershipsByRegistar")
-        self.corba_mock.StubOutWithMock(
-            self.group_mgr_mock, "removeRegistrarFromGroup")
+        with mock.patch.object(self.admin_mock.group_manager_mock, 'getMembershipsByRegistar') as mock_getMembershipsByReg:
+            mock_getMembershipsByReg.side_effect = \
+                lambda reg_id: [Registry.Registrar.Group.MembershipByRegistrar(1, 1,
+                                ccReg.DateType(1, 1, 2008), ccReg.DateType(0, 0, 0))]
 
-        # Prepare the groups.
-        self.group_mgr_mock.getGroups = lambda : (
-            [Registry.Registrar.Group.GroupData(
-                1, "test_group_1", ccReg.DateType(0, 0, 0)),
-            Registry.Registrar.Group.GroupData(
-                3, "test_group_3", ccReg.DateType(20, 10, 2009)),
-            Registry.Registrar.Group.GroupData(
-                2, "test_group_2", ccReg.DateType(0, 0, 0))])
+            twill.commands.go("http://localhost:8080/registrar/edit/?id=42")
 
-        # Show the edit form.
-        self.session_mock.getDetail(
-            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
-        self.group_mgr_mock.getMembershipsByRegistar(42).AndReturn(
-            [Registry.Registrar.Group.MembershipByRegistrar(
-                1, 1, ccReg.DateType(1, 1, 2008), ccReg.DateType(0, 0, 0))])
+        # now with normal getMembershipsByRegistar method which returns empty list:
 
-        # Process form after submitting.
-        self.session_mock.getDetail(
-            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
-        self.group_mgr_mock.getMembershipsByRegistar(42).AndReturn(
-            [Registry.Registrar.Group.MembershipByRegistrar(
-                1, 1, ccReg.DateType(1, 1, 2008), ccReg.DateType(0, 0, 0))])
-        self.session_mock.updateRegistrar(
-            mox.IsA(Registry.Registrar.Detail)).AndReturn(42)
-        self.group_mgr_mock.removeRegistrarFromGroup(42, 1)
-
-        # Jump to detail after updating.
-        self.session_mock.getDetail(
-            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
-        self.group_mgr_mock.getMembershipsByRegistar(42).AndReturn([])
-
-        self.corba_mock.ReplayAll()
-
-        twill.commands.go("http://localhost:8080/registrar/edit/?id=42")
         twill.commands.showforms()
         twill.commands.fv(2, "groups-0-DELETE", "1")
         twill.commands.submit()
@@ -740,94 +508,52 @@ class TestRegistrarGroups(BaseADIFTestCase, RegistrarUtils):
         twill.commands.code(200)
         twill.commands.notfind("test_group_1")
 
-        self.corba_mock.VerifyAll()
 
-
-class TestRegistrarCertifications(BaseADIFTestCase, RegistrarUtils):
+class TestRegistrarCertifications(TestRegistrarBase):
     def setUp(self):
-        BaseADIFTestCase.setUp(self)
-        self.admin_mock.createSession("testuser")
-        self.session_mock = self.admin_mock.getSession("testSessionString")
-        self.corba_mock.StubOutWithMock(self.session_mock, "getDetail")
-        self.corba_mock.StubOutWithMock(self.session_mock, "updateRegistrar")
-
-        self.cert_mgr_mock = CertificationManagerMock()
-        self.admin_mock.getCertificationManager = lambda : self.cert_mgr_mock
-        self.corba_mock.StubOutWithMock(
-            self.cert_mgr_mock, "getCertificationsByRegistrar")
-        self.corba_mock.StubOutWithMock(
-            self.cert_mgr_mock, "createCertification")
-
-        self.file_mgr_mock = FileManagerMock()
-        self.web_session_mock['FileManager'] = self.file_mgr_mock
-        self.corba_mock.StubOutWithMock(
-            self.file_mgr_mock, "save")
+        super(TestRegistrarCertifications, self).setUp()
 
     def test_add_certification(self):
         """ Correctly configured certification is added.
         """
-        # Show the edit form.
-        self.session_mock.getDetail(
-            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
-        self.cert_mgr_mock.getCertificationsByRegistrar(42).AndReturn([])
-
-        # Process form after submitting.
-        self.session_mock.getDetail(
-            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
-        self.cert_mgr_mock.getCertificationsByRegistrar(42).AndReturn([])
-        self.session_mock.updateRegistrar(
-            mox.IsA(Registry.Registrar.Detail)).AndReturn(42)
-        file_upload_mock = self.corba_mock.CreateMockAnything()
-        self.file_mgr_mock.save(
-            "./fred_webadmin/tests/webadmin/foofile.bar", "application/octet-stream",
-            6).AndReturn(file_upload_mock)
-        file_upload_mock.finalize_upload().AndReturn(17)
-        self.cert_mgr_mock.createCertification(
-            42, mox.IsA(ccReg.DateType), mox.IsA(ccReg.DateType), 2, 17)
-
-        # Jump to detail after updating.
-        self.session_mock.getDetail(
-            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
-        self.cert_mgr_mock.getCertificationsByRegistrar(42).AndReturn(
-            [Registry.Registrar.Certification.CertificationData(
-                1, ccReg.DateType(1, 1, 2008),
-                ccReg.DateType(1, 1, 2010), 2, 17)])
-
-        self.corba_mock.ReplayAll()
-
         twill.commands.go("http://localhost:8080/registrar/edit/?id=42")
         twill.commands.showforms()
         twill.commands.fv(2, "certifications-0-fromDate", datetime.date.today().isoformat())
         twill.commands.fv(2, "certifications-0-toDate", (datetime.date.today() + datetime.timedelta(7)).isoformat())
         twill.commands.fv(2, "certifications-0-score", "2")
         twill.commands.formfile(2, "certifications-0-evaluation_file", "./fred_webadmin/tests/webadmin/foofile.bar")
+
+        file_upload_mock = mock.Mock()
+        self.file_mgr_mock.save.side_effect = lambda name, mimetype, filetype: \
+            file_upload_mock if name == "./fred_webadmin/tests/webadmin/foofile.bar" \
+                                 and mimetype == "application/octet-stream" \
+                                 and filetype == 6 \
+                             else None
+        file_upload_mock.finalize_upload.return_value = 17
+
+        # Jump to detail after updating.
+        get_cert_by_reg_mock = mock.Mock()
+        self.monkey_patch(self.admin_mock.certification_manager_mock, 'getCertificationsByRegistrar',
+                          get_cert_by_reg_mock)
+        get_cert_by_reg_mock.side_effect = [
+            [], # first call return empty list
+            [ # second call return CertificationData:
+                Registry.Registrar.Certification.CertificationData(
+                    1, ccReg.DateType(1, 1, 2008),
+                    ccReg.DateType(1, 1, 2010), 2, 17)
+            ]
+        ]
+
         twill.commands.submit()
 
         twill.commands.code(200)
-        twill.commands.url("http://localhost:8080/registrar/detail/\?id=42")
+        twill.commands.url(r"http://localhost:8080/registrar/detail/\?id=42")
         twill.commands.showforms()
-        twill.commands.find(
-            '''<a href="/file/detail/\?id=17"''')
-
-        self.corba_mock.VerifyAll()
+        twill.commands.find(r'''<a href="/file/detail/\?id=17"''')
 
     def test_add_certification_no_file(self):
         """ Certification is not added when no file has been uploaded.
         """
-        # Show the edit form.
-        self.session_mock.getDetail(
-            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
-        self.cert_mgr_mock.getCertificationsByRegistrar(42).AndReturn([])
-
-        # Process form after submitting.
-        self.session_mock.getDetail(
-            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
-        self.cert_mgr_mock.getCertificationsByRegistrar(42).AndReturn([])
-        self.session_mock.updateRegistrar(
-            mox.IsA(Registry.Registrar.Detail)).AndReturn(42)
-
-        self.corba_mock.ReplayAll()
-
         twill.commands.go("http://localhost:8080/registrar/edit/?id=42")
         twill.commands.showforms()
         twill.commands.fv(2, "certifications-0-fromDate", datetime.date.today().isoformat())
@@ -836,68 +562,37 @@ class TestRegistrarCertifications(BaseADIFTestCase, RegistrarUtils):
         twill.commands.submit()
 
         twill.commands.code(200)
-        twill.commands.url("http://localhost:8080/registrar/edit/\?id=42")
-
-        self.corba_mock.VerifyAll()
+        twill.commands.url(r"http://localhost:8080/registrar/edit/\?id=42")
+        twill.commands.find('You have not specified the upload file for a certification')
 
     class DateMock(object):
-            """ Mock class to replace datetime.date.today()
-                (we do not want it to return the real current date).
-            """
-            @classmethod
-            def today(cls):
-                return datetime.date(2008, 1, 1)
+        """ Mock class to replace datetime.date.today()
+            (we do not want it to return the real current date).
+        """
+        @classmethod
+        def today(cls):
+            return datetime.date(2008, 1, 1)
 
     def test_shorten_certification(self):
         """ It is possible to shorten the certification.
         """
-        self.corba_mock.StubOutWithMock(
-            self.cert_mgr_mock, "shortenCertification")
-        self.corba_mock.StubOutWithMock(
-            self.file_mgr_mock, "info")
-
         date_mock = TestRegistrarCertifications.DateMock
-        self.monkey_patch(
-            fred_webadmin.webwidgets.forms.editforms,
-            'date', date_mock)
+        self.monkey_patch(fred_webadmin.webwidgets.forms.editforms, 'date', date_mock)
 
-        # Show the edit form.
-        self.session_mock.getDetail(
-            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
-        self.cert_mgr_mock.getCertificationsByRegistrar(42).AndReturn(
-            [Registry.Registrar.Certification.CertificationData(
-                1, ccReg.DateType(1, 1, 2008),
-                ccReg.DateType(1, 1, 2010), 2, 17)])
-
-        # Process form after submitting.
-        self.file_mgr_mock.info(17).AndReturn(ccReg.FileInfo(1, "testfile",
-            "testpath", "testmime", 0, ccReg.DateType(10, 10, 2010), 100))
-        self.file_mgr_mock.info(17).AndReturn(ccReg.FileInfo(1, "testfile",
-            "testpath", "testmime", 0, ccReg.DateType(10, 10, 2010), 100))
-        self.session_mock.getDetail(
-           ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
-        self.cert_mgr_mock.getCertificationsByRegistrar(42).AndReturn(
-            [Registry.Registrar.Certification.CertificationData(
-                1, ccReg.DateType(1, 1, 2008),
-                ccReg.DateType(1, 1, 2010), 2, 17)])
-        self.file_mgr_mock.info(17).AndReturn(ccReg.FileInfo(1, "testfile",
-            "testpath", "testmime", 0, ccReg.DateType(10, 10, 2010), 100))
-
-        self.session_mock.updateRegistrar(
-            mox.IsA(Registry.Registrar.Detail)).AndReturn(42)
-        self.cert_mgr_mock.shortenCertification(1, mox.IsA(ccReg.DateType))
-
-        # Jump to detail after updating (show shortened toDate).
-        self.session_mock.getDetail(
-            ccReg.FT_REGISTRAR, 42).AndReturn(self._fabricate_registrar())
-        self.cert_mgr_mock.getCertificationsByRegistrar(42).AndReturn(
-            [Registry.Registrar.Certification.CertificationData(
-                1, ccReg.DateType(1, 1, 2008),
-                ccReg.DateType(12, 12, 2009), 2, 17)])
-        self.file_mgr_mock.info(17).AndReturn(ccReg.FileInfo(1, "testfile",
-            "testpath", "testmime", 0, ccReg.DateType(10, 10, 2010), 100))
-
-        self.corba_mock.ReplayAll()
+        get_cert_by_reg_mock = mock.Mock()
+        result_1 = [Registry.Registrar.Certification.CertificationData(
+                        1, ccReg.DateType(1, 1, 2008),
+                        ccReg.DateType(1, 1, 2010), 2, 17)]
+        # result 2 is same as 1, but must be here again, because it's converted in-place by corbarecoder
+        result_2 = [Registry.Registrar.Certification.CertificationData(
+                        1, ccReg.DateType(1, 1, 2008),
+                        ccReg.DateType(1, 1, 2010), 2, 17)]
+        result_3 = [Registry.Registrar.Certification.CertificationData(
+                        1, ccReg.DateType(1, 1, 2008),
+                        ccReg.DateType(12, 12, 2009), 2, 17)]
+        get_cert_by_reg_mock.side_effect = [result_1, result_2, result_3]
+        self.monkey_patch(self.admin_mock.certification_manager_mock, 'getCertificationsByRegistrar',
+                          get_cert_by_reg_mock)
 
         twill.commands.go("http://localhost:8080/registrar/edit/?id=42")
         twill.commands.showforms()
@@ -905,23 +600,21 @@ class TestRegistrarCertifications(BaseADIFTestCase, RegistrarUtils):
         twill.commands.submit()
 
         twill.commands.code(200)
-        twill.commands.url("http://localhost:8080/registrar/detail/\?id=42")
+        twill.commands.url(r"http://localhost:8080/registrar/detail/\?id=42")
         twill.commands.showforms()
-        twill.commands.find(
-            '''<a href="/file/detail/\?id=17"''')
+        twill.commands.find(r'''<a href="/file/detail/\?id=17"''')
         twill.commands.find("2009-12-12")
-
-        self.corba_mock.VerifyAll()
 
 
 class TestBankStatement(BaseADIFTestCase):
     def setUp(self):
         super(TestBankStatement, self).setUp()
-        self.admin_mock.createSession("testuser")
-        self.session_mock = self.admin_mock.getSession("testSessionString")
-        self.corba_mock.StubOutWithMock(self.session_mock, "getDetail")
-        self.corba_mock.StubOutWithMock(
-            self.session_mock, "getBankingInvoicing")
+        self.admin_mock.createSession('testuser')
+        self.session_mock = self.admin_mock.getSession('testSessionString')
+        self.session_mock.getDetail.side_effect = lambda ft_type, obj_id: \
+            self._fabricate_bank_statement_detail() if (ft_type, obj_id) == (ccReg.FT_STATEMENTITEM, 42) else None
+        self.invoicing_mock = mock.Mock(ccReg._objref_BankingInvoicing) # pylint: disable=W0212
+        self.session_mock.getBankingInvoicing.return_value = self.invoicing_mock
 
     def _fabricate_bank_statement_detail(self):
         """ Create a fake Registry.Banking.BankItem.Detail object for testing
@@ -940,118 +633,94 @@ class TestBankStatement(BaseADIFTestCase):
     def test_successfull_statementitem_payment_pairing(self):
         """ Payment pairing works OK when correct registrar handle
             is specified. """
-        statement = self._fabricate_bank_statement_detail()
-        self.session_mock.getDetail(
-            ccReg.FT_STATEMENTITEM, 42).AndReturn(statement)
-        invoicing_mock = self.corba_mock.CreateMockAnything()
-        self.session_mock.getBankingInvoicing().AndReturn(invoicing_mock)
-        invoicing_mock.pairPaymentRegistrarHandle(
-            42, "test handle").AndReturn(True)
-        invoicing_mock.setPaymentType(42, 2).AndReturn(True)
-        # Create a new bank statement detail with a non-zero invoiceId value
-        # to simulate successfull payment pairing.
-        statement_after_pairing = self._fabricate_bank_statement_detail()
-        statement_after_pairing.value().invoiceId = 11L
-        statement_after_pairing.value().type = 2
-        self.session_mock.getDetail(
-            ccReg.FT_STATEMENTITEM, 42).AndReturn(statement_after_pairing)
-
-        self.corba_mock.ReplayAll()
+        self.invoicing_mock.pairPaymentRegistrarHandle.side_effect = lambda payment_id, reg_id: \
+            True if (payment_id, reg_id) == (42, "test handle") else None
+        self.invoicing_mock.setPaymentType.side_effect = lambda payment_id, payment_type: \
+            True if (payment_id, payment_type) == (42, 2) else None
 
         # Go to the pairing form
         twill.commands.go("http://localhost:8080/bankstatement/detail/?id=42")
-        fs = twill.commands.showforms()
+        # Create a new bank statement detail with a non-zero invoiceId value
+        # to simulate successful payment pairing.
+        statement_after_pairing = self._fabricate_bank_statement_detail()
+        statement_after_pairing.value().invoiceId = 11L
+        statement_after_pairing.value().type = 2
+        self.session_mock.getDetail.side_effect = lambda ft_type, obj_id: \
+             statement_after_pairing if (ft_type, obj_id) == (ccReg.FT_STATEMENTITEM, 42) else None
+
         twill.commands.fv(2, "handle", "test handle")
         twill.commands.fv(2, "type", "2")
         twill.commands.submit()
 
         twill.commands.code(200)
-        twill.commands.url("http://localhost:8080/bankstatement/detail/\?id=42")
-        # Check that we display a link to the invoice after a successfull
+        twill.commands.url(r"http://localhost:8080/bankstatement/detail/\?id=42")
+        # Check that we display a link to the invoice after a successful
         # payment.
-        twill.commands.code(200)
-        twill.commands.find("""<a href="/invoice/detail/\?id=11">.*</a>""")
+        twill.commands.find(r"""<a href="/invoice/detail/\?id=11">.*</a>""")
 
     def test_successfull_statementitem_payment_pairing_no_reg_handle(self):
         """ Payment pairing works OK when correct registrar handle
             is not specified, but type != "from/to registrar". """
-        statement = self._fabricate_bank_statement_detail()
-        self.session_mock.getDetail(
-            ccReg.FT_STATEMENTITEM, 42).AndReturn(statement)
-        invoicing_mock = self.corba_mock.CreateMockAnything()
-        self.session_mock.getBankingInvoicing().AndReturn(invoicing_mock)
-        invoicing_mock.setPaymentType(42, 3).AndReturn(True)
+        self.invoicing_mock.setPaymentType.side_effect = lambda payment_id, payment_type: \
+            True if (payment_id, payment_type) == (42, 3) else None
+
+        # Go to the pairing form
+        twill.commands.go("http://localhost:8080/bankstatement/detail/?id=42")
+
         # Create a new bank statement detail with a non-zero invoiceId value
         # to simulate successfull payment pairing.
         statement_after_pairing = self._fabricate_bank_statement_detail()
         statement_after_pairing.value().invoiceId = 11L
         statement_after_pairing.value().type = 3
-        self.session_mock.getDetail(
-            ccReg.FT_STATEMENTITEM, 42).AndReturn(statement_after_pairing)
+        self.session_mock.getDetail.side_effect = lambda ft_type, obj_id: \
+             statement_after_pairing if (ft_type, obj_id) == (ccReg.FT_STATEMENTITEM, 42) else None
 
-        self.corba_mock.ReplayAll()
-
-        # Go to the pairing form
-        twill.commands.go("http://localhost:8080/bankstatement/detail/?id=42")
-        fs = twill.commands.showforms()
+        twill.commands.showforms()
         twill.commands.fv(2, "type", "3")
         twill.commands.submit()
 
         twill.commands.code(200)
-        twill.commands.url("http://localhost:8080/bankstatement/detail/\?id=42")
+        twill.commands.url(r"http://localhost:8080/bankstatement/detail/\?id=42")
         # Check that we do not display a link to the invoice after a successfull
         # payment (because it's not paired with a registrar).
         twill.commands.code(200)
-        twill.commands.notfind("""<a href="/invoice/detail/\?id=11">.*</a>""")
+        twill.commands.notfind(r"""<a href="/invoice/detail/\?id=11">.*</a>""")
 
     def test_successfull_statementitem_payment_pairing_incorrect_reg_handle(self):
         """ Payment pairing works OK when an invalid registrar handle
             is specified, but type != "from/to registrar". """
-        statement = self._fabricate_bank_statement_detail()
-        self.session_mock.getDetail(
-            ccReg.FT_STATEMENTITEM, 42).AndReturn(statement)
-        invoicing_mock = self.corba_mock.CreateMockAnything()
-        self.session_mock.getBankingInvoicing().AndReturn(invoicing_mock)
-        invoicing_mock.setPaymentType(42, 3).AndReturn(True)
+        self.invoicing_mock.setPaymentType.side_effect = lambda payment_id, payment_type: \
+            True if (payment_id, payment_type) == (42, 3) else None
+
+        # Go to the pairing form
+        twill.commands.go("http://localhost:8080/bankstatement/detail/?id=42")
+
         # Create a new bank statement detail with a non-zero invoiceId value
         # to simulate successfull payment pairing.
         statement_after_pairing = self._fabricate_bank_statement_detail()
         statement_after_pairing.value().invoiceId = 11L
         statement_after_pairing.value().type = 3
-        self.session_mock.getDetail(
-            ccReg.FT_STATEMENTITEM, 42).AndReturn(statement_after_pairing)
+        self.session_mock.getDetail.side_effect = lambda ft_type, obj_id: \
+             statement_after_pairing if (ft_type, obj_id) == (ccReg.FT_STATEMENTITEM, 42) else None
 
-        self.corba_mock.ReplayAll()
-
-        # Go to the pairing form
-        twill.commands.go("http://localhost:8080/bankstatement/detail/?id=42")
-        fs = twill.commands.showforms()
+        twill.commands.showforms()
         twill.commands.fv(2, "handle", "invalid handle")
         twill.commands.fv(2, "type", "3")
         twill.commands.submit()
 
         twill.commands.code(200)
-        twill.commands.url("http://localhost:8080/bankstatement/detail/\?id=42")
+        twill.commands.url(r"http://localhost:8080/bankstatement/detail/\?id=42")
         # Check that we do not display a link to the invoice after a successfull
         # payment (because it's not paired with a registrar).
         twill.commands.code(200)
-        twill.commands.notfind("""<a href="/invoice/detail/\?id=11">.*</a>""")
+        twill.commands.notfind(r"""<a href="/invoice/detail/\?id=11">.*</a>""")
 
 
     def test_statementitem_detail_unknown_unempty_handle(self):
         """ Pairing with unknown registrar handle fails.
         """
-        statement = self._fabricate_bank_statement_detail()
-        self.session_mock.getDetail(
-            ccReg.FT_STATEMENTITEM, 42).AndReturn(statement)
-        invoicing_mock = self.corba_mock.CreateMockAnything()
-        self.session_mock.getBankingInvoicing().AndReturn(invoicing_mock)
-        invoicing_mock.pairPaymentRegistrarHandle(
-            42, "test handle").AndReturn(False)
-        self.session_mock.getDetail(
-            ccReg.FT_STATEMENTITEM, 42).AndReturn(statement)
-
-        self.corba_mock.ReplayAll()
+        self.invoicing_mock.pairPaymentRegistrarHandle.side_effect = lambda payment_id, reg_id: \
+            False if (payment_id, reg_id) == (42, "test handle") else None
 
         # Go to the pairing form
         twill.commands.go("http://localhost:8080/bankstatement/detail/?id=42")
@@ -1061,25 +730,17 @@ class TestBankStatement(BaseADIFTestCase):
         twill.commands.submit()
 
         twill.commands.code(200)
-        twill.commands.url("http://localhost:8080/bankstatement/detail/\?id=42")
+        twill.commands.url(r"http://localhost:8080/bankstatement/detail/\?id=42")
         # Check that we do not display a link to the invoice after an
         # unsuccessful payment attempt.
-        twill.commands.notfind("""<a href="/invoice/detail/\?id=11">.*</a>""")
+        twill.commands.notfind(r"""<a href="/invoice/detail/\?id=11">.*</a>""")
+        twill.commands.find(r"""Could not pair. Perhaps you have entered an invalid handle?""")
 
     def test_statementitem_detail_empty_handle(self):
         """ Pairing payment with empty registrar handle fails.
         """
-        statement = self._fabricate_bank_statement_detail()
-        self.session_mock.getDetail(
-            ccReg.FT_STATEMENTITEM, 42).AndReturn(statement)
-        invoicing_mock = self.corba_mock.CreateMockAnything()
-        self.session_mock.getBankingInvoicing().AndReturn(invoicing_mock)
-        invoicing_mock.pairPaymentRegistrarHandle(
-            42, "test handle").AndReturn(False)
-        self.session_mock.getDetail(
-            ccReg.FT_STATEMENTITEM, 42).AndReturn(statement)
-
-        self.corba_mock.ReplayAll()
+        self.invoicing_mock.pairPaymentRegistrarHandle.side_effect = lambda payment_id, reg_id: \
+            False if (payment_id, reg_id) == (42, "test handle") else None
 
         # Go to the pairing form
         twill.commands.go("http://localhost:8080/bankstatement/detail/?id=42")
@@ -1089,62 +750,55 @@ class TestBankStatement(BaseADIFTestCase):
         twill.commands.submit()
 
         twill.commands.code(200)
-        twill.commands.url("http://localhost:8080/bankstatement/detail/\?id=42")
+        twill.commands.url(r"http://localhost:8080/bankstatement/detail/\?id=42")
         # Check that we do not display a link to the invoice after
-        #an unsuccessful payment attempt.
-        twill.commands.notfind("""<a href="/invoice/detail/\?id=11">.*</a>""")
+        # an unsuccessful payment attempt.
+        twill.commands.notfind(r"""<a href="/invoice/detail/\?id=11">.*</a>""")
+        twill.commands.find(r"""Could not pair. Perhaps you have entered an invalid handle?""")
 
     def test_statementitem_detail_no_perms_to_change_type(self):
-        """ Pairing payment with empty registrar handle fails.
+        """ Pairing payment form is not displayed when user has no permissions to change.
         """
-        cherrypy.session['user']._authorizer = self.authorizer_mock
-        statement = self._fabricate_bank_statement_detail()
-        self.session_mock.getDetail(
-            ccReg.FT_STATEMENTITEM, 42).AndReturn(statement)
-        invoicing_mock = self.corba_mock.CreateMockAnything()
-        self.session_mock.getBankingInvoicing().AndReturn(invoicing_mock)
-        invoicing_mock.pairPaymentRegistrarHandle(
-            42, "test handle").AndReturn(False)
-        self.session_mock.getDetail(
-            ccReg.FT_STATEMENTITEM, 42).AndReturn(statement)
-        self.authorizer_mock.has_permission(
-            'bankstatement', 'read').AndReturn(True)
-        self.authorizer_mock.has_permission(
-            'bankstatement', 'change').AndReturn(False)
-        # Other permissions get checked here (possibly will change when
-        # permission caching is implemented).
-        for i in range(0, 50):
-            self.authorizer_mock.has_permission(
-                mox.IgnoreArg(), mox.IgnoreArg()).AndReturn(False)
+        with mock.patch.object(cherrypy.session['user'], '_authorizer') as authorizer_mock:
+            self.invoicing_mock.pairPaymentRegistrarHandle.side_effect = lambda payment_id, reg_id: \
+                False if (payment_id, reg_id) == (42, "test handle") else None
 
-        self.corba_mock.ReplayAll()
+            authorizer_mock.has_permission.side_effect = lambda obj, action: \
+                True if (obj, action) == ('bankstatement', 'read') else False
 
-        # Go to the pairing form
-        twill.commands.go("http://localhost:8080/bankstatement/detail/?id=42")
-        twill.commands.showforms()
-        twill.commands.notfind("""<input type="text" name="handle" value=\"\"""")
+            # Go to the pairing form
+            twill.commands.go("http://localhost:8080/bankstatement/detail/?id=42")
+            twill.commands.showforms()
+            twill.commands.notfind("""<input type="text" name="handle" value=\"\"""")
 
 
 class TestLoggerNoLogView(BaseADIFTestCase):
-    def setUpConfig(self):
-        fred_webadmin.config.debug = False
-        fred_webadmin.config.auth_method = 'CORBA'
-        fred_webadmin.config.audit_log['viewing_actions_enabled'] = False
-        fred_webadmin.config.audit_log['logging_actions_enabled'] = False
-        fred_webadmin.config.audit_log['force_critical_logging'] = False
-
     def setUp(self):
-        self.setUpConfig()
-        BaseADIFTestCase.setUp(self)
+        self.monkey_patch(fred_webadmin.config, 'debug', False)
+        self.monkey_patch(fred_webadmin.config, 'auth_method', 'CORBA')
+        audit_log = {
+            'viewing_actions_enabled': False,
+            'logging_actions_enabled': False,
+            'force_critical_logging': False,
+        }
+        self.monkey_patch(fred_webadmin.config, 'audit_log', audit_log)
+        super(TestLoggerNoLogView, self).setUp()
+
+        root = fred_webadmin.controller.adif.prepare_root()
+        wsgiApp = cherrypy.tree.mount(root)
+        twill.add_wsgi_intercept('localhost', 8080, lambda : wsgiApp)
+
+    def tearDown(self):
+        super(TestLoggerNoLogView, self).tearDown()
+        # return back normal web root
+        root = fred_webadmin.controller.adif.prepare_root()
+        wsgiApp = cherrypy.tree.mount(root)
+        twill.add_wsgi_intercept('localhost', 8080, lambda : wsgiApp)
 
     def test_logger_hidden_when_log_view_is_disabled_in_config(self):
         # Replace fred_webadmin.controller.adif.auth module with CORBA
         # module.
-        print
-        self.monkey_patch(
-            fred_webadmin.controller.adif, 'auth', corba_auth)
-
-        self.corba_mock.ReplayAll()
+        self.monkey_patch(fred_webadmin.controller.adif, 'auth', corba_auth)
 
         twill.commands.go("http://localhost:8080/login")
         twill.commands.showforms()
@@ -1159,55 +813,25 @@ class TestLoggerNoLogView(BaseADIFTestCase):
         twill.commands.code(404)
 
 
-class TestLoggerLogView(BaseADIFTestCase):
-    def setUpConfig(self):
-        fred_webadmin.config.auth_method = 'CORBA'
-        fred_webadmin.config.audit_log['viewing_actions_enabled'] = True
-
-
 class TestRegistrarGroupEditor(BaseADIFTestCase):
-    def setUp(self):
-        BaseADIFTestCase.setUp(self)
-        self.admin_mock.createSession("testuser")
-        self.reg_mgr_mock = self.corba_mock.CreateMockAnything()
-        self.reg_mgr_mock.__str__ = lambda : "reg_mgr_mock"
-        self.corba_mock.StubOutWithMock(self.admin_mock, "getGroupManager")
-
     def test_display_two_groups(self):
         """ Two registrar groups are displayed.
         """
-        group_mgr = GroupManagerMock()
-        self.admin_mock.getGroupManager().AndReturn(group_mgr)
-        self.corba_mock.StubOutWithMock(group_mgr, "getGroups")
-        group_mgr.getGroups().AndReturn(
-            [Registry.Registrar.Group.GroupData(
-                1, "test_group_1", ccReg.DateType(0, 0, 0)),
-            Registry.Registrar.Group.GroupData(
-                3, "test_group_3", ccReg.DateType(20, 10, 2009)),
-            Registry.Registrar.Group.GroupData(
-                2, "test_group_2", ccReg.DateType(0, 0, 0))])
-
-        self.corba_mock.ReplayAll()
-
         twill.commands.go("http://localhost:8080/group")
         twill.commands.showforms()
         twill.commands.code(200)
+
         twill.commands.find(
             '''<input title="test_group_1" type="text" name="groups-0-name"'''
             ''' value="test_group_1" />''')
         twill.commands.find(
-            '''<input title="test_group_2" type="text" name="groups-1-name"'''
-            ''' value="test_group_2" />''')
+            '''<input title="test_group_3" type="text" name="groups-1-name"'''
+            ''' value="test_group_3" />''')
 
     def test_display_zero_groups(self):
         """ Two registrar groups are displayed.
         """
-        group_mgr = GroupManagerMock()
-        self.admin_mock.getGroupManager().AndReturn(group_mgr)
-        self.corba_mock.StubOutWithMock(group_mgr, "getGroups")
-        group_mgr.getGroups().AndReturn([])
-
-        self.corba_mock.ReplayAll()
+        self.monkey_patch(self.admin_mock.group_manager_mock, 'getGroups', lambda :[])
 
         twill.commands.go("http://localhost:8080/group")
         twill.commands.showforms()
@@ -1218,38 +842,22 @@ class TestRegistrarGroupEditor(BaseADIFTestCase):
     def test_delete_group(self):
         """ Two registrar groups are displayed, one gets deleted.
         """
-        group_mgr = GroupManagerMock()
-        self.admin_mock.getGroupManager().AndReturn(group_mgr)
-        self.corba_mock.StubOutWithMock(group_mgr, "getGroups")
-        group_mgr.getGroups().AndReturn(
+        self.monkey_patch(self.admin_mock.group_manager_mock, 'getGroups', lambda : \
             [Registry.Registrar.Group.GroupData(
                 1, "test_group_1", ccReg.DateType(0, 0, 0)),
             Registry.Registrar.Group.GroupData(
                 2, "test_group_2", ccReg.DateType(0, 0, 0))])
 
-        self.admin_mock.getGroupManager().AndReturn(group_mgr)
-        group_mgr.getGroups().AndReturn(
-            [Registry.Registrar.Group.GroupData(
-                1, "test_group_1", ccReg.DateType(0, 0, 0)),
-            Registry.Registrar.Group.GroupData(
-                2, "test_group_2", ccReg.DateType(0, 0, 0))])
 
-        self.admin_mock.getGroupManager().AndReturn(group_mgr)
-        self.corba_mock.StubOutWithMock(group_mgr, "deleteGroup")
-        group_mgr.deleteGroup(1)
+        twill.commands.go("http://localhost:8080/group")
 
-        self.admin_mock.getGroupManager().AndReturn(group_mgr)
-        group_mgr.getGroups().AndReturn(
+        # simulate one group delete
+        self.monkey_patch(self.admin_mock.group_manager_mock, 'getGroups', lambda : \
             [Registry.Registrar.Group.GroupData(
                 2, "test_group_2", ccReg.DateType(0, 0, 0)),
             Registry.Registrar.Group.GroupData(
                 1, "test_group_1", ccReg.DateType(20, 10, 2009))])
-        self.admin_mock.getGroupManager().AndReturn(group_mgr)
-        self.admin_mock.getGroupManager().AndReturn(group_mgr)
 
-        self.corba_mock.ReplayAll()
-
-        twill.commands.go("http://localhost:8080/group")
         twill.commands.showforms()
         twill.commands.code(200)
         twill.commands.fv(2, "groups-0-DELETE", "1")
@@ -1267,29 +875,15 @@ class TestRegistrarGroupEditor(BaseADIFTestCase):
     def test_delete_nonempty_group(self):
         """ Nonempty group cannot be deleted.
         """
-        group_mgr = GroupManagerMock()
-        self.admin_mock.getGroupManager().AndReturn(group_mgr)
-        self.corba_mock.StubOutWithMock(group_mgr, "getGroups")
-        group_mgr.getGroups().AndReturn(
+        self.monkey_patch(self.admin_mock.group_manager_mock, 'getGroups', lambda : \
             [Registry.Registrar.Group.GroupData(
                 1, "test_group_1", ccReg.DateType(0, 0, 0)),
             Registry.Registrar.Group.GroupData(
                 2, "test_group_2", ccReg.DateType(0, 0, 0))])
 
-        self.admin_mock.getGroupManager().AndReturn(group_mgr)
-        group_mgr.getGroups().AndReturn(
-            [Registry.Registrar.Group.GroupData(
-                1, "test_group_1", ccReg.DateType(0, 0, 0)),
-            Registry.Registrar.Group.GroupData(
-                2, "test_group_2", ccReg.DateType(0, 0, 0))])
-
-        self.admin_mock.getGroupManager().AndReturn(group_mgr)
-        self.corba_mock.StubOutWithMock(group_mgr, "deleteGroup")
-        group_mgr.deleteGroup(1).AndRaise(
-            Registry.Registrar.InvalidValue(
-                "Test message that group is nonempty."))
-
-        self.corba_mock.ReplayAll()
+        deleteGroup_mock = mock.Mock()
+        deleteGroup_mock.side_effect = Registry.Registrar.InvalidValue("Test message that group is nonempty.")
+        self.monkey_patch(self.admin_mock.group_manager_mock, 'deleteGroup', deleteGroup_mock)
 
         twill.commands.go("http://localhost:8080/group")
         twill.commands.showforms()

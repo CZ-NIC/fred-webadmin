@@ -1,4 +1,3 @@
-import mox
 import cherrypy
 import fred_webadmin.config
 
@@ -11,25 +10,24 @@ test_config.cherrycfg['global']['server.socket_port'] = 8081
 # If a test wants to check permissions, it should enable it for itself only.
 test_config.permissions['enable_checking'] = False
 test_config.cherrycfg['environment'] = 'embedded'
-test_config.iors = (
-    ('test', 'localhost_test', 'fredtest'),)
+test_config.iors = (('test', 'localhost_test', 'fredtest'),)
 
-import fred_webadmin.user as user
 import pylogger.dummylogger as logger
 import fred_webadmin.perms.dummy
 import fred_webadmin.utils
-from fred_webadmin import utils
-from fred_webadmin.corba import Registry, ccReg
 
 
 class DaphneTestCase(object):
     """ Serves as a base class for testing Daphne controller layer (that's
         basically adif).
-        Takes care of mocking admin, session and user corba objects. Also
-        monkey patches the dymamically created cherrypy.session dict.
+        Takes care of mocking admin, session and user CORBA objects. Also
+        monkey patches the dynamically created cherrypy.session dict.
         Uses DummyLogger, so that we do not have to care about audit logging
         (that's SessionLogger).
     """
+    def __init__(self):
+        self._on_teardown = []
+
     def monkey_patch(self, obj, attr, new_value):
         """ Taken from
             http://lackingrhoticity.blogspot.com/2008/12/
@@ -58,26 +56,8 @@ class DaphneTestCase(object):
             helper-for-monkey-patching-in-tests.html"""
         for func in reversed(self._on_teardown):
             func()
-        self.corba_mock.UnsetStubs()
-        self.corba_mock.ResetAll()
 
-    def setUp(self, ldap=True):
-        self._on_teardown = []
-
-        self.corba_mock = mox.Mox()
-        self.corba_conn_mock = self.corba_mock.CreateMockAnything()
-        self.corba_session_mock = self.corba_mock.CreateMockAnything()
-        self.corba_session_mock.__str__ = lambda : "corba session mock"
-
-        self.corba_user_mock = self.corba_mock.CreateMockAnything()
-        self.corba_user_mock.__str__ = lambda : "corba user mock"
-
-        self.ldap_mock = self.corba_mock.CreateMockAnything()
-        self.ldap_mock.__str__ = lambda : "ldap backend mock"
-
-        self.authorizer_mock = self.corba_mock.CreateMockAnything()
-        self.authorizer_mock.__str__ = lambda : "authorizer mock"
-
+    def setUp(self):
         self.monkey_patch(
             fred_webadmin.user, 'auth_user', fred_webadmin.perms.dummy)
         self.web_session_mock = {}
@@ -85,6 +65,6 @@ class DaphneTestCase(object):
 
         self.monkey_patch(cherrypy, 'session', self.web_session_mock)
         self.monkey_patch(fred_webadmin, 'config', test_config)
-        self.monkey_patch(fred_webadmin.utils, 'get_logger', lambda : logger.DummyLogger())
+        self.monkey_patch(fred_webadmin.utils, 'get_logger', logger.DummyLogger)
 
-        cherrypy.config.update({ "environment": "embedded" })
+        cherrypy.config.update({"environment": "embedded"})

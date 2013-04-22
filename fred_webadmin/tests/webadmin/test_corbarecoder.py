@@ -1,9 +1,3 @@
-import fred_webadmin.corba as fredcorba # import ccReg, Registry
-from achoo import calling, requiring, ValueAssertionBuilder
-import fred_webadmin.corbarecoder as recoder
-import fred_webadmin.nulltype as fredtypes
-import datetime
-
 """
     Note: These tests are an example of the ugly mirror testing anti pattern.
     (http://jasonrudolph.com/blog/2008/07/30/testing-anti-patterns-the-ugly-mirror/)
@@ -12,6 +6,13 @@ import datetime
     in Python here.
 """
 
+import fred_webadmin.corba as fredcorba # import ccReg, Registry
+import fred_webadmin.corbarecoder as recoder
+import fred_webadmin.nulltype as fredtypes
+import datetime
+from nose.tools import assert_equal, assert_is_not_none, assert_raises #@UnresolvedImport pylint: disable = E0611
+
+
 class Patched_datetype(fredcorba.ccReg.DateType):
     def __init__(self, day=0, month=0, year=0):
         self.day, self.month, self.year = day, month, year
@@ -19,13 +20,11 @@ class Patched_datetype(fredcorba.ccReg.DateType):
         return "Patcheddatatype(%s, %s, %s)" % (self.day, self.month, self.year)
     def __repr__(self):
         return self.__str__()
-    def __ne__(self, obj):
-        """ Non-equality is defined so that we can assert using achoo's
-            equal_to method. """
-        print self, obj
-        return (self.day != obj.day or
-                self.month != obj.month or
-                self.year != obj.year)
+    def __eq__(self, obj):
+        """ Equality is defined so that we can assert it easier """
+        return (self.day == obj.day or
+                self.month == obj.month or
+                self.year == obj.year)
 
 
 class TestDaphneCorbaRecoder(object):
@@ -63,13 +62,12 @@ class TestDaphneCorbaRecoder(object):
     def test_create(self):
         """ DaphneCorbaRecoder is created with supported encoding. """
         rec = recoder.DaphneCorbaRecode("utf-8")
-        requiring(rec).is_not_none()
+        assert_is_not_none(rec)
 
-    def test_create(self):
+    def test_create_wrong_encoding(self):
         """ DaphneCorbaRecoder raises error for unsupported encoding. """
-        calling(recoder.DaphneCorbaRecode).\
-            passing("invalid coding").\
-            raises(recoder.UnsupportedEncodingError)
+        assert_raises(recoder.UnsupportedEncodingError,
+                      recoder.DaphneCorbaRecode, "invalid coding")
 
     def test_decode(self):
         """ DaphneCorbaRecoder decodes corba entity to python correctly . """
@@ -88,9 +86,7 @@ class TestDaphneCorbaRecoder(object):
             url=u'', credit=u'0.00', unspec_credit=u"0.00", access=[], zones=[], hidden=False)
 
         decoded_reg = rec.decode(reg)
-
-        requiring(decoded_reg).is_not_none()
-        requiring(decoded_reg.__dict__).equal_to(expected.__dict__)
+        assert_equal(decoded_reg.__dict__, expected.__dict__)
 
     def test_encode(self):
         rec = recoder.DaphneCorbaRecode("utf-8")
@@ -111,8 +107,7 @@ class TestDaphneCorbaRecoder(object):
 
         encoded_entity = rec.encode(python_entity)
 
-        requiring(encoded_entity).is_not_none()
-        requiring(encoded_entity.__dict__).equal_to(expected.__dict__)
+        assert_equal(encoded_entity.__dict__, expected.__dict__)
 
     def test_encode_date(self):
         rec = recoder.DaphneCorbaRecode("utf-8")
@@ -120,8 +115,7 @@ class TestDaphneCorbaRecoder(object):
         expected = fredcorba.ccReg.DateType(3, 2, 1)
         res = rec.encode(p_obj)
 
-        requiring(res).is_not_none()
-        requiring(res.__dict__).equal_to(expected.__dict__)
+        assert_equal(res.__dict__, expected.__dict__)
 
     def test_decode_date_type(self):
         rec = recoder.DaphneCorbaRecode("utf-8")
@@ -129,8 +123,7 @@ class TestDaphneCorbaRecoder(object):
         d = fredcorba.ccReg.DateType(10, 10, 2009)
         res = rec.decode(d)
 
-        requiring(res).is_not_none()
-        requiring(res).equal_to(datetime.date(2009, 10, 10))
+        assert_equal(res, datetime.date(2009, 10, 10))
 
     class Foo():
         """ Fake class for encoding testing. """
@@ -140,12 +133,11 @@ class TestDaphneCorbaRecoder(object):
             return "Foo(%s, %s, %s)" % (self.a, self.b, self.c)
         def __repr__(self):
             return self.__str__()
-        def __ne__(self, obj):
-            """ Non-equality is defined so that we can assert using achoo's
-                equal_to method. """
-            return (self.a != obj.a or
-                   self.b != obj.b or
-                   self.c != obj.c)
+        def __eq__(self, obj):
+            """ Equality is defined so that we can assert it easier"""
+            return (self.a == obj.a or
+                   self.b == obj.b or
+                   self.c == obj.c)
     class Bar(Foo):
         """ Fake class for encoding testing. """
         def __str__(self):
@@ -166,7 +158,8 @@ class TestDaphneCorbaRecoder(object):
                     2, TestDaphneCorbaRecoder.Bar(
                         3, fredcorba.ccReg.DateType(0, 0, 0), "5"), 6.0), 0)
         res = rec.encode(p_ent)
-        requiring(res).equal_to(exp)
+
+        assert_equal(exp, res)
 
     def test_encode_nested_date(self):
         rec = recoder.DaphneCorbaRecode("utf-8")
@@ -196,9 +189,8 @@ class TestDaphneCorbaRecoder(object):
             hidden=False)
         res = rec.encode(entity)
 
-        requiring(res).is_not_none()
-        requiring(expected.__dict__['zones'][0].fromDate.__dict__).\
-            equal_to(res.__dict__['zones'][0].fromDate.__dict__)
+        assert_equal(expected.__dict__['zones'][0].fromDate,
+                     res.__dict__['zones'][0].fromDate)
 
     def test_sanity(self):
         """ encode(decode(obj)) is equal to obj. """
@@ -209,19 +201,12 @@ class TestDaphneCorbaRecoder(object):
             street1='', street2='', street3='', city='', stateorprovince='state',
             postalcode='', country='CZ', telephone='', fax='', email='', url='',
             credit='0.00', unspec_credit=u"0.00", access=[], zones=[], hidden=False)
-        expected = fredcorba.Registry.Registrar.Detail(
-            id=19, ico=u'', dic=u'', varSymb=u'', vat=False,
-            handle=u'NEW REG', name=u'name 1', organization=u'', street1=u'',
-            street2=u'', street3=u'', city=u'', stateorprovince=u'state',
-            postalcode=u'', country=u'CZ', telephone=u'', fax=u'', email=u'',
-            url=u'', credit=u'0.00', unspec_credit=u"0.00", access=[], zones=[], hidden=False)
 
         decoded_reg = rec.decode(reg)
         encoded_reg = rec.encode(decoded_reg)
 
-        requiring(encoded_reg).is_not_none()
-        requiring(encoded_reg.__dict__).equal_to(reg.__dict__)
+        assert_equal(encoded_reg.__dict__, reg.__dict__)
 
     def test_encode_is_idempotent(self):
-        #TODO(tom): write the test.
+        # TODO(tom): write the test.
         pass

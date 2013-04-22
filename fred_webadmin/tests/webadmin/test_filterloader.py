@@ -1,15 +1,15 @@
-import cherrypy
-
-from fred_webadmin import config
-from fred_webadmin.controller.adif import recoder
-u2c = recoder.u2c
-c2u = recoder.c2u
-#from fred_webadmin import corba
-from fred_webadmin.corba import Corba, ccReg
-#from sys import stderr as err
-
-login, password = 'superuser', 'superuser123'
-
+#import cherrypy
+#
+#from fred_webadmin import config
+#from fred_webadmin.controller.adif import recoder
+#u2c = recoder.u2c
+#c2u = recoder.c2u
+##from fred_webadmin import corba
+#from fred_webadmin.corba import Corba, ccReg
+##from sys import stderr as err
+#
+#login, password = 'superuser', 'superuser123'
+#
 # TODO: This is not unittest (it's integration test (need corba), so was disabled. \
 #  Also it tests filter 'action' which does not exists anymore
 #class TestFilterLoader(object):
