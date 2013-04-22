@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*
 
-from mock import Mock, call, patch
+import mock
+from mock import call
 from nose.tools import assert_equal #@UnresolvedImport pylint: disable=E0611
 from omniORB import CORBA
 import cherrypy
@@ -55,11 +56,10 @@ class BaseADIFTestCase(DaphneTestCase):
         self.admin_mock = AdminMock()
         self.web_session_mock['Admin'] = self.admin_mock
         self.web_session_mock['user'] = fred_webadmin_user.User(UserMock())
-        self.file_mgr_mock = Mock()
+        self.file_mgr_mock = mock.Mock(ccReg._objref_FileManager)  # pylint: disable=W0212
         self.web_session_mock['FileManager'] = self.file_mgr_mock
         self.corba_conn_mock = CorbaConnectionMock(admin=self.admin_mock)
-        self.monkey_patch(
-            fred_webadmin.controller.adif, 'corba_obj', self.corba_conn_mock)
+        self.monkey_patch(fred_webadmin.controller.adif, 'corba_obj', self.corba_conn_mock)
         # Create the application, mount it and start the server.
 
 
@@ -129,7 +129,7 @@ class AdminMock(object):
         return self.certification_manager_mock
 
     def createSession(self, username):
-        self.session = Mock()
+        self.session = mock.Mock(spec=ccReg._objref_Session) # pylint: disable=W0212
         self.session.getUser.return_value = UserMock()
         return "testSessionString"
 
@@ -225,7 +225,7 @@ class TestADIFAuthentication(BaseADIFTestCase):
         fred_webadmin.config.auth_method = 'CORBA'
         self.monkey_patch(fred_webadmin.controller.adif, 'auth', corba_auth)
 
-        with patch.object(AdminMock, 'authenticateUser') as mocked_authenticateUser:
+        with mock.patch.object(AdminMock, 'authenticateUser') as mocked_authenticateUser:
             mocked_authenticateUser.side_effect = ccReg.Admin.AuthFailed
 
             twill.commands.go("http://localhost:8080/login")
@@ -267,7 +267,7 @@ class TestADIFAuthenticationLDAP(BaseADIFTestCase):
         self.monkey_patch(fred_webadmin.config, 'LDAP_server', 'test ldap server')
         # Mock out ldap.open method. We must not mock the whole ldap package,
         # because ldap_auth uses ldap exceptions.
-        self.ldap_open_mock = Mock()
+        self.ldap_open_mock = mock.create_autospec(ldap.open)
         self.monkey_patch(fred_webadmin.auth.ldap_auth.ldap, 'open', self.ldap_open_mock) #@UndefinedVariable
 
     def assert_ldap_called(self):
@@ -492,7 +492,7 @@ class TestRegistrarGroups(TestRegistrarBase):
         twill.commands.find("test_group_1")
 
     def test_remove_registrar_from_group(self):
-        with patch.object(self.admin_mock.group_manager_mock, 'getMembershipsByRegistar') as mock_getMembershipsByReg:
+        with mock.patch.object(self.admin_mock.group_manager_mock, 'getMembershipsByRegistar') as mock_getMembershipsByReg:
             mock_getMembershipsByReg.side_effect = \
                 lambda reg_id: [Registry.Registrar.Group.MembershipByRegistrar(1, 1,
                                 ccReg.DateType(1, 1, 2008), ccReg.DateType(0, 0, 0))]
@@ -523,7 +523,7 @@ class TestRegistrarCertifications(TestRegistrarBase):
         twill.commands.fv(2, "certifications-0-score", "2")
         twill.commands.formfile(2, "certifications-0-evaluation_file", "./fred_webadmin/tests/webadmin/foofile.bar")
 
-        file_upload_mock = Mock()
+        file_upload_mock = mock.Mock()
         self.file_mgr_mock.save.side_effect = lambda name, mimetype, filetype: \
             file_upload_mock if name == "./fred_webadmin/tests/webadmin/foofile.bar" \
                                  and mimetype == "application/octet-stream" \
@@ -532,7 +532,7 @@ class TestRegistrarCertifications(TestRegistrarBase):
         file_upload_mock.finalize_upload.return_value = 17
 
         # Jump to detail after updating.
-        get_cert_by_reg_mock = Mock()
+        get_cert_by_reg_mock = mock.Mock()
         self.monkey_patch(self.admin_mock.certification_manager_mock, 'getCertificationsByRegistrar',
                           get_cert_by_reg_mock)
         get_cert_by_reg_mock.side_effect = [
@@ -579,7 +579,7 @@ class TestRegistrarCertifications(TestRegistrarBase):
         date_mock = TestRegistrarCertifications.DateMock
         self.monkey_patch(fred_webadmin.webwidgets.forms.editforms, 'date', date_mock)
 
-        get_cert_by_reg_mock = Mock()
+        get_cert_by_reg_mock = mock.Mock()
         result_1 = [Registry.Registrar.Certification.CertificationData(
                         1, ccReg.DateType(1, 1, 2008),
                         ccReg.DateType(1, 1, 2010), 2, 17)]
@@ -613,7 +613,7 @@ class TestBankStatement(BaseADIFTestCase):
         self.session_mock = self.admin_mock.getSession('testSessionString')
         self.session_mock.getDetail.side_effect = lambda ft_type, obj_id: \
             self._fabricate_bank_statement_detail() if (ft_type, obj_id) == (ccReg.FT_STATEMENTITEM, 42) else None
-        self.invoicing_mock = Mock()
+        self.invoicing_mock = mock.Mock(ccReg._objref_BankingInvoicing) # pylint: disable=W0212
         self.session_mock.getBankingInvoicing.return_value = self.invoicing_mock
 
     def _fabricate_bank_statement_detail(self):
@@ -759,7 +759,7 @@ class TestBankStatement(BaseADIFTestCase):
     def test_statementitem_detail_no_perms_to_change_type(self):
         """ Pairing payment form is not displayed when user has no permissions to change.
         """
-        with patch.object(cherrypy.session['user'], '_authorizer') as authorizer_mock:
+        with mock.patch.object(cherrypy.session['user'], '_authorizer') as authorizer_mock:
             self.invoicing_mock.pairPaymentRegistrarHandle.side_effect = lambda payment_id, reg_id: \
                 False if (payment_id, reg_id) == (42, "test handle") else None
 
@@ -814,10 +814,6 @@ class TestLoggerNoLogView(BaseADIFTestCase):
 
 
 class TestRegistrarGroupEditor(BaseADIFTestCase):
-    def setUp(self):
-        BaseADIFTestCase.setUp(self)
-        self.reg_mgr_mock = Mock(name='reg_mgr_mock')
-
     def test_display_two_groups(self):
         """ Two registrar groups are displayed.
         """
@@ -885,7 +881,7 @@ class TestRegistrarGroupEditor(BaseADIFTestCase):
             Registry.Registrar.Group.GroupData(
                 2, "test_group_2", ccReg.DateType(0, 0, 0))])
 
-        deleteGroup_mock = Mock()
+        deleteGroup_mock = mock.Mock()
         deleteGroup_mock.side_effect = Registry.Registrar.InvalidValue("Test message that group is nonempty.")
         self.monkey_patch(self.admin_mock.group_manager_mock, 'deleteGroup', deleteGroup_mock)
 

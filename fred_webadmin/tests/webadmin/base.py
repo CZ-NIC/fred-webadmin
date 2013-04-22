@@ -67,4 +67,4 @@ class DaphneTestCase(object):
         self.monkey_patch(fred_webadmin, 'config', test_config)
         self.monkey_patch(fred_webadmin.utils, 'get_logger', logger.DummyLogger)
 
-        cherrypy.config.update({ "environment": "embedded" })
+        cherrypy.config.update({"environment": "embedded"})
