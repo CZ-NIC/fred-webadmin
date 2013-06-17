@@ -78,12 +78,9 @@ class MenuHoriz(Menu):
 
             menu_open = menu in self.open_nodes
             cssc = menu.cssc
-#            disabled = menu.disabled
 
             if menu_open:
                 cssc += ' selected-menu'
-#                if disabled:
-#                    cssc += ' disabled-menu'
                 if menu.submenus:
                     self.submenu = MenuHoriz(menu, self.selected_menu_handle, self.user)
 

@@ -39,8 +39,7 @@ class User(object):
         if obj_id is not None:
             # Is there any detailed permission starting with 'obj.action'?
             any_similar_detailed_perm_present = \
-                self._authorizer.check_detailed_present(
-                    parts[1], parts[0])
+                self._authorizer.check_detailed_present(parts[1], parts[0])
             if any_similar_detailed_perm_present:
                 # Detailed permission detected => ignore high-level permission.
                 has_perm = self._authorizer.has_permission_detailed(

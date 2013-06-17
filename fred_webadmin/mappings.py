@@ -26,9 +26,11 @@
 """
 
 import sys
-import fred_webadmin.config as config
 from pprint import pprint
 from omniORB import importIDL
+
+import fred_webadmin.config as config
+from fred_webadmin.translation import _
 
 importIDL(config.idl)
 ccReg = sys.modules['ccReg']
@@ -168,6 +170,14 @@ f_name_default_sort = {
     'publicrequest': [['Create Time', 'DESC']],
     'mail': [['Create Time', 'DESC']],
     'file': [['Create Time', 'DESC']],
+}
+
+f_name_translated_name = {
+    'domain': _('domian'),
+}
+
+f_name_translated_plural = {
+    'domain': _('domains'),
 }
 
 if __name__ == '__main__':

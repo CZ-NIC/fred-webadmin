@@ -2,6 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import sys
+if sys.version_info >= (2, 7):
+    from collections import OrderedDict
+else:
+    from fred_webadmin.utils import OrderedDict
+
 from fred_webadmin import setuplog
 setuplog.setup_log()
 
@@ -15,7 +20,6 @@ from copy import copy, deepcopy
 
 import omniORB
 from omniORB import CORBA
-import CosNaming
 
 # DNS lib imports
 import dns.message
@@ -68,14 +72,17 @@ from fred_webadmin.webwidgets.templates.pages import (
     DomainDetail, ContactDetail, NSSetDetail, KeySetDetail, RegistrarDetail,
     PublicRequestDetail, MailDetail, InvoiceDetail, LoggerDetail,
     RegistrarEdit, BankStatementPairingEdit, BankStatementDetail,
-    BankStatementDetailWithPaymentPairing, GroupEditorPage, MessageDetail
+    BankStatementDetailWithPaymentPairing, GroupEditorPage, MessageDetail,
+    DomainBlocking, DomainBlockingResult
 )
 from fred_webadmin.webwidgets.gpyweb.gpyweb import WebWidget
 from fred_webadmin.webwidgets.gpyweb.gpyweb import (
     DictLookup, noesc, attr, ul, li, a, div, p)
 from fred_webadmin.webwidgets.menu import MenuHoriz
 from fred_webadmin.menunode import menu_tree
-from fred_webadmin.webwidgets.forms.adifforms import LoginForm
+from fred_webadmin.webwidgets.forms.adifforms import (LoginForm,
+    DomainBlockForm, DomainUnblockForm, DomainUnblockAndRestorePrevStateForm, DomainChangeBlockingForm,
+    DomainBlacklistForm, DomainUnblacklistAndCreateForm)
 
 # Must be imported because of template magic stuff. I think.
 from fred_webadmin.webwidgets.forms.editforms import (RegistrarEditForm,
@@ -84,8 +91,6 @@ import fred_webadmin.webwidgets.forms.editforms as editforms
 
 import fred_webadmin.webwidgets.forms.filterforms as filterforms
 from fred_webadmin.webwidgets.forms.filterforms import *
-#from fred_webadmin.webwidgets.forms.filterforms import (
-#    get_filter_forms_javascript)
 
 from fred_webadmin.utils import json_response
 from fred_webadmin.mappings import (
@@ -93,6 +98,7 @@ from fred_webadmin.mappings import (
 from fred_webadmin.user import User
 from fred_webadmin.customview import CustomView
 from fred_webadmin.controller.perms import check_onperm, login_required
+
 
 class Page(object):
     """ Index page, similiar to index.php, index.html and so on.
@@ -115,7 +121,7 @@ class AdifPage(Page):
             return BaseSiteMenu
         if action == 'login':
             return LoginPage
-        elif action in ('filter', 'list'):
+        elif action in ('filter', 'list', 'blocking'):
             return FilterPage
         elif action == 'allfilters':
             return AllFiltersPage
@@ -216,6 +222,7 @@ class AdifPage(Page):
         cherrypy.session['FileManager'] = None
         cherrypy.session['Messages'] = None
         cherrypy.session['Logger'] = None
+        cherrypy.session['Blocking'] = None
         cherrypy.session['filter_forms_javascript'] = None
         cherrypy.session['filterforms'] = None
 
@@ -360,10 +367,11 @@ class ADIF(AdifPage):
         corba_server = int(form.cleaned_data.get('corba_server', 0))
         cherrypy.session['corba_server_name'] = form.fields['corba_server'].choices[corba_server][1]
         cherrypy.session['filter_forms_javascript'] = None
+
         cherrypy.session['Mailer'] = corba_obj.getObject('Mailer', 'ccReg.Mailer')
-        cherrypy.session['FileManager'] = corba_obj.getObject(
-            'FileManager', 'ccReg.FileManager')
+        cherrypy.session['FileManager'] = corba_obj.getObject('FileManager', 'ccReg.FileManager')
         cherrypy.session['Messages'] = corba_obj.getObject('Messages', 'Registry.Messages')
+        #cherrypy.session['Blocking'] = corba_obj.getObject('Administrative', 'Registry.Administrative.Blocking')
 
         cherrypy.session['history'] = False
         utils.get_corba_session().setHistory(False)
@@ -748,6 +756,17 @@ class Registrar(AdifPage, ListTableMixin):
 
 
 class Domain(AdifPage, ListTableMixin):
+    blockable = True
+    blocking_types = OrderedDict((
+        # blocking_action: [blocking form, blocking text]
+        ('block', (DomainBlockForm, _('Block'))),
+        ('change_blocking', (DomainChangeBlockingForm, _('Change blocking'))),
+        ('unblock', (DomainUnblockForm, _('Unblock'))),
+        ('unblock_and_restore_prev_state', (DomainUnblockAndRestorePrevStateForm, _('Unblock and restore prev. state'))),
+        ('blacklist', (DomainBlacklistForm, _('Blacklist'))),
+        #('unblacklist_and_create', (DomainUnblacklistAndCreateForm, _('Unblacklist and create')))
+    ))
+
     @check_onperm('read')
     def dig(self, **kwd):
         context = {}
@@ -804,6 +823,125 @@ class Domain(AdifPage, ListTableMixin):
             return self._render('setinzonestatus', context)
         finally:
             log_req.close()
+
+    def _template(self, action=''):
+        if action == 'blocking':
+            return DomainBlocking
+        elif action == 'blocking_result':
+            return DomainBlockingResult
+        else:
+            return AdifPage._template(self, action=action)
+
+    @check_onperm('block')
+    def blocking(self, *args, **kwd):
+        from fred_webadmin.tests.webadmin.test_administrative_blocking import mock_blocking
+        mock_blocking()
+
+        if args and args[0] == 'result':
+            return self._blocking_result(*args, **kwd)
+
+        context = {
+            'main': div(kwd),
+        }
+
+
+        if cherrypy.request.method == 'POST':
+            blocking_action = kwd.get('blocking_action')
+            if not blocking_action:
+                return self._render('error', {'message': [_(u'No blocking action supplied.')]})
+            form_class = self.blocking_types[blocking_action][0]
+            context['heading'] = self.blocking_types[blocking_action][1]
+            if kwd.get('pre_blocking_form'):
+                object_ids = kwd.get('object_selection')
+                if not object_ids:
+                    return self._render('error', {'message': [
+                        p(_(u'You must choose at least one domain.'),
+                          a(attr(href=f_urls[self.classname] + 'filter/blocking_start/'), _('Go back to selection.')))
+                    ]})
+                form = form_class(self.classname, initial={'objects': object_ids,
+                                                           'blocking_action': blocking_action,
+                                                          })
+            elif kwd.get('blocking_form_sent'):
+                form = form_class(self.classname, kwd)
+                if form.is_valid():
+                    context.update(self._process_valid_blocking_form(form, context))
+            else:
+                msg = 'Submitting of a blocking form needed, normal user should not get this error!'
+                error(msg)
+                return self._render('error', {'message': [msg]})
+
+            context['form'] = form
+            return self._render('blocking', ctx=context)
+        else:
+            return self._render('error', {'message': [_(u'This page is not accessible through HTTP GET..')]})
+
+    def _process_valid_blocking_form(self, form, context):
+        blocking_action = form.cleaned_data['blocking_action']
+        if blocking_action == 'block':
+            try:
+                print recoder.u2c(form.cleaned_data['objects'])
+                print recoder.u2c(form.cleaned_data['blocking_status_list'])
+                print recoder.u2c(form.cleaned_data['owner_block_mode'])
+                    #recoder.u2c(form.cleaned_data['block_temporarily']),
+                print recoder.u2c(form.cleaned_data['reason'])
+
+                domain_holder_changes = cherrypy.session['Blocking'].blockDomainsId(
+                    recoder.u2c(form.cleaned_data['objects']),
+                    recoder.u2c(form.cleaned_data['blocking_status_list']),
+                    recoder.u2c(form.cleaned_data['owner_block_mode']),
+                    #recoder.u2c(form.cleaned_data['block_temporarily']),
+                    recoder.u2c(form.cleaned_data['reason']),
+                )
+                cherrypy.session['blocking_action'] = form.cleaned_data['blocking_action']
+                cherrypy.session['blocked_objects'] = form.cleaned_data['objects']
+                cherrypy.session['domain_holder_changes'] = domain_holder_changes
+                raise cherrypy.HTTPRedirect(f_urls[self.classname] + 'blocking/result/')
+            except RuntimeError: # neco neco
+                form.add_error('objects', _('Domain "%s" is already blocked' % 'nakadomena.cz'))
+
+        elif blocking_action == 'change_blocking':
+            try:
+                cherrypy.session['Blocking'].updateBlockDomainsId(
+                    recoder.u2c(form.cleaned_data['objects']),
+                    recoder.u2c(form.cleaned_data['blocking_status_list']),
+                    recoder.u2c(form.cleaned_data['reason']),
+                    recoder.u2c(form.cleaned_data['block_temporarily']),
+                )
+                cherrypy.session['blocking_action'] = form.cleaned_data['blocking_action']
+                cherrypy.session['blocked_objects'] = form.cleaned_data['objects']
+                raise cherrypy.HTTPRedirect(f_urls[self.classname] + 'blocking/result/')
+            except RuntimeError: #neco neco
+                pass
+        elif blocking_action == 'unblock':
+            pass
+        elif blocking_action == 'unblock_and_restore_prev_state':
+            pass
+        elif blocking_action == 'blacklist':
+            pass
+        elif blocking_action == 'unblacklist_and_create':
+            pass
+
+        return context
+
+    def _blocking_result(self, *args, **kwargs):
+        context = {}
+        if cherrypy.session.get('blocked_objects'):
+            context['detail_url'] = f_urls[self.classname] + 'detail/?id=%s'
+            context['heading'] = 'Result of: %s' % self.blocking_types[cherrypy.session['blocking_action']][1]
+            object_details = [utils.get_detail(self.classname, object_id)
+                              for object_id in cherrypy.session['blocked_objects']]
+            if cherrypy.session.get('domain_holder_changes'):
+                holder_changes = {}
+                for holder_change in cherrypy.session['domain_holder_changes']:
+                    holder_changes[holder_change.domainId] = [holder_change.oldOwner, holder_change.newOwner]
+                context['holder_changes'] = holder_changes
+            context['blocked_objects'] = object_details
+
+            del cherrypy.session['blocked_objects']
+            del cherrypy.session['blocking_action']
+        else:
+            context['heading'] = _('Result page has expired.')
+        return self._render('blocking_result', ctx=context)
 
 
 class Contact(AdifPage, ListTableMixin):

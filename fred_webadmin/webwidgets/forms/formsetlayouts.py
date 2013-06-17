@@ -16,12 +16,12 @@ class TableFormSetLayout(FormSetLayout):
         super(TableFormSetLayout, self).__init__(*content, **kwd)
 
         self.tag = u'table'
-        self.cssc = 'form_table' # formset_table'
-        self.style = "width: 70%;"
+        self.cssc = 'form_table formset_table'
         self.formset = formset
         self.create_layout()
 
     def create_layout(self):
+        self.content = []
         formset = self.formset
 
         self.add(tbody(tagid('tbody')))
@@ -57,6 +57,7 @@ class DivFormSetLayout(FormSetLayout):
         self.create_layout()
 
     def create_layout(self):
+        self.content = []
         formset = self.formset
 
         self.add(div(tagid('div')))
@@ -77,6 +78,7 @@ class DivFormSetLayout(FormSetLayout):
 
 class FieldsetFormSetLayout(TableFormSetLayout):
     def create_layout(self):
+        self.content = []
         formset = self.formset
 
         self.add(fieldset(tagid('fieldset')))

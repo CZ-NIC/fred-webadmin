@@ -34,6 +34,7 @@ class UnionFilterFormLayout(TableFormLayout):
                           ]
 
     def create_layout(self):
+        self.content = []
         self.add(tbody(tagid('tbody')))
         form_count = len(self.form.forms)
         for i, inner_form in enumerate(self.form.forms):
@@ -97,6 +98,7 @@ class FilterTableFormLayout(TableFormLayout):
         self.cssc = u'filtertable'
 
     def create_layout(self):
+        self.content = []
         form = self.form
         self.add(tbody(tagid('tbody')))
 

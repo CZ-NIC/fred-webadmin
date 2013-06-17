@@ -17,7 +17,8 @@ from fred_webadmin.corba import (
     ccReg, Registry, CorbaServerDisconnectedException)
 import fred_webadmin.webwidgets.forms.emptyvalue
 
-def fileGenerator(source, separator='|'):
+
+def fileGenerator(source):
     "Generates CSV stream from IterTable object"
 
     # CSV writer only supports files for output => we have to use StringIO.
@@ -46,12 +47,13 @@ class IterTable(object):
         access to rows (fetches them on demand), thus it can access very large
         data sets without running out of memory.
     """
-    def __init__(self, request_object, session_key, pagesize=50, timeout=10000, max_row_limit=1000):
+    def __init__(self, request_object, session_key, pagesize=50, timeout=10000, max_row_limit=1000, pagination=True):
         super(IterTable, self).__init__()
 
         self.iterable = True
         self.request_object = request_object
         self.max_row_limit = max_row_limit
+        self.pagination = pagination
 
         table, header_id = self._map_request(session_key)
         self._table = table
@@ -243,7 +245,11 @@ class IterTable(object):
     def next(self):
         """ To make IterTable iterable.
         """
-        while self._row_index < (self.page_start + self.page_rows):
+        if self.pagination:
+            max_row_boundary = (self.page_start + self.page_rows)
+        else:
+            max_row_boundary = self.num_rows
+        while self._row_index < max_row_boundary:
             row = self._get_row(self._row_index)
             self._row_index += 1
             yield row

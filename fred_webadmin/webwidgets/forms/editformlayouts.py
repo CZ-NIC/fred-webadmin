@@ -33,12 +33,12 @@ class EditFormLayout(TableFormLayout):
 
 class RegistrarEditFormLayout(FormLayout):
     def __init__(self, form, *content, **kwd):
-        super(RegistrarEditFormLayout, self).__init__(*content, **kwd)
+        super(RegistrarEditFormLayout, self).__init__(form, *content, **kwd)
         self.tag = u'div'
-        self.form = form
         self.create_layout()
 
     def create_layout(self):
+        self.content = []
         form = self.form
 
         if form.non_field_errors():

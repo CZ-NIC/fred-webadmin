@@ -8,11 +8,10 @@ from decimal import Decimal, DecimalException
 from logging import debug
 import cherrypy
 
-import fred_webadmin.corbarecoder as recoder
 import fred_webadmin.nulltype as fredtypes
 
 from fred_webadmin.webwidgets.gpyweb.gpyweb import (
-    WebWidget, attr, select, option, span, input, span)
+    WebWidget, attr, br, select, option, span, input, span)
 from fred_webadmin.webwidgets.utils import ValidationError, ErrorList, isiterable
 from fred_webadmin.translation import _
 from fred_webadmin.utils import LateBindingProperty
@@ -109,7 +108,7 @@ class Field(WebWidget):
 class CharField(Field):
     tattr_list = input.tattr_list
     def __init__(self, name='', value='', max_length=None, min_length=None, strip_spaces=True, *args, **kwargs):
-        super(CharField, self).__init__(name, value, *args, **kwargs)
+        super(CharField, self).__init__(name=name, value=value, *args, **kwargs)
         self.maxlength = self.max_length = max_length # `maxlength' as html tag attribute and max_length as object's attribute
         self.min_length = min_length
         self.tag = self.tag or u'input'
@@ -135,7 +134,7 @@ class CharField(Field):
 
 class PasswordField(CharField):
     def __init__(self, name='', value='', max_length=None, min_length=None, *args, **kwargs):
-        super(PasswordField, self).__init__(name, value, max_length, min_length, *args, **kwargs)
+        super(PasswordField, self).__init__(name=name, value=value, max_length=max_length, min_length=min_length, *args, **kwargs)
         if self.tag == u'input':
             self.type = u'password'
 
@@ -213,7 +212,7 @@ class DecimalField(Field):
 
 class IntegerField(DecimalField):
     def __init__(self, name='', value='', max_value=None, min_value=None, *args, **kwargs):
-        super(IntegerField, self).__init__(name='', value='', max_value=max_value, min_value=min_value, decimal_places=0, *args, **kwargs)
+        super(IntegerField, self).__init__(name=name, value=value, max_value=max_value, min_value=min_value, decimal_places=0, *args, **kwargs)
     def clean(self):
         if self.is_empty():
             return fredtypes.NullInt()
@@ -250,9 +249,9 @@ class DateField(CharField):
             return self.value.date()
         if isinstance(self.value, datetime.date):
             return self.value
-        for format in self.input_formats:
+        for input_format in self.input_formats:
             try:
-                return datetime.date(*time.strptime(self.value, format)[:3])
+                return datetime.date(*time.strptime(self.value, input_format)[:3])
             except ValueError:
                 continue
         raise ValidationError(_(u'Enter a valid date.'))
@@ -286,9 +285,9 @@ class TimeField(CharField):
             return fredtypes.NullDateTime()
         if isinstance(self.value, datetime.time):
             return self.value
-        for format in self.input_formats:
+        for input_format in self.input_formats:
             try:
-                return datetime.time(*time.strptime(self.value, format)[3:6])
+                return datetime.time(*time.strptime(self.value, input_format)[3:6])
             except ValueError:
                 continue
         raise ValidationError(_(u'Enter a valid time.'))
@@ -331,9 +330,9 @@ class DateTimeField(Field):
             return self.value
         if isinstance(self.value, datetime.date):
             return datetime.datetime(self.value.year, self.value.month, self.value.day)
-        for format in self.input_formats:
+        for input_format in self.input_formats:
             try:
-                return datetime.datetime(*time.strptime(self.value, format)[:6])
+                return datetime.datetime(*time.strptime(self.value, input_format)[:6])
             except ValueError:
                 continue
         raise ValidationError(_(u'Enter a valid date/time.'))
@@ -614,7 +613,7 @@ class ChoiceField(Field):
                 nperms.split('.')[-1] == self.get_nperm()]
             nperm = nperms[0] if nperms else None
         self.content = []
-        # add/remove emtpy choice according
+        # add/remove empty choice according
         if self.required and self.choices and self.choices[0] == self.empty_choice: # remove empty choice:
             self.choices.pop(0)
         elif not self.required and (not self.choices or (self.choices and self.choices[0] != self.empty_choice)): # add empty choice:
@@ -705,11 +704,11 @@ class NullBooleanField(ChoiceField):
 class MultipleChoiceField(ChoiceField):
     def __init__(self, name='', value='', choices=None, required=True, label=None, initial=None, help_text=None, *args, **kwargs):
         super(MultipleChoiceField, self).__init__(name, value, choices, required, label, initial, help_text, *args, **kwargs)
-        if self.tag == u'select':
-            self.add(attr(multiple=u"multiple"))
 
     def make_content(self):
         self.content = []
+        if self.tag == u'select':
+            self.add(attr(multiple=u"multiple"))
         if self.choices:
             for value, caption in self.choices:
                 if unicode(value) in self.value:
@@ -755,6 +754,21 @@ class MultipleChoiceField(ChoiceField):
                 return True
         return False
 
+class MultipleChoiceFieldCheckboxes(MultipleChoiceField):
+    def __init__(self, *args, **kwargs):
+        super(MultipleChoiceFieldCheckboxes, self).__init__(*args, **kwargs)
+        self.tag = 'div'
+
+    def make_content(self):
+        self.content = []
+        for value, caption in self.choices:
+            if unicode(value) in self.value:
+                checked = 'checked'
+            else:
+                checked = None
+            self.add(span(input(attr(type='checkbox', checked=checked, name=self.name, value=value)), caption, br()))
+
+
 class ComboField(Field):
     """
     A Field whose clean() method calls multiple Field clean() methods.
@@ -796,11 +810,13 @@ class MultiValueField(Field):
 
     """
     tattr_list = span.tattr_list
-    def __init__(self, name='', value='', fields=(), *args, **kwargs):
+    def __init__(self, name='', value='', fields=None, *args, **kwargs):
 
         # Set 'required' to False on the individual fields, because the
         # required validation will be handled by MultiValueField, not by those
         # individual fields.
+        if fields is None:
+            fields = []
         for field in fields:
             field.required = False
         self.fields = fields
@@ -821,11 +837,10 @@ class MultiValueField(Field):
             self._value = [None] * len(self.fields)
             for field in self.fields:
                 field.value = None
-            return
         else:
             self._value = value
             if not isiterable(value) and len(value) != len(self.fields):
-                raise TypeError(u'value of MultiValueField must be sequence with the same length as a number of fields in multifield (was %s)' % unicode(value))
+                raise TypeError(u'value of MultiValueField must be sequence with the same length as a number of fields in multifield (was % s)' % unicode(value))
             for i, val in enumerate(value):
                 self.fields[i].value = val
     def _get_value(self):
@@ -834,6 +849,7 @@ class MultiValueField(Field):
 
 
     def make_content(self):
+        self.content = []
         for field in self.fields:
             label_str = field.label or ''
             if label_str:

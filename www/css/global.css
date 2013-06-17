@@ -53,9 +53,10 @@ p img, h1 img, h2 img, h3 img, h4 img, td img { vertical-align:middle; }
 .nowrap { white-space:nowrap; }
 
 /* TABLES */
-table.form_table  { border-collapse:collapse; border-color:#ccc; width: 350px;}
+table.form_table  { border-collapse:collapse; border-color:#ccc; /*width: 350px;*/}
 .form_table td, .form_table th { font-size:11px; line-height:13px; vertical-align:top; padding:5px; font-family:"Lucida Grande", Verdana, Arial, sans-serif; }
-.form_table th { text-align:left; font-size:12px; font-weight:bold; }
+.form_table .label_cell { text-align:right; }
+.form_table th.label_cell { font-size:12px; font-weight:bold; }
 .form_table thead th,
 .form_table tfoot td { color:#666; padding:2px 5px; font-size:11px; background:#e1e1e1 url(../img/admin/nav-bg.gif) top left repeat-x; border-left:1px solid #ddd; border-bottom:1px solid #ddd; }
 .form_table tfoot td { border-bottom:none; border-top:1px solid #ddd; }

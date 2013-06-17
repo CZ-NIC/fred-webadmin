@@ -9,9 +9,7 @@ from fred_webadmin.webwidgets.gpyweb.gpyweb import div, p, br
 from fred_webadmin.translation import _
 import fred_webadmin.utils as utils
 
-from fred_webadmin.webwidgets.templates.pages import (
-    BaseSiteMenu
-)
+from fred_webadmin.webwidgets.templates.pages import BaseSiteMenu
 
 
 def login_required(view_func):

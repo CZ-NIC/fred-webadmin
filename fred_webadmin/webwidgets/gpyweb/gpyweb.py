@@ -79,11 +79,12 @@ class WebWidget(object):
     def __init__(self, *content, **kwd):
         if self in content:
             raise GPyWebError("Trying to pass self in init")
-        self.__dict__['tattr'] = {} # attributes, that will be rendered into tag as attribute (eg. <a href="/">...)
-        self.__dict__['content'] = [] # To not pydev(or pylint) complain about assigning to undefined membet 'attr'
+        self.tattr = {} # attributes, that will be rendered into tag as attribute (eg. <a href="/">...)
+        self.content = [] # To not pydev(or pylint) complain about assigning to undefined membet 'attr'
         self.parent_widget = None
 
-        self.tag = self.__class__.__name__
+        if not hasattr(self, 'tag'): # allow subclasses to define "tag" as class attribute
+            self.tag = self.__class__.__name__
 
         self._root_widget = self # root webwidget (usualy hmtl tag)
         self.media_files = [] # list of media files, which is rendered in head tag of HTMLPage, if this element is rendered in HTMLPage
