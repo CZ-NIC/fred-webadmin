@@ -6,7 +6,7 @@ from .forms import Form
 from .fields import CharField, ChoiceField, PasswordField, HiddenField, BooleanField, MultipleChoiceFieldCheckboxes
 
 from fred_webadmin.translation import _
-from fred_webadmin.webwidgets.forms.adiffields import ListObjectHiddenField, CorbaEnumChoiceFieldTranslated
+from fred_webadmin.webwidgets.forms.adiffields import ListObjectHiddenField, CorbaEnumChoiceIntegerFieldTranslated
 from fred_webadmin.mappings import f_name_translated_plural
 import cherrypy
 from fred_webadmin.webwidgets.utils import ValidationError
@@ -73,7 +73,7 @@ class DomainBlockBase(DomainBlockingBase): # base for block and change blocking 
 
 
 class DomainBlockForm(DomainBlockBase):
-    owner_block_mode = CorbaEnumChoiceFieldTranslated(
+    owner_block_mode = CorbaEnumChoiceIntegerFieldTranslated(
         label=_('Holder blocking'), corba_enum=Registry.Administrative.OwnerBlockMode,
         enum_translation_mapping={
             'KEEP_OWNER': _('Do not block the holder'),

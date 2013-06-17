@@ -16,7 +16,7 @@ from fred_webadmin.webwidgets.forms.fields import (
     IntegerField)
 from fred_webadmin.webwidgets.forms.adiffields import (
     DateTimeIntervalField, CompoundFilterField,
-    CorbaEnumChoiceField, DateIntervalField)
+    CorbaEnumChoiceIntegerField, DateIntervalField)
 from fred_webadmin.webwidgets.forms.filterformlayouts import (
     FilterTableFormLayout, UnionFilterFormLayout)
 from fred_webadmin.translation import _
@@ -469,9 +469,9 @@ class PublicRequestFilterForm(FilterForm):
     default_fields_names = ['Id']
 
     Id = IntegerField(label=_('ID'))
-    Type = CorbaEnumChoiceField(
+    Type = CorbaEnumChoiceIntegerField(
         label=_('Type'), corba_enum=Registry.PublicRequest.Type)
-    Status = CorbaEnumChoiceField(
+    Status = CorbaEnumChoiceIntegerField(
         label=_('Status'), corba_enum=Registry.PublicRequest.Status)
     CreateTime = DateTimeIntervalField(label=_('Create time'))
     ResolveTime = DateTimeIntervalField(label=_('Resolve time'))
@@ -496,7 +496,7 @@ class FileFilterForm(FilterForm):
 class InvoiceFilterForm(FilterForm):
     default_fields_names = ['Type']
 
-    Type = CorbaEnumChoiceField(
+    Type = CorbaEnumChoiceIntegerField(
         label=_('Type'), corba_enum=Registry.Invoicing.InvoiceType)
     Number = CharField(label=_('Number'))
     CreateTime = DateTimeIntervalField(label=_('Create time'))

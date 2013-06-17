@@ -155,9 +155,9 @@ class FormSetField(Field):
             form.fire_actions(*args, **kwargs)
 
 
-class CorbaEnumChoiceField(ChoiceField):
+class CorbaEnumChoiceIntegerField(ChoiceField):
     """
-    A field created from corba enum type
+    A field created from corba enum type, cleaned value is int (using '_n' attribute of the enum)
     """
     def __init__(self, name='', value='', corba_enum=None, required=True, label=None, initial=None, help_text=None, *arg, **kwargs):
         if corba_enum is None:
@@ -165,7 +165,7 @@ class CorbaEnumChoiceField(ChoiceField):
         self.corba_enum = corba_enum
         choices = self.transform_corba_to_choices()
 
-        super(CorbaEnumChoiceField, self).__init__(name=name, value=value, choices=choices, required=required,
+        super(CorbaEnumChoiceIntegerField, self).__init__(name=name, value=value, choices=choices, required=required,
                                                    label=label, initial=initial, help_text=help_text,
                                                    *arg, **kwargs)
 
@@ -173,7 +173,7 @@ class CorbaEnumChoiceField(ChoiceField):
         return [(unicode(item._v), _(item._n)) for item in self.corba_enum._items]
 
     def clean(self):
-        cleaned_data = super(CorbaEnumChoiceField, self).clean()
+        cleaned_data = super(CorbaEnumChoiceIntegerField, self).clean()
         if cleaned_data != u'':
             return int(cleaned_data)
 
@@ -183,10 +183,10 @@ class CorbaEnumChoiceField(ChoiceField):
         else:
             return False
 
-class CorbaEnumChoiceFieldTranslated(CorbaEnumChoiceField):
+class CorbaEnumChoiceIntegerFieldTranslated(CorbaEnumChoiceIntegerField):
     def __init__(self, name='', value='', corba_enum=None, enum_translation_mapping=None, required=True, label=None, initial=None, help_text=None, *arg, **kwargs):
         self.enum_translation_mapping = enum_translation_mapping
-        super(CorbaEnumChoiceFieldTranslated, self).__init__(name=name, value=value, corba_enum=corba_enum, required=required,
+        super(CorbaEnumChoiceIntegerFieldTranslated, self).__init__(name=name, value=value, corba_enum=corba_enum, required=required,
                                                    label=label, initial=initial, help_text=help_text,
                                                    *arg, **kwargs)
 
