@@ -155,27 +155,32 @@ class FormSetField(Field):
             form.fire_actions(*args, **kwargs)
 
 
-class CorbaEnumChoiceIntegerField(ChoiceField):
+class CorbaEnumChoiceField(ChoiceField):
     """
     A field created from corba enum type, cleaned value is int (using '_n' attribute of the enum)
     """
-    def __init__(self, name='', value='', corba_enum=None, required=True, label=None, initial=None, help_text=None, *arg, **kwargs):
+    def __init__(self, name='', value='', corba_enum=None, enum_translation_mapping=None, required=True, label=None, initial=None, help_text=None, *arg, **kwargs):
         if corba_enum is None:
             raise RuntimeError('corba_enum argument is required!')
         self.corba_enum = corba_enum
+        self.enum_translation_mapping = enum_translation_mapping
         choices = self.transform_corba_to_choices()
 
-        super(CorbaEnumChoiceIntegerField, self).__init__(name=name, value=value, choices=choices, required=required,
+        super(CorbaEnumChoiceField, self).__init__(name=name, value=value, choices=choices, required=required,
                                                    label=label, initial=initial, help_text=help_text,
                                                    *arg, **kwargs)
 
     def transform_corba_to_choices(self):
-        return [(unicode(item._v), _(item._n)) for item in self.corba_enum._items]
+        if self.enum_translation_mapping:
+            return [(unicode(item._v), _(self.enum_translation_mapping[item._n])) for item in self.corba_enum._items]
+        else:
+            return [(unicode(item._v), item._n) for item in self.corba_enum._items]
 
     def clean(self):
-        cleaned_data = super(CorbaEnumChoiceIntegerField, self).clean()
+        cleaned_data = super(CorbaEnumChoiceField, self).clean()
         if cleaned_data != u'':
-            return int(cleaned_data)
+            enum_number = int(cleaned_data)
+            return self.corba_enum._items[enum_number]
 
     def is_empty(self):
         if self.value == self.empty_choice[0]:
@@ -183,16 +188,11 @@ class CorbaEnumChoiceIntegerField(ChoiceField):
         else:
             return False
 
-class CorbaEnumChoiceIntegerFieldTranslated(CorbaEnumChoiceIntegerField):
-    def __init__(self, name='', value='', corba_enum=None, enum_translation_mapping=None, required=True, label=None, initial=None, help_text=None, *arg, **kwargs):
-        self.enum_translation_mapping = enum_translation_mapping
-        super(CorbaEnumChoiceIntegerFieldTranslated, self).__init__(name=name, value=value, corba_enum=corba_enum, required=required,
-                                                   label=label, initial=initial, help_text=help_text,
-                                                   *arg, **kwargs)
-
-    def transform_corba_to_choices(self):
-        return [(unicode(item._v), _(self.enum_translation_mapping[item._n])) for item in self.corba_enum._items]
-
+class CorbaEnumChoiceIntegerField(CorbaEnumChoiceField):
+    def clean(self):
+        cleaned_data = super(CorbaEnumChoiceIntegerField, self).clean()
+        if cleaned_data is not None:
+            return cleaned_data._v
 
 class AbstractIntervalField(MultiValueField):
     ''' Abstract class field for DateIntervalField and DateTimeIntervalField'''
