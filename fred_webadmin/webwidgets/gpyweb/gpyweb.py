@@ -251,10 +251,12 @@ class WebWidget(object):
             rstr += self.render_tattr()
             if len(self.content) or not self.empty_tag_as_xml:
                 rstr += u'>'
+                if not self.enclose_content:
+                    rstr += self.delimiter_char
             else:
                 rstr += u' />'
-            if not self.enclose_content:
-                rstr += self.delimiter_char
+                if not self.parent_widget or (self.parent_widget and not self.parent_widget.enclose_content):
+                    rstr += self.delimiter_char
 
         rstr += self.render_content(indent_level + 1)
 
@@ -262,10 +264,7 @@ class WebWidget(object):
             if not self.enclose_content:
                 rstr += indent_level * self.indent_char
             rstr += u'</' + self.tag + u'>'
-            if self.parent_widget:
-                if not self.parent_widget.enclose_content :
-                    rstr += self.delimiter_char
-            else:
+            if not self.parent_widget or (self.parent_widget and not self.parent_widget.enclose_content):
                 rstr += self.delimiter_char
 
         return rstr
@@ -576,6 +575,7 @@ class Media(WebWidget):
     def __init__(self, media_files, *content, **kwd):
         super(Media, self).__init__(*content, **kwd)
         self.tag = None
+        self.indent_level = None
 
         if isinstance(media_files, types.StringTypes):
             self.media_files = [media_files] #set([media_files])
@@ -600,16 +600,6 @@ class Media(WebWidget):
     def render(self, indent_level=0):
         self.indent_level = indent_level
         return GPYWEB_REPLACE_ME_WITH_MEDIA
-        rstr = ''
-        for media_file in self.media_files:
-            if media_file.endswith('.css'):
-                rstr += indent_level * self.indent_char
-                rstr += unicode(link(href=media_file, rel="stylesheet", type="text/css"))
-            else:
-                rstr += indent_level * self.indent_char
-                #must contain empty string because browser take <script /> as if it was <script> and waiting for </scrpt>:
-                rstr += unicode(script('', src=media_file, type="text/javascript", enclose_content=True))
-        return rstr
 
 
 class DictLookup(dict):
