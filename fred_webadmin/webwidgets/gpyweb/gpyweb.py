@@ -312,6 +312,27 @@ class WebWidget(object):
             self.add(content)
         return self
 
+    def add_css_class(self, css_class):
+        if hasattr(self, 'cssc'):
+            self.cssc += ' %s' % css_class
+        else:
+            self.cssc = css_class
+
+    def remove_css_class(self, css_class):
+        ''' Removes css_class from cssc attribute, returns True if css_class was really removed. '''
+        removed = False
+        if hasattr(self, 'cssc'):
+            css_class_list = self.cssc.split()
+            try:
+                css_class_list.remove(css_class)
+                removed = True
+            except ValueError:
+                pass
+            self.cssc = ' '.join(css_class_list)
+            if self.cssc == '':
+                self.cssc = None
+        return removed
+
 
 class notag(WebWidget):
     def __init__(self, *content, **kwd):

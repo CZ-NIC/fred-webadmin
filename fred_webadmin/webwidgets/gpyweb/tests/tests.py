@@ -263,6 +263,7 @@ def test_root_tag():
 
     assert_equal(mv.my_p.root_widget, d)
 
+
 def test_escape():
     p1 = p('first<br />second')
     assert str(p1) == '''<p>
@@ -276,9 +277,28 @@ def test_escape():
 </p>
 ''')
 
+
 def test_enclose():
     p1 = p(attr(enclose_content=True), 'Visit our ', a(attr(href='http://www.example.com'), 'website'), '.',
            input(attr(type="submit", value="+Like")), 'Like us.') # tag "a" has enclose_content = True by default
     corect_result = '''<p>Visit our <a href="http://www.example.com">website</a>.<input type="submit" value="+Like" />Like us.</p>
 '''
     assert_equal(str(p1), corect_result)
+
+
+def test_cssc_manipulation():
+    b1 = b('ahoj')
+    b1.add_css_class('myclass')
+    assert_equal(str(b1), '<b class="myclass">ahoj</b>\n')
+
+    assert_equal(b1.remove_css_class('myclass'), True)
+    assert_equal(str(b1), '<b>ahoj</b>\n')
+
+    b2 = b(attr(cssc="myclass1 myclass2 myclass3"), 'ahoj')
+    assert_equal(b2.remove_css_class('myclass2'), True)
+    assert_equal(str(b2), '<b class="myclass1 myclass3">ahoj</b>\n')
+    b2.add_css_class('myclass4')
+    assert_equal(str(b2), '<b class="myclass1 myclass3 myclass4">ahoj</b>\n')
+
+    # return False when webwidged didn't have such a class:
+    assert_equal(b2.remove_css_class('non_existent_class'), False)
