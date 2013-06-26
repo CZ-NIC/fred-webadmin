@@ -3,7 +3,9 @@
 
 from fred_webadmin import config
 from .forms import Form
-from .fields import CharField, ChoiceField, PasswordField, HiddenField, BooleanField, MultipleChoiceFieldCheckboxes
+from .fields import (CharField, ChoiceField, PasswordField, HiddenField, BooleanField, MultipleChoiceFieldCheckboxes,
+                     SplitDateSplitTimeField)
+
 
 from fred_webadmin.translation import _
 from fred_webadmin.webwidgets.forms.adiffields import ListObjectHiddenField, CorbaEnumChoiceField
@@ -37,6 +39,7 @@ class DomainBlockingBase(Form): # base for all block and unblock forms
     blocking_form_sent = HiddenField(initial='1')
     objects = ListObjectHiddenField()
     blocking_action = HiddenField()
+    reason = CharField(label=_('Reason'))
 
     def __init__(self, object_type, *content, **kwd):
         self.object_type = object_type
@@ -50,9 +53,6 @@ class DomainBlockingBase(Form): # base for all block and unblock forms
 
 
 class DomainBlockBase(DomainBlockingBase): # base for block and change blocking form
-    reason = CharField(label=_('Reason'))
-
-
     def build_fields(self):
         super(DomainBlockBase, self).build_fields()
 
@@ -106,6 +106,7 @@ class DomainUnblockAndRestorePrevStateForm(DomainBlockingBase):
 
 class DomainBlacklistForm(DomainBlockingBase):
     with_delete = BooleanField(label=_('Also delete the domain(s)'))
+    blacklist_to_date = SplitDateSplitTimeField(label=_('To'), required=False)
 
 class DomainUnblacklistAndCreateForm(DomainBlockingBase):
     pass

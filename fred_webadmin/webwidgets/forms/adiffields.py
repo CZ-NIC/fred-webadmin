@@ -202,6 +202,7 @@ class AbstractIntervalField(MultiValueField):
         super(AbstractIntervalField, self).__init__(name, value, fields, *args, **kwargs)
         self.fields[3].required = True # intertnal type is required
         self.media_files.append('/js/interval_fields.js')
+        self.add_css_class('interval-field')
 
     def _set_value(self, value):
         if not value:

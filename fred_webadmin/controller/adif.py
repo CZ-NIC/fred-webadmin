@@ -371,7 +371,7 @@ class ADIF(AdifPage):
         cherrypy.session['Mailer'] = corba_obj.getObject('Mailer', 'ccReg.Mailer')
         cherrypy.session['FileManager'] = corba_obj.getObject('FileManager', 'ccReg.FileManager')
         cherrypy.session['Messages'] = corba_obj.getObject('Messages', 'Registry.Messages')
-        #cherrypy.session['Blocking'] = corba_obj.getObject('Administrative', 'Registry.Administrative.Blocking')
+        cherrypy.session['Blocking'] = corba_obj.getObject('Administrative', 'Registry.Administrative.Blocking')
 
         cherrypy.session['history'] = False
         utils.get_corba_session().setHistory(False)
@@ -834,8 +834,8 @@ class Domain(AdifPage, ListTableMixin):
 
     @check_onperm('block')
     def blocking(self, *args, **kwd):
-        from fred_webadmin.tests.webadmin.test_administrative_blocking import mock_blocking
-        mock_blocking()
+        #from fred_webadmin.tests.webadmin.test_administrative_blocking import mock_blocking
+        #mock_blocking()
 
         if args and args[0] == 'result':
             return self._blocking_result(*args, **kwd)
@@ -879,12 +879,6 @@ class Domain(AdifPage, ListTableMixin):
         blocking_action = form.cleaned_data['blocking_action']
         if blocking_action == 'block':
             try:
-                print recoder.u2c(form.cleaned_data['objects'])
-                print recoder.u2c(form.cleaned_data['blocking_status_list'])
-                print recoder.u2c(form.cleaned_data['owner_block_mode'])
-                    #recoder.u2c(form.cleaned_data['block_temporarily']),
-                print recoder.u2c(form.cleaned_data['reason'])
-
                 domain_holder_changes = cherrypy.session['Blocking'].blockDomainsId(
                     recoder.u2c(form.cleaned_data['objects']),
                     recoder.u2c(form.cleaned_data['blocking_status_list']),
@@ -905,7 +899,7 @@ class Domain(AdifPage, ListTableMixin):
                     recoder.u2c(form.cleaned_data['objects']),
                     recoder.u2c(form.cleaned_data['blocking_status_list']),
                     recoder.u2c(form.cleaned_data['reason']),
-                    recoder.u2c(form.cleaned_data['block_temporarily']),
+                    #recoder.u2c(form.cleaned_data['block_temporarily']),
                 )
                 cherrypy.session['blocking_action'] = form.cleaned_data['blocking_action']
                 cherrypy.session['blocked_objects'] = form.cleaned_data['objects']
@@ -913,13 +907,43 @@ class Domain(AdifPage, ListTableMixin):
             except RuntimeError: #neco neco
                 pass
         elif blocking_action == 'unblock':
-            pass
+            try:
+                cherrypy.session['Blocking'].unblockDomainsId(
+                    recoder.u2c(form.cleaned_data['objects']),
+                    recoder.u2c(form.cleaned_data['new_holder']),
+                    recoder.u2c(form.cleaned_data['remove_admin_contacts']),
+                    recoder.u2c(form.cleaned_data['reason']),
+                )
+                cherrypy.session['blocking_action'] = form.cleaned_data['blocking_action']
+                cherrypy.session['blocked_objects'] = form.cleaned_data['objects']
+                raise cherrypy.HTTPRedirect(f_urls[self.classname] + 'blocking/result/')
+            except RuntimeError: #neco neco
+                pass
         elif blocking_action == 'unblock_and_restore_prev_state':
-            pass
+            try:
+                cherrypy.session['Blocking'].restorePreAdministrativeBlockStatesId(
+                    recoder.u2c(form.cleaned_data['objects']),
+                    recoder.u2c(form.cleaned_data['reason']),
+                    #recoder.u2c(form.cleaned_data['new_holder']),
+                )
+                cherrypy.session['blocking_action'] = form.cleaned_data['blocking_action']
+                cherrypy.session['blocked_objects'] = form.cleaned_data['objects']
+                raise cherrypy.HTTPRedirect(f_urls[self.classname] + 'blocking/result/')
+            except RuntimeError: #neco neco
+                pass
         elif blocking_action == 'blacklist':
-            pass
-        elif blocking_action == 'unblacklist_and_create':
-            pass
+            try:
+                cherrypy.session['Blocking'].blacklistDomainsId(
+                    recoder.u2c(form.cleaned_data['objects']),
+                    #recoder.u2c(form.cleaned_data['reason']),
+                    recoder.u2c(None), # blacklist_to_date
+                    recoder.u2c(form.cleaned_data['with_delete']),
+                )
+                cherrypy.session['blocking_action'] = form.cleaned_data['blocking_action']
+                cherrypy.session['blocked_objects'] = form.cleaned_data['objects']
+                raise cherrypy.HTTPRedirect(f_urls[self.classname] + 'blocking/result/')
+            except RuntimeError: #neco neco
+                pass
 
         return context
 

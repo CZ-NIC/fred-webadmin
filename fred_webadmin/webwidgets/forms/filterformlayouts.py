@@ -24,7 +24,7 @@ class UnionFilterFormLayout(TableFormLayout):
     columns_count = 1
     def __init__(self, form, *content, **kwd):
         super(UnionFilterFormLayout, self).__init__(form, *content, **kwd)
-        self.cssc = u'unionfiltertable'
+        self.add_css_class(u'unionfiltertable')
         self.id = u'unionfiltertable'
         self.media_files = ['/css/filtertable.css',
                           '/css/ext/css/ext-all.css',
@@ -176,8 +176,8 @@ class FilterTableFormLayout(TableFormLayout):
 
         if not isinstance(field, CompoundFilterField):
             return notag(
-                td(label_str), td(presention_field, errors, field),
-                td(negation_field, 'NOT'))
+                td(attr(cssc='label_cell'), label(label_str)), td(presention_field, errors, field),
+                td(negation_field, label('NOT')))
 
     def build_fields_button(self):
         pass

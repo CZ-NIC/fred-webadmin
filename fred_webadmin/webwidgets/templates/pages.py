@@ -384,6 +384,14 @@ class DomainBlocking(BaseSiteMenu):
         self.main.add(h1(c['heading']))
         if c.get('form'):
             self.main.add(c['form'])
+            lang_code = config.lang[:2]
+        if True:
+            if lang_code == 'cs': # conversion between cs and cz identifier of lagnguage
+                lang_code = 'cz'
+            self.head.add(script(attr(type='text/javascript'),
+                                 'scwLanguage = "%s"; //sets language of js_calendar' % lang_code,
+                                 'scwDateOutputFormat = "%s"; // set output format for js_calendar' % config.js_calendar_date_format))
+
 
 class DomainBlockingResult(BaseSiteMenu):
     def __init__(self, context):

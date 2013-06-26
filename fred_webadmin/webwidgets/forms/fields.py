@@ -231,7 +231,10 @@ class DateField(CharField):
     def __init__(self, name='', value='', input_formats=None, js_calendar=True, *args, **kwargs):
         super(DateField, self).__init__(name, value, *args, **kwargs)
         self.input_formats = input_formats or DEFAULT_DATE_INPUT_FORMATS
-        self.cssc = 'datefield'
+
+
+        self.add_css_class('datefield')
+
         self.js_calendar = js_calendar
         if js_calendar:
             self.media_files = ['/js/scw.js', '/js/scwLanguages.js']
@@ -307,7 +310,7 @@ DEFAULT_DATETIME_INPUT_FORMATS = (
     u'%m/%d/%y %H:%M:%S', # '10/25/06 14:30:59'
     u'%m/%d/%y %H:%M', # '10/25/06 14:30'
     u'%m/%d/%y', # '10/25/06'
-    u'%d.%m.%Y'               # '25.10.2007'
+    u'%d.%m.%Y', # '25.10.2007'
     u'%d.%m.%Y %H:%M'         # '25.10.2007 15:30'
 
 )
@@ -317,6 +320,9 @@ class DateTimeField(Field):
     def __init__(self, name='', value='', input_formats=None, *args, **kwargs):
         super(DateTimeField, self).__init__(name, value, *args, **kwargs)
         self.input_formats = input_formats or DEFAULT_DATETIME_INPUT_FORMATS
+        self.tag = self.tag or u'input'
+        if self.tag == u'input':
+            self.type = u'text'
 
     def clean(self):
         """
@@ -332,7 +338,7 @@ class DateTimeField(Field):
             return datetime.datetime(self.value.year, self.value.month, self.value.day)
         for input_format in self.input_formats:
             try:
-                return datetime.datetime(*time.strptime(self.value, input_format)[:6])
+                return datetime.datetime.strptime(self.value, input_format)
             except ValueError:
                 continue
         raise ValidationError(_(u'Enter a valid date/time.'))
@@ -823,6 +829,7 @@ class MultiValueField(Field):
         self._name = ''
         super(MultiValueField, self).__init__(name, value, *args, **kwargs)
         self.tag = 'span'
+        self.enclose_content = True
 
     def _set_name(self, value):
         self._name = value
@@ -880,7 +887,7 @@ class MultiValueField(Field):
                 # Collect all validation errors in a single list, which we'll
                 # raise at the end of clean(), rather than raising a single
                 # exception for the first error we encounter.
-                errors.extend([self.name] + e.messages)
+                errors.extend(e.messages)
         if errors:
             raise ValidationError(errors)
         return self.compress(clean_data)
@@ -937,7 +944,7 @@ class MultiValueField(Field):
 
 class SplitDateTimeField(MultiValueField):
     def __init__(self, name='', value='', *args, **kwargs):
-        fields = (DateField(), TimeField())
+        fields = (DateField(cssc="split-datetime-date"), TimeField(cssc='split-datetime-time'))
         super(SplitDateTimeField, self).__init__(name, value, fields, *args, **kwargs)
 
     def compress(self, data_list):
@@ -978,6 +985,7 @@ class SplitTimeField(MultiValueField):
         super(SplitTimeField, self).__init__(name, value, fields, *args, **kwargs)
         for field in self.fields:
             field.required = True
+        self.add_css_class('split-time-field')
 
     def compress(self, data_list):
         if data_list:
