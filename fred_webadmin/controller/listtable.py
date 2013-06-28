@@ -314,8 +314,7 @@ class ListTableMixin(object):
         if (config.debug or f_urls.has_key(self.classname)):
             raise cherrypy.HTTPRedirect(f_urls[self.classname] + 'allfilters/')
         else:
-            # In production (non-debug) environment we just fall back to
-            # /summary.
+            # In production (non-debug) environment we just fall back to /summary.
             raise NotImplementedError("Support for '%s' has not yet been "
                                       "implemented." % self.classname)
 

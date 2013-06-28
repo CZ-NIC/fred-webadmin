@@ -999,7 +999,7 @@ class SplitTimeField(MultiValueField):
 
 class SplitDateSplitTimeField(SplitDateTimeField):
     def __init__(self, name='', value='', *args, **kwargs): #  pylint: disable-msg=E1003
-        fields = (DateField(size=10), SplitTimeField())
+        fields = (DateField(size=10, cssc='split-datetime-date'), SplitTimeField())
         # Here is called really parent of parent of this class, to avoid self.fields initialization from parent:
         super(SplitDateTimeField, self).__init__(name, value, fields, *args, **kwargs)
 

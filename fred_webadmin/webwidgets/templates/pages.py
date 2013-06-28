@@ -3,7 +3,7 @@
 import simplejson
 from fred_webadmin.webwidgets.gpyweb.gpyweb import (
     div, span, p, a, b, button, h2, h3, noesc, attr, save, HTMLPage, hr, br, table,
-    tr, th, td, img, form, label, input, h1, ul, li, script, pre, textarea, tagid)
+    tr, th, td, img, form, label, input, h1, ul, li, script, pre, textarea, tagid, notag)
 from fred_webadmin.translation import _
 from fred_webadmin import config
 from fred_webadmin.utils import get_current_url, append_getpar_to_url
@@ -406,7 +406,10 @@ class DomainBlockingResult(BaseSiteMenu):
 
             for blocked_object in c['blocked_objects']:
                 if c.get('holder_changes') and c.holder_changes.get(blocked_object.id):
-                    holder_change_text = (', holder changed %s -> %s' % (c.holder_changes))
+                    old_holder = c.holder_changes[blocked_object.id]['old_holder']
+                    new_holder = c.holder_changes[blocked_object.id]['new_holder']
+                    holder_change_text = notag(', holder changed ', a(attr(href=old_holder['link']), old_holder['handle']),
+                                               ' -> ', a(attr(href=new_holder['link']), new_holder['handle']))
                 else:
-                    holder_change_text = ''
-                self.blocked_object_ul.add(li(a(attr(href=c['detail_url'] % blocked_object.id), blocked_object.handle, holder_change_text)))
+                    holder_change_text = None
+                self.blocked_object_ul.add(li(a(attr(href=c['detail_url'] % blocked_object.id), blocked_object.handle), holder_change_text))

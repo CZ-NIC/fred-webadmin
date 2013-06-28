@@ -838,7 +838,7 @@ class Domain(AdifPage, ListTableMixin):
         #mock_blocking()
 
         if args and args[0] == 'result':
-            return self._blocking_result(*args, **kwd)
+            return self._blocking_result()
 
         context = {
             'main': div(kwd),
@@ -886,9 +886,11 @@ class Domain(AdifPage, ListTableMixin):
                     #recoder.u2c(form.cleaned_data['block_temporarily']),
                     recoder.u2c(form.cleaned_data['reason']),
                 )
-                cherrypy.session['blocking_action'] = form.cleaned_data['blocking_action']
-                cherrypy.session['blocked_objects'] = form.cleaned_data['objects']
-                cherrypy.session['domain_holder_changes'] = domain_holder_changes
+                cherrypy.session['blocking_result'] = {
+                        'blocking_action': form.cleaned_data['blocking_action'],
+                        'blocked_objects': form.cleaned_data['objects'],
+                        'domain_holder_changes': domain_holder_changes,
+                }
                 raise cherrypy.HTTPRedirect(f_urls[self.classname] + 'blocking/result/')
             except RuntimeError: # neco neco
                 form.add_error('objects', _('Domain "%s" is already blocked' % 'nakadomena.cz'))
@@ -901,8 +903,10 @@ class Domain(AdifPage, ListTableMixin):
                     recoder.u2c(form.cleaned_data['reason']),
                     #recoder.u2c(form.cleaned_data['block_temporarily']),
                 )
-                cherrypy.session['blocking_action'] = form.cleaned_data['blocking_action']
-                cherrypy.session['blocked_objects'] = form.cleaned_data['objects']
+                cherrypy.session['blocking_result'] = {
+                    'blocking_action': form.cleaned_data['blocking_action'],
+                    'blocked_objects': form.cleaned_data['objects'],
+                }
                 raise cherrypy.HTTPRedirect(f_urls[self.classname] + 'blocking/result/')
             except RuntimeError: #neco neco
                 pass
@@ -914,8 +918,10 @@ class Domain(AdifPage, ListTableMixin):
                     recoder.u2c(form.cleaned_data['remove_admin_contacts']),
                     recoder.u2c(form.cleaned_data['reason']),
                 )
-                cherrypy.session['blocking_action'] = form.cleaned_data['blocking_action']
-                cherrypy.session['blocked_objects'] = form.cleaned_data['objects']
+                cherrypy.session['blocking_result'] = {
+                    'blocking_action': form.cleaned_data['blocking_action'],
+                    'blocked_objects': form.cleaned_data['objects'],
+                }
                 raise cherrypy.HTTPRedirect(f_urls[self.classname] + 'blocking/result/')
             except RuntimeError: #neco neco
                 pass
@@ -926,8 +932,10 @@ class Domain(AdifPage, ListTableMixin):
                     recoder.u2c(form.cleaned_data['reason']),
                     #recoder.u2c(form.cleaned_data['new_holder']),
                 )
-                cherrypy.session['blocking_action'] = form.cleaned_data['blocking_action']
-                cherrypy.session['blocked_objects'] = form.cleaned_data['objects']
+                cherrypy.session['blocking_result'] = {
+                    'blocking_action': form.cleaned_data['blocking_action'],
+                    'blocked_objects': form.cleaned_data['objects'],
+                }
                 raise cherrypy.HTTPRedirect(f_urls[self.classname] + 'blocking/result/')
             except RuntimeError: #neco neco
                 pass
@@ -939,32 +947,47 @@ class Domain(AdifPage, ListTableMixin):
                     recoder.u2c(None), # blacklist_to_date
                     recoder.u2c(form.cleaned_data['with_delete']),
                 )
-                cherrypy.session['blocking_action'] = form.cleaned_data['blocking_action']
-                cherrypy.session['blocked_objects'] = form.cleaned_data['objects']
+                cherrypy.session['blocking_result'] = {
+                    'blocking_action': form.cleaned_data['blocking_action'],
+                    'blocked_objects': form.cleaned_data['objects'],
+                }
                 raise cherrypy.HTTPRedirect(f_urls[self.classname] + 'blocking/result/')
             except RuntimeError: #neco neco
                 pass
 
         return context
 
-    def _blocking_result(self, *args, **kwargs):
+    def _blocking_result(self):
         context = {}
-        if cherrypy.session.get('blocked_objects'):
-            context['detail_url'] = f_urls[self.classname] + 'detail/?id=%s'
-            context['heading'] = 'Result of: %s' % self.blocking_types[cherrypy.session['blocking_action']][1]
-            object_details = [utils.get_detail(self.classname, object_id)
-                              for object_id in cherrypy.session['blocked_objects']]
-            if cherrypy.session.get('domain_holder_changes'):
-                holder_changes = {}
-                for holder_change in cherrypy.session['domain_holder_changes']:
-                    holder_changes[holder_change.domainId] = [holder_change.oldOwner, holder_change.newOwner]
-                context['holder_changes'] = holder_changes
-            context['blocked_objects'] = object_details
+        if cherrypy.session.get('blocking_result'):
+            blocking_result = cherrypy.session['blocking_result']
+            if blocking_result.get('blocked_objects'):
+                context['detail_url'] = f_urls[self.classname] + 'detail/?id=%s'
+                context['heading'] = 'Result of: %s' % self.blocking_types[blocking_result['blocking_action']][1]
+                object_details = [utils.get_detail(self.classname, object_id)
+                                  for object_id in blocking_result['blocked_objects']]
 
-            del cherrypy.session['blocked_objects']
-            del cherrypy.session['blocking_action']
+                # only for 'block' action
+                if blocking_result.get('domain_holder_changes'):
+                    holder_changes = {}
+                    for domain_holder_change in blocking_result['domain_holder_changes']:
+                        holder_change = {
+                            'old_holder': {
+                                'handle': domain_holder_change.oldOwnerHandle,
+                                'link': f_urls['contact'] + 'detail/?id=%s' % domain_holder_change.oldOwnerId,
+                            },
+                            'new_holder': {
+                                'handle': domain_holder_change.newOwnerHandle,
+                                'link': f_urls['contact'] + 'detail/?id=%s' % domain_holder_change.newOwnerId,
+                            }
+                        }
+                        holder_changes[domain_holder_change.domainId] = holder_change
+                    context['holder_changes'] = holder_changes
+                context['blocked_objects'] = object_details
+
+            del cherrypy.session['blocking_result']
         else:
-            context['heading'] = _('Result page has expired.')
+            context['heading'] = _('The result page has expired.')
         return self._render('blocking_result', ctx=context)
 
 

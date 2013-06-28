@@ -15,7 +15,16 @@ blocking_mock.getBlockingStatusDescList.return_value = [
 #def blockDomainsId_mock():
 #    pass
 #blocking_mock.blockDomainsId.side_effect = blockDomainsId_mock
-blocking_mock.blockDomainsId.return_value = []
+blocking_mock.blockDomainsId.return_value = [
+    Registry.Administrative.DomainIdHandleOwnerChange(
+        domainId=573,
+        domainHandle='tdomain20130617095920235589i1002.cz',
+        oldOwnerId=1,
+        oldOwnerHandle='STAROCH',
+        newOwnerId=2,
+        newOwnerHandle='MLADOCH'
+    ),
+]
 
 
 class DynamicWrapper(object):
