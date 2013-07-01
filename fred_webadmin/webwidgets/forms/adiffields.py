@@ -294,6 +294,7 @@ class ObjectWithHiddenField(HiddenIntegerField):
     def __init__(self, object_type, *args, **kwargs):
         super(ObjectWithHiddenField, self).__init__(*args, **kwargs)
         self.object_type = object_type
+        self.error_msg = None
 
     def render(self, indent_level=0):
         self.make_content()
@@ -302,25 +303,33 @@ class ObjectWithHiddenField(HiddenIntegerField):
     def make_content(self):
         self.content = []
         detail = utils.get_detail(recoder.u2c(self.object_type), int(self.value))
+        if self.error_msg:
+            self.add(ErrorList([self.error_msg % detail.handle]))
         self.add(a(attr(href=f_urls[self.object_type] + 'detail/?id=%s' % self.value), (detail.handle)), br())
 
 
 class ListObjectHiddenField(MultiValueField):
+    def __init__(self, *args, **kwargs):
+        super(ListObjectHiddenField, self).__init__(*args, **kwargs)
+        self.fields_by_object_id = {}
+
+
     def _set_value(self, value):
         if not value:
-            self._value = [None] * len(self.fields)
+            self._value = None
+            self.fields = []
         else:
             if not isinstance(value, types.ListType):
                 value = [value]
             self._value = value
             if self.fields:
-                raise RuntimeError('Assigning value of ListObjectHiddenField is not supported, value was: %s' % unicode(value))
+                raise RuntimeError('Assigning value to already initialized ListObjectHiddenField is not supported, value was: %s' % unicode(value))
             if getattr(self, 'owner_form', None) is None or getattr(self.owner_form, 'object_type', None) is None:
                 raise RuntimeError('This form is usable only inside form, which has object_type attribute')
             for val in value:
                 field = ObjectWithHiddenField(object_type=self.owner_form.object_type, name=self.name, value=val)
-                field.value = val
                 self.fields.append(field)
+                self.fields_by_object_id[int(val)] = field
 
     def compress(self, data_list):
         if data_list and not isiterable(data_list): # wrap single non-empty value into list
@@ -336,3 +345,14 @@ class ListObjectHiddenField(MultiValueField):
 
     def value_from_datadict(self, data):
         return data.get(self.name, None)
+
+    def add_objects_errors(self, msg, objects_ids):
+        ''' Adds error to the inner fields of object specified by 'object_ids',
+            'msg' must have "%s" inside for object name.
+        '''
+        for object_id in objects_ids:
+            field = self.fields_by_object_id[object_id]
+            field.error_msg = msg
+
+        if not self.owner_form.errors.get('objects'):
+            self.owner_form.add_error('objects', 'There are some errors, see below:')

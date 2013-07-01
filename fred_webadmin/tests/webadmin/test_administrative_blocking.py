@@ -25,7 +25,13 @@ blocking_mock.blockDomainsId.return_value = [
         newOwnerHandle='MLADOCH'
     ),
 ]
-
+blocking_mock.blockDomainsId.side_effect = Registry.Administrative.DOMAIN_ID_ALREADY_BLOCKED(what=[573, 574])
+blocking_mock.blockDomainsId.side_effect = Registry.Administrative.DOMAIN_ID_NOT_FOUND(what=[573, 574])
+blocking_mock.unblockDomainsId.side_effect = Registry.Administrative.DOMAIN_ID_NOT_FOUND(what=[573, 574])
+blocking_mock.unblockDomainsId.side_effect = Registry.Administrative.NEW_OWNER_DOES_NOT_EXISTS(what='POKUS')
+blocking_mock.restorePreAdministrativeBlockStatesId.side_effect = Registry.Administrative.DOMAIN_ID_NOT_FOUND(what=[573, 574])
+blocking_mock.restorePreAdministrativeBlockStatesId.side_effect = Registry.Administrative.NEW_OWNER_DOES_NOT_EXISTS(what='POKUS')
+blocking_mock.blacklistDomainsId.side_effect = Registry.Administrative.DOMAIN_ID_NOT_FOUND(what=[573, 574])
 
 class DynamicWrapper(object):
     def __init__(self, get_object_function):

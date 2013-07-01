@@ -62,7 +62,7 @@ from fred_webadmin import exposed
 from fred_webadmin.corba import Corba
 corba_obj = Corba()
 
-from fred_webadmin.corba import ccReg
+from fred_webadmin.corba import ccReg, Registry
 from fred_webadmin.translation import _
 
 # This must all be imported because of the way templates are dealt with.
@@ -892,9 +892,10 @@ class Domain(AdifPage, ListTableMixin):
                         'domain_holder_changes': domain_holder_changes,
                 }
                 raise cherrypy.HTTPRedirect(f_urls[self.classname] + 'blocking/result/')
-            except RuntimeError: # neco neco
-                form.add_error('objects', _('Domain "%s" is already blocked' % 'nakadomena.cz'))
-
+            except Registry.Administrative.DOMAIN_ID_NOT_FOUND, e:
+                form.fields['objects'].add_objects_errors(_('Domain %s not found.'), e.what)
+            except Registry.Administrative.DOMAIN_ID_ALREADY_BLOCKED, e:
+                form.fields['objects'].add_objects_errors(_('Domain %s already blocked.'), e.what)
         elif blocking_action == 'change_blocking':
             try:
                 cherrypy.session['Blocking'].updateBlockDomainsId(
@@ -908,8 +909,8 @@ class Domain(AdifPage, ListTableMixin):
                     'blocked_objects': form.cleaned_data['objects'],
                 }
                 raise cherrypy.HTTPRedirect(f_urls[self.classname] + 'blocking/result/')
-            except RuntimeError: #neco neco
-                pass
+            except Registry.Administrative.DOMAIN_ID_NOT_FOUND, e:
+                form.fields['objects'].add_objects_errors(_('Domain %s not found.'), e.what)
         elif blocking_action == 'unblock':
             try:
                 cherrypy.session['Blocking'].unblockDomainsId(
@@ -923,8 +924,12 @@ class Domain(AdifPage, ListTableMixin):
                     'blocked_objects': form.cleaned_data['objects'],
                 }
                 raise cherrypy.HTTPRedirect(f_urls[self.classname] + 'blocking/result/')
-            except RuntimeError: #neco neco
-                pass
+            except Registry.Administrative.DOMAIN_ID_NOT_FOUND, e:
+                form.fields['objects'].add_objects_errors(_('Domain %s not found.'), e.what)
+            except Registry.Administrative.DOMAIN_ID_NOT_BLOCKED, e:
+                form.fields['objects'].add_objects_errors(_('Domain %s is not blocked.'), e.what)
+            except Registry.Administrative.NEW_OWNER_DOES_NOT_EXISTS, e:
+                form.add_error('new_holder', _('New holder %s does not exists.') % e.what)
         elif blocking_action == 'unblock_and_restore_prev_state':
             try:
                 cherrypy.session['Blocking'].restorePreAdministrativeBlockStatesId(
@@ -937,8 +942,12 @@ class Domain(AdifPage, ListTableMixin):
                     'blocked_objects': form.cleaned_data['objects'],
                 }
                 raise cherrypy.HTTPRedirect(f_urls[self.classname] + 'blocking/result/')
-            except RuntimeError: #neco neco
-                pass
+            except Registry.Administrative.DOMAIN_ID_NOT_FOUND, e:
+                form.fields['objects'].add_objects_errors(_('Domain %s not found.'), e.what)
+            except Registry.Administrative.DOMAIN_ID_NOT_BLOCKED, e:
+                form.fields['objects'].add_objects_errors(_('Domain %s is not blocked.'), e.what)
+            except Registry.Administrative.NEW_OWNER_DOES_NOT_EXISTS, e:
+                form.add_error('new_holder', _('New holder %s does not exists.') % e.what)
         elif blocking_action == 'blacklist':
             try:
                 cherrypy.session['Blocking'].blacklistDomainsId(
@@ -952,9 +961,8 @@ class Domain(AdifPage, ListTableMixin):
                     'blocked_objects': form.cleaned_data['objects'],
                 }
                 raise cherrypy.HTTPRedirect(f_urls[self.classname] + 'blocking/result/')
-            except RuntimeError: #neco neco
-                pass
-
+            except Registry.Administrative.DOMAIN_ID_NOT_FOUND, e:
+                form.fields['objects'].add_objects_errors(_('Domain %s not found.'), e.what)
         return context
 
     def _blocking_result(self):
