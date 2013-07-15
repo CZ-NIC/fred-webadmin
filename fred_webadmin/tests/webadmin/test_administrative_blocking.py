@@ -1,6 +1,7 @@
 import cherrypy
 import mock
 from fred_webadmin.corba import Registry
+from fred_webadmin.utils import DynamicWrapper
 
 blocking_mock = mock.Mock()
 #blocking_mock.__class__ = mock.Mock # so it's pickleable into session data
@@ -33,18 +34,7 @@ blocking_mock.restorePreAdministrativeBlockStatesId.side_effect = Registry.Admin
 blocking_mock.restorePreAdministrativeBlockStatesId.side_effect = Registry.Administrative.NEW_OWNER_DOES_NOT_EXISTS(what='POKUS')
 blocking_mock.blacklistDomainsId.side_effect = Registry.Administrative.DOMAIN_ID_NOT_FOUND(what=[573, 574])
 
-class DynamicWrapper(object):
-    def __init__(self, get_object_function):
-        super(DynamicWrapper, self).__setattr__('_get_object_function', get_object_function)
 
-    def __getattr__(self, name):
-        if name == '_get_object_function':
-            return super(DynamicWrapper, self).__getattr__(name)
-        else:
-            return getattr(self._get_object_function(), name)
-
-    def __setattr__(self, name, value):
-        setattr(self._get_object_function(), name, value)
 
 def get_blocking_mock():
     return blocking_mock

@@ -7,7 +7,7 @@ mock (python-mock)
 
 To run tests:
 
-nosetests -v --rednose --nologcapture --with-doctest tests/webadmin fred_webadmin
+nosetests -v --rednose --nologcapture --with-doctest fred_webadmin
 
 Note:
 Rednose is a plugin that colours the test results ouput (so it's better

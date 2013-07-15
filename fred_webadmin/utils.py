@@ -463,3 +463,31 @@ class OrderedDict(dict):
         "od.viewitems() -> a set-like object providing a view on od's items"
         return ItemsView(self)
 ## end of http://code.activestate.com/recipes/576693/ }}}
+
+
+class DynamicWrapper(object):
+    ''' Used for wrapping Mock objects, which cannot be put to session (pickle don't work).
+        Create singleton in module, create function which returns this singleton, wrap it
+        using this DynamicWrapper and it can be stored to the CherryPy session.
+
+        >>> import pickle
+        >>> from mock import Mock, call
+        >>> mymock = Mock()
+        >>> get_obj = lambda: mymock
+        >>> obj_wrap = DynamicWrapper(get_obj)
+        >>> dummy_result = obj_wrap.some_method()
+        >>> obj_wrap.method_calls
+        [call.some_method()]
+        >>> #pickle.dumps(obj_wrap) # cannot use in doctest because function obj_wrap is not formally defined but normally it works
+    '''
+    def __init__(self, get_object_function):
+        super(DynamicWrapper, self).__setattr__('_get_object_function', get_object_function)
+
+    def __getattr__(self, name):
+        if name == '_get_object_function':
+            return super(DynamicWrapper, self).__getattr__(name)
+        else:
+            return getattr(self._get_object_function(), name)
+
+    def __setattr__(self, name, value):
+        setattr(self._get_object_function(), name, value)

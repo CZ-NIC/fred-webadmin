@@ -807,7 +807,7 @@ class Domain(AdifPage, ListTableMixin):
             else:
                 context['error'] = _("Function setInZoneStatus() is not implemented in Admin.")
 
-            # if it was succefful, redirect into domain detail
+            # if it was successful, redirect into domain detail
             if context['error'] is None:
                 log_req.result = 'Success'
                 raise cherrypy.HTTPRedirect(f_urls[self.classname] + '/detail/?id=%s' % domain_id)
