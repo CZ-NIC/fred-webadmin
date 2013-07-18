@@ -981,8 +981,8 @@ class Domain(AdifPage, ListTableMixin):
             try:
                 cherrypy.session['Blocking'].restorePreAdministrativeBlockStatesId(
                     recoder.u2c(form.cleaned_data['objects']),
+                    recoder.u2c(form.cleaned_data['new_holder']),
                     recoder.u2c(form.cleaned_data['reason']),
-                    #recoder.u2c(form.cleaned_data['new_holder']),
                 )
                 log_req.result = 'Success'
                 cherrypy.session['blocking_result'] = {
