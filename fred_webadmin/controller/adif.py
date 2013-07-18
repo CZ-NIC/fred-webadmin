@@ -767,6 +767,13 @@ class Domain(AdifPage, ListTableMixin):
         #('unblacklist_and_create', (DomainUnblacklistAndCreateForm, _('Unblacklist and create')))
     ))
 
+    blocking_exception_error_messages = {
+        Registry.Administrative.DOMAIN_ID_NOT_FOUND: _('Domain %s not found.'),
+        Registry.Administrative.DOMAIN_ID_ALREADY_BLOCKED: _('Domain %s is already blocked.'),
+        Registry.Administrative.DOMAIN_ID_NOT_BLOCKED: _('Domain %s is not blocked.'),
+        Registry.Administrative.NEW_OWNER_DOES_NOT_EXISTS: _('New holder %s does not exists.'),
+    }
+
     @check_onperm('read')
     def dig(self, **kwd):
         context = {}
@@ -877,7 +884,15 @@ class Domain(AdifPage, ListTableMixin):
 
     def _process_valid_blocking_form(self, form, context):
         blocking_action = form.cleaned_data['blocking_action']
+
+        refs = [('domain', domain) for domain in form.cleaned_data['objects']]
+        props = []
+        output_props = [] # when FAIL, add exception to this
         if blocking_action == 'block':
+            props.extend([('status', status) for status in form.cleaned_data['blocking_status_list']])
+            props.append(('owner_block_mode', form.cleaned_data['owner_block_mode']))
+            props.append(('reason', form.cleaned_data['reason']))
+            log_req = utils.create_log_request('DomainsBlock', properties=props, references=refs)
             try:
                 domain_holder_changes = cherrypy.session['Blocking'].blockDomainsId(
                     recoder.u2c(form.cleaned_data['objects']),
@@ -886,17 +901,25 @@ class Domain(AdifPage, ListTableMixin):
                     #recoder.u2c(form.cleaned_data['block_temporarily']),
                     recoder.u2c(form.cleaned_data['reason']),
                 )
+                log_req.result = 'Success'
                 cherrypy.session['blocking_result'] = {
                         'blocking_action': form.cleaned_data['blocking_action'],
                         'blocked_objects': form.cleaned_data['objects'],
                         'domain_holder_changes': domain_holder_changes,
                 }
                 raise cherrypy.HTTPRedirect(f_urls[self.classname] + 'blocking/result/')
-            except Registry.Administrative.DOMAIN_ID_NOT_FOUND, e:
-                form.fields['objects'].add_objects_errors(_('Domain %s not found.'), e.what)
-            except Registry.Administrative.DOMAIN_ID_ALREADY_BLOCKED, e:
-                form.fields['objects'].add_objects_errors(_('Domain %s already blocked.'), e.what)
+            except (Registry.Administrative.DOMAIN_ID_NOT_FOUND, Registry.Administrative.DOMAIN_ID_ALREADY_BLOCKED), e:
+                log_req.result = 'Fail'
+                output_props.append(('error', type(e).__name__))
+                output_props.extend([('error_subject_id', subject) for subject in e.what])
+                form.fields['objects'].add_objects_errors(self.blocking_exception_error_messages[type(e)], e.what)
+            finally:
+                log_req.close(properties=output_props)
+
         elif blocking_action == 'change_blocking':
+            props.extend([('status', status) for status in form.cleaned_data['blocking_status_list']])
+            props.append(('reason', form.cleaned_data['reason']))
+            log_req = utils.create_log_request('DomainsBlockUpdate', properties=props, references=refs)
             try:
                 cherrypy.session['Blocking'].updateBlockDomainsId(
                     recoder.u2c(form.cleaned_data['objects']),
@@ -904,14 +927,26 @@ class Domain(AdifPage, ListTableMixin):
                     recoder.u2c(form.cleaned_data['reason']),
                     #recoder.u2c(form.cleaned_data['block_temporarily']),
                 )
+                log_req.result = 'Success'
                 cherrypy.session['blocking_result'] = {
                     'blocking_action': form.cleaned_data['blocking_action'],
                     'blocked_objects': form.cleaned_data['objects'],
                 }
                 raise cherrypy.HTTPRedirect(f_urls[self.classname] + 'blocking/result/')
             except Registry.Administrative.DOMAIN_ID_NOT_FOUND, e:
-                form.fields['objects'].add_objects_errors(_('Domain %s not found.'), e.what)
+                log_req.result = 'Fail'
+                output_props.append(('error', type(e).__name__))
+                output_props.extend([('error_subject_id', subject) for subject in e.what])
+                form.fields['objects'].add_objects_errors(self.blocking_exception_error_messages[type(e)], e.what)
+            finally:
+                log_req.close(properties=output_props)
+
         elif blocking_action == 'unblock':
+            props.append(('restore_prev_state', False))
+            props.append(('new_holder', form.cleaned_data['new_holder']))
+            props.append(('remove_admin_contacts', form.cleaned_data['remove_admin_contacts']))
+            props.append(('reason', form.cleaned_data['reason']))
+            log_req = utils.create_log_request('DomainsUnblock', properties=props, references=refs)
             try:
                 cherrypy.session['Blocking'].unblockDomainsId(
                     recoder.u2c(form.cleaned_data['objects']),
@@ -919,36 +954,59 @@ class Domain(AdifPage, ListTableMixin):
                     recoder.u2c(form.cleaned_data['remove_admin_contacts']),
                     recoder.u2c(form.cleaned_data['reason']),
                 )
+                log_req.result = 'Success'
                 cherrypy.session['blocking_result'] = {
                     'blocking_action': form.cleaned_data['blocking_action'],
                     'blocked_objects': form.cleaned_data['objects'],
                 }
                 raise cherrypy.HTTPRedirect(f_urls[self.classname] + 'blocking/result/')
-            except Registry.Administrative.DOMAIN_ID_NOT_FOUND, e:
-                form.fields['objects'].add_objects_errors(_('Domain %s not found.'), e.what)
-            except Registry.Administrative.DOMAIN_ID_NOT_BLOCKED, e:
-                form.fields['objects'].add_objects_errors(_('Domain %s is not blocked.'), e.what)
+            except (Registry.Administrative.DOMAIN_ID_NOT_FOUND, Registry.Administrative.DOMAIN_ID_NOT_BLOCKED), e:
+                log_req.result = 'Fail'
+                output_props.append(('error', type(e).__name__))
+                output_props.extend([('error_subject_id', subject) for subject in e.what])
+                form.fields['objects'].add_objects_errors(self.blocking_exception_error_messages[type(e)], e.what)
             except Registry.Administrative.NEW_OWNER_DOES_NOT_EXISTS, e:
-                form.add_error('new_holder', _('New holder %s does not exists.') % e.what)
+                log_req.result = 'Fail'
+                form.add_error('new_holder', self.blocking_exception_error_messages[type(e)] % e.what)
+                output_props.append(('error', type(e).__name__))
+                output_props.append(('error_subject_handle', e.what))
+            finally:
+                log_req.close(properties=output_props)
+
         elif blocking_action == 'unblock_and_restore_prev_state':
+            props.append(('restore_prev_state', True))
+            props.append(('new_holder', form.cleaned_data['new_holder']))
+            props.append(('reason', form.cleaned_data['reason']))
+            log_req = utils.create_log_request('DomainsUnblock', properties=props, references=refs)
             try:
                 cherrypy.session['Blocking'].restorePreAdministrativeBlockStatesId(
                     recoder.u2c(form.cleaned_data['objects']),
                     recoder.u2c(form.cleaned_data['reason']),
                     #recoder.u2c(form.cleaned_data['new_holder']),
                 )
+                log_req.result = 'Success'
                 cherrypy.session['blocking_result'] = {
                     'blocking_action': form.cleaned_data['blocking_action'],
                     'blocked_objects': form.cleaned_data['objects'],
                 }
                 raise cherrypy.HTTPRedirect(f_urls[self.classname] + 'blocking/result/')
-            except Registry.Administrative.DOMAIN_ID_NOT_FOUND, e:
-                form.fields['objects'].add_objects_errors(_('Domain %s not found.'), e.what)
-            except Registry.Administrative.DOMAIN_ID_NOT_BLOCKED, e:
-                form.fields['objects'].add_objects_errors(_('Domain %s is not blocked.'), e.what)
+            except (Registry.Administrative.DOMAIN_ID_NOT_FOUND, Registry.Administrative.DOMAIN_ID_NOT_BLOCKED), e:
+                log_req.result = 'Fail'
+                output_props.append(('error', type(e).__name__))
+                output_props.extend([('error_subject_id', subject) for subject in e.what])
+                form.fields['objects'].add_objects_errors(self.blocking_exception_error_messages[type(e)], e.what)
             except Registry.Administrative.NEW_OWNER_DOES_NOT_EXISTS, e:
-                form.add_error('new_holder', _('New holder %s does not exists.') % e.what)
+                log_req.result = 'Fail'
+                form.add_error('new_holder', self.blocking_exception_error_messages[type(e)] % e.what)
+                output_props.append(('error', type(e).__name__))
+                output_props.append(('error_subject_handle', e.what))
+            finally:
+                log_req.close(properties=output_props)
+
         elif blocking_action == 'blacklist':
+            props.append(('reason', form.cleaned_data['reason']))
+            props.append(('with_delete', form.cleaned_data['with_delete']))
+            log_req = utils.create_log_request('DomainsBlacklist', properties=props, references=refs)
             try:
                 cherrypy.session['Blocking'].blacklistDomainsId(
                     recoder.u2c(form.cleaned_data['objects']),
@@ -956,13 +1014,20 @@ class Domain(AdifPage, ListTableMixin):
                     recoder.u2c(None), # blacklist_to_date
                     recoder.u2c(form.cleaned_data['with_delete']),
                 )
+                log_req.result = 'Success'
                 cherrypy.session['blocking_result'] = {
                     'blocking_action': form.cleaned_data['blocking_action'],
                     'blocked_objects': form.cleaned_data['objects'],
                 }
                 raise cherrypy.HTTPRedirect(f_urls[self.classname] + 'blocking/result/')
             except Registry.Administrative.DOMAIN_ID_NOT_FOUND, e:
-                form.fields['objects'].add_objects_errors(_('Domain %s not found.'), e.what)
+                log_req.result = 'Fail'
+                output_props.append(('error', type(e).__name__))
+                output_props.extend([('error_subject_id', subject) for subject in e.what])
+                form.fields['objects'].add_objects_errors(self.blocking_exception_error_messages[type(e)], e.what)
+            finally:
+                log_req.close(properties=output_props)
+
         return context
 
     def _blocking_result(self):

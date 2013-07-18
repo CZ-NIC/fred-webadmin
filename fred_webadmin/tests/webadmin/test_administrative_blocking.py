@@ -18,21 +18,23 @@ blocking_mock.getBlockingStatusDescList.return_value = [
 #blocking_mock.blockDomainsId.side_effect = blockDomainsId_mock
 blocking_mock.blockDomainsId.return_value = [
     Registry.Administrative.DomainIdHandleOwnerChange(
-        domainId=573,
-        domainHandle='tdomain20130617095920235589i1002.cz',
+        domainId=571,
+        domainHandle='fred582318.cz',
         oldOwnerId=1,
         oldOwnerHandle='STAROCH',
         newOwnerId=2,
         newOwnerHandle='MLADOCH'
     ),
 ]
-blocking_mock.blockDomainsId.side_effect = Registry.Administrative.DOMAIN_ID_ALREADY_BLOCKED(what=[573, 574])
-blocking_mock.blockDomainsId.side_effect = Registry.Administrative.DOMAIN_ID_NOT_FOUND(what=[573, 574])
-blocking_mock.unblockDomainsId.side_effect = Registry.Administrative.DOMAIN_ID_NOT_FOUND(what=[573, 574])
+
+exc_what_ids = [577, 571]
+blocking_mock.blockDomainsId.side_effect = Registry.Administrative.DOMAIN_ID_ALREADY_BLOCKED(what=exc_what_ids)
+blocking_mock.blockDomainsId.side_effect = Registry.Administrative.DOMAIN_ID_NOT_FOUND(what=exc_what_ids)
+blocking_mock.unblockDomainsId.side_effect = Registry.Administrative.DOMAIN_ID_NOT_FOUND(what=exc_what_ids)
 blocking_mock.unblockDomainsId.side_effect = Registry.Administrative.NEW_OWNER_DOES_NOT_EXISTS(what='POKUS')
-blocking_mock.restorePreAdministrativeBlockStatesId.side_effect = Registry.Administrative.DOMAIN_ID_NOT_FOUND(what=[573, 574])
-blocking_mock.restorePreAdministrativeBlockStatesId.side_effect = Registry.Administrative.NEW_OWNER_DOES_NOT_EXISTS(what='POKUS')
-blocking_mock.blacklistDomainsId.side_effect = Registry.Administrative.DOMAIN_ID_NOT_FOUND(what=[573, 574])
+blocking_mock.restorePreAdministrativeBlockStatesId.side_effect = Registry.Administrative.DOMAIN_ID_NOT_FOUND(what=exc_what_ids)
+#blocking_mock.restorePreAdministrativeBlockStatesId.side_effect = Registry.Administrative.NEW_OWNER_DOES_NOT_EXISTS(what='POKUS')
+blocking_mock.blacklistDomainsId.side_effect = Registry.Administrative.DOMAIN_ID_NOT_FOUND(what=exc_what_ids)
 
 
 
