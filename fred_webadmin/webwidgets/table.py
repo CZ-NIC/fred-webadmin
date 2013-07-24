@@ -5,7 +5,7 @@ from fred_webadmin.webwidgets.gpyweb.gpyweb import (noesc, attr, table, thead, t
 from fred_webadmin.translation import _
 from fred_webadmin.utils import get_current_url, append_getpar_to_url
 from fred_webadmin.webwidgets.forms.forms import Form
-from fred_webadmin.webwidgets.forms.fields import HiddenField, ChoiceField
+from fred_webadmin.webwidgets.forms.fields import HiddenField, ChoiceField, FakeField
 from fred_webadmin.controller.adif import Domain
 from fred_webadmin.webwidgets.forms.formlayouts import TableFormLayout
 
@@ -125,7 +125,10 @@ class WItertableInFormLayout(TableFormLayout):
 
 class WIterTableInForm(Form):
     pre_blocking_form = HiddenField(initial='1')
-    blocking_action = ChoiceField(choices=[(name, form_and_text[1]) for name, form_and_text in Domain.blocking_types.items()], label=_("Action"))
+    blocking_action = ChoiceField(choices=[(name, blocking_view.action_name)
+                                           for name, blocking_view in Domain.blocking_views.items()],
+                                  label=_("Action"))
+    object_selection = FakeField(required=False)  # just to check 'object_selection' is not empty
     submit_button_text = 'Start...'
 
     def __init__(self, itertable, *content, **kwd):
@@ -135,3 +138,8 @@ class WIterTableInForm(Form):
         self.id = 'itertable_selection_form'
         self.method = 'post'
         self.layout_class = WItertableInFormLayout
+
+    def clean_object_selection(self):
+        if not self.cleaned_data['object_selection']:
+            self.add_non_field_error(_('You must select at least one domain!'))
+        return self.cleaned_data['object_selection']

@@ -1005,3 +1005,8 @@ class SplitDateSplitTimeField(SplitDateTimeField):
 
     def is_empty(self):
         return self.fields[0].is_empty()
+
+
+class FakeField(Field):
+    ''' Only fake field when inputs are provided from something else but need to be in cleaned_data '''
+    is_hidden = True

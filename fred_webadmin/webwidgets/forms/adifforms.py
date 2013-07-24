@@ -35,21 +35,20 @@ class OpenIDLoginForm(Form):
     media_files = 'form_files.js'
 
 
-class DomainBlockingBase(Form): # base for all block and unblock forms
-    blocking_form_sent = HiddenField(initial='1')
+class DomainBlockingBase(Form):
     objects = ListObjectHiddenField()
     blocking_action = HiddenField()
     reason = CharField(label=_('Reason'))
+    object_type = 'domain'
 
-    def __init__(self, object_type, *content, **kwd):
-        self.object_type = object_type
+    def __init__(self, *content, **kwd):
         super(DomainBlockingBase, self).__init__(*content, **kwd)
         self.method = 'post'
         self.fields['objects'].label = f_name_translated_plural[self.object_type].capitalize()
 
     def _get_submit_button_text(self):
         from fred_webadmin.controller.adif import Domain
-        return Domain.blocking_types[self.fields['blocking_action'].value][1]
+        return Domain.blocking_views[self.fields['blocking_action'].value].action_name
 
 
 class DomainBlockBase(DomainBlockingBase): # base for block and change blocking form
@@ -87,7 +86,7 @@ class DomainBlockForm(DomainBlockBase):
         print "BLOCK MODE", cleaned_data['owner_block_mode']
         if cleaned_data['block_temporarily'] \
             and cleaned_data['owner_block_mode'] in [Registry.Administrative.BLOCK_OWNER._v,
-                                               Registry.Administrative.BLOCK_OWNER_COPY._v]:
+                                                     Registry.Administrative.BLOCK_OWNER_COPY._v]:
             self.add_error('owner_block_mode',
                            'You cannot use combination "Block temporarily" together with "Block the holder"'
                            ' or "Create copy of the holder" because then it\'s not possible\)'

@@ -539,12 +539,12 @@ class DomainDetail(ObjectDetail):
         super(DomainDetail, self).add_to_bottom()
 
     def _get_blocking_form(self, blocking_action):
-        from fred_webadmin.controller import adif
-        return form(attr(method='post', action='%sblocking/' % f_urls['domain']),
+        from fred_webadmin.controller.adif import Domain
+        return form(attr(method='post', action='%s/filter/blocking_start/' % f_urls['domain']),
                     input(type='hidden', name='pre_blocking_form', value='1'),
                     input(type='hidden', name='blocking_action', value=blocking_action),
                     input(type='hidden', name='object_selection', value=self.data.get('id')),
-                    input(type='submit', value=adif.Domain.blocking_types[blocking_action][1]),
+                    input(type='submit', value=Domain.blocking_views[blocking_action].action_name),
                    )
 
 class ActionDetail(Detail):

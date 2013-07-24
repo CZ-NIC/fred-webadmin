@@ -224,8 +224,8 @@ class BaseForm(form):
         try:
             value = field.clean()
             self.cleaned_data[name] = value
-            if hasattr(self, 'clean_ % s' % name):
-                value = getattr(self, 'clean_ % s' % name)()
+            if hasattr(self, 'clean_%s' % name):
+                value = getattr(self, 'clean_%s' % name)()
                 self.cleaned_data[name] = value
         except ValidationError, e:
             self._errors[name] = e.messages

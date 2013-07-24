@@ -145,7 +145,16 @@ class ListTableMixin(object):
                 from fred_webadmin.webwidgets.table import WIterTable, WIterTableInForm
                 if context.get('blocking_mode'):
                     table.pagination = False
-                    itertable_widget = WIterTableInForm(table, action=f_urls[self.classname] + 'blocking/')
+                    action_url = f_urls[self.classname] + 'filter/blocking_start/'
+                    success_url = f_urls[self.classname] + 'blocking/'
+                    if cherrypy.request.method == 'POST' and kwd.get('pre_blocking_form'):
+                        itertable_widget = WIterTableInForm(table, action=action_url,
+                                                            data=kwd)
+                        if itertable_widget.is_valid():
+                            cherrypy.session['pre_blocking_form_data'] = itertable_widget.cleaned_data
+                            raise cherrypy.HTTPRedirect(success_url)
+                    else:
+                        itertable_widget = WIterTableInForm(table, action=action_url)
                 else:
                     itertable_widget = WIterTable(table)
                 context['witertable'] = itertable_widget
@@ -163,7 +172,6 @@ class ListTableMixin(object):
 
         if self.blockable and not cherrypy.session['user'].has_nperm('block.domain'):
             context['blocking_possible'] = True
-            context['blocking_types'] = self.blocking_types
             if args and args[0] == 'blocking_start':
                 context['blocking_mode'] = True
 
