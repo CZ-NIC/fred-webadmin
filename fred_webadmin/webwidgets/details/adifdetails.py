@@ -1,5 +1,6 @@
 from details import Detail
 from dfields import *
+from fred_webadmin import nulltype
 from fred_webadmin.translation import _
 from fred_webadmin.webwidgets.details.sectionlayouts import DirectSectionLayout, SectionLayout
 from fred_webadmin.webwidgets.details.adifsections import DatesSectionLayout
@@ -514,25 +515,25 @@ class DomainDetail(ObjectDetail):
                         'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]]]
             ]
 
-            if not cherrypy.session['user'].has_nperm('block.domain') and not cherrypy.session['history']:
+            if not cherrypy.session['user'].has_nperm('block.domain'):
                 server_block_state_id = get_state_id_by_short_name('serverBlocked')
 
                 server_blocked = False
                 if self.data.get('states'):
                     for state in self.data['states']:
-                        if state.id == server_block_state_id:
+                        if state.id == server_block_state_id and isinstance(state.to, nulltype.Null):
                             server_blocked = True
                             break
 
                 if not server_blocked:
                     filter_panel_data.append([[self._get_blocking_form('block')],
-                                              [self._get_blocking_form('change_blocking')],
                                               [self._get_blocking_form('blacklist')],
                                              ])
                 else:
-                    filter_panel_data.append([[self._get_blocking_form('unblock')],
+                    filter_panel_data.append([[self._get_blocking_form('change_blocking')],
+                                              [self._get_blocking_form('unblock')],
                                               [self._get_blocking_form('unblock_and_restore_prev_state')],
-                                              ])
+                                             ])
             self.add(FilterPanel(filter_panel_data))
 
         super(DomainDetail, self).add_to_bottom()
