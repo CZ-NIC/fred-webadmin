@@ -1,3 +1,7 @@
+2013-07-29 Jaromir Talir (3.10.1)
+
+    * Fix fedora rpm package build
+
 2013-04-03 Tomas Divis, Jiri Sadek, Jaromir Talir (3.10.0)
 
     * setup.py changes for new freddist
