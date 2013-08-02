@@ -1,8 +1,11 @@
 from logging import getLogger
 from functools import update_wrapper
+import types
 
 import cherrypy
 
+import fred_webadmin.corbarecoder as recoder
+from fred_webadmin import utils
 
 logger = getLogger('fred_webadmin.classviews')
 
@@ -69,11 +72,11 @@ class View(object):
             handler = getattr(self, cherrypy.request.method.lower(), self.http_method_not_allowed)
         else:
             handler = self.http_method_not_allowed
-        self.args = args
-        self.kwargs = kwargs
+        self.args = args  # pylint: disable=W0201
+        self.kwargs = kwargs  # pylint: disable=W0201
         return handler(*args, **kwargs)
 
-    def http_method_not_allowed(self, *args, **kwargs):
+    def http_method_not_allowed(self, *args, **kwargs):  # pylint: disable=W0613
         logger.warning('Method Not Allowed (%s): %s', cherrypy.request.method, cherrypy.request.path_info,
             extra={
                 'status_code': 405,
@@ -143,7 +146,7 @@ class FormMixin(object):
 
 class ProcessFormView(View, FormMixin):
     """
-    A mixin that processes a form on POST.
+    A view that processes a form on POST.
     """
     def get(self, *args, **kwargs):  # pylint: disable=W0613
         form_class = self.get_form_class()  # pylint: disable=E1101
@@ -162,3 +165,95 @@ class ProcessFormView(View, FormMixin):
     # object, note that browsers only support POST for now.
     def put(self, *args, **kwargs):
         return self.post(*args, **kwargs)
+
+
+class ProcessFormCorbaView(ProcessFormView):
+    '''
+    Process form and call CORBA method.
+    '''
+
+    corba_backend_name = None
+    corba_function_name = None
+    corba_function_arguments = None  # names of arguments in the form which are passed to CORBA function
+
+    field_exceptions = None  # dict of (corba_excepion_type: field_name)
+    exception_error_messages = None  # dict of (corba_exc_type: message), where message can use {exc.attr_name}
+                                     # to access exception attributes
+
+    def __init__(self, **kwargs):
+        super(ProcessFormCorbaView, self).__init__(**kwargs)
+        if self.field_exceptions is None:
+            self.field_exceptions = {}
+        if self.field_exceptions is None:
+            self.field_exceptions = {}
+
+    def get_corba_function_arguments(self, form):
+        return [recoder.u2c(form.cleaned_data[field_name]) for field_name in self.corba_function_arguments]
+
+    def corba_call_success(self, return_value, form):
+        pass
+
+    def corba_call_fail(self, exception, form):
+        exc_type = type(exception)
+        form.add_error(self.field_exceptions[exc_type],
+                       self.exception_error_messages[exc_type].format(exc=exception))
+
+    def form_valid(self, form):
+        try:
+            return_value = getattr(cherrypy.session[self.corba_backend_name], self.corba_function_name)(
+                *self.get_corba_function_arguments(form)
+            )
+            self.corba_call_success(return_value, form)
+            raise cherrypy.HTTPRedirect(self.get_success_url())
+        except tuple(self.field_exceptions.keys()), e:
+            self.corba_call_fail(e, form)
+        return self.get_context_data(form=form)
+
+
+class ProcessFormCorbaLogView(ProcessFormCorbaView):
+    '''
+    Process form and call CORBA method and log to Logger.
+    '''
+
+    log_req_type = None
+    log_input_props_names = None  # list of input properties names for log request
+
+    def __init__(self, **kwargs):
+        self.refs = []
+        self.props = []
+        self.output_props = []  # when FAIL, add exception to this
+        self.log_req = None
+        super(ProcessFormCorbaLogView, self).__init__(**kwargs)
+
+    def initialize_log_req(self, form):
+        self.refs.extend([('domain', domain) for domain in form.cleaned_data['objects']])
+        for prop_name in self.log_input_props_names:
+            prop_value = form.cleaned_data[prop_name]
+            if isinstance(prop_value, types.ListType):
+                self.props.extend([(prop_name, prop_item_value)
+                                   for prop_item_value in form.cleaned_data[prop_name]])
+            else:
+                self.props.append((prop_name, prop_value))
+        self.log_req = utils.create_log_request(self.log_req_type, properties=self.props, references=self.refs)
+
+    def get_corba_function_arguments(self, form):
+        corba_arguments = super(ProcessFormCorbaLogView, self).get_corba_function_arguments(form)
+        corba_arguments.append(self.log_req.request_id)  # assuming that log_request_id is last argument
+        return corba_arguments
+
+    def corba_call_success(self, return_value, form):
+        super(ProcessFormCorbaLogView, self).corba_call_success(return_value, form)
+        self.log_req.result = 'Success'
+
+    def corba_call_fail(self, exception, form):
+        super(ProcessFormCorbaLogView, self).corba_call_fail(exception, form)
+        self.log_req.result = 'Fail'
+        self.output_props.append(('error', type(exception).__name__))
+        self.output_props.append(('error_subject_handle', exception.what))  # pylint: disable=E1101
+
+    def form_valid(self, form):
+        self.initialize_log_req(form)
+        try:
+            return super(ProcessFormCorbaLogView, self).form_valid(form)
+        finally:
+            self.log_req.close(properties=self.output_props)
