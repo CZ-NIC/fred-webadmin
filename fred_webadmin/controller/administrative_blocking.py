@@ -58,7 +58,9 @@ class AdministrativeBlockingBaseView(views.ProcessFormView):
         self.log_req = utils.create_log_request(self.log_req_type, properties=self.props, references=self.refs)
 
     def _get_corba_function_arguments(self, form):
-        return (recoder.u2c(form.cleaned_data[field_name]) for field_name in self.corba_function_arguments)
+        corba_arguments = [recoder.u2c(form.cleaned_data[field_name]) for field_name in self.corba_function_arguments]
+        corba_arguments.append(self.log_req.request_id)
+        return corba_arguments
 
     def get_context_data(self, **kwargs):
         kwargs['heading'] = self.action_name
@@ -176,6 +178,6 @@ class ProcessBlacklistView(AdministrativeBlockingBaseView):
     action_name = _('Blacklist')
 
     def _get_corba_function_arguments(self, form):
-        result = list(super(ProcessBlacklistView, self)._get_corba_function_arguments())
+        result = super(ProcessBlacklistView, self)._get_corba_function_arguments(form)
         result.insert(1, None)  # second argument blacklist to date not yet in the form
         return result
