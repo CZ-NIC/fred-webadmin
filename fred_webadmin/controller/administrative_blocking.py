@@ -70,6 +70,11 @@ class ProcessBlockView(AdministrativeBlockingBaseView):
 
     action_name = _('Block')
 
+    def get_corba_function_arguments(self, form):
+        result = super(ProcessBlockView, self).get_corba_function_arguments(form)
+        result.insert(3, None)  # third argument block to date not yet in the form
+        return result
+
 
 class ProcessUpdateBlockingView(AdministrativeBlockingBaseView):
     form_class = DomainChangeBlockingForm
@@ -83,6 +88,11 @@ class ProcessUpdateBlockingView(AdministrativeBlockingBaseView):
                           Registry.Administrative.DOMAIN_ID_NOT_BLOCKED)
 
     action_name = _('Change blocking')
+
+    def get_corba_function_arguments(self, form):
+        result = super(ProcessUpdateBlockingView, self).get_corba_function_arguments(form)
+        result.insert(2, None)  # third argument block to date not yet in the form
+        return result
 
 
 class ProcessUnblockView(AdministrativeBlockingBaseView):
