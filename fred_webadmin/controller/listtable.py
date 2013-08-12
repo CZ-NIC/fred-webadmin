@@ -123,24 +123,6 @@ class ListTableMixin(object):
             log_req.result = 'Success'
             if show_result:
                 out_props.append(('result_size', table.num_rows))
-                if table.num_rows == 0:
-                    context['result'] = _("No_entries_found")
-                if table.num_rows == 1:
-                    rowId = table.get_row_id(0)
-                    raise (cherrypy.HTTPRedirect(f_urls[self.classname] + 'detail/?id=%s' % rowId))
-                if kwd.get('txt', None):
-                    cherrypy.response.headers["Content-Type"] = "text/plain"
-                    cherrypy.response.headers["Content-Disposition"] = \
-                        "inline; filename=%s_%s.txt" % (self.classname,
-                        time.strftime('%Y-%m-%d'))
-                    return fileGenerator(table)
-                elif kwd.get('csv', None):
-                    cherrypy.response.headers["Content-Type"] = "text/plain"
-                    cherrypy.response.headers["Content-Disposition"] = \
-                        "attachment; filename=%s_%s.csv" % (
-                            self.classname, time.strftime('%Y-%m-%d'))
-                    return fileGenerator(table)
-                table.set_page(page)
 
                 from fred_webadmin.webwidgets.table import WIterTable, WIterTableInForm
                 if context.get('blocking_mode'):
@@ -156,7 +138,26 @@ class ListTableMixin(object):
                     else:
                         itertable_widget = WIterTableInForm(table, action=action_url)
                 else:
+                    if table.num_rows == 0:
+                        context['result'] = _("No_entries_found")
+                    elif table.num_rows == 1:
+                        rowId = table.get_row_id(0)
+                        raise (cherrypy.HTTPRedirect(f_urls[self.classname] + 'detail/?id=%s' % rowId))
+                    if kwd.get('txt', None):
+                        cherrypy.response.headers["Content-Type"] = "text/plain"
+                        cherrypy.response.headers["Content-Disposition"] = \
+                            "inline; filename=%s_%s.txt" % (self.classname,
+                            time.strftime('%Y-%m-%d'))
+                        return fileGenerator(table)
+                    elif kwd.get('csv', None):
+                        cherrypy.response.headers["Content-Type"] = "text/plain"
+                        cherrypy.response.headers["Content-Disposition"] = \
+                            "attachment; filename=%s_%s.csv" % (
+                                self.classname, time.strftime('%Y-%m-%d'))
+                        return fileGenerator(table)
+                    table.set_page(page)
                     itertable_widget = WIterTable(table)
+
                 context['witertable'] = itertable_widget
         except ccReg.Filters.SqlQueryTimeout:
             context['main'].add(h1(_('Timeout')),
