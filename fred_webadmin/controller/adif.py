@@ -97,7 +97,7 @@ from fred_webadmin.user import User
 from fred_webadmin.customview import CustomView
 from fred_webadmin.controller.perms import check_onperm, login_required
 from fred_webadmin.controller.administrative_blocking import (ProcessBlockView, ProcessUpdateBlockingView,
-    ProcessUnblockView, ProcessUnblockAndRestorePrevStateView, ProcessBlacklistView)
+    ProcessUnblockView, ProcessUnblockAndRestorePrevStateView, ProcessBlacklistAndDeleteView)
 
 
 class Page(object):
@@ -761,7 +761,7 @@ class Domain(AdifPage, ListTableMixin):
         ('change_blocking', ProcessUpdateBlockingView),
         ('unblock', ProcessUnblockView),
         ('unblock_and_restore_prev_state', ProcessUnblockAndRestorePrevStateView),
-        ('blacklist', ProcessBlacklistView),
+        ('blacklist_and_delete', ProcessBlacklistAndDeleteView),
         #('unblacklist_and_create', DomainUnblacklistAndCreateView),
     ))
 

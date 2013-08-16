@@ -103,8 +103,7 @@ class DomainUnblockForm(DomainBlockingBase):
 class DomainUnblockAndRestorePrevStateForm(DomainBlockingBase):
     new_holder = CharField(label=_('New holder'), required=False, title=_('Leave blank to restore previous holder'))
 
-class DomainBlacklistForm(DomainBlockingBase):
-    with_delete = BooleanField(label=_('Also delete the domain(s)'))
+class DomainBlacklistAndDeleteForm(DomainBlockingBase):
     blacklist_to_date = SplitDateSplitTimeField(label=_('To'), required=False)
 
 class DomainUnblacklistAndCreateForm(DomainBlockingBase):

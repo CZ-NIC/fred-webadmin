@@ -5,7 +5,7 @@ from fred_webadmin.corba import Registry
 from fred_webadmin.mappings import f_urls
 from fred_webadmin.translation import _
 from fred_webadmin.webwidgets.forms.adifforms import (DomainBlockForm, DomainUnblockForm,
-    DomainUnblockAndRestorePrevStateForm, DomainChangeBlockingForm, DomainBlacklistForm)
+    DomainUnblockAndRestorePrevStateForm, DomainChangeBlockingForm, DomainBlacklistAndDeleteForm)
 
 
 class AdministrativeBlockingBaseView(views.ProcessFormCorbaLogView):
@@ -133,20 +133,15 @@ class ProcessUnblockAndRestorePrevStateView(AdministrativeBlockingBaseView):
         self.props.append(('restore_prev_state', True))
 
 
-class ProcessBlacklistView(AdministrativeBlockingBaseView):
-    form_class = DomainBlacklistForm
-    corba_function_name = 'blacklistDomainsId'
-    corba_function_arguments = ['objects', 'with_delete']
+class ProcessBlacklistAndDeleteView(AdministrativeBlockingBaseView):
+    form_class = DomainBlacklistAndDeleteForm
+    corba_function_name = 'blacklistAndDeleteDomainsId'
+    corba_function_arguments = ['objects', 'blacklist_to_date', 'reason']
 
-    log_req_type = 'DomainsBlacklist'
-    log_input_props_names = ['with_delete', 'reason']
+    log_req_type = 'DomainsBlacklistAndDelete'
+    log_input_props_names = ['blacklist_to_date', 'reason']
 
     objects_exceptions = (Registry.Administrative.DOMAIN_ID_NOT_FOUND,)
     field_exceptions = {Registry.Administrative.NEW_OWNER_DOES_NOT_EXISTS: 'new_holder'}
 
-    action_name = _('Blacklist')
-
-    def get_corba_function_arguments(self, form):
-        result = super(ProcessBlacklistView, self).get_corba_function_arguments(form)
-        result.insert(1, None)  # second argument blacklist to date not yet in the form
-        return result
+    action_name = _('Blacklist and delete')

@@ -527,12 +527,13 @@ class DomainDetail(ObjectDetail):
 
                 if not server_blocked:
                     filter_panel_data.append([[self._get_blocking_form('block')],
-                                              [self._get_blocking_form('blacklist')],
+                                              [self._get_blocking_form('blacklist_and_delete')],
                                              ])
                 else:
                     filter_panel_data.append([[self._get_blocking_form('change_blocking')],
                                               [self._get_blocking_form('unblock')],
                                               [self._get_blocking_form('unblock_and_restore_prev_state')],
+                                              [self._get_blocking_form('blacklist_and_delete')],
                                              ])
             self.add(FilterPanel(filter_panel_data))
 
