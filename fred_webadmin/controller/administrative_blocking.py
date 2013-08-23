@@ -60,39 +60,29 @@ class AdministrativeBlockingBaseView(views.ProcessFormCorbaLogView):
 class ProcessBlockView(AdministrativeBlockingBaseView):
     form_class = DomainBlockForm
     corba_function_name = 'blockDomainsId'
-    corba_function_arguments = ['objects', 'blocking_status_list', 'owner_block_mode', 'reason']
+    corba_function_arguments = ['objects', 'blocking_status_list', 'owner_block_mode', 'block_to_date', 'reason']
 
     log_req_type = 'DomainsBlock'
-    log_input_props_names = ['blocking_status_list', 'owner_block_mode', 'reason']
+    log_input_props_names = ['blocking_status_list', 'owner_block_mode', 'block_to_date', 'reason']
 
     objects_exceptions = (Registry.Administrative.DOMAIN_ID_NOT_FOUND,
                           Registry.Administrative.DOMAIN_ID_ALREADY_BLOCKED)
 
     action_name = _('Block')
 
-    def get_corba_function_arguments(self, form):
-        result = super(ProcessBlockView, self).get_corba_function_arguments(form)
-        result.insert(3, None)  # third argument block to date not yet in the form
-        return result
-
 
 class ProcessUpdateBlockingView(AdministrativeBlockingBaseView):
     form_class = DomainChangeBlockingForm
     corba_function_name = 'updateBlockDomainsId'
-    corba_function_arguments = ['objects', 'blocking_status_list', 'reason']
+    corba_function_arguments = ['objects', 'blocking_status_list', 'block_to_date', 'reason']
 
     log_req_type = 'DomainsBlockUpdate'
-    log_input_props_names = ['blocking_status_list', 'reason']
+    log_input_props_names = ['blocking_status_list', 'block_to_date', 'reason']
 
     objects_exceptions = (Registry.Administrative.DOMAIN_ID_NOT_FOUND,
                           Registry.Administrative.DOMAIN_ID_NOT_BLOCKED)
 
     action_name = _('Change blocking')
-
-    def get_corba_function_arguments(self, form):
-        result = super(ProcessUpdateBlockingView, self).get_corba_function_arguments(form)
-        result.insert(2, None)  # third argument block to date not yet in the form
-        return result
 
 
 class ProcessUnblockView(AdministrativeBlockingBaseView):

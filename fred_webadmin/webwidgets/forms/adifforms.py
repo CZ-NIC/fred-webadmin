@@ -1,21 +1,22 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import datetime
+
 from fred_webadmin import config
 from .forms import Form
 from .fields import (CharField, ChoiceField, PasswordField, HiddenField, BooleanField, MultipleChoiceFieldCheckboxes,
-                     SplitDateSplitTimeField)
-
+                     DateField)
 
 from fred_webadmin.translation import _
 from fred_webadmin.webwidgets.forms.adiffields import ListObjectHiddenField, CorbaEnumChoiceField
 from fred_webadmin.mappings import f_name_translated_plural
-import cherrypy
-from fred_webadmin.webwidgets.utils import ValidationError
 from fred_webadmin.corba import Registry
 from fred_webadmin.corbalazy import CorbaLazyRequestIterStruct
+from fred_webadmin.webwidgets.utils import ValidationError
 
 #__all__ = ['LoginForm', 'FilterForm']
+
 
 class LoginForm(Form):
     corba_server = ChoiceField(choices=[(str(i), ior[0]) for i, ior in enumerate(config.iors)], label=_("Server"))
@@ -51,24 +52,23 @@ class DomainBlockingBase(Form):
         return Domain.blocking_views[self.fields['blocking_action'].value].action_name
 
 
-class DomainBlockBase(DomainBlockingBase): # base for block and change blocking form
+class DomainBlockBase(DomainBlockingBase):  # base for block and change blocking form
     def build_fields(self):
         super(DomainBlockBase, self).build_fields()
 
         # this is here so we don't have to solve order different way (this field should be before 'blocking_status_list'
-        self.fields['block_temporarily'] = BooleanField(name='block_temporarily',
-                                                        label=_('Block temporarily (4 months)'))
-
+        self.fields['block_to_date'] = DateField(name='block_to_date', label=_('Block to date'), required=False)
         self.fields['blocking_status_list'] = MultipleChoiceFieldCheckboxes(
             name='blocking_status_list',
             choices=CorbaLazyRequestIterStruct('Blocking', None, 'getBlockingStatusDescList',
                                                ['shortName', 'name'], None, config.lang[:2].upper()),
-
-            #[(item['shortName'], item['name']) for item in
-             #        cherrypy.session['Blocking'].getBlockingStatusDescList(config.lang[:2].upper())],
             label=_('Blocking statuses'),
             initial=['serverDeleteProhibited', 'serverTransferProhibited', 'serverUpdateProhibited']
         )
+
+    def clean_block_to_date(self):
+        if self.cleaned_data['block_to_date'] and self.cleaned_data['block_to_date'] <= datetime.date.today():
+            raise ValidationError('Block to date must be in the future.')
 
 
 class DomainBlockForm(DomainBlockBase):
@@ -84,27 +84,34 @@ class DomainBlockForm(DomainBlockBase):
     def clean(self):
         cleaned_data = super(DomainBlockForm, self).clean()
         print "BLOCK MODE", cleaned_data['owner_block_mode']
-        if cleaned_data['block_temporarily'] \
-            and cleaned_data['owner_block_mode'] in [Registry.Administrative.BLOCK_OWNER._v,
-                                                     Registry.Administrative.BLOCK_OWNER_COPY._v]:
+        if cleaned_data.get('block_to_date') \
+            and cleaned_data['owner_block_mode'] == Registry.Administrative.BLOCK_OWNER_COPY:
             self.add_error('owner_block_mode',
-                           'You cannot use combination "Block temporarily" together with "Block the holder"'
-                           ' or "Create copy of the holder" because then it\'s not possible\)'
-                           ' to restore it to previous state.')
+                           'You cannot use combination "Block to date" together with "Create copy of the holder"'
+                           'because then it\'s not possible to automatically restore the previous holder.')
         return cleaned_data
+
 
 class DomainChangeBlockingForm(DomainBlockBase):
     pass
+
 
 class DomainUnblockForm(DomainBlockingBase):
     new_holder = CharField(label=_('New holder'), required=False, title=_('Leave blank to keep current holder.'))
     remove_admin_contacts = BooleanField(label=_('Remove admin. contacs'))
 
+
 class DomainUnblockAndRestorePrevStateForm(DomainBlockingBase):
     new_holder = CharField(label=_('New holder'), required=False, title=_('Leave blank to restore previous holder'))
 
+
 class DomainBlacklistAndDeleteForm(DomainBlockingBase):
-    blacklist_to_date = SplitDateSplitTimeField(label=_('To'), required=False)
+    blacklist_to_date = DateField(label=_('To'), required=False)
+
+    def clean_blacklist_to_date(self):
+        if self.cleaned_data['blacklist_to_date'] and self.cleaned_data['blacklist_to_date'] <= datetime.date.today():
+            raise ValidationError('Blacklist to date must be in the future.')
+
 
 class DomainUnblacklistAndCreateForm(DomainBlockingBase):
     pass
