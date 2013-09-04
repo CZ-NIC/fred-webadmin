@@ -7,6 +7,7 @@ from fred_webadmin import config
 from .forms import Form
 from .fields import (CharField, ChoiceField, PasswordField, HiddenField, BooleanField, MultipleChoiceFieldCheckboxes,
                      DateField)
+from .adiffields import DateFieldWithJsLink
 
 from fred_webadmin.translation import _
 from fred_webadmin.webwidgets.forms.adiffields import ListObjectHiddenField, CorbaEnumChoiceField
@@ -57,7 +58,9 @@ class DomainBlockBase(DomainBlockingBase):  # base for block and change blocking
         super(DomainBlockBase, self).build_fields()
 
         # this is here so we don't have to solve order different way (this field should be before 'blocking_status_list'
-        self.fields['block_to_date'] = DateField(name='block_to_date', label=_('Block to date'), required=False)
+        self.fields['block_to_date'] = DateFieldWithJsLink(name='block_to_date',
+                                                           link_add_months_count=config.blocking_link_add_month_count,
+                                                           label=_('Block to date'), required=False)
         self.fields['blocking_status_list'] = MultipleChoiceFieldCheckboxes(
             name='blocking_status_list',
             choices=CorbaLazyRequestIterStruct('Blocking', None, 'getBlockingStatusDescList',
@@ -106,7 +109,9 @@ class DomainUnblockAndRestorePrevStateForm(DomainBlockingBase):
 
 
 class DomainBlacklistAndDeleteForm(DomainBlockingBase):
-    blacklist_to_date = DateField(label=_('To'), required=False)
+    blacklist_to_date = DateFieldWithJsLink(label=_('To'),
+                                            link_add_months_count=config.blacklisting_link_add_month_count,
+                                            required=False)
 
     def clean_blacklist_to_date(self):
         if self.cleaned_data['blacklist_to_date'] and self.cleaned_data['blacklist_to_date'] <= datetime.date.today():

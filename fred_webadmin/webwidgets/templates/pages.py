@@ -95,7 +95,8 @@ class BaseSiteMenu(BaseSite):
             self.main.add(h1(c.headline))
         self.right_menu_container.add(
             input(save(self, 'history_checkbox'),
-                  attr(media_files=['/js/history_button.js', '/js/ext/ext-base.js', '/js/ext/ext-all.js'],
+                  attr(media_files=['/js/history_button.js', '/js/ext/ext-base.js', '/js/ext/ext-all.js',
+                                    '/js/jquery-2.0.3.min.js'],
                        id='history_checkbox',
                        type='checkbox', onchange='setHistory(this)')),
                   label(attr(for_id='history_checkbox'), _('history'))

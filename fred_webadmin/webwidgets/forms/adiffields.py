@@ -22,6 +22,16 @@ INTERVAL_CHOICES_DATE_ONLY = [(choice._v, _(choice._n)) for choice in ccReg.Date
 INTERVAL_CHOICES_DATE_ONLY.pop(ccReg.PAST_HOUR._v + -1)
 INTERVAL_CHOICES_DATE_ONLY.pop(ccReg.LAST_HOUR._v + -1)
 
+
+class DateFieldWithJsLink(DateField):
+    'DateField with links to "now + X months" link to prefill it with javascript to '
+    def __init__(self, name='', value='', link_add_months_count=1, link_text=_('now + {0} month(s)'), *args, **kwargs):
+        super(DateFieldWithJsLink, self).__init__(name, value, *args, **kwargs)
+        self.tattr['data-add-months-count'] = self.link_add_months_count = link_add_months_count
+        self.tattr['data-add-months-link-text'] = self.link_text = link_text.format(link_add_months_count)
+        self.media_files.append('/js/datefield_with_link.js')
+
+
 class CompoundFilterField(Field):
     "Field that wraps FilterForm inside itself, value of field is data for that form"
     def __init__(self, name='', value=None, form_class=None, *args, **kwargs):
@@ -279,14 +289,14 @@ class DateIntervalField(AbstractIntervalField):
     def __init__(self, name='', value='', *args, **kwargs):
         fields = (DateField(size=10), DateField(size=10), DateField(size=10),
                   ChoiceField(content=[attr(onchange='onChangeDateIntervalType(this)')], choices=INTERVAL_CHOICES_DATE_ONLY),
-                  DecimalField(initial=1, size=5, min_value= -32768, max_value=32767))
+                  DecimalField(initial=1, size=5, min_value=-32768, max_value=32767))
         super(DateIntervalField, self).__init__(name, value, fields, *args, **kwargs)
 
 class DateTimeIntervalField(AbstractIntervalField):
     def __init__(self, name='', value='', *args, **kwargs):
         fields = (SplitDateSplitTimeField(), SplitDateSplitTimeField(), DateField(size=10),
                   ChoiceField(content=attr(onchange='onChangeDateIntervalType(this)'), choices=INTERVAL_CHOICES),
-                  DecimalField(initial=1, size=5, min_value= -32768, max_value=32767))
+                  DecimalField(initial=1, size=5, min_value=-32768, max_value=32767))
         super(DateTimeIntervalField, self).__init__(name, value, fields, *args, **kwargs)
 
 
