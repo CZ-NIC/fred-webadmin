@@ -355,14 +355,3 @@ class ListObjectHiddenField(MultiValueField):
 
     def value_from_datadict(self, data):
         return data.get(self.name, None)
-
-    def add_objects_errors(self, msg, objects_ids):
-        ''' Adds error to the inner fields of object specified by 'object_ids',
-            'msg' must have "%s" inside for object name.
-        '''
-        for object_id in objects_ids:
-            field = self.fields_by_object_id[object_id]
-            field.error_msg = msg
-
-        if not self.owner_form.errors.get('objects'):
-            self.owner_form.add_error('objects', 'There are some errors, see below:')

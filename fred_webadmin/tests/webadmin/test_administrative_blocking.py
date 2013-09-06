@@ -28,19 +28,32 @@ blocking_mock.blockDomainsId.return_value = [
 ]
 
 exc_what_ids = [577, 571]
-blocking_mock.blockDomainsId.side_effect = Registry.Administrative.DOMAIN_ID_ALREADY_BLOCKED(what=exc_what_ids)
+blocking_mock.blockDomainsId.side_effect = Registry.Administrative.DOMAIN_ID_ALREADY_BLOCKED(
+    what=[Registry.Administrative.DomainIdHandle(domainId=22, domainHandle='pepova.cz'),
+          Registry.Administrative.DomainIdHandle(domainId=23, domainHandle='pepkova.cz')])
 blocking_mock.blockDomainsId.side_effect = Registry.Administrative.DOMAIN_ID_NOT_FOUND(what=exc_what_ids)
+blocking_mock.blockDomainsId.side_effect = Registry.Administrative.OWNER_HAS_OTHER_DOMAIN(what=[
+    Registry.Administrative.OwnerDomain(ownerId=1,
+                ownerHandle='THEPEPE',
+                otherDomainList=[Registry.Administrative.DomainIdHandle(domainId=22, domainHandle='pepova.cz'),
+                                 Registry.Administrative.DomainIdHandle(domainId=23, domainHandle='pepkova.cz')]
+                )
+    ])
 blocking_mock.updateBlockDomainsId.return_value = None
+
+#blocking_mock.updateBlockDomainsId.side_effect = Registry.Administrative.DOMAIN_ID_NOT_FOUND(what=exc_what_ids)
 blocking_mock.unblockDomainsId.side_effect = Registry.Administrative.DOMAIN_ID_NOT_FOUND(what=exc_what_ids)
 blocking_mock.unblockDomainsId.side_effect = Registry.Administrative.NEW_OWNER_DOES_NOT_EXISTS(what='POKUS')
+
 blocking_mock.restorePreAdministrativeBlockStatesId.side_effect = Registry.Administrative.DOMAIN_ID_NOT_FOUND(what=exc_what_ids)
 #blocking_mock.restorePreAdministrativeBlockStatesId.side_effect = Registry.Administrative.NEW_OWNER_DOES_NOT_EXISTS(what='POKUS')
-blocking_mock.blacklistDomainsId.side_effect = Registry.Administrative.DOMAIN_ID_NOT_FOUND(what=exc_what_ids)
-
+blocking_mock.blacklistAndDeleteDomainsId.side_effect = Registry.Administrative.DOMAIN_ID_NOT_FOUND(what=exc_what_ids)
+blocking_mock.blacklistAndDeleteDomainsId.return_value = None
 
 
 def get_blocking_mock():
     return blocking_mock
+
 
 def mock_blocking():
     cherrypy.session['Blocking'] = DynamicWrapper(get_blocking_mock)

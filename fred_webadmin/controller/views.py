@@ -167,6 +167,27 @@ class ProcessFormView(View, FormMixin):
         return self.post(*args, **kwargs)
 
 
+class FieldErrMsg(object):
+    ''' Contains field_name, message and optionally function, that prepares context from exception data.
+
+        context_func is a function, that returns a dictionary, which is passed to msg.format() method as
+        keyword arguments.
+    '''
+    def __init__(self, field_name, msg, context_func=None):
+        self.field_name = field_name
+        self.msg = msg
+        if context_func is not None:
+            self.context_func = context_func
+        elif not hasattr(self, 'context_func'):  # can be also in class, but must be static method
+            self.context_func = None
+
+    def format_msg(self, exc):
+        if self.context_func:
+            return self.msg.format(**self.context_func(exc))
+        else:
+            return self.msg.format(exc=exc)
+
+
 class ProcessFormCorbaView(ProcessFormView):
     '''
     Process form and call CORBA method.
@@ -176,9 +197,7 @@ class ProcessFormCorbaView(ProcessFormView):
     corba_function_name = None
     corba_function_arguments = None  # names of arguments in the form which are passed to CORBA function
 
-    field_exceptions = None  # dict of (corba_excepion_type: field_name)
-    exception_error_messages = None  # dict of (corba_exc_type: message), where message can use {exc.attr_name}
-                                     # to access exception attributes
+    field_exceptions = None  # dict of (corba_excepion_type: FieldErrMsg)
 
     def __init__(self, **kwargs):
         super(ProcessFormCorbaView, self).__init__(**kwargs)
@@ -194,9 +213,8 @@ class ProcessFormCorbaView(ProcessFormView):
         pass
 
     def corba_call_fail(self, exception, form):
-        exc_type = type(exception)
-        form.add_error(self.field_exceptions[exc_type],
-                       self.exception_error_messages[exc_type].format(exc=exception))
+        field_err_msg = self.field_exceptions[type(exception)]
+        form.add_error(field_err_msg.field_name, field_err_msg.format_msg(exc=exception))
 
     def form_valid(self, form):
         try:

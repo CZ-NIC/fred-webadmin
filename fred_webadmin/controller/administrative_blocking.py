@@ -8,31 +8,46 @@ from fred_webadmin.webwidgets.forms.adifforms import (DomainBlockForm, DomainUnb
     DomainUnblockAndRestorePrevStateForm, DomainChangeBlockingForm, DomainBlacklistAndDeleteForm)
 
 
+def context_domain_id_list(exc):
+    return {'domain_ids': ', '.join([str(domain_id) for domain_id in exc.what])}
+
+
+def context_domain_handle_list(exc):
+    return {'domain_handles': ', '.join([str(domain.domainHandle) for domain in exc.what])}
+
+
+def context_owners_other_domains(exc):
+    return {
+        'holder_handles': ', '.join([str(owner.ownerHandle) for owner in exc.what]),
+        'domain_handles': ', '.join([', '.join([str(domain.domainHandle) for domain in owner.otherDomainList])
+                              for owner in exc.what]),
+    }
+
+
+DOMAIN_ID_NOT_FOUND_MSG = views.FieldErrMsg('objects', _('Domain(s) with id {domain_ids} not found.'),
+                                            context_domain_id_list)
+DOMAIN_ID_ALREADY_BLOCKED_MSG = views.FieldErrMsg('objects', _('Domain(s) {domain_handles} are already blocked.'),
+                                                  context_domain_handle_list
+)
+DOMAIN_ID_NOT_BLOCKED_MSG = views.FieldErrMsg('objects', _('Domain {domain_handles} is not blocked.'),
+                                              context_domain_handle_list)
+NEW_OWNER_DOES_NOT_EXISTS_MSG = views.FieldErrMsg('new_holder', _('New holder {exc.what} does not exists.'))
+OWNER_HAS_OTHER_DOMAIN_MSG = views.FieldErrMsg(
+    'objects',
+    _('Cannot block holder(s) {holder_handles} because theirs domain(s) {domain_handles} are not blocked. '
+      'You can create copy of the owner.'),
+    context_owners_other_domains
+)
+
+
 class AdministrativeBlockingBaseView(views.ProcessFormCorbaLogView):
     ''' Base class for processing administrative blocking form. '''
 
     corba_backend_name = 'Blocking'
 
-    exception_error_messages = {
-        Registry.Administrative.DOMAIN_ID_NOT_FOUND: _('Domain %s not found.'),
-        Registry.Administrative.DOMAIN_ID_ALREADY_BLOCKED: _('Domain %s is already blocked.'),
-        Registry.Administrative.DOMAIN_ID_NOT_BLOCKED: _('Domain %s is not blocked.'),
-        Registry.Administrative.NEW_OWNER_DOES_NOT_EXISTS: _('New holder {exc.what} does not exists.'),
-    }
-
     success_url = f_urls['domain'] + 'blocking/result/'
 
-    objects_exceptions = None  # tuple of exceptions_types added to 'objects' field
-
     action_name = None  # Translated name of action used for heading and buttons
-
-    def __init__(self, **kwargs):
-        super(AdministrativeBlockingBaseView, self).__init__(**kwargs)
-        if self.objects_exceptions is None:
-            self.objects_exceptions = ()
-        else:
-            for exception in self.objects_exceptions:
-                self.field_exceptions[exception] = 'objects'
 
     def get_context_data(self, **kwargs):
         kwargs['heading'] = self.action_name
@@ -47,15 +62,6 @@ class AdministrativeBlockingBaseView(views.ProcessFormCorbaLogView):
         }
         del cherrypy.session['pre_blocking_form_data']
 
-    def corba_call_fail(self, exception, form):
-        if type(exception) in self.objects_exceptions:
-            self.log_req.result = 'Fail'
-            self.output_props.append(('error', type(exception).__name__))
-            self.output_props.extend([('error_subject_id', subject) for subject in exception.what])
-            form.fields['objects'].add_objects_errors(self.exception_error_messages[type(exception)], exception.what)
-        else:
-            super(AdministrativeBlockingBaseView, self).corba_call_fail(exception, form)
-
 
 class ProcessBlockView(AdministrativeBlockingBaseView):
     form_class = DomainBlockForm
@@ -65,8 +71,10 @@ class ProcessBlockView(AdministrativeBlockingBaseView):
     log_req_type = 'DomainsBlock'
     log_input_props_names = ['blocking_status_list', 'owner_block_mode', 'block_to_date', 'reason']
 
-    objects_exceptions = (Registry.Administrative.DOMAIN_ID_NOT_FOUND,
-                          Registry.Administrative.DOMAIN_ID_ALREADY_BLOCKED)
+    field_exceptions = {Registry.Administrative.DOMAIN_ID_NOT_FOUND: DOMAIN_ID_NOT_FOUND_MSG,
+                        Registry.Administrative.DOMAIN_ID_ALREADY_BLOCKED: DOMAIN_ID_ALREADY_BLOCKED_MSG,
+                        Registry.Administrative.OWNER_HAS_OTHER_DOMAIN: OWNER_HAS_OTHER_DOMAIN_MSG
+                       }
 
     action_name = _('Block')
 
@@ -79,8 +87,9 @@ class ProcessUpdateBlockingView(AdministrativeBlockingBaseView):
     log_req_type = 'DomainsBlockUpdate'
     log_input_props_names = ['blocking_status_list', 'block_to_date', 'reason']
 
-    objects_exceptions = (Registry.Administrative.DOMAIN_ID_NOT_FOUND,
-                          Registry.Administrative.DOMAIN_ID_NOT_BLOCKED)
+    field_exceptions = {Registry.Administrative.DOMAIN_ID_NOT_FOUND: DOMAIN_ID_NOT_FOUND_MSG,
+                        Registry.Administrative.DOMAIN_ID_NOT_BLOCKED: DOMAIN_ID_NOT_BLOCKED_MSG,
+                       }
 
     action_name = _('Change blocking')
 
@@ -93,9 +102,10 @@ class ProcessUnblockView(AdministrativeBlockingBaseView):
     log_req_type = 'DomainsUnblock'
     log_input_props_names = ['new_holder', 'remove_admin_contacts', 'reason']
 
-    objects_exceptions = (Registry.Administrative.DOMAIN_ID_NOT_FOUND,
-                          Registry.Administrative.DOMAIN_ID_NOT_BLOCKED)
-    field_exceptions = {Registry.Administrative.NEW_OWNER_DOES_NOT_EXISTS: 'new_holder'}
+    field_exceptions = {Registry.Administrative.DOMAIN_ID_NOT_FOUND: DOMAIN_ID_NOT_FOUND_MSG,
+                        Registry.Administrative.DOMAIN_ID_NOT_BLOCKED: DOMAIN_ID_NOT_BLOCKED_MSG,
+                        Registry.Administrative.NEW_OWNER_DOES_NOT_EXISTS: NEW_OWNER_DOES_NOT_EXISTS_MSG,
+                       }
 
     action_name = _('Unblock')
 
@@ -112,9 +122,10 @@ class ProcessUnblockAndRestorePrevStateView(AdministrativeBlockingBaseView):
     log_req_type = 'DomainsUnblock'
     log_input_props_names = ['new_holder', 'reason']
 
-    objects_exceptions = (Registry.Administrative.DOMAIN_ID_NOT_FOUND,
-                          Registry.Administrative.DOMAIN_ID_NOT_BLOCKED)
-    field_exceptions = {Registry.Administrative.NEW_OWNER_DOES_NOT_EXISTS: 'new_holder'}
+    field_exceptions = {Registry.Administrative.DOMAIN_ID_NOT_FOUND: DOMAIN_ID_NOT_FOUND_MSG,
+                        Registry.Administrative.DOMAIN_ID_NOT_BLOCKED: DOMAIN_ID_NOT_BLOCKED_MSG,
+                        Registry.Administrative.NEW_OWNER_DOES_NOT_EXISTS: NEW_OWNER_DOES_NOT_EXISTS_MSG,
+                       }
 
     action_name = _('Unblock and restore prev. state')
 
@@ -131,7 +142,7 @@ class ProcessBlacklistAndDeleteView(AdministrativeBlockingBaseView):
     log_req_type = 'DomainsBlacklistAndDelete'
     log_input_props_names = ['blacklist_to_date', 'reason']
 
-    objects_exceptions = (Registry.Administrative.DOMAIN_ID_NOT_FOUND,)
-    field_exceptions = {Registry.Administrative.NEW_OWNER_DOES_NOT_EXISTS: 'new_holder'}
+    field_exceptions = {Registry.Administrative.DOMAIN_ID_NOT_FOUND: DOMAIN_ID_NOT_FOUND_MSG,
+                       }
 
     action_name = _('Blacklist and delete')

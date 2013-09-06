@@ -5,8 +5,7 @@ import datetime
 
 from fred_webadmin import config
 from .forms import Form
-from .fields import (CharField, ChoiceField, PasswordField, HiddenField, BooleanField, MultipleChoiceFieldCheckboxes,
-                     DateField)
+from .fields import (CharField, ChoiceField, PasswordField, HiddenField, BooleanField, MultipleChoiceFieldCheckboxes)
 from .adiffields import DateFieldWithJsLink
 
 from fred_webadmin.translation import _
