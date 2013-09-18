@@ -71,6 +71,7 @@ class DomainBlockBase(DomainBlockingBase):  # base for block and change blocking
     def clean_block_to_date(self):
         if self.cleaned_data['block_to_date'] and self.cleaned_data['block_to_date'] <= datetime.date.today():
             raise ValidationError('Block to date must be in the future.')
+        return self.cleaned_data['block_to_date']
 
 
 class DomainBlockForm(DomainBlockBase):
@@ -85,7 +86,6 @@ class DomainBlockForm(DomainBlockBase):
 
     def clean(self):
         cleaned_data = super(DomainBlockForm, self).clean()
-        print "BLOCK MODE", cleaned_data['owner_block_mode']
         if cleaned_data.get('block_to_date') \
             and cleaned_data['owner_block_mode'] == Registry.Administrative.BLOCK_OWNER_COPY:
             self.add_error('owner_block_mode',
@@ -115,6 +115,7 @@ class DomainBlacklistAndDeleteForm(DomainBlockingBase):
     def clean_blacklist_to_date(self):
         if self.cleaned_data['blacklist_to_date'] and self.cleaned_data['blacklist_to_date'] <= datetime.date.today():
             raise ValidationError('Blacklist to date must be in the future.')
+        return self.cleaned_data['blacklist_to_date']
 
 
 class DomainUnblacklistAndCreateForm(DomainBlockingBase):
