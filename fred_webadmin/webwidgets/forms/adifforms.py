@@ -99,12 +99,22 @@ class DomainChangeBlockingForm(DomainBlockBase):
 
 
 class DomainUnblockForm(DomainBlockingBase):
-    new_holder = CharField(label=_('New holder'), required=False, title=_('Leave blank to keep current holder.'))
-    remove_admin_contacts = BooleanField(label=_('Remove admin. contacs'))
+    new_holder = CharField(label=_('New holder'), required=False)
+    remove_admin_contacts = BooleanField(label=_('Remove admin. contacts'))
+    restore_prev_state = BooleanField(label=_('Restore prev. state'),
+                                      title=_('Restores previous user blocking and the previous holder,'
+                                              ' if the field "New holder" is empty.'))
 
+    def clean(self):
+        cleaned_data = super(DomainUnblockForm, self).clean()
+        if cleaned_data.get('restore_prev_state') and cleaned_data.get('remove_admin_contacts'):
+            self.add_error('remove_admin_contacts', _('You cannot use "Remove admin. contacts" and "Restore prev. state"'
+                                                     ' at the same time.'))
 
-class DomainUnblockAndRestorePrevStateForm(DomainBlockingBase):
-    new_holder = CharField(label=_('New holder'), required=False, title=_('Leave blank to restore previous holder'))
+        if not cleaned_data.get('restore_prev_state') and not cleaned_data.get('new_holder'):
+            self.add_error('new_holder', _('New holder is required when you don\'t use "Restore prev. state"'))
+
+        return cleaned_data
 
 
 class DomainBlacklistAndDeleteForm(DomainBlockingBase):

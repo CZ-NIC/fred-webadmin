@@ -97,7 +97,7 @@ from fred_webadmin.user import User
 from fred_webadmin.customview import CustomView
 from fred_webadmin.controller.perms import check_onperm, login_required
 from fred_webadmin.controller.administrative_blocking import (ProcessBlockView, ProcessUpdateBlockingView,
-    ProcessUnblockView, ProcessUnblockAndRestorePrevStateView, ProcessBlacklistAndDeleteView)
+    ProcessUnblockView, ProcessBlacklistAndDeleteView)
 
 
 class Page(object):
@@ -760,7 +760,6 @@ class Domain(AdifPage, ListTableMixin):
         ('block', ProcessBlockView),
         ('change_blocking', ProcessUpdateBlockingView),
         ('unblock', ProcessUnblockView),
-        ('unblock_and_restore_prev_state', ProcessUnblockAndRestorePrevStateView),
         ('blacklist_and_delete', ProcessBlacklistAndDeleteView),
         #('unblacklist_and_create', DomainUnblacklistAndCreateView),
     ))
@@ -832,8 +831,8 @@ class Domain(AdifPage, ListTableMixin):
 
     @check_onperm('block')
     def blocking(self, *args, **kwd):
-        #from fred_webadmin.tests.webadmin.test_administrative_blocking import mock_blocking
-        #mock_blocking()
+        # from fred_webadmin.tests.webadmin.test_administrative_blocking import mock_blocking
+        # mock_blocking()
 
         if args and args[0] == 'result':
             return self._blocking_result()

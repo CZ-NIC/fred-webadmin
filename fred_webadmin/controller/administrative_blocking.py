@@ -5,7 +5,7 @@ from fred_webadmin.corba import Registry
 from fred_webadmin.mappings import f_urls
 from fred_webadmin.translation import _
 from fred_webadmin.webwidgets.forms.adifforms import (DomainBlockForm, DomainUnblockForm,
-    DomainUnblockAndRestorePrevStateForm, DomainChangeBlockingForm, DomainBlacklistAndDeleteForm)
+    DomainChangeBlockingForm, DomainBlacklistAndDeleteForm)
 
 
 def context_domain_id_list(exc):
@@ -53,11 +53,11 @@ class AdministrativeBlockingBaseView(views.ProcessFormCorbaLogView):
         kwargs['heading'] = self.action_name
         return super(AdministrativeBlockingBaseView, self).get_context_data(**kwargs)
 
-    def corba_call_success(self, return_value, form):
-        super(AdministrativeBlockingBaseView, self).corba_call_success(return_value, form)
+    def corba_call_success(self, return_value):
+        super(AdministrativeBlockingBaseView, self).corba_call_success(return_value)
         cherrypy.session['blocking_result'] = {
-            'blocking_action': form.cleaned_data['blocking_action'],
-            'blocked_objects': form.cleaned_data['objects'],
+            'blocking_action': self.form.cleaned_data['blocking_action'],
+            'blocked_objects': self.form.cleaned_data['objects'],
             'return_value': return_value,
         }
         del cherrypy.session['pre_blocking_form_data']
@@ -66,7 +66,7 @@ class AdministrativeBlockingBaseView(views.ProcessFormCorbaLogView):
 class ProcessBlockView(AdministrativeBlockingBaseView):
     form_class = DomainBlockForm
     corba_function_name = 'blockDomainsId'
-    corba_function_arguments = ['objects', 'blocking_status_list', 'owner_block_mode', 'block_to_date', 'reason']
+    corba_function_arguments_names = ['objects', 'blocking_status_list', 'owner_block_mode', 'block_to_date', 'reason']
 
     log_req_type = 'DomainsBlock'
     log_input_props_names = ['blocking_status_list', 'owner_block_mode', 'block_to_date', 'reason']
@@ -82,7 +82,7 @@ class ProcessBlockView(AdministrativeBlockingBaseView):
 class ProcessUpdateBlockingView(AdministrativeBlockingBaseView):
     form_class = DomainChangeBlockingForm
     corba_function_name = 'updateBlockDomainsId'
-    corba_function_arguments = ['objects', 'blocking_status_list', 'block_to_date', 'reason']
+    corba_function_arguments_names = ['objects', 'blocking_status_list', 'block_to_date', 'reason']
 
     log_req_type = 'DomainsBlockUpdate'
     log_input_props_names = ['blocking_status_list', 'block_to_date', 'reason']
@@ -96,11 +96,11 @@ class ProcessUpdateBlockingView(AdministrativeBlockingBaseView):
 
 class ProcessUnblockView(AdministrativeBlockingBaseView):
     form_class = DomainUnblockForm
-    corba_function_name = 'unblockDomainsId'
-    corba_function_arguments = ['objects', 'new_holder', 'remove_admin_contacts', 'reason']
+    corba_function_name = 'unblockDomainsId'  # or 'restorePreAdministrativeBlockStatesId' see below
+    corba_function_arguments_names = ['objects', 'new_holder', 'remove_admin_contacts', 'reason']
 
     log_req_type = 'DomainsUnblock'
-    log_input_props_names = ['new_holder', 'remove_admin_contacts', 'reason']
+    log_input_props_names = ['new_holder', 'remove_admin_contacts', 'restore_prev_state', 'reason']
 
     field_exceptions = {Registry.Administrative.DOMAIN_ID_NOT_FOUND: DOMAIN_ID_NOT_FOUND_MSG,
                         Registry.Administrative.DOMAIN_ID_NOT_BLOCKED: DOMAIN_ID_NOT_BLOCKED_MSG,
@@ -109,35 +109,24 @@ class ProcessUnblockView(AdministrativeBlockingBaseView):
 
     action_name = _('Unblock')
 
-    def initialize_log_req(self, form):
-        super(ProcessUnblockView, self).initialize_log_req(form)
-        self.props.append(('restore_prev_state', False))
+    def get_corba_function_name(self):
+        if self.form.cleaned_data['restore_prev_state']:
+            return 'restorePreAdministrativeBlockStatesId'
+        else:
+            return super(ProcessUnblockView, self).get_corba_function_name()
 
-
-class ProcessUnblockAndRestorePrevStateView(AdministrativeBlockingBaseView):
-    form_class = DomainUnblockAndRestorePrevStateForm
-    corba_function_name = 'restorePreAdministrativeBlockStatesId'
-    corba_function_arguments = ['objects', 'new_holder', 'reason']
-
-    log_req_type = 'DomainsUnblock'
-    log_input_props_names = ['new_holder', 'reason']
-
-    field_exceptions = {Registry.Administrative.DOMAIN_ID_NOT_FOUND: DOMAIN_ID_NOT_FOUND_MSG,
-                        Registry.Administrative.DOMAIN_ID_NOT_BLOCKED: DOMAIN_ID_NOT_BLOCKED_MSG,
-                        Registry.Administrative.NEW_OWNER_DOES_NOT_EXISTS: NEW_OWNER_DOES_NOT_EXISTS_MSG,
-                       }
-
-    action_name = _('Unblock and restore prev. state')
-
-    def initialize_log_req(self, form):
-        super(ProcessUnblockAndRestorePrevStateView, self).initialize_log_req(form)
-        self.props.append(('restore_prev_state', True))
+    def get_corba_function_arguments_names(self):
+        arguments = super(ProcessUnblockView, self).get_corba_function_arguments_names()
+        if self.form.cleaned_data['restore_prev_state']:
+            arguments = arguments[:]  # make copy because  we are going to change it
+            arguments.remove('remove_admin_contacts')  # remove_admin_contacts is not in restorePreAdm.. CORBA function
+        return arguments
 
 
 class ProcessBlacklistAndDeleteView(AdministrativeBlockingBaseView):
     form_class = DomainBlacklistAndDeleteForm
     corba_function_name = 'blacklistAndDeleteDomainsId'
-    corba_function_arguments = ['objects', 'blacklist_to_date', 'reason']
+    corba_function_arguments_names = ['objects', 'blacklist_to_date', 'reason']
 
     log_req_type = 'DomainsBlacklistAndDelete'
     log_input_props_names = ['blacklist_to_date', 'reason']

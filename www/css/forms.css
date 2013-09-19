@@ -1,5 +1,5 @@
 /* FORM GENERAL */
-input[type=text] {width: 153px}
+input[type=text], input[type=password] {width: 153px}
 
 /* FORM ROWS */
 .form-row { overflow:hidden; padding:8px 12px; font-size:11px; border-bottom:1px solid #eee; }
