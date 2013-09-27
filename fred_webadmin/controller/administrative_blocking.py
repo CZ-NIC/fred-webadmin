@@ -118,7 +118,7 @@ class ProcessUnblockView(AdministrativeBlockingBaseView):
     def get_corba_function_arguments_names(self):
         arguments = super(ProcessUnblockView, self).get_corba_function_arguments_names()
         if self.form.cleaned_data['restore_prev_state']:
-            arguments = arguments[:]  # make copy because  we are going to change it
+            arguments = arguments[:]  # make copy because we are going to change it and don't want to change class var.
             arguments.remove('remove_admin_contacts')  # remove_admin_contacts is not in restorePreAdm.. CORBA function
         return arguments
 
