@@ -30,7 +30,6 @@ class View(object):
         Constructor. Called in the URLconf; can contain helpful extra
         keyword arguments, and other things.
         """
-        super(View, self).__init__()
         # Go through keyword arguments, and either save their values to our
         # instance, or raise an error.
         for key, value in kwargs.iteritems():
@@ -98,7 +97,7 @@ class FormMixin(object):
     success_url = None
 
     def __init__(self, **kwargs):  # pylint: disable=W0613
-        super(FormMixin, self).__init__()
+        super(FormMixin, self).__init__(**kwargs)
         self.form = None
 
     def get_initial(self):
@@ -150,7 +149,7 @@ class FormMixin(object):
         return self.get_context_data(form=self.form)
 
 
-class ProcessFormView(View, FormMixin):
+class ProcessFormView(FormMixin, View):
     """
     A view that processes a form on POST.
     """
