@@ -857,8 +857,17 @@ class Domain(AdifPage, ListTableMixin):
                 context['detail_url'] = f_urls[self.classname] + 'detail/?id=%s'
                 context['heading'] = 'Result of: %s' % \
                     self.blocking_views[blocking_result['blocking_action']].action_name
-                object_details = [utils.get_detail(self.classname, object_id)
-                                  for object_id in blocking_result['blocked_objects']]
+
+                try:  # HACK: till backend return list of handle:id of changed/deleted domains, we must use history for deleted domains:
+                    if blocking_result['blocking_action'] == 'blacklist_and_delete':
+                        # we must turn on history flag to get details of deleted domains
+                        utils.get_corba_session().setHistory(True)
+                    object_details = [utils.get_detail(self.classname, object_id)
+                                      for object_id in blocking_result['blocked_objects']]
+                finally:
+                    if blocking_result['blocking_action'] == 'blacklist_and_delete':
+                        # restore history flag in backend
+                        utils.get_corba_session().setHistory(cherrypy.session['history'])
 
                 if blocking_result['blocking_action'] == 'block' and blocking_result.get('return_value'):
                     holder_changes = {}
