@@ -2,7 +2,7 @@
 
 import mock
 from mock import call
-from nose.tools import assert_equal #@UnresolvedImport pylint: disable=E0611
+from nose.tools import assert_equal  # @UnresolvedImport pylint: disable=E0611
 from omniORB import CORBA
 import cherrypy
 import datetime
@@ -12,15 +12,14 @@ try:
 except ImportError:
     error("Could not import ldap, some test will probably fail...")
 
-from StringIO import StringIO
 import twill.commands
 
 try:
     from fred_webadmin.auth import ldap_auth, corba_auth
-except Exception: # pylint: disable=W0703
+except Exception:  # pylint: disable=W0703
     error("Could not import auth module, some test will probably fail...")
 
-from fred_webadmin.tests.webadmin.base import DaphneTestCase
+from fred_webadmin.tests.webadmin.base import DaphneTestCase, init_test_server, deinit_test_server
 import fred_webadmin.controller.adif
 import fred_webadmin.webwidgets.forms
 
@@ -29,25 +28,12 @@ import pylogger.dummylogger as logger
 import fred_webadmin.user as fred_webadmin_user
 
 
-twill_output = StringIO()
 def setup_module():
-    root = fred_webadmin.controller.adif.prepare_root()
-    wsgiApp = cherrypy.tree.mount(root)
-    cherrypy.config.update({'server.socket_host': '0.0.0.0',
-                             'server.socket_port': 8080,
-                           })
-    cherrypy.server.start()
-    # Redirect HTTP requests.
-    twill.add_wsgi_intercept('localhost', 8080, lambda : wsgiApp)
-    # Keep Twill quiet (suppress normal Twill output).
-    twill.set_output(twill_output)
+    init_test_server()
+
 
 def teardown_module():
-    # Remove the intercept.
-    twill.remove_wsgi_intercept('localhost', 8080)
-    # Shut down Cherrypy server.
-    cherrypy.server.stop()
-
+    deinit_test_server()
 
 
 class BaseADIFTestCase(DaphneTestCase):
@@ -60,7 +46,6 @@ class BaseADIFTestCase(DaphneTestCase):
         self.web_session_mock['FileManager'] = self.file_mgr_mock
         self.corba_conn_mock = CorbaConnectionMock(admin=self.admin_mock)
         self.monkey_patch(fred_webadmin.controller.adif, 'corba_obj', self.corba_conn_mock)
-        # Create the application, mount it and start the server.
 
 
 # pylint: disable=W0613
@@ -113,7 +98,7 @@ class AdminMock(object):
     def __init__(self):
         super(AdminMock, self).__init__()
         self.session = None
-        self.group_manager_mock = GroupManagerMock() # helper reference to GrouManagerMock
+        self.group_manager_mock = GroupManagerMock()  # helper reference to GrouManagerMock
         self.certification_manager_mock = CertificationManagerMock()
 
     def getCountryDescList(self):
@@ -129,7 +114,7 @@ class AdminMock(object):
         return self.certification_manager_mock
 
     def createSession(self, username):
-        self.session = mock.Mock(spec=ccReg._objref_Session) # pylint: disable=W0212
+        self.session = mock.Mock(spec=ccReg._objref_Session)  # pylint: disable=W0212
         self.session.getUser.return_value = UserMock()
         return "testSessionString"
 
@@ -141,6 +126,35 @@ class AdminMock(object):
 
     def isRegistrarBlocked(self, reg_id):
         return False
+
+    def getObjectStatusDescList(self, lang):
+        return [
+            Registry.ObjectStatusDesc(id=0, shortName='ok', name='Objekt is without restrictions'),
+            Registry.ObjectStatusDesc(id=1, shortName='serverDeleteProhibited', name='Deletion forbidden'),
+            Registry.ObjectStatusDesc(id=2, shortName='serverRenewProhibited', name='Registration renewal forbidden'),
+            Registry.ObjectStatusDesc(id=3, shortName='serverTransferProhibited', name='Sponsoring registrar change forbidden'),
+            Registry.ObjectStatusDesc(id=4, shortName='serverUpdateProhibited', name='Update forbidden'),
+            Registry.ObjectStatusDesc(id=5, shortName='serverOutzoneManual', name='The domain is administratively kept out of zone'),
+            Registry.ObjectStatusDesc(id=6, shortName='serverInzoneManual', name='The domain is administratively kept in zone'),
+            Registry.ObjectStatusDesc(id=7, shortName='serverBlocked', name='Domain blocked'),
+            Registry.ObjectStatusDesc(id=8, shortName='expirationWarning', name='The domain expires in 30 days'),
+            Registry.ObjectStatusDesc(id=9, shortName='expired', name='Domain expired'),
+            Registry.ObjectStatusDesc(id=10, shortName='unguarded', name='The domain is 30 days after expiration'),
+            Registry.ObjectStatusDesc(id=11, shortName='validationWarning1', name='The domain validation expires in 30 days'),
+            Registry.ObjectStatusDesc(id=12, shortName='validationWarning2', name='The domain validation expires in 15 days'),
+            Registry.ObjectStatusDesc(id=13, shortName='notValidated', name='Domain not validated'),
+            Registry.ObjectStatusDesc(id=14, shortName='nssetMissing', name="The domain doesn't have associated nsset"),
+            Registry.ObjectStatusDesc(id=15, shortName='outzone', name="The domain isn't generated in the zone"),
+            Registry.ObjectStatusDesc(id=16, shortName='linked', name='Has relation to other records in the registry'),
+            Registry.ObjectStatusDesc(id=17, shortName='deleteCandidate', name='To be deleted'),
+            Registry.ObjectStatusDesc(id=18, shortName='serverRegistrantChangeProhibited', name='Registrant change forbidden'),
+            Registry.ObjectStatusDesc(id=19, shortName='deleteWarning', name='The domain will be deleted in 11 days'),
+            Registry.ObjectStatusDesc(id=20, shortName='outzoneUnguarded', name='The domain is out of zone after 30 days in expiration state'),
+            Registry.ObjectStatusDesc(id=21, shortName='conditionallyIdentifiedContact', name='Contact is conditionally identified'),
+            Registry.ObjectStatusDesc(id=22, shortName='identifiedContact', name='Contact is identified'),
+            Registry.ObjectStatusDesc(id=23, shortName='validatedContact', name='Contact is validated'),
+            Registry.ObjectStatusDesc(id=24, shortName='mojeidContact', name='MojeID contact'),
+        ]
 
 
 class CorbaConnectionMock(object):
@@ -260,6 +274,7 @@ class TestADIFAuthentication(BaseADIFTestCase):
         # Check that we did not leave the login page.
         twill.commands.url("http://localhost:8080/login/")
 
+
 class TestADIFAuthenticationLDAP(BaseADIFTestCase):
     def setUp(self):
         super(TestADIFAuthenticationLDAP, self).setUp()
@@ -270,11 +285,12 @@ class TestADIFAuthenticationLDAP(BaseADIFTestCase):
         # Mock out ldap.open method. We must not mock the whole ldap package,
         # because ldap_auth uses ldap exceptions.
         self.ldap_open_mock = mock.create_autospec(ldap.open)
-        self.monkey_patch(fred_webadmin.auth.ldap_auth.ldap, 'open', self.ldap_open_mock) #@UndefinedVariable
+        self.monkey_patch(fred_webadmin.auth.ldap_auth.ldap, 'open', self.ldap_open_mock)  # @UndefinedVariable
 
     def assert_ldap_called(self):
         assert_equal(self.ldap_open_mock.mock_calls, [call('test ldap server'),
                                                       call().simple_bind_s('test ldap scope test', 'test pwd')])
+
     def test_login_ldap_valid_credentials(self):
         """ Login passes when valid credentials are supplied when using LDAP.
         """
@@ -289,7 +305,6 @@ class TestADIFAuthenticationLDAP(BaseADIFTestCase):
         twill.commands.code(200)
 
         self.assert_ldap_called()
-
 
     def test_login_ldap_invalid_credentials(self):
         """ Login fails when invalid credentials are supplied when using LDAP.
@@ -538,8 +553,8 @@ class TestRegistrarCertifications(TestRegistrarBase):
         self.monkey_patch(self.admin_mock.certification_manager_mock, 'getCertificationsByRegistrar',
                           get_cert_by_reg_mock)
         get_cert_by_reg_mock.side_effect = [
-            [], # first call return empty list
-            [ # second call return CertificationData:
+            [],  # first call return empty list
+            [  # second call return CertificationData:
                 Registry.Registrar.Certification.CertificationData(
                     1, ccReg.DateType(1, 1, 2008),
                     ccReg.DateType(1, 1, 2010), 2, 17)
@@ -615,7 +630,7 @@ class TestBankStatement(BaseADIFTestCase):
         self.session_mock = self.admin_mock.getSession('testSessionString')
         self.session_mock.getDetail.side_effect = lambda ft_type, obj_id: \
             self._fabricate_bank_statement_detail() if (ft_type, obj_id) == (ccReg.FT_STATEMENTITEM, 42) else None
-        self.invoicing_mock = mock.Mock(ccReg._objref_BankingInvoicing) # pylint: disable=W0212
+        self.invoicing_mock = mock.Mock(ccReg._objref_BankingInvoicing)  # pylint: disable=W0212
         self.session_mock.getBankingInvoicing.return_value = self.invoicing_mock
 
     def _fabricate_bank_statement_detail(self):
@@ -717,7 +732,6 @@ class TestBankStatement(BaseADIFTestCase):
         twill.commands.code(200)
         twill.commands.notfind(r"""<a href="/invoice/detail/\?id=11">.*</a>""")
 
-
     def test_statementitem_detail_unknown_unempty_handle(self):
         """ Pairing with unknown registrar handle fails.
         """
@@ -788,14 +802,14 @@ class TestLoggerNoLogView(BaseADIFTestCase):
 
         root = fred_webadmin.controller.adif.prepare_root()
         wsgiApp = cherrypy.tree.mount(root)
-        twill.add_wsgi_intercept('localhost', 8080, lambda : wsgiApp)
+        twill.add_wsgi_intercept('localhost', 8080, lambda: wsgiApp)
 
     def tearDown(self):
         super(TestLoggerNoLogView, self).tearDown()
         # return back normal web root
         root = fred_webadmin.controller.adif.prepare_root()
         wsgiApp = cherrypy.tree.mount(root)
-        twill.add_wsgi_intercept('localhost', 8080, lambda : wsgiApp)
+        twill.add_wsgi_intercept('localhost', 8080, lambda: wsgiApp)
 
     def test_logger_hidden_when_log_view_is_disabled_in_config(self):
         # Replace fred_webadmin.controller.adif.auth module with CORBA
@@ -833,7 +847,7 @@ class TestRegistrarGroupEditor(BaseADIFTestCase):
     def test_display_zero_groups(self):
         """ Two registrar groups are displayed.
         """
-        self.monkey_patch(self.admin_mock.group_manager_mock, 'getGroups', lambda :[])
+        self.monkey_patch(self.admin_mock.group_manager_mock, 'getGroups', lambda: [])
 
         twill.commands.go("http://localhost:8080/group")
         twill.commands.showforms()
@@ -844,17 +858,16 @@ class TestRegistrarGroupEditor(BaseADIFTestCase):
     def test_delete_group(self):
         """ Two registrar groups are displayed, one gets deleted.
         """
-        self.monkey_patch(self.admin_mock.group_manager_mock, 'getGroups', lambda : \
+        self.monkey_patch(self.admin_mock.group_manager_mock, 'getGroups', lambda: \
             [Registry.Registrar.Group.GroupData(
                 1, "test_group_1", ccReg.DateType(0, 0, 0)),
             Registry.Registrar.Group.GroupData(
                 2, "test_group_2", ccReg.DateType(0, 0, 0))])
 
-
         twill.commands.go("http://localhost:8080/group")
 
         # simulate one group delete
-        self.monkey_patch(self.admin_mock.group_manager_mock, 'getGroups', lambda : \
+        self.monkey_patch(self.admin_mock.group_manager_mock, 'getGroups', lambda: \
             [Registry.Registrar.Group.GroupData(
                 2, "test_group_2", ccReg.DateType(0, 0, 0)),
             Registry.Registrar.Group.GroupData(
@@ -877,7 +890,7 @@ class TestRegistrarGroupEditor(BaseADIFTestCase):
     def test_delete_nonempty_group(self):
         """ Nonempty group cannot be deleted.
         """
-        self.monkey_patch(self.admin_mock.group_manager_mock, 'getGroups', lambda : \
+        self.monkey_patch(self.admin_mock.group_manager_mock, 'getGroups', lambda: \
             [Registry.Registrar.Group.GroupData(
                 1, "test_group_1", ccReg.DateType(0, 0, 0)),
             Registry.Registrar.Group.GroupData(
