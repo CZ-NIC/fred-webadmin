@@ -46,6 +46,8 @@ class DomainBlockingBase(Form):
         super(DomainBlockingBase, self).__init__(*content, **kwd)
         self.method = 'post'
         self.fields['objects'].label = f_name_translated_plural[self.object_type].capitalize()
+        self.media_files.append('/js/submit_confirmation.js')
+        self.add_css_class('confirm_submit')
 
     def _get_submit_button_text(self):
         from fred_webadmin.controller.adif import Domain
