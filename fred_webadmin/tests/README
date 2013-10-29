@@ -1,7 +1,7 @@
 In order to run unit tests, you need the following python packages:
 
 nose (python-nose)
-twill (python-twill)
+twill (python-twill) - retwill fork as twill is abandoned
 mock (python-mock)
 
 

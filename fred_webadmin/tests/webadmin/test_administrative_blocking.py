@@ -86,6 +86,8 @@ class TestAdministrativeBlockingBase(BaseADIFTestCase):
 
 
 class TestButtonInDetails(TestAdministrativeBlockingBase):
+    FILTER_BUTTON_XPATH = '//table[@class="filter_panel"]//form[contains(@action, "/blocking_start/")]//input[@value="%s"]'
+
     def _prepare_domain_detail(self, blocked):
         cdm = CorbaDetailMaker()
         states_ids = [14L, 15L]  # nssetMissing, outzone
@@ -107,23 +109,23 @@ class TestButtonInDetails(TestAdministrativeBlockingBase):
                 raise 'This mock getDetail does not know type "%s"' % filter_type
         self.session_mock.getDetail.side_effect = get_detail_side_effect
 
+
     def test_not_blocked_domain_detail_buttons(self):
         self._prepare_domain_detail(blocked=False)
         twill.commands.go('http://localhost:8080/domain/detail/?id=1')
-        twill.commands.find('/blocking_start/.*Block', 's')
-        twill.commands.find('/blocking_start/.*Blacklist and delete', 's')
-        twill.commands.notfind('/blocking_start/.*Change blocking', 's')
-        twill.commands.notfind('/blocking_start/.*Unblock', 's')
+        twill.commands.find(self.FILTER_BUTTON_XPATH % 'Block', 'x')
+        twill.commands.find(self.FILTER_BUTTON_XPATH % 'Blacklist and delete', 'x')
+        twill.commands.notfind(self.FILTER_BUTTON_XPATH % 'Change blocking', 'x')
+        twill.commands.notfind(self.FILTER_BUTTON_XPATH % 'Unblock', 'x')
 
 
     def test_blocked_domain_detail_buttons(self):
         self._prepare_domain_detail(blocked=True)
         twill.commands.go('http://localhost:8080/domain/detail/?id=1')
-        twill.commands.notfind('/blocking_start/.*Block', 's')
-        twill.commands.find('/blocking_start/.*Blacklist and delete', 's')
-        twill.commands.find('/blocking_start/.*Change blocking', 's')
-        twill.commands.find('/blocking_start/.*Unblock', 's')
-
+        twill.commands.notfind(self.FILTER_BUTTON_XPATH % 'Block', 'x')
+        twill.commands.find(self.FILTER_BUTTON_XPATH % 'Blacklist and delete', 'x')
+        twill.commands.find(self.FILTER_BUTTON_XPATH % 'Change blocking', 'x')
+        twill.commands.find(self.FILTER_BUTTON_XPATH % 'Unblock', 'x')
 
 
 
