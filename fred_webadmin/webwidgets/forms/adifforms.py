@@ -86,15 +86,6 @@ class DomainBlockForm(DomainBlockBase):
         }
     )
 
-    def clean(self):
-        cleaned_data = super(DomainBlockForm, self).clean()
-        if cleaned_data.get('block_to_date') \
-            and cleaned_data['owner_block_mode'] == Registry.Administrative.BLOCK_OWNER_COPY:
-            self.add_error('owner_block_mode',
-                           'You cannot use combination "Block to date" together with "Create copy of the holder"'
-                           'because then it\'s not possible to automatically restore the previous holder.')
-        return cleaned_data
-
 
 class DomainChangeBlockingForm(DomainBlockBase):
     pass
