@@ -2,9 +2,8 @@
 # -*- coding: utf-8 -*-
 import simplejson
 from fred_webadmin.webwidgets.gpyweb.gpyweb import (
-    div, span, p, a, b, h2, h3, noesc, attr, save, HTMLPage, hr, br, table,
-    tr, th, td, img, form, label, input, h1, script, pre, textarea)
-from fred_webadmin.webwidgets.table import WIterTable
+    div, span, p, a, b, button, h2, h3, noesc, attr, save, HTMLPage, hr, br, table,
+    tr, th, td, img, form, label, input, h1, ul, li, script, pre, textarea, tagid, notag)
 from fred_webadmin.translation import _
 from fred_webadmin import config
 from fred_webadmin.utils import get_current_url, append_getpar_to_url
@@ -96,7 +95,8 @@ class BaseSiteMenu(BaseSite):
             self.main.add(h1(c.headline))
         self.right_menu_container.add(
             input(save(self, 'history_checkbox'),
-                  attr(media_files=['/js/history_button.js', '/js/ext/ext-base.js', '/js/ext/ext-all.js'],
+                  attr(media_files=['/js/history_button.js', '/js/ext/ext-base.js', '/js/ext/ext-all.js',
+                                    '/js/jquery-2.0.3.min.js'],
                        id='history_checkbox',
                        type='checkbox', onchange='setHistory(this)')),
                   label(attr(for_id='history_checkbox'), _('history'))
@@ -150,72 +150,33 @@ class FilterPage(BaseSiteMenu):
         if c.get('result'):
             self.main.add(p(c['result']))
 
-        if c.get('itertable'):
-            itertable = c.itertable
-            self.main.add(WIterTable(itertable))
-            self.main.add(p(_('Table_as'), a(attr(href='?txt=1'), 'TXT'), ',', a(attr(href='?csv=1'), 'CSV')))
+        if c.get('witertable'):
+            if c.get('blocking_mode'):
+                self.main.add(h1(attr(id='blocking_text'), _('Administrative blocking')))
+            self.main.add(c.witertable)
+            if not c.get('blocking_mode'):
+                self.main.add(p(_('Table_as'), a(attr(href='?txt=1'), 'TXT'), ',', a(attr(href='?csv=1'), 'CSV')))
 
-            if config.debug:
-                self.main.add(br(), br())
-                header = tr(attr(cssc="header"))
-                for htext in itertable.header:
-                    header.add(td(htext))
-
-                rows = [header]
-                for irow in itertable:
-                    row = tr()
-                    for col in irow:
-                        if col.get('icon'):
-                            val = img(attr(src=col['icon']))
-                        else:
-                            val = col['value']
-
-                        if col.get('url'):
-                            val = a(attr(href=col['url']), val)
-
-                        row.add(td(attr(cssc=col.get('cssc')), val))
-                    rows.append(row)
-
-
-                self.main.add(table(attr(id='objectlist', media_files='/css/objectlist.css'), rows))
-
-                # Numbers of entries
-                if itertable.num_rows_over_limit:
-                    num_rows = span(attr(cssc='warning'), itertable.num_rows)
-                else:
-                    num_rows = itertable.num_rows
-                pageflip = span(
-                    '%s: %s,' % (_('Number_of_pages'), itertable.last_page),
-                    '%s: ' % _('entries'), num_rows, ',',
-                    br())
-
-                # Pager
-                if itertable.num_pages > 1:
-                    pageflip.add(div(
-                        a(attr(cssc='pager-button', href='?page=%s' % itertable.first_page), noesc('&laquo;')),
-                        a(attr(cssc='pager-button', href='?page=%s' % itertable.prev_page), noesc('&lsaquo;')),
-                        form(attr(style='display: inline;', method='GET'), input(attr(type='text', size='2', name='page', value=itertable.current_page))),
-                        a(attr(cssc='pager-button', href='?page=%s' % itertable.next_page), noesc('&rsaquo;')),
-                        a(attr(cssc='pager-button', href='?page=%s' % itertable.last_page), noesc('&raquo;'))
-                    ))
-                self.main.add(pageflip)
         if c.get("display_jump_links"):
             # Display the 'previous' and 'next' links (they auto-submit
             # the form to display results for the prev./next time interval).
             jump_links_info = c.get("display_jump_links")
-            self.main.add(div(a(
-                attr(
+            self.main.add(div(
+                a(attr(
                     title="Jumps to the previous time period.",
                     href=(jump_links_info['url'] +
                         'filter/?jump_prev=1&field_name=%s' %
                         jump_links_info['field_name'])),
-                "prev"),
+                  "prev"),
                 a(attr(
                     title="Jumps to the next time period.",
                     href=(jump_links_info['url'] +
                         'filter/?jump_next=1&field_name=%s' %
                         jump_links_info['field_name'])),
-                    "next")))
+                  "next")))
+
+        if c.get('blocking_possible') and not c.get('blocking_mode'):
+            self.main.add(p(a(attr(href='./blocking_start/'), _('Administrative blocking'))))
 
 
 
@@ -391,9 +352,6 @@ class GroupEditorPage(BaseSiteMenu):
                 """scwDateOutputFormat = "%s"; // set output format for """
                 """js_calendar""" % config.js_calendar_date_format_edit))
 
-    def _create_group_list(groups):
-        pass
-
 
 class DigPage(BaseSiteMenu):
     def __init__(self, context=None):
@@ -418,3 +376,41 @@ class SetInZoneStatusPage(BaseSiteMenu):
                               _("Function returns True.")))
         if c.get('error'):
             self.main.add(pre(attr(style='color:red;'), c.error))
+
+
+class DomainBlocking(BaseSiteMenu):
+    def __init__(self, context):
+        super(DomainBlocking, self).__init__(context)
+        c = self.context
+        self.main.add(h1(c['heading']))
+        if c.get('form'):
+            self.main.add(c['form'])
+
+        lang_code = config.lang[:2]
+        if lang_code == 'cs':  # conversion between cs and cz identifier of lagnguage
+            lang_code = 'cz'
+        self.head.add(script(attr(type='text/javascript'),
+                             'scwLanguage = "%s"; //sets language of js_calendar' % lang_code,
+                             'scwDateOutputFormat = "%s"; // set output format for js_calendar' % config.js_calendar_date_format))
+
+
+class DomainBlockingResult(BaseSiteMenu):
+    def __init__(self, context):
+        super(DomainBlockingResult, self).__init__(context)
+        c = self.context
+        self.main.add(h1(c['heading']))
+        if c.get('blocked_objects'):
+            self.main.add(
+                p(_('These domains were successfully changed:')),
+                ul(save(self, 'blocked_object_ul'))
+            )
+
+            for blocked_object in c['blocked_objects']:
+                if c.get('holder_changes') and c.holder_changes.get(blocked_object.id):
+                    old_holder = c.holder_changes[blocked_object.id]['old_holder']
+                    new_holder = c.holder_changes[blocked_object.id]['new_holder']
+                    holder_change_text = notag(', holder changed ', a(attr(href=old_holder['link']), old_holder['handle']),
+                                               ' -> ', a(attr(href=new_holder['link']), new_holder['handle']))
+                else:
+                    holder_change_text = None
+                self.blocked_object_ul.add(li(a(attr(href=c['detail_url'] % blocked_object.id), blocked_object.handle), holder_change_text))

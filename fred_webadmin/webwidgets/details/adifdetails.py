@@ -1,5 +1,6 @@
 from details import Detail
 from dfields import *
+from fred_webadmin import nulltype
 from fred_webadmin.translation import _
 from fred_webadmin.webwidgets.details.sectionlayouts import DirectSectionLayout, SectionLayout
 from fred_webadmin.webwidgets.details.adifsections import DatesSectionLayout
@@ -7,6 +8,8 @@ from fred_webadmin.webwidgets.details.detaillayouts import DirectSectionDetailLa
 from fred_webadmin.webwidgets.details.adifdetaillayouts import DomainsNSSetDetailLayout, DomainsKeySetDetailLayout
 from fred_webadmin.webwidgets.adifwidgets import FilterPanel
 from fred_webadmin.corbalazy import CorbaLazyRequestIterStructToDict
+from fred_webadmin.utils import get_state_id_by_short_name
+from fred_webadmin.webwidgets.gpyweb.gpyweb import form, input
 
 # Limit the number of filter results for actions (when pressing the actions
 # button) by only asking for the results for the last month.
@@ -410,7 +413,7 @@ class KeySetDetail(ObjectDetail):
 
 class DomainDetail(ObjectDetail):
     expirationDate = CharNHDField(label=_('Expiration date'))
-    valExDate = CharNHDField(label=_('Expiration valuation date'))
+    valExDate = CharNHDField(label=_('Expir. valuation date'))
     publish = CharNHDField(label=_('In ENUM dictionary'))
     outZoneDate = CharDField(label=_('Out zone date'))
 
@@ -471,7 +474,7 @@ class DomainDetail(ObjectDetail):
     def add_to_bottom(self):
         if self.data:
             self.media_files.append('/js/publicrequests.js')
-            self.add(FilterPanel([
+            filter_panel_data = [
                 [[_('Emails'), 'mail',
                     [{'Message': self.data.get('handle'),
                     'CreateTime': FILTER_EMAIL_TIME_LIMIT_LAST_MONTH}]],
@@ -490,7 +493,7 @@ class DomainDetail(ObjectDetail):
                             'IsMonitoring': [True, True],
                         'RequestPropertyValue.Value': self.data.get('handle'),
                         'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
-                [_('Public Request Actions'), 'logger',
+                [_('Public Req. Actions'), 'logger',
                     [{'ServiceType': 2, 'RequestPropertyValue.Name': 'handle',
                             'IsMonitoring': [True, True],
                         'RequestPropertyValue.Value': self.data.get('handle'),
@@ -510,9 +513,39 @@ class DomainDetail(ObjectDetail):
                             'IsMonitoring': [True, True],
                         'RequestPropertyValue.Value': self.data.get('handle'),
                         'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]]]
-            ]))
+            ]
+
+            if not cherrypy.session['user'].has_nperm('block.domain'):
+                server_block_state_id = get_state_id_by_short_name('serverBlocked')
+
+                server_blocked = False
+                if self.data.get('states'):
+                    for state in self.data['states']:
+                        if state.id == server_block_state_id and isinstance(state.to, nulltype.Null):
+                            server_blocked = True
+                            break
+
+                if not server_blocked:
+                    filter_panel_data.append([[self._get_blocking_form('block')],
+                                              [self._get_blocking_form('blacklist_and_delete')],
+                                             ])
+                else:
+                    filter_panel_data.append([[self._get_blocking_form('change_blocking')],
+                                              [self._get_blocking_form('unblock')],
+                                              [self._get_blocking_form('blacklist_and_delete')],
+                                             ])
+            self.add(FilterPanel(filter_panel_data))
+
         super(DomainDetail, self).add_to_bottom()
 
+    def _get_blocking_form(self, blocking_action):
+        from fred_webadmin.controller.adif import Domain
+        return form(attr(method='post', action='%s/filter/blocking_start/' % f_urls['domain']),
+                    input(type='hidden', name='pre_blocking_form', value='1'),
+                    input(type='hidden', name='blocking_action', value=blocking_action),
+                    input(type='hidden', name='object_selection', value=self.data.get('id')),
+                    input(type='submit', value=Domain.blocking_views[blocking_action].action_name),
+                   )
 
 class ActionDetail(Detail):
     time = CharDField(label=_('Received_date'))

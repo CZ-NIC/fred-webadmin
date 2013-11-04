@@ -1,8 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from logging import debug
-
 from fred_webadmin.translation import _
 from fred_webadmin.webwidgets.gpyweb.gpyweb import (
     WebWidget, tagid, attr, notag, div, span, table, tbody, tr, th, td,
@@ -11,19 +9,21 @@ from fred_webadmin.webwidgets.gpyweb.gpyweb import (
 from fred_webadmin.webwidgets.utils import pretty_name
 
 class FormLayout(WebWidget):
-    pass
+    def __init__(self, form, *content, **kwd):
+        self.form = form
+        super(FormLayout, self).__init__(*content, **kwd)
 
 class TableFormLayout(FormLayout):
     columns_count = 2
     tattr_list = table.tattr_list
     def __init__(self, form, *content, **kwd):
-        super(TableFormLayout, self).__init__(*content, **kwd)
+        super(TableFormLayout, self).__init__(form, *content, **kwd)
         self.tag = u'table'
-        self.cssc = 'form_table'
-        self.form = form
+        self.cssc = u'form_table'
         self.create_layout()
 
     def create_layout(self):
+        self.content = []
         form = self.form
         self.add(tbody(tagid('tbody')))
 
@@ -45,7 +45,7 @@ class TableFormLayout(FormLayout):
             errors = form.errors.get(field.name_orig, None)
 
             self.tbody.add(tr(
-                cell_tag(label(label_str)),
+                cell_tag(attr(cssc='label_cell'), label(label_str)),
                 td(errors, field)))
         self.add(hidden_fields)
 
@@ -61,15 +61,14 @@ class TableFormLayout(FormLayout):
         return label_str
 
     def get_submit_row(self):
-        return tr(td(attr(colspan=self.columns_count, cssc='center'), input(attr(type=u'submit', value=u'OK', name=u'submit'))))
+        return tr(td(attr(colspan=self.columns_count, cssc='center'), input(attr(type=u'submit', value=self.form.submit_button_text, name=u'submit'))))
 
 
-class NestedFieldsetFormSectionLayout(WebWidget):
+class NestedFieldsetFormSectionLayout(FormLayout):
     def __init__(self, form, section_spec, *content, **kwd):
-        super(NestedFieldsetFormSectionLayout, self).__init__(*content, **kwd)
+        super(NestedFieldsetFormSectionLayout, self).__init__(form, *content, **kwd)
         self.tag = u'fieldset'
         self.cssc = 'form_fieldset'
-        self.form = form
         self.section_spec = section_spec
         self.create_layout()
 
@@ -96,6 +95,7 @@ class NestedFieldsetFormSectionLayout(WebWidget):
                 td(errors, field)))
 
     def create_layout(self):
+        self.content = []
         self.layout_start()
         self.layout_fields()
 
@@ -126,11 +126,10 @@ class HideableNestedFieldsetFormSectionLayout(NestedFieldsetFormSectionLayout):
 
 class DivFormSectionLayout(NestedFieldsetFormSectionLayout):
     def __init__(self, form, section_spec, *content, **kwd):
-        super(NestedFieldsetFormSectionLayout, self).__init__(*content, **kwd)
+        super(DivFormSectionLayout, self).__init__(form, section_spec, *content, **kwd)
         self.tag = u'div'
         self.cssc = "test"
         self.style = "width: 300px;"
-        self.form = form
         self.section_spec = section_spec
         self.create_layout()
 
@@ -147,8 +146,7 @@ class DivFormSectionLayout(NestedFieldsetFormSectionLayout):
 
 class SimpleFieldsetFormSectionLayout(FormLayout):
     def __init__(self, form, section_spec, *content, **kwd):
-        super(SimpleFieldsetFormSectionLayout, self).__init__(*content, **kwd)
-        self.form = form
+        super(SimpleFieldsetFormSectionLayout, self).__init__(form, *content, **kwd)
         self.section_spec = section_spec
         self.tag = u'fieldset'
         self.layout_fields()

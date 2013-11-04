@@ -113,11 +113,7 @@ class BaseDetail(div):
 
     def set_fields_values(self):
         for field in self.fields.values():
-            if field.access:
-                field.value = field.value_from_data(self.data)
-            else:
-                field.value = field.value_from_data({}) # emtpy dict as there are no data
-                field.make_content_no_access()
+            field.value = field.value_from_data(self.data)
 
     @classmethod
     def get_object_name(cls):

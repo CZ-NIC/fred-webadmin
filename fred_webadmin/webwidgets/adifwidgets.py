@@ -159,11 +159,12 @@ class FilterPanel(table):
 
     def _create_links(self, filters):
         for button_data in filters:
-            if len(button_data) == 2:
+            if len(button_data) == 1: # just add content whatever it is:
+                self.filter_buttons.add(td(button_data))
+            if len(button_data) == 2: # url link
                 button_label, url = button_data
-                self.filter_buttons.add(
-                    td(a(attr(href=url), _(button_label))))
-            elif len(button_data) == 3:
+                self.filter_buttons.add(td(a(attr(href=url), _(button_label))))
+            elif len(button_data) == 3: # object filter
                 button_label, obj_name, filter = button_data
                 self.filter_buttons.add(
                     td(form(

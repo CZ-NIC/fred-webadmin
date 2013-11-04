@@ -2,6 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import sys
+if sys.version_info >= (2, 7):
+    from collections import OrderedDict
+else:
+    from fred_webadmin.utils import OrderedDict
+
 from fred_webadmin import setuplog
 setuplog.setup_log()
 
@@ -15,7 +20,6 @@ from copy import copy, deepcopy
 
 import omniORB
 from omniORB import CORBA
-import CosNaming
 
 # DNS lib imports
 import dns.message
@@ -39,7 +43,7 @@ from cherrypy.lib import http
 import simplejson
 
 import fred_webadmin.corbarecoder as recoder
-import fred_webadmin.utils as utils
+from fred_webadmin import utils
 
 import fred_webadmin.webwidgets.forms.fields as formfields
 
@@ -58,7 +62,7 @@ from fred_webadmin import exposed
 from fred_webadmin.corba import Corba
 corba_obj = Corba()
 
-from fred_webadmin.corba import ccReg
+from fred_webadmin.corba import ccReg, Registry
 from fred_webadmin.translation import _
 
 # This must all be imported because of the way templates are dealt with.
@@ -68,7 +72,8 @@ from fred_webadmin.webwidgets.templates.pages import (
     DomainDetail, ContactDetail, NSSetDetail, KeySetDetail, RegistrarDetail,
     PublicRequestDetail, MailDetail, InvoiceDetail, LoggerDetail,
     RegistrarEdit, BankStatementPairingEdit, BankStatementDetail,
-    BankStatementDetailWithPaymentPairing, GroupEditorPage, MessageDetail
+    BankStatementDetailWithPaymentPairing, GroupEditorPage, MessageDetail,
+    DomainBlocking, DomainBlockingResult
 )
 from fred_webadmin.webwidgets.gpyweb.gpyweb import WebWidget
 from fred_webadmin.webwidgets.gpyweb.gpyweb import (
@@ -84,8 +89,6 @@ import fred_webadmin.webwidgets.forms.editforms as editforms
 
 import fred_webadmin.webwidgets.forms.filterforms as filterforms
 from fred_webadmin.webwidgets.forms.filterforms import *
-#from fred_webadmin.webwidgets.forms.filterforms import (
-#    get_filter_forms_javascript)
 
 from fred_webadmin.utils import json_response
 from fred_webadmin.mappings import (
@@ -93,6 +96,9 @@ from fred_webadmin.mappings import (
 from fred_webadmin.user import User
 from fred_webadmin.customview import CustomView
 from fred_webadmin.controller.perms import check_onperm, login_required
+from fred_webadmin.controller.administrative_blocking import (ProcessBlockView, ProcessUpdateBlockingView,
+    ProcessUnblockView, ProcessBlacklistAndDeleteView)
+
 
 class Page(object):
     """ Index page, similiar to index.php, index.html and so on.
@@ -115,7 +121,7 @@ class AdifPage(Page):
             return BaseSiteMenu
         if action == 'login':
             return LoginPage
-        elif action in ('filter', 'list'):
+        elif action in ('filter', 'list', 'blocking'):
             return FilterPage
         elif action == 'allfilters':
             return AllFiltersPage
@@ -216,6 +222,7 @@ class AdifPage(Page):
         cherrypy.session['FileManager'] = None
         cherrypy.session['Messages'] = None
         cherrypy.session['Logger'] = None
+        cherrypy.session['Blocking'] = None
         cherrypy.session['filter_forms_javascript'] = None
         cherrypy.session['filterforms'] = None
 
@@ -360,10 +367,11 @@ class ADIF(AdifPage):
         corba_server = int(form.cleaned_data.get('corba_server', 0))
         cherrypy.session['corba_server_name'] = form.fields['corba_server'].choices[corba_server][1]
         cherrypy.session['filter_forms_javascript'] = None
+
         cherrypy.session['Mailer'] = corba_obj.getObject('Mailer', 'ccReg.Mailer')
-        cherrypy.session['FileManager'] = corba_obj.getObject(
-            'FileManager', 'ccReg.FileManager')
+        cherrypy.session['FileManager'] = corba_obj.getObject('FileManager', 'ccReg.FileManager')
         cherrypy.session['Messages'] = corba_obj.getObject('Messages', 'Registry.Messages')
+        cherrypy.session['Blocking'] = corba_obj.getObject('Administrative', 'Registry.Administrative.Blocking')
 
         cherrypy.session['history'] = False
         utils.get_corba_session().setHistory(False)
@@ -745,9 +753,17 @@ class Registrar(AdifPage, ListTableMixin):
             return self._render('base', ctx=context)
 
 
-
-
 class Domain(AdifPage, ListTableMixin):
+    blockable = True
+    blocking_views = OrderedDict((
+        # blocking_action: blocking view_class
+        ('block', ProcessBlockView),
+        ('change_blocking', ProcessUpdateBlockingView),
+        ('unblock', ProcessUnblockView),
+        ('blacklist_and_delete', ProcessBlacklistAndDeleteView),
+        #('unblacklist_and_create', DomainUnblacklistAndCreateView),
+    ))
+
     @check_onperm('read')
     def dig(self, **kwd):
         context = {}
@@ -788,7 +804,7 @@ class Domain(AdifPage, ListTableMixin):
             else:
                 context['error'] = _("Function setInZoneStatus() is not implemented in Admin.")
 
-            # if it was succefful, redirect into domain detail
+            # if it was successful, redirect into domain detail
             if context['error'] is None:
                 log_req.result = 'Success'
                 raise cherrypy.HTTPRedirect(f_urls[self.classname] + '/detail/?id=%s' % domain_id)
@@ -804,6 +820,76 @@ class Domain(AdifPage, ListTableMixin):
             return self._render('setinzonestatus', context)
         finally:
             log_req.close()
+
+    def _template(self, action=''):
+        if action == 'blocking':
+            return DomainBlocking
+        elif action == 'blocking_result':
+            return DomainBlockingResult
+        else:
+            return AdifPage._template(self, action=action)
+
+    @check_onperm('block')
+    def blocking(self, *args, **kwd):
+        # from fred_webadmin.tests.webadmin.test_administrative_blocking import mock_blocking
+        # mock_blocking()
+
+        if args and args[0] == 'result':
+            return self._blocking_result()
+
+        pre_blocking_form_data = cherrypy.session.get('pre_blocking_form_data')
+        if not pre_blocking_form_data:
+            return self._render('error', {'message': [_(u'This page is accessible only by posting a blocking form.')]})
+        else:
+            blocking_view = self.blocking_views[pre_blocking_form_data['blocking_action']]
+            initial = {'objects': pre_blocking_form_data['object_selection'],
+                       'blocking_action': pre_blocking_form_data['blocking_action'],
+            }
+            context = blocking_view.as_view(initial=initial)()
+
+            return self._render('blocking', ctx=context)
+
+    def _blocking_result(self):
+        context = {}
+        if cherrypy.session.get('blocking_result'):
+            blocking_result = cherrypy.session['blocking_result']
+            if blocking_result.get('blocked_objects'):
+                context['detail_url'] = f_urls[self.classname] + 'detail/?id=%s'
+                context['heading'] = 'Result of: %s' % \
+                    self.blocking_views[blocking_result['blocking_action']].action_name
+
+                try:  # HACK: till backend return list of handle:id of changed/deleted domains, we must use history for deleted domains:
+                    if blocking_result['blocking_action'] == 'blacklist_and_delete':
+                        # we must turn on history flag to get details of deleted domains
+                        utils.get_corba_session().setHistory(True)
+                    object_details = [utils.get_detail(self.classname, object_id)
+                                      for object_id in blocking_result['blocked_objects']]
+                finally:
+                    if blocking_result['blocking_action'] == 'blacklist_and_delete':
+                        # restore history flag in backend
+                        utils.get_corba_session().setHistory(cherrypy.session['history'])
+
+                if blocking_result['blocking_action'] == 'block' and blocking_result.get('return_value'):
+                    holder_changes = {}
+                    for domain_holder_change in blocking_result['return_value']:
+                        holder_change = {
+                            'old_holder': {
+                                'handle': domain_holder_change.oldOwnerHandle,
+                                'link': f_urls['contact'] + 'detail/?id=%s' % domain_holder_change.oldOwnerId,
+                            },
+                            'new_holder': {
+                                'handle': domain_holder_change.newOwnerHandle,
+                                'link': f_urls['contact'] + 'detail/?id=%s' % domain_holder_change.newOwnerId,
+                            }
+                        }
+                        holder_changes[domain_holder_change.domainId] = holder_change
+                    context['holder_changes'] = holder_changes
+                context['blocked_objects'] = object_details
+
+            del cherrypy.session['blocking_result']
+        else:
+            context['heading'] = _('The result page has expired.')
+        return self._render('blocking_result', ctx=context)
 
 
 class Contact(AdifPage, ListTableMixin):

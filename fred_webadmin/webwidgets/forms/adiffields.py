@@ -1,17 +1,36 @@
-from formsets import BaseFormSet
-from formsetlayouts import TableFormSetLayout#, FieldsetFormSetLayout
-from fields import Field, DecimalField, ChoiceField, MultiValueField, DateField, SplitDateSplitTimeField
-from fred_webadmin.webwidgets.utils import ValidationError, ErrorList
+import types
+
+from .formsets import BaseFormSet
+from .formsetlayouts import TableFormSetLayout#, FieldsetFormSetLayout
+from .fields import (Field, DecimalField, ChoiceField, MultiValueField, DateField, SplitDateSplitTimeField,
+                     MultipleChoiceField, HiddenIntegerField)
+import fred_webadmin.corbarecoder as recoder
+from fred_webadmin.mappings import f_urls
+from fred_webadmin.webwidgets.utils import ValidationError, ErrorList, isiterable
 from fred_webadmin.translation import _
-from fred_webadmin.webwidgets.gpyweb.gpyweb import attr, save, span
+from fred_webadmin.webwidgets.gpyweb.gpyweb import attr, save, a, span, br
+from fred_webadmin import utils
 #from fred_webadmin.nulltype import NullDate
 
-#cobra things:
+#COBRA imports:
 from fred_webadmin.corba import ccReg
+
+
+
 INTERVAL_CHOICES = [(choice._v, _(choice._n)) for choice in ccReg.DateTimeIntervalType._items[1:]] # first is None (which means that date is not active)
 INTERVAL_CHOICES_DATE_ONLY = [(choice._v, _(choice._n)) for choice in ccReg.DateTimeIntervalType._items[1:]] # first is None (which means that date is not active)
 INTERVAL_CHOICES_DATE_ONLY.pop(ccReg.PAST_HOUR._v + -1)
 INTERVAL_CHOICES_DATE_ONLY.pop(ccReg.LAST_HOUR._v + -1)
+
+
+class DateFieldWithJsLink(DateField):
+    'DateField with links to "now + X months" link to prefill it with javascript to '
+    def __init__(self, name='', value='', link_add_months_count=1, link_text=_('now + {0} month(s)'), *args, **kwargs):
+        super(DateFieldWithJsLink, self).__init__(name, value, *args, **kwargs)
+        self.tattr['data-add-months-count'] = self.link_add_months_count = link_add_months_count
+        self.tattr['data-add-months-link-text'] = self.link_text = link_text.format(link_add_months_count)
+        self.media_files.append('/js/datefield_with_link.js')
+
 
 class CompoundFilterField(Field):
     "Field that wraps FilterForm inside itself, value of field is data for that form"
@@ -139,17 +158,6 @@ class FormSetField(Field):
 #            self.changed_data.append(form.changed_data)
         return has_changed
 
-        """if data is None:
-            data_value = u''
-        else:
-            data_value = data
-        if initial is None:
-            initial_value = u''
-        else:
-            initial_value = initial
-        if unicode(initial_value) != unicode(data_value):
-            return True
-        return False"""
 
     def fire_actions(self, *args, **kwargs):
         self.create_formset_once()
@@ -159,20 +167,30 @@ class FormSetField(Field):
 
 class CorbaEnumChoiceField(ChoiceField):
     """
-    A field created from corba enum type
+    A field created from corba enum type, cleaned value is int (using '_n' attribute of the enum)
     """
-    def __init__(self, name='', value='', corba_enum=None, required=True, label=None, initial=None, help_text=None, *arg, **kwargs):
+    def __init__(self, name='', value='', corba_enum=None, enum_translation_mapping=None, required=True, label=None, initial=None, help_text=None, *arg, **kwargs):
         if corba_enum is None:
             raise RuntimeError('corba_enum argument is required!')
-        choices = [(unicode(item._v), _(item._n)) for item in corba_enum._items]
         self.corba_enum = corba_enum
-        super(CorbaEnumChoiceField, self).__init__(name, value, choices, required, label, initial, help_text, *arg, **kwargs)
+        self.enum_translation_mapping = enum_translation_mapping
+        choices = self.transform_corba_to_choices()
 
+        super(CorbaEnumChoiceField, self).__init__(name=name, value=value, choices=choices, required=required,
+                                                   label=label, initial=initial, help_text=help_text,
+                                                   *arg, **kwargs)
+
+    def transform_corba_to_choices(self):
+        if self.enum_translation_mapping:
+            return [(unicode(item._v), _(self.enum_translation_mapping[item._n])) for item in self.corba_enum._items]
+        else:
+            return [(unicode(item._v), item._n) for item in self.corba_enum._items]
 
     def clean(self):
         cleaned_data = super(CorbaEnumChoiceField, self).clean()
         if cleaned_data != u'':
-            return int(cleaned_data)
+            enum_number = int(cleaned_data)
+            return self.corba_enum._items[enum_number]
 
     def is_empty(self):
         if self.value == self.empty_choice[0]:
@@ -180,16 +198,21 @@ class CorbaEnumChoiceField(ChoiceField):
         else:
             return False
 
+class CorbaEnumChoiceIntegerField(CorbaEnumChoiceField):
+    def clean(self):
+        cleaned_data = super(CorbaEnumChoiceIntegerField, self).clean()
+        if cleaned_data is not None:
+            return cleaned_data._v
 
 class AbstractIntervalField(MultiValueField):
     ''' Abstract class field for DateIntervalField and DateTimeIntervalField'''
     def __init__(self, name='', value='', fields=None, *args, **kwargs):
-        self.__dict__['content_initialized'] = False
+        self.content_initialized = False
         # fields = (FROM, TO, DAY, TYPE, OFFSET)
-
         super(AbstractIntervalField, self).__init__(name, value, fields, *args, **kwargs)
         self.fields[3].required = True # intertnal type is required
         self.media_files.append('/js/interval_fields.js')
+        self.add_css_class('interval-field')
 
     def _set_value(self, value):
         if not value:
@@ -266,12 +289,69 @@ class DateIntervalField(AbstractIntervalField):
     def __init__(self, name='', value='', *args, **kwargs):
         fields = (DateField(size=10), DateField(size=10), DateField(size=10),
                   ChoiceField(content=[attr(onchange='onChangeDateIntervalType(this)')], choices=INTERVAL_CHOICES_DATE_ONLY),
-                  DecimalField(initial=1, size=5, min_value= -32768, max_value=32767))
+                  DecimalField(initial=1, size=5, min_value=-32768, max_value=32767))
         super(DateIntervalField, self).__init__(name, value, fields, *args, **kwargs)
 
 class DateTimeIntervalField(AbstractIntervalField):
     def __init__(self, name='', value='', *args, **kwargs):
         fields = (SplitDateSplitTimeField(), SplitDateSplitTimeField(), DateField(size=10),
                   ChoiceField(content=attr(onchange='onChangeDateIntervalType(this)'), choices=INTERVAL_CHOICES),
-                  DecimalField(initial=1, size=5, min_value= -32768, max_value=32767))
+                  DecimalField(initial=1, size=5, min_value=-32768, max_value=32767))
         super(DateTimeIntervalField, self).__init__(name, value, fields, *args, **kwargs)
+
+
+class ObjectWithHiddenField(HiddenIntegerField):
+    def __init__(self, object_type, *args, **kwargs):
+        super(ObjectWithHiddenField, self).__init__(*args, **kwargs)
+        self.object_type = object_type
+        self.error_msg = None
+
+    def render(self, indent_level=0):
+        self.make_content()
+        return super(ObjectWithHiddenField, self).render(indent_level)
+
+    def make_content(self):
+        self.content = []
+        detail = utils.get_detail(recoder.u2c(self.object_type), int(self.value))
+        if self.error_msg:
+            self.add(ErrorList([self.error_msg % detail.handle]))
+        self.add(a(attr(href=f_urls[self.object_type] + 'detail/?id=%s' % self.value), (detail.handle)), br())
+
+
+class ListObjectHiddenField(MultiValueField):
+    def __init__(self, *args, **kwargs):
+        super(ListObjectHiddenField, self).__init__(*args, **kwargs)
+        self.fields_by_object_id = {}
+
+
+    def _set_value(self, value):
+        if not value:
+            self._value = None
+            self.fields = []
+        else:
+            if not isinstance(value, types.ListType):
+                value = [value]
+            self._value = value
+            if self.fields:
+                raise RuntimeError('Assigning value to already initialized ListObjectHiddenField is not supported, value was: %s' % unicode(value))
+            if getattr(self, 'owner_form', None) is None or getattr(self.owner_form, 'object_type', None) is None:
+                raise RuntimeError('This form is usable only inside form, which has object_type attribute')
+            for val in value:
+                field = ObjectWithHiddenField(object_type=self.owner_form.object_type, name=self.name, value=val)
+                self.fields.append(field)
+                self.fields_by_object_id[int(val)] = field
+
+    def compress(self, data_list):
+        if data_list and not isiterable(data_list): # wrap single non-empty value into list
+            return [data_list]
+        else:
+            return data_list
+
+    def decompress(self, value):
+        if value and not isiterable(value): # wrap single non-empty value into list
+            return [value]
+        else:
+            return value
+
+    def value_from_datadict(self, data):
+        return data.get(self.name, None)

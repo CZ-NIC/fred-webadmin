@@ -45,9 +45,10 @@ class BaseForm(form):
     # class, not to the Form class
     nperm_names = []
     name_postfix = ''
+    _submit_button_text = 'OK'
     def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None,
                  initial=None, error_class=ErrorList, label_suffix=':', layout_class=TableFormLayout,
-                 is_nested=False, empty_permitted=False, *content, **kwd):
+                 submit_button_text=None, is_nested=False, empty_permitted=False, *content, **kwd):
         super(BaseForm, self).__init__(*content, **kwd)
 
         if not is_nested:
@@ -65,6 +66,8 @@ class BaseForm(form):
         self._errors = None # Stores the errors after clean() has been called.
         self.layout_class = layout_class
         self.is_nested = is_nested
+        if submit_button_text is not None:
+            self._submit_button_text = submit_button_text
         self.empty_permitted = empty_permitted
         self._changed_data = None
         # The base_fields class attribute is the *class-wide* definition of
@@ -151,7 +154,6 @@ class BaseForm(form):
         Returns True if the form has no errors. Otherwise, False. If errors are
         being ignored, returns False.
         """
-#        import ipdb; ipdb.set_trace()
         return self.is_bound and not bool(self.errors)
 
     def add_prefix(self, field_name):
@@ -164,14 +166,14 @@ class BaseForm(form):
         return self.prefix and ('%s-%s' % (self.prefix, field_name)) or field_name
 
     def render(self, indent_level=0):
-        self.content = [] # empty previous content (if render would be called moretimes, there would be multiple forms instead one )
+        self.content = [] # empty previous content (if render would be called more times, there would be multiple forms instead one )
         self.add(self.layout_class(self))
         return super(BaseForm, self).render(indent_level)
 
     def non_field_errors(self):
         """
         Returns an ErrorList of errors that aren't associated with a particular
-        field -- i.e., from Form.clean(). Returns an empty ErrorList if there
+        field - -i.e., from Form.clean(). Returns an empty ErrorList if there
         are none.
         """
         result = self.errors.get(NON_FIELD_ERRORS, None)
@@ -291,6 +293,19 @@ class BaseForm(form):
             return nperms
         else:
             return []
+
+    def _get_submit_button_text(self):
+        return self._submit_button_text
+    def _set_submit_button_text(self, value):
+        self._submit_button_text = value
+    submit_button_text = LateBindingProperty(_get_submit_button_text, _set_submit_button_text)
+
+    def add_error(self, field_name, error_message):
+        self.errors.setdefault(field_name, self.error_class()).append(error_message)
+
+    def add_non_field_error(self, error_message):
+        self.add_error(NON_FIELD_ERRORS, error_message)
+
 
 class Form(BaseForm):
     """ A collection of Fields, plus their associated data.

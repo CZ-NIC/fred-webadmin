@@ -1,8 +1,8 @@
 body { margin:0; padding:0; font-size:12px; font-family:"Lucida Grande","DejaVu Sans","Bitstream Vera Sans",Verdana,Arial,sans-serif; color:#333; background:#fff; }
 
 /* LINKS */
-a:link, a:visited { color: #5b80b2; text-decoration:none; }
-a:hover { color: #036; }
+a:link, a:visited, .link-style { color: #5b80b2; text-decoration:none; }
+a:hover, .link-style:hover { color: #036; cursor:pointer; }
 a img { border:none; }
 
 /* GLOBAL DEFAULTS */
@@ -53,9 +53,20 @@ p img, h1 img, h2 img, h3 img, h4 img, td img { vertical-align:middle; }
 .nowrap { white-space:nowrap; }
 
 /* TABLES */
-table.form_table  { border-collapse:collapse; border-color:#ccc; width: 350px;}
-.form_table td, .form_table th { font-size:11px; line-height:13px; vertical-align:top; padding:5px; font-family:"Lucida Grande", Verdana, Arial, sans-serif; }
-.form_table th { text-align:left; font-size:12px; font-weight:bold; }
+.form_table, .form_table table  {
+    border-collapse:collapse;
+    border-color:#ccc;
+}
+.form_table td, .form_table th {
+    font-size: 11px;
+    line-height: 13px;
+    vertical-align: top;
+    padding: 5px;
+    font-family: "Lucida Grande", Verdana, Arial, sans-serif;
+    border-color: #ccc;
+}
+.form_table .label_cell { text-align:right; }
+.form_table th.label_cell { font-size:12px; font-weight:bold; }
 .form_table thead th,
 .form_table tfoot td { color:#666; padding:2px 5px; font-size:11px; background:#e1e1e1 url(../img/admin/nav-bg.gif) top left repeat-x; border-left:1px solid #ddd; border-bottom:1px solid #ddd; }
 .form_table tfoot td { border-bottom:none; border-top:1px solid #ddd; }
@@ -76,6 +87,7 @@ fieldset.form_fieldset { padding-top: 5px; margin-top: 10px; margin-bottom: 10px
 
 /* FORM DEFAULTS */
 input, textarea, select { margin:2px 0; padding:2px 3px; vertical-align:middle; font-family:"Lucida Grande", Verdana, Arial, sans-serif; font-weight:normal; font-size:11px; }
+label {display: inline-block; margin:2px 0;}
 textarea { vertical-align:top !important; }
 input[type=text], input[type=password], textarea, select, .vTextField { border:1px solid #ccc; }
 

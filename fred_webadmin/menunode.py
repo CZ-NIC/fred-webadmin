@@ -119,7 +119,8 @@ objects_node = MenuNode(
                 url=f_urls['nsset'] + 'allfilters/', nperm='read.nsset'),
             MenuNode(
                 'keyset', _('Search keysets'), cssc='menu-item',
-                url=f_urls['keyset'] + 'allfilters/', nperm='read.keyset')])
+                url=f_urls['keyset'] + 'allfilters/', nperm='read.keyset'),
+        ])
 
 registrars_node = MenuNode(
         'registrar', _('Registrars'), 'body-registrars',

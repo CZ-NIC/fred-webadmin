@@ -79,11 +79,12 @@ class WebWidget(object):
     def __init__(self, *content, **kwd):
         if self in content:
             raise GPyWebError("Trying to pass self in init")
-        self.__dict__['tattr'] = {} # attributes, that will be rendered into tag as attribute (eg. <a href="/">...)
-        self.__dict__['content'] = [] # To not pydev(or pylint) complain about assigning to undefined membet 'attr'
+        self.tattr = {} # attributes, that will be rendered into tag as attribute (eg. <a href="/">...)
+        self.content = [] # To not pydev(or pylint) complain about assigning to undefined membet 'attr'
         self.parent_widget = None
 
-        self.tag = self.__class__.__name__
+        if not hasattr(self, 'tag'): # allow subclasses to define "tag" as class attribute
+            self.tag = self.__class__.__name__
 
         self._root_widget = self # root webwidget (usualy hmtl tag)
         self.media_files = [] # list of media files, which is rendered in head tag of HTMLPage, if this element is rendered in HTMLPage
@@ -250,10 +251,12 @@ class WebWidget(object):
             rstr += self.render_tattr()
             if len(self.content) or not self.empty_tag_as_xml:
                 rstr += u'>'
+                if not self.enclose_content:
+                    rstr += self.delimiter_char
             else:
                 rstr += u' />'
-            if not self.enclose_content:
-                rstr += self.delimiter_char
+                if not self.parent_widget or (self.parent_widget and not self.parent_widget.enclose_content):
+                    rstr += self.delimiter_char
 
         rstr += self.render_content(indent_level + 1)
 
@@ -261,10 +264,7 @@ class WebWidget(object):
             if not self.enclose_content:
                 rstr += indent_level * self.indent_char
             rstr += u'</' + self.tag + u'>'
-            if self.parent_widget:
-                if not self.parent_widget.enclose_content :
-                    rstr += self.delimiter_char
-            else:
+            if not self.parent_widget or (self.parent_widget and not self.parent_widget.enclose_content):
                 rstr += self.delimiter_char
 
         return rstr
@@ -311,6 +311,27 @@ class WebWidget(object):
         else:
             self.add(content)
         return self
+
+    def add_css_class(self, css_class):
+        if hasattr(self, 'cssc'):
+            self.cssc += ' %s' % css_class
+        else:
+            self.cssc = css_class
+
+    def remove_css_class(self, css_class):
+        ''' Removes css_class from cssc attribute, returns True if css_class was really removed. '''
+        removed = False
+        if hasattr(self, 'cssc'):
+            css_class_list = self.cssc.split()
+            try:
+                css_class_list.remove(css_class)
+                removed = True
+            except ValueError:
+                pass
+            self.cssc = ' '.join(css_class_list)
+            if self.cssc == '':
+                self.cssc = None
+        return removed
 
 
 class notag(WebWidget):
@@ -575,6 +596,7 @@ class Media(WebWidget):
     def __init__(self, media_files, *content, **kwd):
         super(Media, self).__init__(*content, **kwd)
         self.tag = None
+        self.indent_level = None
 
         if isinstance(media_files, types.StringTypes):
             self.media_files = [media_files] #set([media_files])
@@ -599,16 +621,6 @@ class Media(WebWidget):
     def render(self, indent_level=0):
         self.indent_level = indent_level
         return GPYWEB_REPLACE_ME_WITH_MEDIA
-        rstr = ''
-        for media_file in self.media_files:
-            if media_file.endswith('.css'):
-                rstr += indent_level * self.indent_char
-                rstr += unicode(link(href=media_file, rel="stylesheet", type="text/css"))
-            else:
-                rstr += indent_level * self.indent_char
-                #must contain empty string because browser take <script /> as if it was <script> and waiting for </scrpt>:
-                rstr += unicode(script('', src=media_file, type="text/javascript", enclose_content=True))
-        return rstr
 
 
 class DictLookup(dict):

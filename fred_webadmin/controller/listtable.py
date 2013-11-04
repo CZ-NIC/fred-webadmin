@@ -1,7 +1,6 @@
 import cherrypy
 import time
 import sys
-import omniORB
 
 from fred_webadmin import exposed
 from fred_webadmin import config
@@ -23,7 +22,6 @@ from fred_webadmin.customview import CustomView
 from fred_webadmin.corba import ccReg
 from fred_webadmin.utils import get_detail, create_log_request
 
-from fred_webadmin.corbalazy import ServerNotAvailableError
 import fred_webadmin.webwidgets.forms.emptyvalue
 
 
@@ -33,6 +31,7 @@ class ListTableMixin(object):
     """
 
     __metaclass__ = exposed.AdifPageMetaClass
+    blockable = False # if object can be administratively blocked
 
     def _get_itertable(self, request_object=None):
         if not request_object:
@@ -43,7 +42,7 @@ class ListTableMixin(object):
         timeout = config.table_timeout
         user = cherrypy.session.get('user')
         if user and user.table_page_size:
-            page_size = cherrypy.session.get('user').table_page_size
+            page_size = user.table_page_size
         max_row_limit = config.table_max_row_limit_per_obj.get(request_object, config.table_max_row_limit)
 
         itertable = IterTable(request_object, key, page_size, timeout, max_row_limit)
@@ -124,28 +123,43 @@ class ListTableMixin(object):
             log_req.result = 'Success'
             if show_result:
                 out_props.append(('result_size', table.num_rows))
-                if table.num_rows == 0:
-                    context['result'] = _("No_entries_found")
-                if table.num_rows == 1:
-                    rowId = table.get_row_id(0)
-                    raise (cherrypy.HTTPRedirect(f_urls[self.classname] +
-                        'detail/?id=%s' % rowId))
-                if kwd.get('txt', None):
-                    cherrypy.response.headers["Content-Type"] = "text/plain"
-                    cherrypy.response.headers["Content-Disposition"] = \
-                        "inline; filename=%s_%s.txt" % (self.classname,
-                        time.strftime('%Y-%m-%d'))
-                    return fileGenerator(table)
-                elif kwd.get('csv', None):
-                    cherrypy.response.headers["Content-Type"] = "text/plain"
-                    cherrypy.response.headers["Content-Disposition"] = \
-                        "attachement; filename=%s_%s.csv" % (
-                            self.classname, time.strftime('%Y-%m-%d'))
-                    return fileGenerator(table)
-                table.set_page(page)
 
-                context['itertable'] = table
-        except ccReg.Filters.SqlQueryTimeout, e:
+                from fred_webadmin.webwidgets.table import WIterTable, WIterTableInForm
+                if context.get('blocking_mode'):
+                    table.pagination = False
+                    action_url = f_urls[self.classname] + 'filter/blocking_start/'
+                    success_url = f_urls[self.classname] + 'blocking/'
+                    if cherrypy.request.method == 'POST' and kwd.get('pre_blocking_form'):
+                        itertable_widget = WIterTableInForm(table, action=action_url,
+                                                            data=kwd)
+                        if itertable_widget.is_valid():
+                            cherrypy.session['pre_blocking_form_data'] = itertable_widget.cleaned_data
+                            raise cherrypy.HTTPRedirect(success_url)
+                    else:
+                        itertable_widget = WIterTableInForm(table, action=action_url)
+                else:
+                    if table.num_rows == 0:
+                        context['result'] = _("No_entries_found")
+                    elif table.num_rows == 1:
+                        rowId = table.get_row_id(0)
+                        raise (cherrypy.HTTPRedirect(f_urls[self.classname] + 'detail/?id=%s' % rowId))
+                    if kwd.get('txt', None):
+                        cherrypy.response.headers["Content-Type"] = "text/plain"
+                        cherrypy.response.headers["Content-Disposition"] = \
+                            "inline; filename=%s_%s.txt" % (self.classname,
+                            time.strftime('%Y-%m-%d'))
+                        return fileGenerator(table)
+                    elif kwd.get('csv', None):
+                        cherrypy.response.headers["Content-Type"] = "text/plain"
+                        cherrypy.response.headers["Content-Disposition"] = \
+                            "attachment; filename=%s_%s.csv" % (
+                                self.classname, time.strftime('%Y-%m-%d'))
+                        return fileGenerator(table)
+                    table.set_page(page)
+                    itertable_widget = WIterTable(table)
+
+                context['witertable'] = itertable_widget
+        except ccReg.Filters.SqlQueryTimeout:
             context['main'].add(h1(_('Timeout')),
                                 p(_('Database timeout, please try to be more specific about requested data.')))
         finally:
@@ -157,12 +171,17 @@ class ListTableMixin(object):
         context = {'main': div()}
         action = 'list' if kwd.get('list_all') else 'filter'
 
+        if self.blockable and not cherrypy.session['user'].has_nperm('block.domain'):
+            context['blocking_possible'] = True
+            if args and args[0] == 'blocking_start':
+                context['blocking_mode'] = True
+
         if kwd.get('txt') or kwd.get('csv'):
             res = self._get_list(context, **kwd)
             return res
         elif (kwd.get('cf') or kwd.get('page') or kwd.get('load') or
               kwd.get('list_all') or kwd.get('filter_id') or
-              kwd.get('sort_col')):
+              kwd.get('sort_col') or (args and args[0] == 'blocking_start')):
             # clear filter - whole list of objects without using filter form
             context = self._get_list(context, **kwd)
         elif kwd.get("jump_prev") or kwd.get("jump_next"):
@@ -171,16 +190,14 @@ class ListTableMixin(object):
             table = self._get_itertable()
             delta = -1 if kwd.get("jump_prev") else 1
             cleaned_filter_data = table.get_filter_data()
-            self._update_key_time_field_offset(
-                cleaned_filter_data, kwd['field_name'], delta)
+            self._update_key_time_field_offset(cleaned_filter_data, kwd['field_name'], delta)
             action = self._process_form(context, action, cleaned_filter_data, **kwd)
         else:
             action = self._process_form(context, action, **kwd)
 
         return self._render(action, context)
 
-    def _update_key_time_field_offset(self, filter_data, key_field_name,
-            delta):
+    def _update_key_time_field_offset(self, filter_data, key_field_name, delta):
         try:
             key_time_field = filter_data[0][key_field_name]
             key_time_field[1][4] = key_time_field[1][4] + delta
@@ -201,8 +218,6 @@ class ListTableMixin(object):
             form = UnionFilterForm(
                 cleaned_data, form_class=form_class,
                 data_cleaned=True)
-#            form = UnionFilterForm(
-#                form_class=form_class)
         else:
             form = UnionFilterForm(form_class=form_class)
         context['form'] = form
@@ -308,8 +323,7 @@ class ListTableMixin(object):
         if (config.debug or f_urls.has_key(self.classname)):
             raise cherrypy.HTTPRedirect(f_urls[self.classname] + 'allfilters/')
         else:
-            # In production (non-debug) environment we just fall back to
-            # /summary.
+            # In production (non-debug) environment we just fall back to /summary.
             raise NotImplementedError("Support for '%s' has not yet been "
                                       "implemented." % self.classname)
 

@@ -1,7 +1,8 @@
 /* Normal Filter Table */
 .filtertable {
     border-collapse: collapse;
-    border: 1px solid gray;
+    border-width: 1px;
+    border-style: solid;
     padding: 0px;
     margin: 0px;
 }
@@ -14,7 +15,14 @@
 }
 
 .filtertable th {
-    border-bottom: 1px solid black;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+}
+
+.filtertable .filtertable_header th {
+    font-size: 13px;
+    color: #666666;
+    vertical-align: middle;
 }
 
 .filtertable .and_row td {
@@ -24,24 +32,28 @@
 /* Union Filter Table */
 .unionfiltertable {
     border-collapse: collapse;
-    border: 3px solid black;
+    border-width: 3px;
+    border-style: solid;
     margin: 1em 0em;
 }
 
-.unionfiltertable td {
-    /*padding: 0px;
-    margin: 0px;*/
+.unionfiltertable>tbody>tr>td{
+    padding: 1px;
+    /*margin: 0px;*/
 }
 .unionfiltertable .or_cell {
-    border-top: 2px solid black;
-    border-bottom: 2px solid black;
+    border-top-width: 2px;
+    border-top-style: solid;
+    border-bottom-width: 2px;
+    border-bottom-style: solid;
     text-align: center;
     vertical-align: middle;
     font-weight: bold;
 }
 
 .unionfiltertable .submit_row td {
-    border-top: 2px solid black;
+    border-top-width: 2px;
+    border-top-style: solid;
     text-align: center;
 }
 

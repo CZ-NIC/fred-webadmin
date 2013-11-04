@@ -1,3 +1,6 @@
+/* FORM GENERAL */
+input[type=text], input[type=password] {width: 153px}
+
 /* FORM ROWS */
 .form-row { overflow:hidden; padding:8px 12px; font-size:11px; border-bottom:1px solid #eee; }
 .form-row img, .form-row input { vertical-align:middle; }
@@ -42,7 +45,7 @@ fieldset.collapsed .collapse-toggle { padding:3px 5px !important; background:tra
 fieldset.monospace textarea { font-family:"Bitstream Vera Sans Mono",Monaco,"Courier New",Courier,monospace; }
 
 /* SUBMIT ROW */
-.submit-row { padding:5px 7px; text-align:right; background:white url(../img/admin/nav-bg.gif) 0 100% repeat-x; border:1px solid #ccc; margin:5px 0; }
+.submit-row { padding:5px 7px; text-align:right; background:white url(../img/admin/nav-bg.gif) 0 100% repeat-x; border-width:1px; border-style: solid; margin:5px 0; }
 .submit-row input { margin:0 0 0 5px; }
 .submit-row p { margin-top:0.3em; }
 .submit-row .deletelink { background:url(../img/admin/icon_deletelink.gif) 0 50% no-repeat; padding-left:14px; }
@@ -55,3 +58,16 @@ fieldset.monospace textarea { font-family:"Bitstream Vera Sans Mono",Monaco,"Cou
 .vLargeTextField, .vXMLLargeTextField { width:48em; }
 .flatpages-flatpage #id_content { height:40.2em; }
 .module table .vPositiveSmallIntegerField { width:2.2em; }
+.date-add-months-link { margin-left: 1em }
+
+
+input.split-datetime-date {width: 90px; margin-right: 3px}
+input.split-datetime-time {width: 52px} /* 52 = 153 normal text field width - 90 date width
+                                                              - 3 date margin - 2x2 padding - 4x1 border */
+.interval-field input {
+    width: 90px;
+}
+
+.split-time-field select {
+    margin-left: 3px;
+}

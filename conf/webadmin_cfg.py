@@ -44,7 +44,7 @@ permissions = {
 #'/usr/share/idl/fred/ccReg.idl'
 idl = 'DU_IDL_DIR/ccReg.idl'
 # (label, nshost, nscontext),
-iors = (('Fred', 'DU_NS_HOST', 'DU_NS_CONTEXT'), )
+iors = (('Fred', 'DU_NS_HOST', 'DU_NS_CONTEXT'),)
 
 table_page_size = 45
 table_timeout = 10000
@@ -70,6 +70,10 @@ lang = 'en_US'
 js_calendar_date_format = 'D.M.YYYY'
 # Date format for edit fields
 js_calendar_date_format_edit = 'YYYY-MM-DD'
+
+# Javascript links to set date "new + X months" for administrative domain blocking and delete & blacklist forms:
+blocking_link_add_month_count = 4
+blacklisting_link_add_month_count = 1
 
 cherrycfg = {
     'global': {

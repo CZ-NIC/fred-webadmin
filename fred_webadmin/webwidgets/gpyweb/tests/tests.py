@@ -5,7 +5,10 @@ import os, sys
 #sys.path += [os.path.join(os.path.dirname(__file__), '../')] # path to gpyweb module
 sys.path += ["/home/glin/programming/workspace/gpyweb/"]
 
+from nose.tools import assert_equal
+
 from fred_webadmin.webwidgets.gpyweb.gpyweb import *
+
 
 def test_change_tag():
     pp = p('text')
@@ -15,9 +18,9 @@ def test_change_tag():
 
     pp = p('text', tag='span')
     ss = span('text')
-    print str(pp)
-    print str(ss)
-    assert str(pp) == str(ss)
+
+    assert_equal(str(pp), str(ss))
+
 
 def test_content_kwd_attr():
     pp1 = p(attr(style='color: red'), 'text', br())
@@ -29,12 +32,10 @@ def test_content_kwd_attr():
 
     pp4 = p('text', style='color: red', content=br())
 
-    print pp1
-    print pp2
-    print pp3
-    print pp4
+    assert_equal(str(pp1), str(pp2))
+    assert_equal(str(pp1), str(pp3))
+    assert_equal(str(pp1), str(pp4))
 
-    assert str(pp1) == str(pp2) == str(pp3) == str(pp4)
 
 def test_parent():
     p1 = p()
@@ -42,13 +43,7 @@ def test_parent():
 
     p2 = p(span())
 
-    print p1
-    print p2
-
-    assert str(p1) == str(p2)
-
-
-
+    assert_equal(str(p1), str(p2))
 
 
 def test_gpyweb_tagid_save():
@@ -77,13 +72,8 @@ def test_gpyweb_tagid_save():
 \t</span>
 </div>
 '''
-    print '---'
-    print str(mydiv)
-    print '---'
-    print desired_output
-    print '---'
 
-    assert str(mydiv) == desired_output
+    assert_equal(str(mydiv), desired_output)
 
 #def test_media():
 #    med = Media('ahoj.js')
@@ -103,19 +93,14 @@ def test_gpyweb_tagid_save():
 
 def test_getitem_notation():
     p1 = p(attr(cssc='top'), 'Hi ', i('how'), 'are you?') # tradicional notation
-    print p1
-
     p2 = p(cssc='top')['Hi ', i()['how'], 'are you?'] # empty field for attributes is ugly
-    print p2
-
     p3 = p(cssc='top')['Hi ', i('how'), 'are you?'] # shortest but combination of () a [] for inserting content can be confusing
-    print p3
-
     p4 = p(cssc='top')['Hi ', i['how'], 'are you?'] # and finally shortest and withou mixing () and [] for inseting context!!! :) (must be added metaclass
-    print p4
 
+    assert_equal(str(p1), str(p2))
+    assert_equal(str(p1), str(p3))
+    assert_equal(str(p1), str(p4))
 
-    assert str(p1) == str(p2) == str(p3) == str(p4)
 
 def test_getitem_notation2():
     p1 = p(cssc='ca')[
@@ -124,22 +109,19 @@ def test_getitem_notation2():
                i['svete']
               ]
           ]
-    print p1
     p2 = p(cssc='ca')[div(cssc='top')['ahoj', i['svete']]]
-    print p2
     p3 = p(attr(cssc='ca'), div(attr(cssc='top'), 'ahoj', i('svete')))
-    print p3
     p4 = p(attr(cssc='ca'),
            div(attr(cssc='top'),
                'ahoj',
                i('svete')
               )
           )
-    print p4
 
-    assert str(p1) == str(p2)
-    assert str(p1) == str(p3)
-    assert str(p3) == str(p4)
+    assert_equal(str(p1), str(p2))
+    assert_equal(str(p1), str(p3))
+    assert_equal(str(p1), str(p4))
+
 
 def test_getitem_nontation3():
     page1 = html[head[link(href='neco'),
@@ -155,7 +137,6 @@ def test_getitem_nontation3():
                      ]
                 ]
             ]
-    print page1
     page2 = html(head(link(href='neco'),
                      script(attr(type='javascript'), 'nakej script')
                     ),
@@ -169,8 +150,7 @@ def test_getitem_nontation3():
                       )
                  )
                 )
-    print page2
-    assert str(page1) == str(page2)
+    assert_equal(str(page1), str(page2))
 
 #def test_benchmark_getitem_notation():
 #    exp = 4
@@ -199,9 +179,8 @@ def test_http_page():
     }
     page = HTMLPage(context)
     page.body.add(div('Hello world!'))
-    print page
-    #print '---'
-    assert str(page) == '''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+    assert_equal(str(page), '''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="cs">
 \t<head>
 \t\t<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
@@ -216,12 +195,11 @@ def test_http_page():
 \t\t</div>
 \t</body>
 </html>
-'''
+''')
     page.add_media_files('caues.css')
     page.add_media_files(['cusik.js', 'ahojik.css'])
-    print page
 
-    assert str(page) == '''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+    assert_equal(str(page), '''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="cs">
 \t<head>
 \t\t<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
@@ -239,7 +217,7 @@ def test_http_page():
 \t\t</div>
 \t</body>
 </html>
-'''
+''')
 
 
 def test_media_in_childs():
@@ -252,8 +230,8 @@ def test_media_in_childs():
     }
     page = HTMLPage(context)
     page.body.add(div(attr(media_files='cus.js'), 'Hello world!'))
-    print page
-    assert str(page) == '''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+    assert_equal(str(page), '''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="cs">
 \t<head>
 \t\t<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
@@ -268,7 +246,7 @@ def test_media_in_childs():
 \t\t</div>
 \t</body>
 </html>
-'''
+''')
 
 def test_root_tag():
     'Test when widget is addet to another widget during render(), if root_widget is really root of tree, after calling render()'
@@ -282,9 +260,9 @@ def test_root_tag():
     d.add(mv)
 
     d.render()
-    print 'my_p.rootwidget: ', repr(mv.my_p.root_widget)
 
-    assert mv.my_p.root_widget == d
+    assert_equal(mv.my_p.root_widget, d)
+
 
 def test_escape():
     p1 = p('first<br />second')
@@ -294,15 +272,33 @@ def test_escape():
 '''
 
     p2 = p(noesc('first<br />second'))
-    print str(p2)
-    assert str(p2) == '''<p>
+    assert_equal(str(p2), '''<p>
 \tfirst<br />second
 </p>
-'''
+''')
+
 
 def test_enclose():
-    p1 = p(attr(enclose_content=True), 'Visit our ', a(attr(href='http://www.example.com'), 'website'), '.') # tag "a" has enclose_content = True by default
-    corect_result = '''<p>Visit our <a href="http://www.example.com">website</a>.</p>
+    p1 = p(attr(enclose_content=True), 'Visit our ', a(attr(href='http://www.example.com'), 'website'), '.',
+           input(attr(type="submit", value="+Like")), 'Like us.') # tag "a" has enclose_content = True by default
+    corect_result = '''<p>Visit our <a href="http://www.example.com">website</a>.<input type="submit" value="+Like" />Like us.</p>
 '''
-    print str(p1)
-    assert str(p1) == corect_result
+    assert_equal(str(p1), corect_result)
+
+
+def test_cssc_manipulation():
+    b1 = b('ahoj')
+    b1.add_css_class('myclass')
+    assert_equal(str(b1), '<b class="myclass">ahoj</b>\n')
+
+    assert_equal(b1.remove_css_class('myclass'), True)
+    assert_equal(str(b1), '<b>ahoj</b>\n')
+
+    b2 = b(attr(cssc="myclass1 myclass2 myclass3"), 'ahoj')
+    assert_equal(b2.remove_css_class('myclass2'), True)
+    assert_equal(str(b2), '<b class="myclass1 myclass3">ahoj</b>\n')
+    b2.add_css_class('myclass4')
+    assert_equal(str(b2), '<b class="myclass1 myclass3 myclass4">ahoj</b>\n')
+
+    # return False when webwidged didn't have such a class:
+    assert_equal(b2.remove_css_class('non_existent_class'), False)

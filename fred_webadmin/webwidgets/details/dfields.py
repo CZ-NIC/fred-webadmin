@@ -92,10 +92,8 @@ class DField(WebWidget):
     def _set_value(self, value):
         if self.access:
             self._value = self.resolve_value(value)
-            self.make_content()
         else:
             self._value = fredtypes.Null() #None
-            self.make_content_no_access()
     def _get_value(self):
         return self._value
     value = LateBindingProperty(_get_value, _set_value)
@@ -107,6 +105,10 @@ class DField(WebWidget):
             return data.get(self.name)
 
     def render(self, indent_level=0):
+        if self.access:
+            self.make_content()
+        else:
+            self.make_content_no_access()
         return super(DField, self).render(indent_level)
 
     def get_nperm(self):
@@ -452,6 +454,10 @@ class ObjectDField(DField):
     def resolve_value(self, value):
         return resolve_object(value)
 
+    def _set_value(self, value):
+        super(ObjectDField, self)._set_value(value)
+        self.create_inner_detail()
+
     def create_inner_detail(self):
         '''Used by make_content and in custom detail layouts and custom section layouts'''
         detail_class, value = resolve_detail_class(self.detail_class, self.value)
@@ -459,7 +465,6 @@ class ObjectDField(DField):
 
     def make_content(self):
         self.content = []
-        self.create_inner_detail()
         self.add(self.inner_detail)
 
 
@@ -490,6 +495,9 @@ class ListObjectDField(DField):
             return new_value
         return value
 
+    def _set_value(self, value):
+        super(ListObjectDField, self)._set_value(value)
+        self._create_inner_details()
 
     def _create_inner_details(self):
         '''Used by make_content and in custom detail layouts and custom section layouts'''
@@ -508,7 +516,6 @@ class ListObjectDField(DField):
 
     def make_content(self):
         self.content = []
-        self._create_inner_details()
 
         if self.inner_details:
             # Header:
@@ -626,6 +633,7 @@ class HistoryObjectDField(HistoryDField):
         self.detail_class = detail_class
         self.display_only = display_only
         self.layout_class = layout_class
+        self.inner_details = []
 
         self.cssc = u'section_table history_list_table' # although this is not a section table, it is mostly used in DirectSectionLayout, so it is in place where SectionTable is and so it should have the same style
 
@@ -636,6 +644,10 @@ class HistoryObjectDField(HistoryDField):
         if value is None:
             return fredtypes.Null()
         return value
+
+    def _set_value(self, value):
+        super(HistoryObjectDField, self)._set_value(value)
+        self.create_inner_details()
 
     def create_inner_details(self):
         '''Used by make_content and in custom detail layouts and custom section layouts'''
@@ -648,7 +660,6 @@ class HistoryObjectDField(HistoryDField):
 
     def make_content(self):
         self.content = []
-        self.create_inner_details()
 
         if self.inner_details:
             # Header:
@@ -706,6 +717,10 @@ class HistoryListObjectDField(HistoryDField):
             return fredtypes.Null()
         return value
 
+    def _set_value(self, value):
+        super(HistoryListObjectDField, self)._set_value(value)
+        self.create_inner_details()
+
     def create_inner_details(self):
         '''Used by make_content and in custom detail layouts and custom section layouts'''
         self.inner_details = [] # list of lists of deatils (one level for history, second for objects in list)
@@ -742,7 +757,6 @@ class HistoryListObjectDField(HistoryDField):
 
 
         self.content = []
-        self.create_inner_details()
 
         if self.inner_details:
             # Header:
@@ -948,10 +962,8 @@ class BaseNHDField(DField):
     def _set_value(self, value):
         if self.access:
             self._value = self.current_field.value = self.resolve_value(value)
-            self.make_content()
         else:
             self._value = self.current_field.value = None
-            self.make_content_no_access()
     def _get_value(self):
         if self.current_field:
             return self.current_field._value

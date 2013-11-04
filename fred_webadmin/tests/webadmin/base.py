@@ -1,6 +1,11 @@
-import cherrypy
-import fred_webadmin.config
+from StringIO import StringIO
 
+import cherrypy
+import nose
+import twill
+
+import fred_webadmin.config
+import fred_webadmin.controller.adif
 
 test_config = fred_webadmin.config
 # Disable logging by default. It pollutes the tests. Use DummyLogger.
@@ -68,3 +73,28 @@ class DaphneTestCase(object):
         self.monkey_patch(fred_webadmin.utils, 'get_logger', logger.DummyLogger)
 
         cherrypy.config.update({"environment": "embedded"})
+
+
+twill_output = StringIO()
+
+
+@nose.tools.nottest
+def init_test_server():
+    root = fred_webadmin.controller.adif.prepare_root()
+    wsgiApp = cherrypy.tree.mount(root)
+    cherrypy.config.update({'server.socket_host': '0.0.0.0',
+                             'server.socket_port': 8080,
+                           })
+    cherrypy.server.start()
+    # Redirect HTTP requests.
+    twill.add_wsgi_intercept('localhost', 8080, lambda : wsgiApp)
+    # Keep Twill quiet (suppress normal Twill output).
+    twill.set_output(twill_output)
+
+
+@nose.tools.nottest
+def deinit_test_server():
+    # Remove the intercept.
+    twill.remove_wsgi_intercept('localhost', 8080)
+    # Shut down Cherrypy server.
+    cherrypy.server.stop()
