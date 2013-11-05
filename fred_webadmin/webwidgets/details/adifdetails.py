@@ -183,7 +183,7 @@ class ContactDetail(ObjectDetail):
 
     def add_to_bottom(self):
         if self.data:
-            self.add(FilterPanel([
+            panel_data = [
                 [
                     [_('Domains_owner'), 'domain',
                         [{'Registrant.Handle': self.data.get('handle')}]],
@@ -206,41 +206,50 @@ class ContactDetail(ObjectDetail):
                         [{'Object.Handle': self.data.get('handle')}]],
                     [_('Messages'), 'message',
                         [{'MessageContact.Handle': self.data.get('handle')}]]
-                ],
-                [
-                    [_('UNIX Whois Actions'), 'logger',
-                        [{'ServiceType': 0, 'RequestPropertyValue.Name': 'handle',
-                            'IsMonitoring': [True, True],
-                            'RequestPropertyValue.Value': self.data.get('handle'),
-                            'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
-                    [_('Web Whois Actions'), 'logger',
-                        [{'ServiceType': 1, 'RequestPropertyValue.Name': 'handle',
-                            'IsMonitoring': [True, True],
-                            'RequestPropertyValue.Value': self.data.get('handle'),
-                            'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
-                    [_('Public Request Actions'), 'logger',
-                        [{'ServiceType': 2, 'RequestPropertyValue.Name': 'handle',
-                            'IsMonitoring': [True, True],
-                            'RequestPropertyValue.Value': self.data.get('handle'),
-                            'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
-                    [_('EPP Actions'), 'logger',
-                        [{'ServiceType': 3, 'RequestPropertyValue.Name': 'handle',
-                            'IsMonitoring': [True, True],
-                            'RequestPropertyValue.Value': self.data.get('handle'),
-                            'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
-                    [_('Webadmin Actions'), 'logger',
-                        [{'ServiceType': 4, 'RequestPropertyValue.Name': 'object_id',
-                            'IsMonitoring': [True, True],
-                            'RequestPropertyValue.Value': str(self.data.get('id')),
-                            'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
-                    [_('Intranet Actions'), 'logger',
-                        [{'ServiceType': 5, 'RequestPropertyValue.Name': 'handle',
-                            'IsMonitoring': [True, True],
-                            'RequestPropertyValue.Value': self.data.get('handle'),
-                            'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]]
                 ]
-            ]))
+            ]
+            if not cherrypy.session['user'].check_nperms('read.logger'):
+                panel_data.append([
+                        [_('UNIX Whois Actions'), 'logger',
+                            [{'ServiceType': 0, 'RequestPropertyValue.Name': 'handle',
+                                'IsMonitoring': [True, True],
+                                'RequestPropertyValue.Value': self.data.get('handle'),
+                                'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
+                        [_('Web Whois Actions'), 'logger',
+                            [{'ServiceType': 1, 'RequestPropertyValue.Name': 'handle',
+                                'IsMonitoring': [True, True],
+                                'RequestPropertyValue.Value': self.data.get('handle'),
+                                'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
+                        [_('Public Req. Actions'), 'logger',
+                            [{'ServiceType': 2, 'RequestPropertyValue.Name': 'handle',
+                                'IsMonitoring': [True, True],
+                                'RequestPropertyValue.Value': self.data.get('handle'),
+                                'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
+                        [_('EPP Actions'), 'logger',
+                            [{'ServiceType': 3, 'RequestPropertyValue.Name': 'handle',
+                                'IsMonitoring': [True, True],
+                                'RequestPropertyValue.Value': self.data.get('handle'),
+                                'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
+                        [_('Webadmin Actions'), 'logger',
+                            [{'ServiceType': 4, 'RequestPropertyValue.Name': 'object_id',
+                                'IsMonitoring': [True, True],
+                                'RequestPropertyValue.Value': str(self.data.get('id')),
+                                'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
+                        [_('Intranet Actions'), 'logger',
+                            [{'ServiceType': 5, 'RequestPropertyValue.Name': 'handle',
+                                'IsMonitoring': [True, True],
+                                'RequestPropertyValue.Value': self.data.get('handle'),
+                                'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
+                        [_('MojeID Actions'), 'logger',
+                            [{'ServiceType': 6,
+                                'IsMonitoring': [True, True],
+                                'RequestObjectRef.ObjectType': 'contact',
+                                'RequestObjectRef.ObjectId': str(self.data.get('id')),
+                                'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]],
+                ])
+            self.add(FilterPanel(panel_data))
         super(ContactDetail, self).add_to_bottom()
+
 
 class HostDetail(Detail):
     fqdn = CharDField(label=_('fqdn'))
