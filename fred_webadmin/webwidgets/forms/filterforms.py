@@ -352,11 +352,18 @@ class PropertyFilterForm(FilterForm):
     Value = CharField(label=_('Value'))
     OutputFlag = BooleanField(label=_('Output Flag'))
 
+
 class ResultCodeFilterForm(FilterForm):
     default_fields_names = ['Name']
     Name = CharField(label=_('Name'))
     ResultCode = IntegerField(label=_('Result Code'))
     ServiceId = IntegerField(label=_('ServiceId'))
+
+
+class RequestObjectRefFilterForm(FilterForm):
+    ObjectType = CharField(label=_('Type'))
+    ObjectId = IntegerField(label=_('Id'))
+
 
 class LoggerFilterForm(FilterForm):
     def __init__(self, *args, **kwargs):
@@ -390,6 +397,8 @@ class LoggerFilterForm(FilterForm):
         label=_('Property'), form_class=PropertyFilterForm)
     ResultCode = CompoundFilterField(
         label=_('Result code'), form_class=ResultCodeFilterForm)
+    RequestObjectRef = CompoundFilterField(
+        label=_('Object reference'), form_class=RequestObjectRefFilterForm)
     IsMonitoring = BooleanField(label=_("Monitoring"))
 
 
@@ -546,7 +555,9 @@ form_classes = [DomainFilterForm,
                 BankStatementFilterForm,
                 MessageFilterForm,
                 PropertyFilterForm,
-                ResultCodeFilterForm]
+                ResultCodeFilterForm,
+                RequestObjectRefFilterForm,
+               ]
 
 def get_filter_forms_javascript(filter_form_classes):
     """ Javascript is cached in user session (must be there, beucause each user
