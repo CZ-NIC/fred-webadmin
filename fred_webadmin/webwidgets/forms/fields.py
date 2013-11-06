@@ -133,10 +133,16 @@ class CharField(Field):
 
 
 class PasswordField(CharField):
-    def __init__(self, name='', value='', max_length=None, min_length=None, *args, **kwargs):
+    def __init__(self, name='', value='', max_length=None, min_length=None, render_value=False, *args, **kwargs):
         super(PasswordField, self).__init__(name=name, value=value, max_length=max_length, min_length=min_length, *args, **kwargs)
+        self.render_value = render_value
         if self.tag == u'input':
             self.type = u'password'
+
+    def render(self, *args, **kwargs):
+        if not self.render_value:
+            self.value = None
+        return super(PasswordField, self).render(*args, **kwargs)
 
 
 class FloatField(Field):
