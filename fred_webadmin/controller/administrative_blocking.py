@@ -29,7 +29,7 @@ DOMAIN_ID_NOT_FOUND_MSG = views.FieldErrMsg('objects', _('Domain(s) with id {dom
 DOMAIN_ID_ALREADY_BLOCKED_MSG = views.FieldErrMsg('objects', _('Domain(s) {domain_handles} are already blocked.'),
                                                   context_domain_handle_list
 )
-DOMAIN_ID_NOT_BLOCKED_MSG = views.FieldErrMsg('objects', _('Domain {domain_handles} is not blocked.'),
+DOMAIN_ID_NOT_BLOCKED_MSG = views.FieldErrMsg('objects', _('Domain(s) {domain_handles} not blocked.'),
                                               context_domain_handle_list)
 NEW_OWNER_DOES_NOT_EXISTS_MSG = views.FieldErrMsg('new_holder', _('New holder {exc.what} does not exists.'))
 OWNER_HAS_OTHER_DOMAIN_MSG = views.FieldErrMsg(

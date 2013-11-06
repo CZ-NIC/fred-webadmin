@@ -22,8 +22,8 @@ class Patched_datetype(fredcorba.ccReg.DateType):
         return self.__str__()
     def __eq__(self, obj):
         """ Equality is defined so that we can assert it easier """
-        return (self.day == obj.day or
-                self.month == obj.month or
+        return (self.day == obj.day and
+                self.month == obj.month and
                 self.year == obj.year)
 
 
