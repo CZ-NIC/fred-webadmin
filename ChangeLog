@@ -1,3 +1,11 @@
+2013-11-06 Tomas Divis (3.11.0)
+
+    * administrative blocking/unblocking domains (and holders)
+
+    * add logger request object reference filter (also add mojeid action button to contact detail)
+
+    * fix contact email filter is now case-insensitive
+
 2013-07-29 Jaromir Talir (3.10.1)
 
     * Fix fedora rpm package build
