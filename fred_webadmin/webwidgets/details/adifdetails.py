@@ -201,7 +201,7 @@ class ContactDetail(ObjectDetail):
                     [_('KeySets'), 'keyset',
                         [{'TechContact.Handle': self.data.get('handle')}]],
                     [_('Emails'), 'mail',
-                        [{'Message': self.data.get('handle'),
+                        [{'Message': '*%s*' % self.data.get('handle'),
                         'CreateTime': FILTER_EMAIL_TIME_LIMIT_LAST_MONTH}]]\
                 ],
                 [
