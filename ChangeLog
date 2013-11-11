@@ -6,6 +6,8 @@
 
     * fix contact email filter is now case-insensitive
 
+    * fix login form - clear password field on error input
+
 2013-07-29 Jaromir Talir (3.10.1)
 
     * Fix fedora rpm package build
