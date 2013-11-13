@@ -846,7 +846,9 @@ class HistoryStateDField(DField):
 
         for date, from_to_state_list in sorted(all_dates.items()):
             current_row['row_date'] = date
-            for from_to_state in from_to_state_list:
+            # reversed so "to" is before "from", so if the same state ends and then again begins at the same time
+            # it will not get overidden back to False by previous "to":
+            for from_to_state in reversed(from_to_state_list):
                 from_to = from_to_state[0]
                 state = from_to_state[1]
 
