@@ -82,6 +82,11 @@ class ProcessBlockView(AdministrativeBlockingBaseView):
 
     action_name = _('Block')
 
+    def corba_call_success(self, return_value):
+        super(ProcessBlockView, self).corba_call_success(return_value)
+        for domain_holder_change in return_value:
+            self.output_refs.append(('contact', domain_holder_change.newOwnerId))
+
 
 class ProcessUpdateBlockingView(AdministrativeBlockingBaseView):
     form_class = DomainChangeBlockingForm

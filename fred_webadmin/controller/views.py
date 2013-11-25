@@ -258,6 +258,7 @@ class ProcessFormCorbaLogView(ProcessFormCorbaView):
         self.refs = []
         self.props = []
         self.output_props = []  # when FAIL, add exception to this
+        self.output_refs = []
         self.log_req = None
         super(ProcessFormCorbaLogView, self).__init__(**kwargs)
 
@@ -291,4 +292,4 @@ class ProcessFormCorbaLogView(ProcessFormCorbaView):
         try:
             return super(ProcessFormCorbaLogView, self).form_valid()
         finally:
-            self.log_req.close(properties=self.output_props)
+            self.log_req.close(properties=self.output_props, references=self.output_refs)
