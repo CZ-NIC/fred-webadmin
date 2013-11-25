@@ -62,6 +62,10 @@ class AdministrativeBlockingBaseView(views.ProcessFormCorbaLogView):
         }
         del cherrypy.session['pre_blocking_form_data']
 
+    def initialize_log_req(self):
+        self.refs.extend([('domain', domain) for domain in self.form.cleaned_data['objects']])
+        super(AdministrativeBlockingBaseView, self).initialize_log_req()
+
 
 class ProcessBlockView(AdministrativeBlockingBaseView):
     form_class = DomainBlockForm
