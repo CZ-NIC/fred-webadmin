@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*
 
+import datetime
+from logging import error
+import tempfile
+
 import mock
 from mock import call
 from nose.tools import assert_equal  # @UnresolvedImport pylint: disable=E0611
 from omniORB import CORBA
 import cherrypy
-import datetime
-from logging import error
 try:
     import ldap
 except ImportError:
@@ -533,40 +535,41 @@ class TestRegistrarCertifications(TestRegistrarBase):
     def test_add_certification(self):
         """ Correctly configured certification is added.
         """
-        twill.commands.go("http://localhost:8080/registrar/edit/?id=42")
-        twill.commands.showforms()
-        twill.commands.fv(2, "certifications-0-fromDate", datetime.date.today().isoformat())
-        twill.commands.fv(2, "certifications-0-toDate", (datetime.date.today() + datetime.timedelta(7)).isoformat())
-        twill.commands.fv(2, "certifications-0-score", "2")
-        twill.commands.formfile(2, "certifications-0-evaluation_file", "./fred_webadmin/tests/webadmin/foofile.bar")
+        with tempfile.NamedTemporaryFile() as tmp_file:
+            twill.commands.go("http://localhost:8080/registrar/edit/?id=42")
+            twill.commands.showforms()
+            twill.commands.fv(2, "certifications-0-fromDate", datetime.date.today().isoformat())
+            twill.commands.fv(2, "certifications-0-toDate", (datetime.date.today() + datetime.timedelta(7)).isoformat())
+            twill.commands.fv(2, "certifications-0-score", "2")
+            twill.commands.formfile(2, "certifications-0-evaluation_file", tmp_file.name)
 
-        file_upload_mock = mock.Mock()
-        self.file_mgr_mock.save.side_effect = lambda name, mimetype, filetype: \
-            file_upload_mock if name == "./fred_webadmin/tests/webadmin/foofile.bar" \
-                                 and mimetype == "application/octet-stream" \
-                                 and filetype == 6 \
-                             else None
-        file_upload_mock.finalize_upload.return_value = 17
+            file_upload_mock = mock.Mock()
+            self.file_mgr_mock.save.side_effect = lambda name, mimetype, filetype: \
+                file_upload_mock if name == tmp_file.name \
+                                     and mimetype == "application/octet-stream" \
+                                     and filetype == 6 \
+                                 else None
+            file_upload_mock.finalize_upload.return_value = 17
 
-        # Jump to detail after updating.
-        get_cert_by_reg_mock = mock.Mock()
-        self.monkey_patch(self.admin_mock.certification_manager_mock, 'getCertificationsByRegistrar',
-                          get_cert_by_reg_mock)
-        get_cert_by_reg_mock.side_effect = [
-            [],  # first call return empty list
-            [  # second call return CertificationData:
-                Registry.Registrar.Certification.CertificationData(
-                    1, ccReg.DateType(1, 1, 2008),
-                    ccReg.DateType(1, 1, 2010), 2, 17)
+            # Jump to detail after updating.
+            get_cert_by_reg_mock = mock.Mock()
+            self.monkey_patch(self.admin_mock.certification_manager_mock, 'getCertificationsByRegistrar',
+                              get_cert_by_reg_mock)
+            get_cert_by_reg_mock.side_effect = [
+                [],  # first call return empty list
+                [  # second call return CertificationData:
+                    Registry.Registrar.Certification.CertificationData(
+                        1, ccReg.DateType(1, 1, 2008),
+                        ccReg.DateType(1, 1, 2010), 2, 17)
+                ]
             ]
-        ]
 
-        twill.commands.submit()
+            twill.commands.submit()
 
-        twill.commands.code(200)
-        twill.commands.url(r"http://localhost:8080/registrar/detail/\?id=42")
-        twill.commands.showforms()
-        twill.commands.find(r'''<a href="/file/detail/\?id=17"''')
+            twill.commands.code(200)
+            twill.commands.url(r"http://localhost:8080/registrar/detail/\?id=42")
+            twill.commands.showforms()
+            twill.commands.find(r'''<a href="/file/detail/\?id=17"''')
 
     def test_add_certification_no_file(self):
         """ Certification is not added when no file has been uploaded.
