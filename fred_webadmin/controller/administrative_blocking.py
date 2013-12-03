@@ -62,6 +62,10 @@ class AdministrativeBlockingBaseView(views.ProcessFormCorbaLogView):
         }
         del cherrypy.session['pre_blocking_form_data']
 
+    def initialize_log_req(self):
+        self.refs.extend([('domain', domain) for domain in self.form.cleaned_data['objects']])
+        super(AdministrativeBlockingBaseView, self).initialize_log_req()
+
 
 class ProcessBlockView(AdministrativeBlockingBaseView):
     form_class = DomainBlockForm
@@ -77,6 +81,11 @@ class ProcessBlockView(AdministrativeBlockingBaseView):
                        }
 
     action_name = _('Block')
+
+    def corba_call_success(self, return_value):
+        super(ProcessBlockView, self).corba_call_success(return_value)
+        for domain_holder_change in return_value:
+            self.output_refs.append(('contact', domain_holder_change.newOwnerId))
 
 
 class ProcessUpdateBlockingView(AdministrativeBlockingBaseView):

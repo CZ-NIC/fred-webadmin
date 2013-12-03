@@ -62,7 +62,7 @@ def get_blocking_mock():
     #                                 Registry.Administrative.DomainIdHandle(domainId=23, domainHandle='pepkova.cz')]
     #                )
     #    ])
-    blocking_mock.updateBlockDomainsId.return_value = None
+    blocking_mock.updateBlockDomainsId.return_value = []
 
     # blocking_mock.updateBlockDomainsId.side_effect = Registry.Administrative.DOMAIN_ID_NOT_FOUND(what=exc_what_ids)
     # blocking_mock.unblockDomainsId.side_effect = Registry.Administrative.DOMAIN_ID_NOT_FOUND(what=exc_what_ids)
@@ -233,7 +233,7 @@ class TestAdministrativeBlock(BaseTestAdministrativeBlockingAction):
     BLOCKING_ACTION = 'block'
 
     def test_submit_default_data(self):
-        self.blocking_mock.blockDomainsId.return_value = None
+        self.blocking_mock.blockDomainsId.return_value = []
 
         tc.submit()
         tc.code(200)
@@ -281,7 +281,7 @@ class TestAdministrativeBlock(BaseTestAdministrativeBlockingAction):
         tc.fv(2, 'blocking_status_list', 'serverRenewProhibited')
         tc.fv(2, 'owner_block_mode', '2')
 
-        self.blocking_mock.blockDomainsId.return_value = None
+        self.blocking_mock.blockDomainsId.return_value = []
         tc.submit()
         tc.code(200)
         tc.find('successful')

@@ -55,6 +55,9 @@ class Null(Singleton):
         else:
             return -1
 
+    def __str__(self):
+        return 'None'
+
 
 class NullDate(Null):
     pass

@@ -258,11 +258,11 @@ class ProcessFormCorbaLogView(ProcessFormCorbaView):
         self.refs = []
         self.props = []
         self.output_props = []  # when FAIL, add exception to this
+        self.output_refs = []
         self.log_req = None
         super(ProcessFormCorbaLogView, self).__init__(**kwargs)
 
     def initialize_log_req(self):
-        self.refs.extend([('domain', domain) for domain in self.form.cleaned_data['objects']])
         for prop_name in self.log_input_props_names:
             prop_value = self.form.cleaned_data[prop_name]
             if isinstance(prop_value, types.ListType):
@@ -292,4 +292,4 @@ class ProcessFormCorbaLogView(ProcessFormCorbaView):
         try:
             return super(ProcessFormCorbaLogView, self).form_valid()
         finally:
-            self.log_req.close(properties=self.output_props)
+            self.log_req.close(properties=self.output_props, references=self.output_refs)
