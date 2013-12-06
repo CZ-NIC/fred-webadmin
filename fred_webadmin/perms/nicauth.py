@@ -2,6 +2,7 @@
 from fred_webadmin.controller.adiferrors import AuthorizationError
 from fred_webadmin.translation import _
 
+
 class Authorizer(object):
     """ Interface to the NIC auth module.
     """

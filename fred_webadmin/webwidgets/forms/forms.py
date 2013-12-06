@@ -1,9 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from copy import deepcopy
-import types
 import traceback
-from logging import debug
 import cherrypy
 
 from fred_webadmin.webwidgets.gpyweb.gpyweb import WebWidget, form
@@ -13,6 +10,7 @@ from fred_webadmin.webwidgets.utils import ErrorDict, ErrorList, ValidationError
 from fred_webadmin.utils import LateBindingProperty
 
 NON_FIELD_ERRORS = '__all__'
+
 
 class DeclarativeFieldsMetaclass(WebWidget.__metaclass__):
     """
@@ -38,6 +36,7 @@ class DeclarativeFieldsMetaclass(WebWidget.__metaclass__):
         new_class = type.__new__(cls, name, bases, attrs)
         return new_class
 
+
 class BaseForm(form):
     # This is the main implementation of all the Form logic. Note that this
     # class is different than Form. See the comments by the Form class for more
@@ -46,6 +45,7 @@ class BaseForm(form):
     nperm_names = []
     name_postfix = ''
     _submit_button_text = 'OK'
+
     def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None,
                  initial=None, error_class=ErrorList, label_suffix=':', layout_class=TableFormLayout,
                  submit_button_text=None, is_nested=False, empty_permitted=False, *content, **kwd):
@@ -63,7 +63,7 @@ class BaseForm(form):
         self.initial = initial or {}
         self.error_class = error_class
         self.label_suffix = label_suffix
-        self._errors = None # Stores the errors after clean() has been called.
+        self._errors = None  # Stores the errors after clean() has been called.
         self.layout_class = layout_class
         self.is_nested = is_nested
         if submit_button_text is not None:
@@ -166,7 +166,7 @@ class BaseForm(form):
         return self.prefix and ('%s-%s' % (self.prefix, field_name)) or field_name
 
     def render(self, indent_level=0):
-        self.content = [] # empty previous content (if render would be called more times, there would be multiple forms instead one )
+        self.content = []  # empty previous content (if render would be called more times, there would be multiple forms instead one )
         self.add(self.layout_class(self))
         return super(BaseForm, self).render(indent_level)
 
@@ -205,7 +205,7 @@ class BaseForm(form):
         self.cleaned_data.
         """
         self._errors = ErrorDict()
-        if not self.is_bound: # Stop further processing.
+        if not self.is_bound:  # Stop further processing.
             return
         self.cleaned_data = {}
         if self.empty_permitted and not self.has_changed():
@@ -296,8 +296,10 @@ class BaseForm(form):
 
     def _get_submit_button_text(self):
         return self._submit_button_text
+
     def _set_submit_button_text(self, value):
         self._submit_button_text = value
+
     submit_button_text = LateBindingProperty(_get_submit_button_text, _set_submit_button_text)
 
     def add_error(self, field_name, error_message):

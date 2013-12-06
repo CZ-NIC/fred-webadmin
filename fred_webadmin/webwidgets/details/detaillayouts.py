@@ -4,13 +4,11 @@
 import types
 from logging import debug
 
-from fred_webadmin.translation import _
-from fred_webadmin.webwidgets.gpyweb.gpyweb import (
-    WebWidget, tagid, attr, notag, div, span, table, caption, thead, tbody,
-    tr, th, td, input, label, select, option, ul, li, script, a, img, strong)
+from fred_webadmin.webwidgets.gpyweb.gpyweb import tagid, attr, table, tbody, tr, td, label
 from fred_webadmin.webwidgets.details.abstractdetaillayout import \
     AbstractDetailLayout
 from fred_webadmin.webwidgets.details.sectionlayouts import SectionLayout
+
 
 class DetailLayout(AbstractDetailLayout):
     pass
@@ -19,6 +17,7 @@ class DetailLayout(AbstractDetailLayout):
 class TableDetailLayout(DetailLayout):
     columns_count = 2
     tattr_list = table.tattr_list
+
     def __init__(self, *content, **kwd):
         super(TableDetailLayout, self).__init__(*content, **kwd)
         self.tag = u'table'
@@ -39,6 +38,7 @@ class TableDetailLayout(DetailLayout):
                              )
                           )
 
+
 class SectionDetailLayout(TableDetailLayout):
     def create_section(self, section_spec):
         section_layout = SectionLayout
@@ -54,12 +54,12 @@ class SectionDetailLayout(TableDetailLayout):
                     section_layout = section_layout[1]
         return section_layout(self.detail, section_spec)
 
-
     def create_layout(self):
         self.add(tbody(tagid('tbody')))
 
         for section_spec in self.detail.sections:
             self.tbody.add(tr(td(self.create_section(section_spec))))
+
 
 class DirectSectionDetailLayout(SectionDetailLayout):
     ''' Layout that renders section_layout detail directly (without any wrapper tag)'''
@@ -104,7 +104,6 @@ class OnlyFieldsDetailLayout(DetailLayout):
         self.create_layout()
 
     def create_layout(self):
-        detail = self.detail
         for i, field in enumerate(self.detail.fields.values()):
             if i != 0:
                 self.add(',')

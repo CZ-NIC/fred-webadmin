@@ -11,11 +11,10 @@ import fred_webadmin.webwidgets.forms.utils as form_utils
 from fred_webadmin.controller.perms import check_onperm, login_required
 from fred_webadmin.webwidgets.forms.filterforms import UnionFilterForm
 from fred_webadmin.itertable import IterTable, fileGenerator
-from fred_webadmin.mappings import (
-    f_name_id, f_name_editformname, f_urls, f_name_actionfiltername,
-    f_name_actiondetailname, f_name_filterformname, f_name_req_object_type)
+from fred_webadmin.mappings import (f_name_id, f_name_editformname, f_urls,
+    f_name_actionfiltername, f_name_filterformname)
 import simplejson
-from fred_webadmin.webwidgets.gpyweb.gpyweb import attr, div, p, h1
+from fred_webadmin.webwidgets.gpyweb.gpyweb import div, p, h1
 from fred_webadmin.webwidgets.utils import convert_linear_filter_to_form_output
 from fred_webadmin.webwidgets.adifwidgets import FilterListCustomUnpacked
 from fred_webadmin.customview import CustomView
@@ -31,7 +30,7 @@ class ListTableMixin(object):
     """
 
     __metaclass__ = exposed.AdifPageMetaClass
-    blockable = False # if object can be administratively blocked
+    blockable = False  # if object can be administratively blocked
 
     def _get_itertable(self, request_object=None):
         if not request_object:
@@ -72,7 +71,7 @@ class ListTableMixin(object):
 
             if cleaned_filters is not None:
                 table.set_filter(cleaned_filters)
-                if kwd.get('save_input'): # save filter
+                if kwd.get('save_input'):  # save filter
                     props = (('name', kwd['save_input']),
                              ('type', f_name_actionfiltername[self.__class__.__name__.lower()]))
                     save_log_req = create_log_request('SaveFilter', properties=props)
@@ -83,10 +82,10 @@ class ListTableMixin(object):
                         save_log_req.close()
                     context['main'].add(_('Filter saved as "%s"') % kwd['save_input'])
                     show_result = False
-                else: # normal setting filter
+                else:  # normal setting filter
                     table.reload()
 
-            if kwd.get('filter_id'): # load filter
+            if kwd.get('filter_id'):  # load filter
                 # Do not log filter load (Jara's decision - it would just clutter
                 # the log output).
                 table.load_filter(int(kwd.get('filter_id')))
@@ -103,7 +102,7 @@ class ListTableMixin(object):
                 table.clear_filter()
             if kwd.get('reload'):
                 table.reload()
-            if kwd.get('load'): # load current filter from backend
+            if kwd.get('load'):  # load current filter from backend
                 cleaned_filter_data = table.get_filter_data()
                 form_class = self._get_filterform_class()
                 form = UnionFilterForm(
@@ -224,11 +223,10 @@ class ListTableMixin(object):
         if form.is_bound and config.debug:
             context['main'].add(p(u'kwd:' + unicode(kwd)))
 
-
         valid = form.is_valid()
 
         if valid:
-            in_props = [] # log request properties
+            in_props = []  # log request properties
             # Log the selected filters.
             # TODO(tomas): Log OR operators better...
             for name, value, neg in form_utils.flatten_form_data(form.cleaned_data):
@@ -320,7 +318,7 @@ class ListTableMixin(object):
 
     @login_required
     def index(self):
-        if (config.debug or f_urls.has_key(self.classname)):
+        if config.debug or self.classname in f_urls:
             raise cherrypy.HTTPRedirect(f_urls[self.classname] + 'allfilters/')
         else:
             # In production (non-debug) environment we just fall back to /summary.

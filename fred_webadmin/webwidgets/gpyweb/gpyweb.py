@@ -1,38 +1,42 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys, os, types, time
+import types
 from cgi import escape
 import fred_webadmin.nulltype as fredtypes
+
 
 class GPyWebError(Exception):
     pass
 
-class attr(object):
-    #_is_tag_attr = True
 
+class attr(object):
     def __init__(self, **kwd):
         '''To can specify list of parameters of tag as first parametr of widget.add(...) call'''
         self.kwd = kwd
+
 
 class tagid(object):
     def __init__(self, name):
         '''To mark tag to be accesible through parenttag.name or parenttag[name]'''
         self.name = name
 
+
 class save(object):
     '''To save widget into another widget under a specified name.'''
     def __init__(self, parent_widget, name):
         if type(name) in types.StringTypes:
-            self.parent_widget = parent_widget #this doesn't have to be widget
+            self.parent_widget = parent_widget  # this doesn't have to be widget
             self.name = name
         else:
             raise Exception
+
 
 class noesc(object):
     '''String inside this objec will not be escaped'''
     def __init__(self, value):
         self.value = value
+
 
 class SubscriptableType(type):
     ''' Metaclass, which allows create webwidget using call like div['content'] instead
@@ -42,6 +46,7 @@ class SubscriptableType(type):
         new_obj = cls.__new__(cls)
         new_obj.__init__()
         return new_obj[content]
+
 
 class WebWidget(object):
     '''Base class for all web widgets'''
@@ -74,24 +79,22 @@ class WebWidget(object):
     #     content
     # </p>
 
-
-
     def __init__(self, *content, **kwd):
         if self in content:
             raise GPyWebError("Trying to pass self in init")
-        self.tattr = {} # attributes, that will be rendered into tag as attribute (eg. <a href="/">...)
-        self.content = [] # To not pydev(or pylint) complain about assigning to undefined membet 'attr'
+        self.tattr = {}  # attributes, that will be rendered into tag as attribute (eg. <a href="/">...)
+        self.content = []  # To not pydev(or pylint) complain about assigning to undefined membet 'attr'
         self.parent_widget = None
 
-        if not hasattr(self, 'tag'): # allow subclasses to define "tag" as class attribute
+        if not hasattr(self, 'tag'):  # allow subclasses to define "tag" as class attribute
             self.tag = self.__class__.__name__
 
-        self._root_widget = self # root webwidget (usualy hmtl tag)
-        self.media_files = [] # list of media files, which is rendered in head tag of HTMLPage, if this element is rendered in HTMLPage
+        self._root_widget = self  # root webwidget (usualy hmtl tag)
+        self.media_files = []  # list of media files, which is rendered in head tag of HTMLPage, if this element is rendered in HTMLPage
         # allows content to be added via the 'content' keyword, which
         # provides an alternative to using the 'attr' class
-        content = list(content) # convert tuple to list
-        if kwd.has_key('content'):
+        content = list(content)  # convert tuple to list
+        if 'content' in kwd:
             content_kwd = kwd['content']
             if isinstance(content_kwd, (types.ListType, types.TupleType)):
                 content += content_kwd
@@ -102,7 +105,7 @@ class WebWidget(object):
             self.add(con)
 
         # Allow a 'parent' keyword, which auto-adds this tag to a parent tag
-        if kwd.has_key('parent'):
+        if 'parent' in kwd:
             parent = kwd['parent']
             del kwd['parent']
             parent.add(self)
@@ -127,10 +130,11 @@ class WebWidget(object):
                 if isinstance(con, WebWidget):
                     con.root_widget = value
         self._root_widget = value
+
     def _get_root_widget(self):
         return self._root_widget
-    root_widget = property(_get_root_widget, _set_root_widget)
 
+    root_widget = property(_get_root_widget, _set_root_widget)
 
     def __getattr__(self, name):
         #TODO(Tom): This should only be active on debug, otherwise it slows down
@@ -141,8 +145,8 @@ class WebWidget(object):
                 "on the parent object?).")
         if name in ['__reduce__', '__getstate__', '__setstate__', '__module__', '__getinitargs__', '__getnewargs__', '__deepcopy__',
                     'tattr' 'content']:
-            raise AttributeError, name
-        if self.tattr.has_key(name):
+            raise AttributeError(name)
+        if name in self.tattr:
             return self.tattr[name]
         else:
             # must be using __dict__ because if descendant of WebWidget overrides __getattr__ method,
@@ -236,7 +240,6 @@ class WebWidget(object):
                     rstr += u' %s="%s"' % (key, val)
         return rstr
 
-
     def render(self, indent_level=0):
         if self.media_files and self.root_widget and \
           isinstance(self.root_widget, HTMLPage):
@@ -288,11 +291,11 @@ class WebWidget(object):
             elif isinstance(con, (types.ListType, types.TupleType)):
                 for item in con:
                     if item is not None:
-                        rstr += unicode(item) # strings in list are not escaped!
+                        rstr += unicode(item)  # strings in list are not escaped!
             elif isinstance(con, noesc):
                 if not self.enclose_content:
                     rstr += indent_level * self.indent_char
-                rstr += con.value # value will not be escaped!
+                rstr += con.value  # value will not be escaped!
                 if not self.enclose_content:
                     rstr += self.delimiter_char
             else:
@@ -339,241 +342,316 @@ class notag(WebWidget):
         super(notag, self).__init__(*content, **kwd)
         self.tag = ''
 
+
 class pre(WebWidget):
     enclose_content = True
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'xml:space']
 
+
 class em(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
+
 
 class code(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
 
+
 class h2(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
+
 
 class h3(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
 
+
 class h1(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
+
 
 class h6(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
 
+
 class dl(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
+
 
 class h4(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
 
+
 class h5(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
+
 
 class area(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'accesskey', 'tabindex', 'onfocus', 'onblur', 'shape', 'coords', 'href', 'nohref', 'alt']
 
+
 class meta(WebWidget):
     tattr_list = ['lang', 'xmllang', 'dir', 'id', 'httpequiv', 'name', 'content', 'scheme']
+
 
 class table(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'summary', 'width', 'border', 'frame', 'rules', 'cellspacing', 'cellpadding']
 
+
 class dfn(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
+
 
 class label(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'for_id', 'accesskey', 'onfocus', 'onblur']
 
+
 class select(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'name', 'size', 'multiple', 'disabled', 'tabindex', 'onfocus', 'onblur', 'onchange']
+
 
 class noscript(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
 
+
 class style(WebWidget):
     tattr_list = ['lang', 'xmllang', 'dir', 'id', 'type', 'media', 'title', 'xml:space']
+
 
 class strong(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
 
+
 class span(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
+
 
 class sub(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
 
+
 class img(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'src', 'alt', 'longdesc', 'height', 'width', 'usemap', 'ismap']
+
 
 class title(WebWidget):
     enclose_content = True
     tattr_list = ['lang', 'xmllang', 'dir', 'id']
 
+
 class bdo(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'lang', 'xmllang', 'dir']
+
 
 class tr(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'align', 'char', 'charoff', 'valign']
 
+
 class tbody(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'align', 'char', 'charoff', 'valign']
 
+
 class param(WebWidget):
     tattr_list = ['id', 'name', 'value', 'valuetype', 'type']
+
 
 class li(WebWidget):
     enclose_content = True
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
 
+
 class acronym(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
+
 
 class html(WebWidget):
     tattr_list = ['lang', 'xmllang', 'dir', 'id', 'xmlns']
 
+
 class caption(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
+
 
 class tfoot(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'align', 'char', 'charoff', 'valign']
 
+
 class th(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'abbr', 'axis', 'headers', 'scope', 'rowspan', 'colspan', 'align', 'char', 'charoff', 'valign']
+
 
 class sup(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
 
+
 class var(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
 
-class input(WebWidget):
+
+class input(WebWidget):  # @ReservedAssignment
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'accesskey', 'tabindex', 'onfocus', 'onblur', 'type', 'name', 'value', 'checked', 'disabled', 'readonly', 'size', 'maxlength', 'src', 'alt', 'usemap', 'onselect', 'onchange', 'accept', 'autofocus']
+
 
 class td(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'abbr', 'axis', 'headers', 'scope', 'rowspan', 'colspan', 'align', 'char', 'charoff', 'valign']
 
+
 class samp(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
+
 
 class cite(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
 
+
 class thead(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'align', 'char', 'charoff', 'valign']
+
 
 class body(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'onload', 'onunload']
 
-class map(WebWidget):
+
+class map(WebWidget):  # @ReservedAssignment
     tattr_list = ['lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'id', 'cssc', 'style', 'title', 'name']
+
 
 class head(WebWidget):
     tattr_list = ['lang', 'xmllang', 'dir', 'id', 'profile']
 
+
 class blockquote(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'cite']
+
 
 class fieldset(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
 
+
 class option(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'selected', 'disabled', 'label', 'value']
+
 
 class form(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'action', 'method', 'enctype', 'onsubmit', 'onreset', 'accept', 'accept-charset']
 
+
 class hr(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
+
 
 class big(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
 
+
 class dd(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
 
-class object(WebWidget):
+
+class object(WebWidget):  # @ReservedAssignment
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'declare', 'csscid', 'codebase', 'data', 'type', 'codetype', 'archive', 'standby', 'height', 'width', 'usemap', 'name', 'tabindex']
+
 
 class base(WebWidget):
     tattr_list = ['href', 'id']
 
+
 class link(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'charset', 'href', 'hreflang', 'type', 'rel', 'rev', 'media']
+
 
 class kbd(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
 
+
 class br(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title']
+
 
 class address(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
 
+
 class optgroup(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'disabled', 'label']
+
 
 class dt(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
 
+
 class ins(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'cite', 'datetime']
+
 
 class b(WebWidget):
     enclose_content = True
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
 
+
 class legend(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'accesskey']
 
+
 class abbr(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
+
 
 class a(WebWidget):
     enclose_content = True
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'accesskey', 'tabindex', 'onfocus', 'onblur', 'charset', 'type', 'name', 'href', 'hreflang', 'rel', 'rev', 'shape', 'coords']
 
+
 class ol(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
+
 
 class textarea(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'accesskey', 'tabindex', 'onfocus', 'onblur', 'name', 'rows', 'cols', 'disabled', 'readonly', 'onselect', 'onchange']
 
+
 class colgroup(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'span', 'width', 'align', 'char', 'charoff', 'valign']
+
 
 class i(WebWidget):
     enclose_content = True
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
 
+
 class button(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'accesskey', 'tabindex', 'onfocus', 'onblur', 'name', 'value', 'type', 'disabled']
+
 
 class script(WebWidget):
     tattr_list = ['id', 'charset', 'type', 'src', 'defer', 'xml:space']
 
+
 class col(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'span', 'width', 'align', 'char', 'charoff', 'valign']
+
 
 class q(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup', 'cite']
 
+
 class p(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
+
 
 class small(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
 
+
 class div(WebWidget):
-    empty_tag_as_xml = False # because <div /> is treated by browsers as <div>, so then unclosed divs happend and layout is broken
+    empty_tag_as_xml = False  # because <div /> is treated by browsers as <div>, so then unclosed divs happend and layout is broken
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
+
 
 class tt(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
 
+
 class ul(WebWidget):
     tattr_list = ['id', 'cssc', 'style', 'title', 'lang', 'xmllang', 'dir', 'onclick', 'ondblclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout', 'onkeypress', 'onkeydown', 'onkeyup']
-
 
 
 class CSSInclude(WebWidget):
@@ -583,6 +661,7 @@ class CSSInclude(WebWidget):
 
         self.add(attr(href=css_file, rel="stylesheet", type="text/css"))
 
+
 class JSInclude(WebWidget):
     def __init__(self, js_file):
         super(JSInclude, self).__init__(js_file)
@@ -591,7 +670,10 @@ class JSInclude(WebWidget):
         #must contain empty string because browser take <script /> as if it was <script> and waiting for </scrpt>:
         self.add(attr(src=js_file, type="text/javascript"), '',)
 
+
 GPYWEB_REPLACE_ME_WITH_MEDIA = 'GPYWEB_REPLACE_ME_WITH_MEDIA'
+
+
 class Media(WebWidget):
     def __init__(self, media_files, *content, **kwd):
         super(Media, self).__init__(*content, **kwd)
@@ -599,11 +681,11 @@ class Media(WebWidget):
         self.indent_level = None
 
         if isinstance(media_files, types.StringTypes):
-            self.media_files = [media_files] #set([media_files])
+            self.media_files = [media_files]  # set([media_files])
         elif isiterable(media_files):
-            self.media_files = media_files #set(media_files)
+            self.media_files = media_files  # set(media_files)
         else:
-            self.media_files = [] #set()
+            self.media_files = []  # set()
 
     def render_after(self):
         rstr = ''
@@ -617,7 +699,6 @@ class Media(WebWidget):
                 rstr += unicode(script('', src=media_file, type="text/javascript", enclose_content=True))
         return rstr
 
-
     def render(self, indent_level=0):
         self.indent_level = indent_level
         return GPYWEB_REPLACE_ME_WITH_MEDIA
@@ -626,8 +707,10 @@ class Media(WebWidget):
 class DictLookup(dict):
     def __getattr__(self, name):
         return self[name]
+
     def __setattr__(self, name, value):
         self[name] = value
+
     def __getstate__(self):
         pass
 
@@ -672,12 +755,14 @@ class HTMLPage(html):
 
     def render(self, indent_level=0):
         return self.doctype + super(HTMLPage, self).render(indent_level).replace(GPYWEB_REPLACE_ME_WITH_MEDIA, self._media.render_after(), 1)
+
     def add_media_files(self, media_files):
         if isinstance(media_files, types.StringTypes):
             media_files = [media_files]
         for media_file in media_files:
             if media_file not in self._media.media_files:
                 self._media.media_files.append(media_file)
+
 
 def isiterable(par):
     # we don't want to iterate over string characters

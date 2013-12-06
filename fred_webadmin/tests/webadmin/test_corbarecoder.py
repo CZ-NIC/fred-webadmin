@@ -6,20 +6,23 @@
     in Python here.
 """
 
-import fred_webadmin.corba as fredcorba # import ccReg, Registry
+import fred_webadmin.corba as fredcorba  # import ccReg, Registry
 import fred_webadmin.corbarecoder as recoder
 import fred_webadmin.nulltype as fredtypes
 import datetime
-from nose.tools import assert_equal, assert_is_not_none, assert_raises #@UnresolvedImport pylint: disable = E0611
+from nose.tools import assert_equal, assert_is_not_none, assert_raises  # @UnresolvedImport pylint: disable = E0611
 
 
 class Patched_datetype(fredcorba.ccReg.DateType):
     def __init__(self, day=0, month=0, year=0):
         self.day, self.month, self.year = day, month, year
+
     def __str__(self):
         return "Patcheddatatype(%s, %s, %s)" % (self.day, self.month, self.year)
+
     def __repr__(self):
         return self.__str__()
+
     def __eq__(self, obj):
         """ Equality is defined so that we can assert it easier """
         return (self.day == obj.day and
@@ -44,8 +47,10 @@ class TestDaphneCorbaRecoder(object):
             environment for the other tests.
         """
         old_value = getattr(obj, attr)
+
         def tear_down():
             setattr(obj, attr, old_value)
+
         self._on_teardown.append(tear_down)
         setattr(obj, attr, new_value)
 
@@ -129,15 +134,20 @@ class TestDaphneCorbaRecoder(object):
         """ Fake class for encoding testing. """
         def __init__(self, a, b, c):
             self.a, self.b, self.c = a, b, c
+
         def __str__(self):
+
             return "Foo(%s, %s, %s)" % (self.a, self.b, self.c)
+
         def __repr__(self):
             return self.__str__()
+
         def __eq__(self, obj):
             """ Equality is defined so that we can assert it easier"""
             return (self.a == obj.a or
                    self.b == obj.b or
                    self.c == obj.c)
+
     class Bar(Foo):
         """ Fake class for encoding testing. """
         def __str__(self):

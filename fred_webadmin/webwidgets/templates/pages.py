@@ -1,15 +1,15 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import simplejson
+
 from fred_webadmin.webwidgets.gpyweb.gpyweb import (
-    div, span, p, a, b, button, h2, h3, noesc, attr, save, HTMLPage, hr, br, table,
-    tr, th, td, img, form, label, input, h1, ul, li, script, pre, textarea, tagid, notag)
+    div, span, p, a, h2, h3, attr, save, HTMLPage,
+    label, input, h1, ul, li, script, pre, notag)
 from fred_webadmin.translation import _
 from fred_webadmin import config
 from fred_webadmin.utils import get_current_url, append_getpar_to_url
 
 from fred_webadmin.webwidgets.details import adifdetails
-from fred_webadmin.webwidgets.forms import editforms
+
 
 class BaseTemplate(HTMLPage):
     def __init__(self, context=None):
@@ -20,7 +20,7 @@ class BaseTemplate(HTMLPage):
         self.body.add(div(attr(id='container'),
                           save(self, 'container'),
                           div(attr(id='header'), save(self, 'header')),
-                          div(attr(id='content_all'), save(self, 'content_all'), #cannot be "content", because of content attribute of gpyweb widgets
+                          div(attr(id='content_all'), save(self, 'content_all'),  # cannot be "content", because of content attribute of gpyweb widgets
                               div(attr(id='columnwrap'), save(self, 'columnwrap'),
                                   div(attr(id='content-main'), save(self, 'main')))),
                           div(attr(id='footer'), save(self, 'footer'))
@@ -62,12 +62,12 @@ class BaseSite(BaseTemplate):
             self.main.add(c.main)
 
 
-
 class LoginPage(BaseSite):
     def __init__(self, context=None):
         super(LoginPage, self).__init__(context)
         c = self.context
         self.main.add(c.form)
+
 
 class DisconnectedPage(BaseSite):
     def __init__(self, context=None):
@@ -76,6 +76,7 @@ class DisconnectedPage(BaseSite):
                         a(attr(href='/login/?next=%s' % get_current_url()),
                           _('log in')), ' again.'))
 
+
 class NotFound404Page(BaseSite):
     def __init__(self, context=None):
         super(NotFound404Page, self).__init__(context)
@@ -83,11 +84,12 @@ class NotFound404Page(BaseSite):
                       p(_('Page not found'))
                      )
 
+
 class BaseSiteMenu(BaseSite):
     def __init__(self, context=None):
         super(BaseSiteMenu, self).__init__(context)
         c = self.context
-        if c.has_key('menu'):
+        if 'menu' in c:
             self.menu_container.add(div(attr(id='main-menu'), c.menu))
         if c.get('body_id'):
             self.body.add(attr(id=c.body_id))
@@ -110,8 +112,9 @@ class ErrorPage(BaseSiteMenu):
         super(ErrorPage, self).__init__(context)
         c = self.context
         self.main.add(h1('Error:'))
-        if c.has_key('message'):
+        if 'message' in c:
             self.main.add(p(c.message))
+
 
 class AllFiltersPage(BaseSiteMenu):
     ''' List of filters is displayed here. '''
@@ -119,10 +122,10 @@ class AllFiltersPage(BaseSiteMenu):
     def __init__(self, context=None):
         super(AllFiltersPage, self).__init__(context)
         c = self.context
-        if c.has_key('filters_list'):
+        if 'filters_list' in c:
             self.main.add(c['filters_list'])
             lang_code = config.lang[:2]
-            if lang_code == 'cs': # conversion between cs and cz identifier of lagnguage
+            if lang_code == 'cs':  # conversion between cs and cz identifier of lagnguage
                 lang_code = 'cz'
             self.head.add(script(attr(type='text/javascript'),
                                  'scwLanguage = "%s"; //sets language of js_calendar' % lang_code,
@@ -135,7 +138,7 @@ class FilterPage(BaseSiteMenu):
         c = self.context
 
         lang_code = config.lang[0:2]
-        if lang_code == 'cs': # conversion between cs and cz identifier of lagnguage
+        if lang_code == 'cs':  # conversion between cs and cz identifier of lagnguage
             lang_code = 'cz'
         self.head.add(script(attr(type='text/javascript'),
                              'scwLanguage = "%s"; //sets language of js_calendar' % lang_code,
@@ -179,11 +182,11 @@ class FilterPage(BaseSiteMenu):
             self.main.add(p(a(attr(href='./blocking_start/'), _('Administrative blocking'))))
 
 
-
 class DetailPage(BaseSiteMenu):
     @classmethod
     def get_object_name(cls):
         return cls.__name__[:-len('Detail')].lower()
+
 
 class DomainDetail(DetailPage):
     def __init__(self, context=None):
@@ -206,6 +209,7 @@ class ContactDetail(DetailPage):
             if config.debug:
                 self.main.add('ContactDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
 
+
 class NSSetDetail(DetailPage):
     def __init__(self, context=None):
         super(NSSetDetail, self).__init__(context)
@@ -215,6 +219,7 @@ class NSSetDetail(DetailPage):
             self.main.add(adifdetails.NSSetDetail(c.result, c.history))
             if config.debug:
                 self.main.add('NSSetDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
+
 
 class KeySetDetail(DetailPage):
     def __init__(self, context=None):
@@ -226,6 +231,7 @@ class KeySetDetail(DetailPage):
             if config.debug:
                 self.main.add('KeySetDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
 
+
 class RegistrarDetail(DetailPage):
     def __init__(self, context=None):
         super(RegistrarDetail, self).__init__(context)
@@ -235,6 +241,7 @@ class RegistrarDetail(DetailPage):
             self.main.add(adifdetails.RegistrarDetail(c.result, c.history))
             if config.debug:
                 self.main.add('RegistrarDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
+
 
 class PublicRequestDetail(DetailPage):
     def __init__(self, context=None):
@@ -301,6 +308,7 @@ class BankStatementDetailWithPaymentPairing(DetailPage):
         if c.get('form'):
             self.main.add(c.form)
 
+
 class MessageDetail(DetailPage):
     def __init__(self, context=None):
         super(MessageDetail, self).__init__(context)
@@ -311,6 +319,7 @@ class MessageDetail(DetailPage):
             if config.debug:
                 self.main.add('MessageDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
 
+
 class EditPage(BaseSiteMenu):
     def __init__(self, context=None):
         super(EditPage, self).__init__(context)
@@ -318,7 +327,7 @@ class EditPage(BaseSiteMenu):
         if c.get('form'):
             self.main.add(c.form)
             lang_code = config.lang[:2]
-            if lang_code == 'cs': # conversion between cs and cz identifier of lagnguage
+            if lang_code == 'cs':  # conversion between cs and cz identifier of lagnguage
                 lang_code = 'cz'
             self.head.add(
                 script(attr(type='text/javascript'),
@@ -343,7 +352,7 @@ class GroupEditorPage(BaseSiteMenu):
         if c.get('form'):
             self.main.add(c.form)
             lang_code = config.lang[:2]
-            if lang_code == 'cs': # conversion between cs and cz identifier of lagnguage
+            if lang_code == 'cs':  # conversion between cs and cz identifier of lagnguage
                 lang_code = 'cz'
             self.head.add(
                 script(attr(type='text/javascript'),

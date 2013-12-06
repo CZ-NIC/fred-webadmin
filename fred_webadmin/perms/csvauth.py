@@ -4,6 +4,7 @@ from fred_webadmin.controller.adiferrors import (
     AuthorizationError, MalformedAuthorizationError)
 from fred_webadmin.translation import _
 
+
 class Authorizer(object):
     """
         Takes permissions from a csv file. The format of the data is:
@@ -86,7 +87,7 @@ unknown user
             if len(parts) != 4:
                 continue
 #            import ipdb; ipdb.set_trace()
-            composed_part = "%s.%s" % (parts[0], parts[2]) #example: read.auth_info
+            composed_part = "%s.%s" % (parts[0], parts[2])  # example: read.auth_info
             if (composed_part == action and parts[1] == obj and
                     parts[3] == str(obj_id)):
                 return True

@@ -1,13 +1,11 @@
-from logging import debug
-
 from fred_webadmin.translation import _
-import forms
-import editforms
-from fred_webadmin.webwidgets.gpyweb.gpyweb import WebWidget, tagid, attr, notag, div, span, table, tbody, tr, th, td, input, label, select, option, ul, li, script, a, img, strong
+from fred_webadmin.webwidgets.gpyweb.gpyweb import attr, div, tr, td, input
 from formlayouts import TableFormLayout, FormLayout
+
 
 class EditFormLayout(TableFormLayout):
     columns_count = 2
+
     def __init__(self, form, *content, **kwd):
         super(EditFormLayout, self).__init__(form, *content, **kwd)
         if self.cssc:
@@ -31,6 +29,7 @@ class EditFormLayout(TableFormLayout):
                      input(attr(type=u'submit', value=_(u'Save'), name=u'submit'))
                     ))
 
+
 class RegistrarEditFormLayout(FormLayout):
     def __init__(self, form, *content, **kwd):
         super(RegistrarEditFormLayout, self).__init__(form, *content, **kwd)
@@ -45,7 +44,7 @@ class RegistrarEditFormLayout(FormLayout):
             self.add(div(_('Errors:'), form.non_field_errors()))
         hidden_fields = []
 
-        for index, section in enumerate(form.sections):
+        for section in form.sections:
             section_layout_class = section[-1]
             self.add(div(
                 attr(cssc="editform"), section_layout_class(form, section)))

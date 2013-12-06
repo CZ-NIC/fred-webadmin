@@ -2,17 +2,15 @@
 # -*- coding: utf-8 -*-
 
 from copy import deepcopy
-import simplejson
 from logging import debug
 
 from fred_webadmin.translation import _
 import forms
 import filterforms
 from adiffields import CompoundFilterField
-from fred_webadmin.webwidgets.gpyweb.gpyweb import (WebWidget, noesc, tagid,
-    attr, notag, div, span, table, tbody, tr, th, td, input, label, select,
-    option, ul, li, script, a, img, strong)
-from fields import ChoiceField, BooleanField, HiddenField
+from fred_webadmin.webwidgets.gpyweb.gpyweb import (noesc, tagid,
+    attr, notag, div, tbody, tr, th, td, input, label, script)
+from fields import BooleanField, HiddenField
 from fred_webadmin.webwidgets.utils import SortedDict
 from fred_webadmin.webwidgets.utils import escape_js_literal
 from formlayouts import TableFormLayout
@@ -20,8 +18,10 @@ from formlayouts import TableFormLayout
 REPLACE_ME_WITH_LABEL = 'REPLACE_ME_WITH_LABEL'
 REPLACE_ME_WITH_EMPTY_FORM = 'REPLACE_ME_WITH_EMPTY_FORM'
 
+
 class UnionFilterFormLayout(TableFormLayout):
     columns_count = 1
+
     def __init__(self, form, *content, **kwd):
         super(UnionFilterFormLayout, self).__init__(form, *content, **kwd)
         self.add_css_class(u'unionfiltertable')
@@ -58,7 +58,6 @@ class UnionFilterFormLayout(TableFormLayout):
         output += u'return row;\n'
         output += u'}\n\n'
 
-
         return output
 
     def build_or_row(self):
@@ -90,6 +89,7 @@ class UnionFilterFormLayout(TableFormLayout):
 
 class FilterTableFormLayout(TableFormLayout):
     columns_count = 3
+
     def __init__(self, form, *content, **kwd):
         self.field_counter = 0
         self.all_fields = []
@@ -154,7 +154,7 @@ class FilterTableFormLayout(TableFormLayout):
                 self.build_field_row(field, errors)))
         self.add(script(
             attr(type='text/javascript'),
-            'filterObjectName = "%s"' % self.form.get_object_name())) # global javascript variable
+            'filterObjectName = "%s"' % self.form.get_object_name()))  # global javascript variable
         self.tbody.add(self.build_fields_button())
 
     def build_field_row(self, field, errors=None, for_javascript=False):
@@ -190,7 +190,7 @@ class FilterTableFormLayout(TableFormLayout):
 
         output += u'switch (fieldName) {\n'
         base_fields = deepcopy(self.form.base_fields)
-        output += u"default:\n" # if not specified, first field is taken
+        output += u"default:\n"  # if not specified, first field is taken
         fields_js_dict = SortedDict()
         for field_num, (name, field) in enumerate(base_fields.items()):
             field.name = name
@@ -206,9 +206,9 @@ class FilterTableFormLayout(TableFormLayout):
             else:
                 fields_js_dict[name] = {'label': field.label, 'fieldNum': field_num}
             output += u"    break;\n"
-        output += u'}\n' # end of switch
+        output += u'}\n'  # end of switch
         output += u'row = row.replace(/%s/g, fieldLabel);\n' % REPLACE_ME_WITH_LABEL
         output += u'return row;\n'
-        output += u'}\n' # end of createRow function
+        output += u'}\n'  # end of createRow function
 
         return (output, fields_js_dict)

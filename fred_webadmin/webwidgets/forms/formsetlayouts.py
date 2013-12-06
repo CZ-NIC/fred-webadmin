@@ -1,12 +1,10 @@
-from logging import debug
-
 from fred_webadmin.translation import _
-from fred_webadmin.webwidgets.gpyweb.gpyweb import (
-    WebWidget, tagid, attr, notag, div, span, table, tbody, tr, th, td,
-    input, label, select, option, ul, li, script, a, img, strong, fieldset)
+from fred_webadmin.webwidgets.gpyweb.gpyweb import WebWidget, tagid, attr, div, table, tbody, tr, td, input, fieldset
+
 
 class FormSetLayout(WebWidget):
     pass
+
 
 class TableFormSetLayout(FormSetLayout):
     columns_count = 1
@@ -26,7 +24,6 @@ class TableFormSetLayout(FormSetLayout):
 
         self.add(tbody(tagid('tbody')))
 
-
         if formset.non_form_errors():
             self.tbody.add(tr(td(
                 attr(colspan=self.columns_count),
@@ -43,6 +40,7 @@ class TableFormSetLayout(FormSetLayout):
         return tr(td(
             attr(colspan=self.columns_count, cssc='center'),
             input(attr(type=u'submit', value=u'Save set', name=u'submit'))))
+
 
 class DivFormSetLayout(FormSetLayout):
     columns_count = 1

@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os, sys
-#sys.path += [os.path.join(os.path.dirname(__file__), '../')] # path to gpyweb module
-sys.path += ["/home/glin/programming/workspace/gpyweb/"]
-
 from nose.tools import assert_equal
 
 from fred_webadmin.webwidgets.gpyweb.gpyweb import *
@@ -59,7 +55,6 @@ def test_gpyweb_tagid_save():
     mydiv.spaninspan.add('text in span')
     mydiv.style = 'color: blue'
 
-
     desired_output = '''<div style="color: blue">
 \t<p>
 \t\tText of p
@@ -91,11 +86,12 @@ def test_gpyweb_tagid_save():
 #<link href="cau.css" type="text/css" rel="stylesheet" />
 #''', 'Note: if this test failes, it is possible that it only is due to different order of media fields (because they are stored in unordered set)'
 
+
 def test_getitem_notation():
-    p1 = p(attr(cssc='top'), 'Hi ', i('how'), 'are you?') # tradicional notation
-    p2 = p(cssc='top')['Hi ', i()['how'], 'are you?'] # empty field for attributes is ugly
-    p3 = p(cssc='top')['Hi ', i('how'), 'are you?'] # shortest but combination of () a [] for inserting content can be confusing
-    p4 = p(cssc='top')['Hi ', i['how'], 'are you?'] # and finally shortest and withou mixing () and [] for inseting context!!! :) (must be added metaclass
+    p1 = p(attr(cssc='top'), 'Hi ', i('how'), 'are you?')  # tradicional notation
+    p2 = p(cssc='top')['Hi ', i()['how'], 'are you?']  # empty field for attributes is ugly
+    p3 = p(cssc='top')['Hi ', i('how'), 'are you?']  # shortest but combination of () a [] for inserting content can be confusing
+    p4 = p(cssc='top')['Hi ', i['how'], 'are you?']  # and finally shortest and withou mixing () and [] for inseting context!!! :) (must be added metaclass
 
     assert_equal(str(p1), str(p2))
     assert_equal(str(p1), str(p3))
@@ -168,6 +164,7 @@ def test_getitem_nontation3():
 #
 #    assert False
     # results: both notation have the same speed (about 1.5sec for exp = 4)
+
 
 def test_http_page():
     context = {
@@ -248,6 +245,7 @@ def test_media_in_childs():
 </html>
 ''')
 
+
 def test_root_tag():
     'Test when widget is addet to another widget during render(), if root_widget is really root of tree, after calling render()'
     class MyWidget(WebWidget):
@@ -280,7 +278,7 @@ def test_escape():
 
 def test_enclose():
     p1 = p(attr(enclose_content=True), 'Visit our ', a(attr(href='http://www.example.com'), 'website'), '.',
-           input(attr(type="submit", value="+Like")), 'Like us.') # tag "a" has enclose_content = True by default
+           input(attr(type="submit", value="+Like")), 'Like us.')  # tag "a" has enclose_content = True by default
     corect_result = '''<p>Visit our <a href="http://www.example.com">website</a>.<input type="submit" value="+Like" />Like us.</p>
 '''
     assert_equal(str(p1), corect_result)

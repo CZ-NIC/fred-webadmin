@@ -3,7 +3,8 @@ import fred_webadmin.controller.adiferrors
 from fred_webadmin import config
 from fred_webadmin.translation import _
 
-def authenticate_user(admin, username=None, password=None):
+
+def authenticate_user(admin, username=None, password=None):  # pylint: disable=W0613
     """ Authenticate user using LDAP server.
     """
     try:

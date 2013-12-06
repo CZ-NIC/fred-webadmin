@@ -1,6 +1,7 @@
 from fred_webadmin.webwidgets.details.detaillayouts import TableDetailLayout
 from fred_webadmin.translation import _
-from fred_webadmin.webwidgets.gpyweb.gpyweb import WebWidget, tagid, attr, notag, div, span, table, caption, thead, tbody, tr, th, td, input, label, select, option, ul, li, script, a, img, strong
+from fred_webadmin.webwidgets.gpyweb.gpyweb import attr, tr, td
+
 
 class DomainsNSSetDetailLayout(TableDetailLayout):
     def __init__(self, *content, **kwd):
@@ -8,7 +9,7 @@ class DomainsNSSetDetailLayout(TableDetailLayout):
         self.cssc = 'section_table'
 
     def _render_nsset(self, nsset_detail):
-        registrar_detail = nsset_detail.fields['registrar'].current_field.inner_detail # registrar of nsset
+        registrar_detail = nsset_detail.fields['registrar'].current_field.inner_detail  # registrar of nsset
 
         handle_field = nsset_detail.fields['handle_url']
         registrar_field = registrar_detail.fields['handle_url']
@@ -30,7 +31,7 @@ class DomainsNSSetDetailLayout(TableDetailLayout):
                                 admins_label))
             email_part = ''
             if admin_detail.fields['email'].value:
-                email_part = [', ' , admin_detail.fields['email']]
+                email_part = [', ', admin_detail.fields['email']]
             row.add(td(attr(enclose_content=True), admin_detail.fields['handle_url'], email_part))
             self.add(row)
 
@@ -54,14 +55,13 @@ class DomainsNSSetDetailLayout(TableDetailLayout):
         self._render_nsset(nsset_detail)
 
 
-
 class DomainsKeySetDetailLayout(TableDetailLayout):
     def __init__(self, *content, **kwd):
         super(DomainsKeySetDetailLayout, self).__init__(*content, **kwd)
         self.cssc = 'section_table'
 
     def _render_keyset(self, keyset_detail):
-        registrar_detail = keyset_detail.fields.get('registrar').current_field.inner_detail # registrar of keyset
+        registrar_detail = keyset_detail.fields.get('registrar').current_field.inner_detail  # registrar of keyset
 
         handle_field = keyset_detail.fields['handle_url']
         registrar_field = registrar_detail.fields['handle_url']
@@ -75,7 +75,6 @@ class DomainsKeySetDetailLayout(TableDetailLayout):
         dsrecords_label = self.get_label_name(_('DS records'))
         dnskeys_label = self.get_label_name(_('DNSKeys'))
 
-
         self.add(tr(td(attr(cssc='left_label'), handle_label), td(handle_field)))
         self.add(tr(td(attr(cssc='left_label'), registrar_label), td(registrar_field)))
 
@@ -86,7 +85,7 @@ class DomainsKeySetDetailLayout(TableDetailLayout):
                                 admins_label))
             email_part = ''
             if admin_detail.fields['email'].value:
-                email_part = [', ' , admin_detail.fields['email']]
+                email_part = [', ', admin_detail.fields['email']]
             row.add(td(attr(enclose_content=True), admin_detail.fields['handle_url'], email_part))
             self.add(row)
 

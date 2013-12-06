@@ -16,6 +16,7 @@ INITIAL_FORM_COUNT = 'INITIAL_FORMS'
 ORDERING_FIELD_NAME = 'ORDER'
 DELETION_FIELD_NAME = 'DELETE'
 
+
 class ManagementForm(Form):
     """
     ``ManagementForm`` is used to keep track of how many form instances
@@ -26,6 +27,7 @@ class ManagementForm(Form):
         self.base_fields[TOTAL_FORM_COUNT] = HiddenDecimalField(name=TOTAL_FORM_COUNT)
         self.base_fields[INITIAL_FORM_COUNT] = HiddenDecimalField(name=INITIAL_FORM_COUNT)
         super(ManagementForm, self).__init__(*args, **kwargs)
+
 
 class BaseFormSet(WebWidget):
     """
@@ -100,7 +102,7 @@ class BaseFormSet(WebWidget):
             kwargs['empty_permitted'] = True
         form = self.form_class(**kwargs)
         self.add_fields(form, i)
-        form.set_fields_values() # to set values of deleted fields
+        form.set_fields_values()  # to set values of deleted fields
         return form
 
     def _get_initial_forms(self):
@@ -126,8 +128,8 @@ class BaseFormSet(WebWidget):
                 if form.cleaned_data is not None and not form.cleaned_data.get(DELETION_FIELD_NAME):
 #                    Problem: DELETION FIELD je furt False!!!
                     data = dict(form.cleaned_data)
-                    if data.has_key(DELETION_FIELD_NAME):
-                        if not data[DELETION_FIELD_NAME]: # deletion checkbox wasn't checked, just get rid of deletion field in actual data
+                    if DELETION_FIELD_NAME in data:
+                        if not data[DELETION_FIELD_NAME]:  # deletion checkbox wasn't checked, just get rid of deletion field in actual data
                             data.pop(DELETION_FIELD_NAME)
                             cleaned_data_list.append(data)
                         else:
@@ -186,12 +188,14 @@ class BaseFormSet(WebWidget):
                 # None should be sorted below anything else. Allowing None as
                 # a comparison value makes it so we can leave ordering fields
                 # blamk.
+
                 def compare_ordering_values(x, y):
                     if x[1] is None:
                         return 1
                     if y[1] is None:
                         return -1
                     return x[1] - y[1]
+
                 self._ordering.append((i, form.cleaned_data[ORDERING_FIELD_NAME]))
             # After we're done populating self._ordering, sort it.
             self._ordering.sort(compare_ordering_values)
@@ -240,7 +244,7 @@ class BaseFormSet(WebWidget):
         Cleans all of self.data and populates self._errors.
         """
         self._errors = []
-        if not self.is_bound: # Stop further processing.
+        if not self.is_bound:  # Stop further processing.
             return
         for i in range(0, self._total_form_count):
             form = self.forms[i]
@@ -282,10 +286,11 @@ class BaseFormSet(WebWidget):
         return self.forms[0].is_multipart()
 
     def render(self, indent_level=0):
-        self.content = [] # empty previous content (if render would be called moretimes, there would be multiple forms instead one )
+        self.content = []  # empty previous content (if render would be called moretimes, there would be multiple forms instead one )
 #        self.add(fieldset(self.layout_class(self)))
         self.add(self.layout_class(self))
         return super(BaseFormSet, self).render(indent_level)
+
 
 # XXX: This API *will* change. Use at your own risk.
 def _formset_factory(form, formset=BaseFormSet, extra_count=1, can_order=False, can_delete=False):

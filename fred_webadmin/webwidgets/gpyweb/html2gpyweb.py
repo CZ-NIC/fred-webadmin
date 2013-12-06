@@ -4,6 +4,7 @@
 import sys
 from HTMLParser import HTMLParser
 
+
 class GPHTMLParser(HTMLParser):
     def __init__(self):
 #        super(GPHTMLParser, self).__init__()
@@ -34,7 +35,6 @@ class GPHTMLParser(HTMLParser):
             self.objects_on_level[self.level + 1] = True
         self.objects_on_level[self.level] = True
         self.level += 1
-
 
     def handle_endtag(self, tag):
         self.objects_on_level[self.level] = False

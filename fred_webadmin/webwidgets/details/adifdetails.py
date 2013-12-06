@@ -1,10 +1,12 @@
-from details import Detail
+import cherrypy
+
+from .details import Detail
 from dfields import *
 from fred_webadmin import nulltype
 from fred_webadmin.translation import _
-from fred_webadmin.webwidgets.details.sectionlayouts import DirectSectionLayout, SectionLayout
+from fred_webadmin.webwidgets.details.sectionlayouts import DirectSectionLayout
 from fred_webadmin.webwidgets.details.adifsections import DatesSectionLayout
-from fred_webadmin.webwidgets.details.detaillayouts import DirectSectionDetailLayout, OnlyFieldsDetailLayout
+from fred_webadmin.webwidgets.details.detaillayouts import DirectSectionDetailLayout
 from fred_webadmin.webwidgets.details.adifdetaillayouts import DomainsNSSetDetailLayout, DomainsKeySetDetailLayout
 from fred_webadmin.webwidgets.adifwidgets import FilterPanel
 from fred_webadmin.corbalazy import CorbaLazyRequestIterStructToDict
@@ -31,10 +33,9 @@ FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH = {
     u'TimeBegin/0/1/0': u'0', u'TimeBegin/1/0': u'', u'TimeBegin/1/1/1': u'0'}
 
 
-
 class AccessDetail(Detail):
     password = CharDField(label=_('Password'))
-    md5Cert = CharDField(label=_('MD5')) # registrar name
+    md5Cert = CharDField(label=_('MD5'))  # registrar name
 
 
 class ZoneDetail(Detail):
@@ -60,31 +61,31 @@ class GroupDetail(Detail):
 class RegistrarDetail(Detail):
     editable = True
 
-    handle = CharDField(label=_('Handle')) # registrar identification
+    handle = CharDField(label=_('Handle'))  # registrar identification
     handle_url = ObjectHandleURLDField(label=_('Handle'))
 
-    name = CharDField(label=_('Name')) # registrar name
-    organization = CharDField(label=_('Organization')) # organization name
-    credit = CharDField(label=_('Total credit')) # credit
+    name = CharDField(label=_('Name'))  # registrar name
+    organization = CharDField(label=_('Organization'))  # organization name
+    credit = CharDField(label=_('Total credit'))  # credit
     unspec_credit = CharDField(label=_('Unspecified credit'))
 
-    street1 = CharDField(label=_('Street')) # address part 1
-    street2 = CharDField(label='') # address part 2
-    street3 = CharDField(label='') # address part 3
-    city = CharDField(label=_('City')) # city of registrar headquaters
-    stateorprovince = CharDField(label=_('State')) # address part
-    postalcode = CharDField(label=_('ZIP')) # address part
-    country = CharDField(label=_('Country')) # country code
+    street1 = CharDField(label=_('Street'))  # address part 1
+    street2 = CharDField(label='')  # address part 2
+    street3 = CharDField(label='')  # address part 3
+    city = CharDField(label=_('City'))  # city of registrar headquaters
+    stateorprovince = CharDField(label=_('State'))  # address part
+    postalcode = CharDField(label=_('ZIP'))  # address part
+    country = CharDField(label=_('Country'))  # country code
 
-    telephone = CharDField(label=_('Telephone')) # phone number
-    fax = CharDField(label=_('Fax')) # fax number
-    email = EmailDField(label=_('Email')) # contact email
-    url = CharDField(label=_('URL')) # URL
+    telephone = CharDField(label=_('Telephone'))  # phone number
+    fax = CharDField(label=_('Fax'))  # fax number
+    email = EmailDField(label=_('Email'))  # contact email
+    url = CharDField(label=_('URL'))  # URL
     ico = CharDField(label=_('ICO'))
     dic = CharDField(label=_('DIC'))
     varSymb = CharDField(label=_('Var. Symbol'))
     vat = CharDField(label=_('DPH'))
-    hidden = CharDField(label=_('System registrar')) # hidden in PIF
+    hidden = CharDField(label=_('System registrar'))  # hidden in PIF
 
     access = ListObjectDField(detail_class=AccessDetail)
     zones = ListObjectDField(detail_class=ZoneDetail)
@@ -135,6 +136,7 @@ class RegistrarDetail(Detail):
 
         super(RegistrarDetail, self).add_to_bottom()
 
+
 class ObjectDetail(Detail):
     handle_url = ObjectHandleURLDField(label=_('Handle'))
     handleEPPId = ObjectHandleEPPIdDField(label=('Handle'))
@@ -156,6 +158,7 @@ class ObjectDetail(Detail):
     authInfo = CharNHDField(label=_('AuthInfo'))
 
     states = HistoryStateDField()
+
 
 class ContactDetail(ObjectDetail):
     organization = DiscloseCharNHDField(label=_('Organization'))
@@ -259,6 +262,7 @@ class HostDetail(Detail):
     fqdn = CharDField(label=_('fqdn'))
     inet = ListCharDField(label=_('IP addresses'))
 
+
 class NSSetDetail(ObjectDetail):
     admins = NHDField(
         ListObjectDField(
@@ -330,6 +334,7 @@ class NSSetDetail(ObjectDetail):
             ]))
         super(NSSetDetail, self).add_to_bottom()
 
+
 class DSRecordDetail(Detail):
     keyTag = CharDField(label=_('keyTag'))
     alg = CharDField(label=_('algorithm'))
@@ -337,11 +342,13 @@ class DSRecordDetail(Detail):
     digest = CharDField(label=_('digest'))
     maxSigLife = CharDField(label=_('Max. sig. life'))
 
+
 class DNSKeyDetail(Detail):
     flags = CharDField(label=_('Flags'))
     protocol = CharDField(label=_('Protocol'))
     alg = CharDField(label=_('Algorithm'))
     key = LongCharDField(label=_('Public key'))
+
 
 class KeySetDetail(ObjectDetail):
     admins = NHDField(
@@ -422,6 +429,7 @@ class KeySetDetail(ObjectDetail):
                             'TimeBegin': FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH}]]]
             ]))
         super(KeySetDetail, self).add_to_bottom()
+
 
 class DomainDetail(ObjectDetail):
     expirationDate = CharNHDField(label=_('Expiration date'))
@@ -560,6 +568,7 @@ class DomainDetail(ObjectDetail):
                     input(type='submit', value=Domain.blocking_views[blocking_action].action_name),
                    )
 
+
 class ActionDetail(Detail):
     time = CharDField(label=_('Received_date'))
     registrar = ObjectHandleDField(label=_('Registrar'))
@@ -577,6 +586,7 @@ class ActionDetail(Detail):
         (_('XML In'), ('xml',), DirectSectionLayout),
         (_('XML Out'), ('xml_out',), DirectSectionLayout),
     )
+
 
 class PublicRequestDetail(Detail):
     id = CharDField(label=_('ID'))
@@ -605,6 +615,7 @@ class PublicRequestDetail(Detail):
                 ]]))
         super(PublicRequestDetail, self).add_to_bottom()
 
+
 class MailDetail(Detail):
     objects = ListCharDField(label=_('Objects'))
     type = ConvertDField(
@@ -616,6 +627,7 @@ class MailDetail(Detail):
     modifyTime = CharDField(label=_('Modify time'))
     attachments = ListObjectHandleDField(label=_('Attachments'))
     content = PreCharDField(label=_('Email content'))
+
 
 class PaymentDetail(Detail):
     number = CharDField(label=_('Number'))
@@ -679,6 +691,7 @@ class SMSDetail(Detail):
     phone_number = CharDField(label=_('Phone number'))
     content = CharDField(label=_('Content'))
 
+
 class LetterDetail(Detail):
     file = ObjectHandleDField(label=_('PDF'))
     postal_address_name = CharDField(label=_('Name'))
@@ -691,6 +704,7 @@ class LetterDetail(Detail):
     postal_address_postalcode = CharDField(label=_('Postal Code'))
     postal_address_country = CharDField(label=_('Country'))
     batch_id = CharDField(label=_('Post service batch id'))
+
 
 class MessageDetail(Detail):
     createDate = CharDField(label=_('Create Date'))

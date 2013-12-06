@@ -62,7 +62,7 @@ from fred_webadmin import exposed
 from fred_webadmin.corba import Corba
 corba_obj = Corba()
 
-from fred_webadmin.corba import ccReg, Registry
+from fred_webadmin.corba import ccReg
 from fred_webadmin.translation import _
 
 # This must all be imported because of the way templates are dealt with.
@@ -260,7 +260,6 @@ class AdifPage(Page):
         return log_req
 
 
-
 class ADIF(AdifPage):
     def _get_menu_handle(self, action):
         return 'summary'
@@ -312,7 +311,7 @@ class ADIF(AdifPage):
 
     def _init_login(self, form):
         corba_server_spec = int(form.cleaned_data.get('corba_server', 0))
-        cherrypy.session['corba_server'] = corba_server_spec # couple [oir, context]
+        cherrypy.session['corba_server'] = corba_server_spec  # couple [oir, context]
         cherrypy.session['filterforms'] = copy(filterforms.form_classes)
         self._corba_connect(corba_server_spec)
 
@@ -321,7 +320,7 @@ class ADIF(AdifPage):
 
         logger = utils.get_logger()
         if getattr(logger, 'dao', None):
-            cherrypy.session['Logger'] = logger.dao # needed by CorbaLazyRequest
+            cherrypy.session['Logger'] = logger.dao  # needed by CorbaLazyRequest
         if isinstance(logger, DummyLogger):
             logger_form = filterforms.LoggerFilterForm
             if logger_form in cherrypy.session['filterforms']:
@@ -355,7 +354,7 @@ class ADIF(AdifPage):
             session = admin.getSession(corbaSessionString)
             # User gets authorized for login when User object is created.
             user = User(session.getUser())
-        except AuthorizationError, e:
+        except AuthorizationError:
             admin.destroySession(corbaSessionString)
             cherrypy.response.status = 403
             raise
@@ -375,7 +374,6 @@ class ADIF(AdifPage):
 
         cherrypy.session['history'] = False
         utils.get_corba_session().setHistory(False)
-
 
     def login(self, *args, **kwd):
         """ The 'gateway' to the rest of Daphne. Handles authentication and
@@ -425,8 +423,6 @@ class ADIF(AdifPage):
 
         form.action = '/login/'
         return self._render('login', {'form': form})
-
-
 
     @login_required
     def logout(self):
@@ -529,18 +525,18 @@ class Registrar(AdifPage, ListTableMixin):
         """ Creates a ccReg.AdminRegistrar object representing
             a new registrar to be created on server side. """
         new = []
-        new.append(0) # id
+        new.append(0)  # id
         new.extend([''] * 3)
-        new.append(False) # vat
+        new.append(False)  # vat
         new.extend([''] * 9)
         admin = cherrypy.session.get('Admin')
         new.extend([admin.getDefaultCountry()])
         new.extend([''] * 4)
-        new.append('') # money
-        new.append([]) # accesses
-        new.append([]) # active zones
-        new.append(False) # hidden
-        return ccReg.AdminRegistrar(*new) # empty registrar
+        new.append('')  # money
+        new.append([])  # accesses
+        new.append([])  # active zones
+        new.append(False)  # hidden
+        return ccReg.AdminRegistrar(*new)  # empty registrar
 
     def _fill_registrar_struct_from_form(self, registrar, cleaned_data):
         result = deepcopy(registrar)
@@ -590,7 +586,7 @@ class Registrar(AdifPage, ListTableMixin):
 
             result = {'reg_id': None}
             form.fire_actions(updated_registrar=corba_reg, result=result)
-            if result['reg_id'] != reg_id: # new registrar created, add him to out_refs
+            if result['reg_id'] != reg_id:  # new registrar created, add him to out_refs
                 out_refs.append(('registrar', result['reg_id']))
             reg_id = result['reg_id']
             log_req.result = 'Success'
@@ -628,7 +624,6 @@ class Registrar(AdifPage, ListTableMixin):
         if action_is_edit:
             # Only append groups and certifications when we're editing an
             # already existing registrar (there are none for a new registrar).
-            group_mgr = cherrypy.session['Admin'].getGroupManager()
             groups = self._get_groups_for_reg_id(int(kwd.get('id')))
             initial['groups'] = recoder.c2u(groups)
             certs = self._get_certifications_for_reg_id(int(kwd.get('id')))
@@ -723,10 +718,10 @@ class Registrar(AdifPage, ListTableMixin):
         return self._render('edit', ctx)
 
     @check_onperm('unblock')
-    def unblock(self, id):
+    def unblock(self, registrar_id):
         context = DictLookup()
         try:
-            reg_id = int(id)
+            reg_id = int(registrar_id)
         except (TypeError, ValueError):
             context.message = _("Required_integer_as_parameter")
             raise CustomView(self._render('error', ctx=context))
@@ -776,7 +771,7 @@ class Domain(AdifPage, ListTableMixin):
             resolver = dns.resolver.get_default_resolver().nameservers[0]
             dig = dns.query.udp(query, resolver).to_text()
             log_req.result = 'Success'
-        except Exception, e:
+        except Exception:
             #TODO(tomas): Log an error?
             #TODO(tomas): Remove ugly legacy general exception handling.
             context['main'] = _("Object_not_found")
@@ -895,14 +890,18 @@ class Domain(AdifPage, ListTableMixin):
 class Contact(AdifPage, ListTableMixin):
     pass
 
+
 class NSSet(AdifPage, ListTableMixin):
     pass
+
 
 class KeySet(AdifPage, ListTableMixin):
     pass
 
+
 class Mail(AdifPage, ListTableMixin):
     pass
+
 
 class File(AdifPage, ListTableMixin):
     @check_onperm('read')
@@ -918,7 +917,7 @@ class File(AdifPage, ListTableMixin):
                 f = filemanager.load(recoder.u2c(file_id))
                 body = ''
                 while 1:
-                    part = f.download(102400) # 100kBytes
+                    part = f.download(102400)  # 100kBytes
                     if part:
                         body = '%s%s' % (body, part)
                     else:
@@ -936,6 +935,7 @@ class File(AdifPage, ListTableMixin):
         finally:
             log_req.close()
         return response.body
+
 
 class PublicRequest(AdifPage, ListTableMixin):
     @check_onperm('change')
@@ -1090,8 +1090,10 @@ class BankStatement(AdifPage, ListTableMixin):
                 "cannot be a template!" % repr(template))
         return template
 
+
 class Message(AdifPage, ListTableMixin):
     pass
+
 
 class Filter(AdifPage, ListTableMixin):
     def _get_menu_handle(self, action):
@@ -1151,52 +1153,36 @@ class Development(object):
         cherrypy.response.headers["Content-Type"] = "text/plain"
         return output
 
-# TODO(Tom): OpenID auth does not work yet...
-class OpenID(AdifPage):
-    def index(self, *args, **kwargs):
-        cherrypy.session[SESSION_OPENID_REDIRECT] = True
-#        raise cherrypy.HTTPRedirect("/login")
-        return cherrypy.session['openid_form']
 
-    def _normalize_dict(self, args):
-        normal = {}
-        for key, value in args:
-            try:
-                prefix, rest = key.split('.', 1)
-                if prefix != 'openid':
-                    normal[str(key)] = value
-            except ValueError: #no prefix
-                normal[str(key)] = value
-        return normal
-
-    def process(self, *args, **kwargs):
-        from openid.store import memstore
-        from openid.consumer import consumer
-        store = memstore.MemoryStore()
-        query = {}
-        for k, v in kwargs.items():
-            query[k] = v.decode('utf-8')
-        cons = consumer.Consumer(cherrypy.session['openid_session'], store)
-        res = cons.complete(query, cherrypy.url("/") + "openid/process")
-#        res = cons.complete(cons.session, cherrypy.url("/") + "openid/process")
-        return res.message
-
-
-class Smaz(Page):
-    def index(self):
-        context = DictLookup({'main': p("hoj")})
-
-        return BaseSiteMenu(context).render()
-
-class Detail41(AdifPage):
-    def index(self):
-        #return 'muj index'
-        result = utils.get_detail('domain', 41)
-        from fred_webadmin.webwidgets.details.adifdetails import DomainDetail as NewDomainDetail
-        context = DictLookup({'main': NewDomainDetail(result, cherrypy.session.get('history'))})
-        return self._render('base', ctx=context)
-    def default(self):
-        return 'muj default'
+# # TODO(Tom): OpenID auth does not work yet...
+# class OpenID(AdifPage):
+#     def index(self, *args, **kwargs):
+#         cherrypy.session[SESSION_OPENID_REDIRECT] = True
+# #        raise cherrypy.HTTPRedirect("/login")
+#         return cherrypy.session['openid_form']
+#
+#     def _normalize_dict(self, args):
+#         normal = {}
+#         for key, value in args:
+#             try:
+#                 prefix, rest = key.split('.', 1)
+#                 if prefix != 'openid':
+#                     normal[str(key)] = value
+#             except ValueError: #no prefix
+#                 normal[str(key)] = value
+#         return normal
+#
+#     def process(self, *args, **kwargs):
+#         from openid.store import memstore
+#         from openid.consumer import consumer
+#         store = memstore.MemoryStore()
+#         query = {}
+#         for k, v in kwargs.items():
+#             query[k] = v.decode('utf-8')
+#         cons = consumer.Consumer(cherrypy.session['openid_session'], store)
+#         res = cons.complete(query, cherrypy.url("/") + "openid/process")
+# #        res = cons.complete(cons.session, cherrypy.url("/") + "openid/process")
+#         return res.message
 
 
 class Group(AdifPage):
@@ -1252,7 +1238,6 @@ class Group(AdifPage):
 
 def prepare_root():
     root = ADIF()
-    root.detail41 = Detail41()
     root.summary = Summary()
     if config.audit_log['viewing_actions_enabled']:
         root.logger = Logger()
@@ -1270,15 +1255,14 @@ def prepare_root():
     root.filter = Filter()
     root.statistic = Statistics()
     root.devel = Development()
-    root.openid = OpenID()
     root.group = Group()
 
     return root
+
 
 def runserver(root):
     print "-----====### STARTING ADIF ###====-----"
     cherrypy.quickstart(root, '/', config=config.cherrycfg)
 
 if __name__ == '__main__':
-    root = prepare_root()
-    runserver(root)
+    runserver(prepare_root())

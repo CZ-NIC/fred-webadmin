@@ -1,12 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import cherrypy
-from logging import debug, error
+from logging import error
 
 from fred_webadmin.webwidgets.forms.forms import Form
 from fields import *
 from fred_webadmin.webwidgets.forms.adiffields import *
-from fred_webadmin.webwidgets.forms.formsets import BaseFormSet
 from datetime import date
 
 import fred_webadmin.controller.adiferrors as adiferrors
@@ -18,15 +16,11 @@ from fred_webadmin.webwidgets.forms.editformlayouts import (
 from fred_webadmin.webwidgets.forms.formlayouts import (
     HideableNestedFieldsetFormSectionLayout,
     HideableSimpleFieldsetFormSectionLayout,
-    SimpleFieldsetFormSectionLayout, TableFormLayout)
+    TableFormLayout)
 from fred_webadmin.webwidgets.forms.formsetlayouts import DivFormSetLayout
 
-from fred_webadmin import utils
-
-from fred_webadmin.corba import ccReg, Registry
-import fred_webadmin.corbarecoder as recoder
-from fred_webadmin.webwidgets.utils import (
-    ValidationError, SortedDict)
+from fred_webadmin.corba import Registry
+from fred_webadmin.webwidgets.utils import SortedDict
 
 PAYMENT_UNASSIGNED = 1
 PAYMENT_REGISTRAR = 2
@@ -75,19 +69,19 @@ class EditForm(Form):
 
     def filter_base_fields(self):
 #        super(EditForm, self).filter_base_fields()
-        pass # viz. XXX: poznamky nahore
+        pass  # viz. XXX: poznamky nahore
 
     def set_fields_values(self):
         super(EditForm, self).set_fields_values()
         for field in self.fields.values():
             initial_value = self.initial.get(field.name_orig, field.initial)
             if not isinstance(field, FormSetField):
-                if isinstance(field, BooleanField): # checkbox
+                if isinstance(field, BooleanField):  # checkbox
                     if initial_value:
                         field.title = 'checked'
                     else:
                         field.title = 'unchecked'
-                else: # usual field
+                else:  # usual field
                     field.title = initial_value
 
     def fire_actions(self, *args, **kwargs):
@@ -323,33 +317,33 @@ class RegistrarEditForm(EditForm):
             layout_class=RegistrarEditFormLayout,
             enctype="multipart/form-data", *args, **kwargs)
 
-    handle = CharField(label=_('Handle')) # registrar identification
-    name = CharField(label=_('Name'), required=False) # registrar name
-    organization = CharField(label=_('Organization'), required=False) # organization name
+    handle = CharField(label=_('Handle'))  # registrar identification
+    name = CharField(label=_('Name'), required=False)  # registrar name
+    organization = CharField(label=_('Organization'), required=False)  # organization name
 
-    street1 = CharField(label=_('Street1'), required=False) # address part 1
-    street2 = CharField(label=_('Street2'), required=False) # address part 2
-    street3 = CharField(label=_('Street3'), required=False) # address part 3
-    city = CharField(label=_('City'), required=False) # city of registrar headquaters
-    stateorprovince = CharField(label=_('State'), required=False) # address part
-    postalcode = CharField(label=_('ZIP'), required=False, max_length=32) # address part
+    street1 = CharField(label=_('Street1'), required=False)  # address part 1
+    street2 = CharField(label=_('Street2'), required=False)  # address part 2
+    street3 = CharField(label=_('Street3'), required=False)  # address part 3
+    city = CharField(label=_('City'), required=False)  # city of registrar headquaters
+    stateorprovince = CharField(label=_('State'), required=False)  # address part
+    postalcode = CharField(label=_('ZIP'), required=False, max_length=32)  # address part
     country = ChoiceField(
         label=_('Country'),
         choices=CorbaLazyRequestIterStruct(
             'Admin', None, 'getCountryDescList', ['cc', 'name'], None),
         initial=CorbaLazyRequest('Admin', None, 'getDefaultCountry', None),
-        required=False) # country code
+        required=False)  # country code
 
     ico = CharField(label=_('ICO'), required=False, max_length=50)
     dic = CharField(label=_('DIC'), required=False, max_length=50)
     varSymb = CharField(label=_('Var. Symbol'), required=False, max_length=10)
     vat = BooleanField(label=_('DPH'), required=False)
 
-    telephone = CharField(label=_('Telephone'), required=False, max_length=32) # phne number
-    fax = CharField(label=_('Fax'), required=False, max_length=32) # fax number
-    email = CharField(label=_('Email'), required=False) # contact email
-    url = CharField(label=_('URL'), required=False) # URL
-    hidden = BooleanField(label=_('System registrar'), required=False) # System registrar
+    telephone = CharField(label=_('Telephone'), required=False, max_length=32)  # phne number
+    fax = CharField(label=_('Fax'), required=False, max_length=32)  # fax number
+    email = CharField(label=_('Email'), required=False)  # contact email
+    url = CharField(label=_('URL'), required=False)  # URL
+    hidden = BooleanField(label=_('System registrar'), required=False)  # System registrar
 
     visible_fieldsets_ids = HiddenField(
         required=False, id="visible_fieldsets_ids_field_id")
@@ -419,7 +413,7 @@ class RegistrarEditForm(EditForm):
         session = utils.get_corba_session()
         try:
             reg_id = session.updateRegistrar(reg)
-        except ccReg.Admin.UpdateFailed, e:
+        except ccReg.Admin.UpdateFailed:
             raise UpdateFailedError(
                 "Updating registrar failed. Perhaps you tried to "
                 "create a registrar with an already used handle?")
@@ -440,7 +434,7 @@ class BankStatementPairingEditForm(EditForm):
             (PAYMENT_ACCOUNTS, payment_map[PAYMENT_ACCOUNTS]),
             (PAYMENT_ACADEMIA, payment_map[PAYMENT_ACADEMIA]),
             (PAYMENT_OTHER, payment_map[PAYMENT_OTHER])],
-        onchange="disableRegistrarHandle();")#, onload="disableRegistrarHandle();")
+        onchange="disableRegistrarHandle();")  # , onload="disableRegistrarHandle();")
     handle = CharField(
         label=_('Pair with Registrar Handle'), name="registrar_handle_input")
 
@@ -496,7 +490,6 @@ class RegistrarGroupsEditForm(EditForm):
                     raise UpdateFailedError(_(u'Updating group %s has failed.') % group_name)
                 finally:
                     log_req.close()
-
 
 
 class GroupManagerEditForm(EditForm):

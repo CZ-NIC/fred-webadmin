@@ -5,8 +5,10 @@ from translation import _
 from mappings import f_urls
 from fred_webadmin import config
 
+
 class MenuNode(object):
     _menudict = {}
+
     def __init__(self, handle, caption, body_id=None, cssc=None, url=None,
         submenu=None, nperm=None, nperm_type='all', default=False, disabled=False):
         ''' nperm defines negative permssion(s) - can be string or list of strings
@@ -52,14 +54,13 @@ class MenuNode(object):
                     else:
                         raise RuntimeError('Menu specification error: there could be only one default submenu of menu!')
 
-        self.nperm = list(set(self.nperm)) # only distinct values
+        self.nperm = list(set(self.nperm))  # only distinct values
 
         MenuNode._menudict[handle] = self
 
     @classmethod
     def get_menu_by_handle(cls, handle):
         return MenuNode._menudict.get(handle)
-
 
     def _get_body_id(self):
         if self._body_id is not None:
@@ -69,8 +70,10 @@ class MenuNode(object):
                 return self.parent.body_id
             else:
                 return None
+
     def _set_body_id(self, value):
         self._body_id = value
+
     body_id = property(_get_body_id, _set_body_id)
 
     def _get_cssc(self):
@@ -81,15 +84,18 @@ class MenuNode(object):
                 return self.parent.cssc
             else:
                 return None
+
     def _set_cssc(self, value):
         self._cssc = value
-    cssc = property(_get_cssc, _set_cssc)
 
+    cssc = property(_get_cssc, _set_cssc)
 
     def _get_url(self):
         return self._url
+
     def _set_url(self, value):
         self._url = value
+
     url = property(_get_url, _set_url)
 
     def mprint(self, level=0):

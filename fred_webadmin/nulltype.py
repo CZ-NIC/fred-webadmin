@@ -6,6 +6,7 @@
     field value to the appropriate corba type before sending it to the server.
 """
 
+
 class Singleton(object):
     """ Singleton pattern (only one instance is created).
 
@@ -15,15 +16,15 @@ class Singleton(object):
             >>> a is b
             True
     """
-    __single = None # the one, true Singleton
+    __single = None  # the one, true Singleton
 
-    def __new__(classtype, *args, **kwargs):
+    def __new__(cls, *args, **kwargs):
         # Check to see if a __single exists already for this class
         # Compare class types instead of just looking for None so
         # that subclasses will create their own __single objects
-        if classtype != type(classtype.__single):
-            classtype.__single = object.__new__(classtype, *args, **kwargs)
-        return classtype.__single
+        if cls != type(cls.__single):
+            cls.__single = object.__new__(cls, *args, **kwargs)
+        return cls.__single
 
     def __init__(self, name=None):
         self.name = name

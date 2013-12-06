@@ -7,11 +7,9 @@ if __name__ == '__main__':
     from fred_webadmin.corba import Corba, ccReg, Registry
     from fred_webadmin.corbarecoder import CorbaRecode
 
-
     recoder = CorbaRecode('utf-8')
-    c2u = recoder.decode # recode from corba string to unicode
-    u2c = recoder.encode # recode from unicode to strings
-
+    c2u = recoder.decode  # recode from corba string to unicode
+    u2c = recoder.encode  # recode from unicode to strings
 
     corba = Corba()
     corba.connect('pokuston:50001', 'fred')

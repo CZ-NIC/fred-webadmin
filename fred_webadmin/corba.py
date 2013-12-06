@@ -9,24 +9,35 @@ import omniORB
 import CosNaming
 #from omniORB import CORBA, importIDL
 
-from translation import _
 
 # own exceptions
 class IorNotFoundError(Exception):
     pass
+
+
 class AlreadyLoggedInError(Exception):
     pass
+
+
 class NotLoggedInError(Exception):
     pass
+
+
 class LanguageNotSupportedError(Exception):
     pass
+
+
 class SetLangAfterLoginError(Exception):
     pass
+
+
 class ParameterIsNotListOrTupleError(Exception):
     pass
 
+
 class CorbaServerDisconnectedException(Exception):
     pass
+
 
 def transientFailure(cookie, retries, exc):
     if retries > 10:
@@ -34,11 +45,13 @@ def transientFailure(cookie, retries, exc):
     else:
         return True
 
+
 def commFailure(cookie, retries, exc):
     if retries > 20:
         return False
     else:
         return True
+
 
 def systemFailure(cookie, retries, exc):
     if retries > 5:
@@ -46,11 +59,11 @@ def systemFailure(cookie, retries, exc):
     else:
         return True
 
-cookie = None
+handler_cookie = None
 
-omniORB.installTransientExceptionHandler(cookie, transientFailure)
-omniORB.installCommFailureExceptionHandler(cookie, commFailure)
-#omniORB.installSystemExceptionHandler(cookie, systemFailure)
+omniORB.installTransientExceptionHandler(handler_cookie, transientFailure)
+omniORB.installCommFailureExceptionHandler(handler_cookie, commFailure)
+# omniORB.installSystemExceptionHandler(handler_cookie, systemFailure)
 
 import config
 #module_name = importIDL(config.idl)[0] # this hase to be here because cherrypy session needs to know ccReg module on start (while loadin session from file)
@@ -60,6 +73,7 @@ Registry = sys.modules['Registry']
 orb = omniORB.CORBA.ORB_init(["-ORBnativeCharCodeSet", "UTF-8"], omniORB.CORBA.ORB_ID)
 #orb = CORBA.ORB_init(["-ORBnativeCharCodeSet", "UTF-8", "-ORBtraceLevel", "10"], CORBA.ORB_ID)
 #omniORB.setClientCallTimeout(2000)
+
 
 class Corba(object):
     def __init__(self):

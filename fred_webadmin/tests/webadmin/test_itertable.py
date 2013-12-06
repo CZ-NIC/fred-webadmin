@@ -3,7 +3,7 @@ from omniORB import CORBA
 import omniORB
 
 from mock import Mock, call
-from nose.tools import assert_equal, assert_is_not_none, raises #@UnresolvedImport
+from nose.tools import assert_equal, assert_is_not_none, raises  # @UnresolvedImport
 from fred_webadmin.corba import Registry
 
 import fred_webadmin.itertable
@@ -52,8 +52,10 @@ class Initializer(object):
             environment for the other tests.
         """
         old_value = getattr(obj, attr)
+
         def tear_down():
             setattr(obj, attr, old_value)
+
         self._on_teardown.append(tear_down)
         setattr(obj, attr, new_value)
 
@@ -219,7 +221,6 @@ class TestGetRowDict(Initializer):
         assert_equal(rows[1].get(u'c1'), u'test value 2.1')
         assert_equal(rows[1].get(u'c2'), u'test value 2.2')
 
-
     def test_get_rows_dict_multiple_rows(self):
         """ get_rows_dict returns multiple rows correctly. """
         self.init_itertable(columnDesc=["c1", "c2"],
@@ -233,11 +234,11 @@ class TestGetRowDict(Initializer):
         table = IterTable('test_req_object', test_corba_session_string, pagesize=10)
         rows = table.get_rows_dict(start=5, limit=11)
 
-        assert_equal(len(rows) , 11)
-        assert_equal(len(rows[6]) , 3)
-        assert_equal(rows[6].get(u'Id') , u'11')
-        assert_equal(rows[6].get(u'c1') , u'test value 11.1')
-        assert_equal(rows[6].get(u'c2') , u'test value 11.2')
+        assert_equal(len(rows), 11)
+        assert_equal(len(rows[6]), 3)
+        assert_equal(rows[6].get(u'Id'), u'11')
+        assert_equal(rows[6].get(u'c1'), u'test value 11.1')
+        assert_equal(rows[6].get(u'c2'), u'test value 11.2')
 
     @raises(IndexError)
     def test_get_rows_dict_multiple_rows_index_error(self):
@@ -273,7 +274,8 @@ class TestGetRowId(Initializer):
         self.pagetable_mock.getRowId.side_effect = Registry.Table.INVALID_ROW
 
         table = IterTable('test_req_object', test_corba_session_string, pagesize=50)
-        table.get_row_id(index=10000) # index out of bounds
+        table.get_row_id(index=10000)  # index out of bounds
+
 
 class TestIteration(Initializer):
     def __init__(self):

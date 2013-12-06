@@ -24,7 +24,7 @@ from fred_webadmin.webwidgets.utils import (
     SortedDict, ErrorDict, escape_js_literal)
 from fred_webadmin.corbalazy import (
     CorbaLazyRequestIterStruct, ServerNotAvailableError)
-from fred_webadmin.corba import ccReg, Registry
+from fred_webadmin.corba import Registry
 from fred_webadmin.mappings import f_urls
 import fred_webadmin.webwidgets.forms.editforms as editforms
 import fred_webadmin.webwidgets.forms.emptyvalue
@@ -37,6 +37,7 @@ __all__ = ['UnionFilterForm', 'RegistrarFilterForm', 'ObjectStateFilterForm',
            'LoggerFilterForm', 'BankStatementFilterForm', 'MessageFilterForm',
            'PropertyFilterForm',
            'get_filter_forms_javascript']
+
 
 class UnionFilterForm(Form):
     ''' Form that contains more Filter Forms, data for this form is list of data
@@ -55,7 +56,7 @@ class UnionFilterForm(Form):
                 "You have to specify form_class for UnionFilterForm!")
 
         if data:
-            if not data_cleaned and data.has_key('json_data'):
+            if not data_cleaned and 'json_data' in data:
                 data = simplejson.loads(data['json_data'])
             else:
                 debug('data aren\'t json')
@@ -79,16 +80,15 @@ class UnionFilterForm(Form):
         self.onkeypress = 'if (event.keyCode == 13) {sendUnionForm(this);}'
 
     def set_fields_values(self):
-        if not self.is_bound: # if not bound, then create one empty dictionary
+        if not self.is_bound:  # if not bound, then create one empty dictionary
             self.forms.append(self.form_class())
-        else: # else create form for each value in 'data' list
+        else:  # else create form for each value in 'data' list
             for form_data in self.data:
                 debug('Creating form in unionu with data: %s' % form_data)
                 debug('a that data are data_cleaned=%s' % self.data_cleaned)
                 form = self.form_class(
                     form_data, data_cleaned=self.data_cleaned)
                 self.forms.append(form)
-
 
     def is_empty(self, exceptions=None):
         for form in self.forms:
@@ -98,7 +98,7 @@ class UnionFilterForm(Form):
 
     def full_clean(self):
         self._errors = ErrorDict()
-        if not self.is_bound: # Stop further processing.
+        if not self.is_bound:  # Stop further processing.
             return
         self.cleaned_data = []
 
@@ -166,7 +166,7 @@ class FilterForm(Form):
                 if field_name in self.base_fields.keys()]
 
     def set_fields_values(self):
-        pass # setting values is done in build_fields()
+        pass  # setting values is done in build_fields()
 
     def build_fields(self):
         """ Creates self.fields from given data or set default field (if not
@@ -221,7 +221,7 @@ class FilterForm(Form):
                 fields_for_sort.append(field)
 
         # adding fields in order according to field.order
-        for pos, field in sorted(
+        for dummy_pos, field in sorted(
                 [[field.order, field] for field in fields_for_sort]):
             self.fields[field.name] = field
             field.owner_form = self
@@ -304,6 +304,7 @@ class ContactFilterForm(ObjectFilterForm):
     Vat = CharField(label=_('VAT'))
     PhoneNumber = CharField(label=_('Phone number'))
 
+
 class NSSetFilterForm(ObjectFilterForm):
     TechContact = CompoundFilterField(
         label=_('Technical contact'), form_class=ContactFilterForm)
@@ -313,6 +314,7 @@ class NSSetFilterForm(ObjectFilterForm):
     def clean(self):
         cleaned_data = super(NSSetFilterForm, self).clean()
         return cleaned_data
+
 
 class KeySetFilterForm(ObjectFilterForm):
     TechContact = CompoundFilterField(
@@ -462,7 +464,6 @@ class MessageFilterForm(FilterForm):
         label=_('Message contact'), form_class=ContactFilterForm)
 
 
-
 class FilterFilterForm(FilterForm):
     default_fields_names = ['Type']
 
@@ -559,6 +560,7 @@ form_classes = [DomainFilterForm,
                 RequestObjectRefFilterForm,
                ]
 
+
 def get_filter_forms_javascript(filter_form_classes):
     """ Javascript is cached in user session (must be there, beucause each user
         can have other forms, because of different permissions.
@@ -588,9 +590,9 @@ def get_filter_forms_javascript(filter_form_classes):
     output += u'allFieldsDict = %s' % (simplejson.dumps(all_fields_dict) + u'\n')
     return output
 
+
 def get_service_actions_javascript(logd):
     types = [item.id for item in logd.getServices()]
-    js = ""
     result = {}
     for t in types:
         actions = logd.getRequestTypesByService(t)

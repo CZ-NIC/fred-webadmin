@@ -37,11 +37,11 @@ audit_log = {
 #           e.g.: testuser,read.domain,write.registrar,read.registrar...
 permissions = {
     'enable_checking': False,
-    'backend': 'csv', #, 'nicauth'
+    'backend': 'csv',  # , 'nicauth'
     'csv_file': 'DU_DATAROOTDIR/perms.csv',
 }
 
-#'/usr/share/idl/fred/ccReg.idl'
+# '/usr/share/idl/fred/ccReg.idl'
 idl = 'DU_IDL_DIR/ccReg.idl'
 # (label, nshost, nscontext),
 iors = (('Fred', 'DU_NS_HOST', 'DU_NS_CONTEXT'),)
@@ -64,7 +64,7 @@ LDAP_scope = 'DU_LDAP_SCOPE'
 # gettext
 gettext_domain = 'adif'
 localepath = locale_dir
-#lang = 'cs_CZ'
+# lang = 'cs_CZ'
 lang = 'en_US'
 
 js_calendar_date_format = 'D.M.YYYY'
@@ -88,11 +88,11 @@ cherrycfg = {
         'tools.sessions.on': True,
         'tools.sessions.storage_type': 'file',
         'tools.sessions.storage_path': sessions_dir,
-        'tools.sessions.timeout': 60, # in minutes
+        'tools.sessions.timeout': 60,  # in minutes
         'server.log_to_screen': False,
         'server.log_file': log_dir + 'fred-webadmin.log',
     },
-    '/': {'tools.staticdir.root':  www_dir},
+    '/': {'tools.staticdir.root': www_dir},
     '/css': {'tools.staticdir.on': True,
              'tools.staticdir.dir': 'css'},
     '/js': {'tools.staticdir.on': True,

@@ -65,7 +65,7 @@ class IterTable(object):
         self.rawheader = [x.name for x in columnHeaders]
         self.rawheader.insert(0, 'Id')
 
-        self.header = [ _(x) for x in self.rawheader ]
+        self.header = [_(x) for x in self.rawheader]
         self.header_type = [x.type._n for x in columnHeaders]
         self.header_type.insert(0, header_id)
 
@@ -157,7 +157,6 @@ class IterTable(object):
             self._rewrite_cell(cell)
             row.append(cell)
         return row
-
 
     def get_row_id(self, index):
         """
@@ -266,9 +265,9 @@ class IterTable(object):
             }
         contentType = self.header_type[cell['index']]
 
-        if rewrite_rules[contentType].has_key('icon'):
+        if 'icon' in rewrite_rules[contentType]:
             cell['icon'] = rewrite_rules[contentType]['icon']
-        if rewrite_rules[contentType].has_key('oid_url'):
+        if 'oid_url' in rewrite_rules[contentType]:
             val = cell['value']
             if val.id is not None and val.id and val.handle != 0:
                 cell['url'] = rewrite_rules[contentType]['oid_url'] % \
@@ -277,7 +276,7 @@ class IterTable(object):
             else:
                 cell['icon'] = ''
                 cell['value'] = ''
-        if rewrite_rules[contentType].has_key('url'):
+        if 'url' in rewrite_rules[contentType]:
             cell['url'] = rewrite_rules[contentType]['url'] % (cell['value'],)
 
     def set_filter(self, union_filter_data):
@@ -307,7 +306,6 @@ class IterTable(object):
                   self.rawheader))
             raise
         self.set_sort(col_num, bool_dir)
-
 
     def set_default_sort(self):
         if f_name_default_sort.get(self.request_object):
@@ -345,6 +343,7 @@ class IterTable(object):
         self._table._set_pageSize(size)
         self._update()
 
+
 class CorbaFilterIterator(object):
     def __init__(self, filter_iterable):
         debug("Creating CORBAFITERATOR")
@@ -356,13 +355,14 @@ class CorbaFilterIterator(object):
 
     def next(self):
         debug("ITERATING NEXT, hasNext=%s" % self.iter.hasNext())
-        if self.iter.hasNext(): #isDone()
+        if self.iter.hasNext():  # isDone()
             sub_filter = self.iter.getFilter()
             debug("iterator getFilter = :%s" % sub_filter)
             self.iter.setNext()
             return sub_filter
         else:
             raise StopIteration
+
 
 class FilterLoader(object):
     @classmethod
@@ -376,11 +376,11 @@ class FilterLoader(object):
         debug('filter_data in set_one_compound_filter: %s' % filter_data)
         for key, [neg, val] in filter_data.items():
             func = getattr(compound, "add%s" % key)
-            sub_filter = func() # add
+            sub_filter = func()  # add
 
             # Follows ugly code full of 'isinstance' calls. However, it seems
             # to be necessary because we're using Corba.
-            if isinstance(sub_filter, ccReg.Filters._objref_Compound): # Compound:
+            if isinstance(sub_filter, ccReg.Filters._objref_Compound):  # Compound:
                 cls._set_one_compound_filter(sub_filter, val)
             else:
                 sub_filter._set_neg(recoder.u2c(neg))
@@ -416,7 +416,7 @@ class FilterLoader(object):
             name = recoder.c2u(sub_filter._get_name())
             debug('NAME=%s %s' % (name, type(name)))
             neg = sub_filter._get_neg()
-            if isinstance(sub_filter, ccReg.Filters._objref_Compound):#Compound):
+            if isinstance(sub_filter, ccReg.Filters._objref_Compound):
                 value = cls._get_one_compound_filter_data(sub_filter)
             else:
                 if sub_filter.isActive():

@@ -15,8 +15,6 @@ from fred_webadmin.corba import Registry
 from fred_webadmin.corbalazy import CorbaLazyRequestIterStruct
 from fred_webadmin.webwidgets.utils import ValidationError
 
-#__all__ = ['LoginForm', 'FilterForm']
-
 
 class LoginForm(Form):
     corba_server = ChoiceField(choices=[(str(i), ior[0]) for i, ior in enumerate(config.iors)], label=_("Server"))

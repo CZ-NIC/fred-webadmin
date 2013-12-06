@@ -3,19 +3,21 @@
 
 from fred_webadmin.translation import _
 from fred_webadmin.webwidgets.gpyweb.gpyweb import (
-    WebWidget, tagid, attr, notag, div, span, table, tbody, tr, th, td,
-    input, label, select, option, ul, li, script, a, img, strong, fieldset,
-    legend)
+    WebWidget, tagid, attr, div, table, tbody, tr, th, td,
+    input, label, a, legend)
 from fred_webadmin.webwidgets.utils import pretty_name
+
 
 class FormLayout(WebWidget):
     def __init__(self, form, *content, **kwd):
         self.form = form
         super(FormLayout, self).__init__(*content, **kwd)
 
+
 class TableFormLayout(FormLayout):
     columns_count = 2
     tattr_list = table.tattr_list
+
     def __init__(self, form, *content, **kwd):
         super(TableFormLayout, self).__init__(form, *content, **kwd)
         self.tag = u'table'
@@ -90,7 +92,6 @@ class NestedFieldsetFormSectionLayout(FormLayout):
         fields_in_section = self.get_fields()
         for field in fields_in_section:
             errors = self.form.errors.get(field.name_orig, None)
-            label_str = self.get_label_name(field)
             self.table.add(tr(
                 td(errors, field)))
 
@@ -104,6 +105,7 @@ class NestedFieldsetFormSectionLayout(FormLayout):
         if not label_str:
             label_str = pretty_name(field.name)
         return label_str
+
 
 class HideableNestedFieldsetFormSectionLayout(NestedFieldsetFormSectionLayout):
     def layout_start(self):
@@ -176,6 +178,7 @@ class SimpleFieldsetFormSectionLayout(FormLayout):
     def get_fields(self):
         section_fields_names = self.section_spec[2]
         return [item[1] for item in self.form.fields.items() if item[0] in section_fields_names]
+
 
 class HideableSimpleFieldsetFormSectionLayout(SimpleFieldsetFormSectionLayout):
     def layout_fields(self):

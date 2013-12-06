@@ -2,12 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from copy import copy
-import cherrypy
 from omniORB.any import from_any, to_any
 from omniORB import CORBA
-from datetime import datetime
-import time
-from logging import debug
 import xml.sax
 
 import fred_webadmin.corbarecoder as recoder
@@ -24,9 +20,10 @@ from fred_webadmin.utils import get_detail_from_oid, LateBindingProperty
 from fred_webadmin.translation import _
 from fred_webadmin.corba import ccReg, Registry
 from fred_webadmin.webwidgets.xml_prettyprint import xml_prettify_webwidget
-from fred_webadmin.mappings import f_enum_name, f_name_detailname, f_req_object_type_name
+from fred_webadmin.mappings import f_enum_name, f_req_object_type_name
 from fred_webadmin.corbalazy import CorbaLazyRequestIter
 import fred_webadmin.webwidgets.forms.editforms as editforms
+
 
 def resolve_object(obj_data):
     """ Returns object from data, where data could be OID, OID in CORBA.Any,
@@ -43,11 +40,13 @@ def resolve_object(obj_data):
     else:
         return obj_data
 
+
 def resolve_detail_class(detail_class, value):
-    if isinstance(detail_class, dict): # if corba field is Union of structures for inner details, switch to particular detail class according to corba union discriminant (_d)
+    if isinstance(detail_class, dict):  # if corba field is Union of structures for inner details, switch to particular detail class according to corba union discriminant (_d)
         return detail_class[value._d], recoder.c2u(value._v)
     else:
         return detail_class, value
+
 
 class DField(WebWidget):
     ''' Base class for detail fields '''
@@ -60,8 +59,8 @@ class DField(WebWidget):
         self.label = label
         self._nperm = nperm
         self.owner_form = None
-        self._value = fredtypes.Null() #None
-        self.access = True # if user have nperm for this field, then this will be set to False in Detail.build_fields()
+        self._value = fredtypes.Null()  # None
+        self.access = True  # if user have nperm for this field, then this will be set to False in Detail.build_fields()
         self.no_access_content = div(attr(cssc='no_access'), _('CENSORED'))
 
         # Increase the creation counter, and save our local copy.
@@ -93,9 +92,11 @@ class DField(WebWidget):
         if self.access:
             self._value = self.resolve_value(value)
         else:
-            self._value = fredtypes.Null() #None
+            self._value = fredtypes.Null()  # None
+
     def _get_value(self):
         return self._value
+
     value = LateBindingProperty(_get_value, _set_value)
 
     def value_from_data(self, data):
@@ -117,12 +118,15 @@ class DField(WebWidget):
         else:
             return self.name.lower()
 
+
 class CharDField(DField):
     enclose_content = True
+
     def resolve_value(self, value):
         if value != fredtypes.Null():
             value = unicode(value)
         return value
+
 
 class PaymentTypeDField(CharDField):
     def resolve_value(self, value):
@@ -135,17 +139,19 @@ class PaymentTypeDField(CharDField):
 # converting corba detail?
 class DateDField(DField):
     enclose_content = True
+
     def resolve_value(self, value):
         if value != fredtypes.Null():
-            return value #recoder.corba_to_date(value)
+            return value  # recoder.corba_to_date(value)
         else:
             return fredtypes.NullDate()
 
 
 class LongCharDField(DField):
     enclose_content = True
-    n_break_chars = 40 # number of chars after that char_break is inserted
+    n_break_chars = 40  # number of chars after that char_break is inserted
     break_char = '<br />'
+
     def resolve_value(self, value):
         val = super(LongCharDField, self).resolve_value(value)
         splitted = [val[self.n_break_chars * i:self.n_break_chars * (i + 1)] for i in range(len(val) / self.n_break_chars + 1)]
@@ -164,9 +170,11 @@ class PreCharDField(CharDField):
 
 class XMLDField(CharDField):
     enclose_content = True
+
     def __init__(self, name='', label=None, *content, **kwd):
         super(XMLDField, self).__init__(*content, **kwd)
         self.media_files.append('/css/pygments.css')
+
     def resolve_value(self, value):
         value = super(XMLDField, self).resolve_value(value)
         value = xml_prettify_webwidget(value)
@@ -175,7 +183,7 @@ class XMLDField(CharDField):
 
 class XMLOrCharDField(XMLDField):
     def resolve_value(self, value):
-        val = super(XMLDField, self).resolve_value(value)
+        val = super(XMLOrCharDField, self).resolve_value(value)
         try:
             val_xml = xml_prettify_webwidget(val)
         except xml.sax.SAXParseException:
@@ -211,7 +219,6 @@ class RequestPropertyDField(DField):
     """
     def __init__(self, name='', label=None, *content, **kwd):
         DField.__init__(self, name, label, *content, **kwd)
-
 
     def _separate_properties(self, props):
         """
@@ -287,13 +294,7 @@ class RequestPropertyDField(DField):
             return u''
         vals = self._process_negations(value)
         inprops, outprops = self._separate_properties(vals)
-        def cmp_props(a, b):
-            if a['name'] > b['name']:
-                return 1
-            elif a['name'] == b['name']:
-                return 0
-            else:
-                return -1
+
         table_in = table([self._format_property(prop) for prop in inprops]) if \
             inprops else span()
         table_out = table([self._format_property(prop) for prop in outprops]) if \
@@ -336,9 +337,7 @@ class FileHandleDField(ObjectHandleDField):
             self.add(div(attr(cssc='field_empty')))
         else:
             self.add(a(attr(
-                href=(
-                    f_urls[f_enum_name[ ccReg.FT_FILE]] + u'detail/?id=' +
-                    unicode(self._value))),
+                href=(f_urls[f_enum_name[ccReg.FT_FILE]] + u'detail/?id=' + unicode(self._value))),
                 self.handle))
 
 
@@ -366,25 +365,23 @@ class ObjectHandleURLDField(MultiValueDField):
         It reads data from fields given in constructor (usualy "id" and "handle").
     '''
     enclose_content = True
+
     def __init__(self, name='', label=None, id_name='id', handle_name='handle', object_type_name=None, *content, **kwd):
         super(ObjectHandleURLDField, self).__init__(name, label, [id_name, handle_name], *content, **kwd)
         self.id_name = id_name
         self.handle_name = handle_name
         self.object_type_name = object_type_name
 
-
     def make_content(self):
         self.content = []
 
-        if self.object_type_name is None: # this cannot be in constructor, becouse self.owner_detail is not known at construction time
+        if self.object_type_name is None:  # this cannot be in constructor, becouse self.owner_detail is not known at construction time
             self.object_type_name = self.owner_detail.get_object_name()
 
         if self.value[self.handle_name] == '':
             self.add(div(attr(cssc='field_empty')))
         self.add(a(attr(href=f_urls[self.object_type_name] + 'detail/?id=%s' % self.value[self.id_name]), self.value[self.handle_name]))
 
-#    def value_from_data(self, data):
-#        return self.resolve_value([data.get(self.id_name), data.get(self.handle_name)])
 
 class DiscloseCharDField(DField):
     ''' Field which get additional boolean value (usualy dislose + self.name[1].upper() + self.name[1:], but can be specified),
@@ -393,26 +390,22 @@ class DiscloseCharDField(DField):
     def make_content(self):
         self.content = []
         if self.value:
-            cssc = 'disclose' + unicode(bool(self.value[1])) # => 'discloseTrue' or 'discloseFalse'
+            cssc = 'disclose' + unicode(bool(self.value[1]))  # => 'discloseTrue' or 'discloseFalse'
             if self.value[0] == '':
                 self.add(div(attr(cssc=cssc + ' field_empty')))
             else:
                 self.add(span(attr(cssc=cssc), self.value[0]))
         else:
-            self.add(div(attr(cssc='field_empty'))) # in case no access (from permissions)
+            self.add(div(attr(cssc='field_empty')))  # in case no access (from permissions)
 
     def on_add(self):
         super(DiscloseCharDField, self).on_add()
         if self.parent_widget and self.value:
-            cssc = 'disclose' + unicode(bool(self.value[1])) # => 'discloseTrue' or 'discloseFalse'
+            cssc = 'disclose' + unicode(bool(self.value[1]))  # => 'discloseTrue' or 'discloseFalse'
             if getattr(self.parent_widget, 'cssc', False):
                 self.parent_widget.cssc += ' ' + cssc
             else:
                 self.parent_widget.cssc = cssc
-
-#    def value_from_data(self, data):
-#        return self.resolve_value([data.get(self.name), data.get(self.disclose_name)])
-
 
 
 class ObjectHandleEPPIdDField(DField):
@@ -429,6 +422,7 @@ class ObjectHandleEPPIdDField(DField):
 
     def value_from_data(self, data):
         return self.resolve_value([data.get(self.handle_name), data.get(self.eppid_name)])
+
 
 class PriceDField(DField):
     def make_content(self):
@@ -472,6 +466,7 @@ class ListObjectDField(DField):
     ''' Field with inner list of objects - displayed in table where headers are labels,
     '''
     tattr_list = table.tattr_list
+
     def __init__(self, detail_class=None, display_only=None, layout_class=TableRowDetailLayout, *content, **kwd):
         super(ListObjectDField, self).__init__(*content, **kwd)
         self.tag = u'table'
@@ -483,7 +478,6 @@ class ListObjectDField(DField):
         # DirectSectionLayout, so it is in the same place as SectionTable.
         # Ergo it should have the same style.
         self.cssc = u'section_table history_list_table'
-
 
     def resolve_value(self, value):
         # tady asi bude neco jak if isinstance(data, OID_type), tak tohle, else: a ziskani dat specifikovane nepovinnym parametrem (jmeno funkce nebo ukazaetel na funkci)
@@ -531,10 +525,12 @@ class ListObjectDField(DField):
         else:
             self.add(div(attr(cssc='field_empty')))
 
+
 class ListObjectHandleDField(DField):
     ''' Data is list of OIDs.
     '''
     enclose_content = True
+
     def make_content(self):
         self.content = []
         if self.value:
@@ -546,10 +542,12 @@ class ListObjectHandleDField(DField):
     #                           strong(oid.handle)))
                                oid.handle))
 
+
 class ListLogObjectReferenceDField(DField):
     ''' Data is list of Logger ObjectReference
     '''
     enclose_content = True
+
     def make_content(self):
         self.content = []
         if self.value:
@@ -557,7 +555,7 @@ class ListLogObjectReferenceDField(DField):
                 if ref and ref.id:
                     if i != 0:
                         self.add(', ')
-                    if f_req_object_type_name.get(ref.type): # only object displayable by daphne will be links, others plain text:
+                    if f_req_object_type_name.get(ref.type):  # only object displayable by daphne will be links, others plain text:
                         self.add(a(attr(href=f_urls[f_req_object_type_name[ref.type]] + u'detail/?id=' + unicode(ref.id)),
                                    '%s:%s' % (ref.type, ref.id)))
                     else:
@@ -579,10 +577,12 @@ class ConvertDField(DField):
         self.inner_field.value = self.convert_table[self.value]
         self.add(self.inner_field)
 
+
 class HistoryDField(DField):
     ''' Only for history part of NHDfield, so this field is not used directly in detail
     '''
     tattr_list = table.tattr_list
+
     def __init__(self, name='', label=None, inner_field=None, *content, **kwd):
         super(HistoryDField, self).__init__(name, label, *content, **kwd)
         self.tag = 'table'
@@ -599,8 +599,8 @@ class HistoryDField(DField):
                 val = from_any(history_rec.value, True)
                 inner_field_copy = copy(self.inner_field)
                 inner_field_copy.value = val
-                date_from = history_rec._from #recoder.corba_to_datetime(history_rec._from)
-                date_to = history_rec.to #recoder.corba_to_datetime(history_rec.to)
+                date_from = history_rec._from  # recoder.corba_to_datetime(history_rec._from)
+                date_to = history_rec.to  # recoder.corba_to_datetime(history_rec.to)
                 logger_url = f_urls['logger'] + 'detail/?id=%s' % history_rec.requestId
 
                 history_tr = tr()
@@ -627,6 +627,7 @@ class HistoryObjectDField(HistoryDField):
     ''' History field of inner object - displayed in table where headers are labels,
     '''
     tattr_list = table.tattr_list
+
     def __init__(self, detail_class=None, display_only=None, layout_class=TableColumnsDetailLayout, *content, **kwd):
         super(HistoryObjectDField, self).__init__(*content, **kwd)
         self.tag = u'table'
@@ -635,7 +636,7 @@ class HistoryObjectDField(HistoryDField):
         self.layout_class = layout_class
         self.inner_details = []
 
-        self.cssc = u'section_table history_list_table' # although this is not a section table, it is mostly used in DirectSectionLayout, so it is in place where SectionTable is and so it should have the same style
+        self.cssc = u'section_table history_list_table'  # although this is not a section table, it is mostly used in DirectSectionLayout, so it is in place where SectionTable is and so it should have the same style
 
     def resolve_value(self, value):
         if value:
@@ -673,8 +674,8 @@ class HistoryObjectDField(HistoryDField):
             self.add(tbody(tagid('tbody')))
             for i, detail in enumerate(self.inner_details):
                 history_rec = self.value[i]
-                date_from = history_rec._from #recoder.corba_to_datetime(history_rec._from)
-                date_to = history_rec.to #recoder.corba_to_datetime(history_rec.to)
+                date_from = history_rec._from  # recoder.corba_to_datetime(history_rec._from)
+                date_to = history_rec.to  # recoder.corba_to_datetime(history_rec.to)
                 logger_url = f_urls['logger'] + 'detail/?id=%s' % history_rec.requestId
 
                 history_tr = tr()
@@ -691,8 +692,10 @@ class HistoryObjectDField(HistoryDField):
         else:
             self.add(div(attr(cssc='field_empty')))
 
+
 class HistoryListObjectDField(HistoryDField):
     tattr_list = table.tattr_list
+
     def __init__(self, detail_class=None, display_only=None, layout_class=TableColumnsDetailLayout, *content, **kwd):
         super(HistoryListObjectDField, self).__init__(*content, **kwd)
         self.tag = u'table'
@@ -700,14 +703,14 @@ class HistoryListObjectDField(HistoryDField):
         self.display_only = display_only
         self.layout_class = layout_class
 
-        self.cssc = u'section_table history_list_table' # although this is not a section table, it is mostly used in DirectSectionLayout, so it is in place where SectionTable is and so it should have the same style
+        self.cssc = u'section_table history_list_table'  # although this is not a section table, it is mostly used in DirectSectionLayout, so it is in place where SectionTable is and so it should have the same style
 
     def resolve_value(self, value):
         if value:
             for history_row in value:
                 if isinstance(history_row.value, CORBA.Any):
                     object_list = from_any(history_row.value, True)
-                else: # this HistoryRecordList was transformed before (we got here after cache hit), so skip tranformation
+                else:  # this HistoryRecordList was transformed before (we got here after cache hit), so skip tranformation
                     break
                 new_obj_list = []
                 for obj in object_list:
@@ -723,7 +726,7 @@ class HistoryListObjectDField(HistoryDField):
 
     def create_inner_details(self):
         '''Used by make_content and in custom detail layouts and custom section layouts'''
-        self.inner_details = [] # list of lists of deatils (one level for history, second for objects in list)
+        self.inner_details = []  # list of lists of deatils (one level for history, second for objects in list)
 
         if self.value:
             for history_row in self.value:
@@ -755,7 +758,6 @@ class HistoryListObjectDField(HistoryDField):
                 )
             self.add(history_tr)
 
-
         self.content = []
 
         if self.inner_details:
@@ -777,8 +779,8 @@ class HistoryListObjectDField(HistoryDField):
             self.add(tbody(tagid('tbody')))
             for i in range(len(self.inner_details)):
                 history_rec = self.value[i]
-                date_from = history_rec._from #recoder.corba_to_datetime(history_rec._from)
-                date_to = history_rec.to #recoder.corba_to_datetime(history_rec.to)
+                date_from = history_rec._from  # recoder.corba_to_datetime(history_rec._from)
+                date_to = history_rec.to  # recoder.corba_to_datetime(history_rec.to)
                 logger_url = f_urls['logger'] + 'detail/?id=%s' % history_rec.requestId
 
                 if self.inner_details[i]:
@@ -789,6 +791,7 @@ class HistoryListObjectDField(HistoryDField):
 
         else:
             self.add(div(attr(cssc='field_empty')))
+
 
 class HistoryStateDField(DField):
     ''' Field that display actual states or history of states.'''
@@ -808,15 +811,15 @@ class HistoryStateDField(DField):
                 self.state_list.append(corba_state_desc.id)
                 self.states_desc[corba_state_desc.id] = corba_state_desc.name
                 self.states_name[corba_state_desc.id] = corba_state_desc.shortName
-                self.states_abbrev[corba_state_desc.id] = self.get_state_abbrev_from_name(corba_state_desc.shortName) #tady budou dvoupismenne zkratky, budto generovane, nebo z mapping.py
+                self.states_abbrev[corba_state_desc.id] = self.get_state_abbrev_from_name(corba_state_desc.shortName)
 
         new_states = []
         if value:
             for state in value:
                 new_state = {}
                 new_state['id'] = state.id
-                new_state['from'] = state._from #recoder.corba_to_datetime(state._from)
-                new_state['to'] = state.to #recoder.corba_to_datetime(state.to)
+                new_state['from'] = state._from  # recoder.corba_to_datetime(state._from)
+                new_state['to'] = state.to  # recoder.corba_to_datetime(state.to)
                 new_state['linked'] = state.linked
                 new_states.append(new_state)
         return new_states
@@ -858,7 +861,7 @@ class HistoryStateDField(DField):
                     current_row[state['id']] = False
                 else:
                     raise RuntimeError('Variable from_to must be "from" or "to"!')
-            new_row = dict(current_row) # copy of current row
+            new_row = dict(current_row)  # copy of current row
             state_table.append(new_row)
 
         state_table = list(reversed(state_table))
@@ -869,9 +872,9 @@ class HistoryStateDField(DField):
         ''' Get state abbrev from state name. It ignores 'server' and 'validation' on beggining of name.
             Abbrev is first letter plus first cappital leather or digit after it.
         '''
-        if name.startswith('server'): # strip 'server' from beginning
+        if name.startswith('server'):  # strip 'server' from beginning
             name = name[6:]
-        if name.startswith('validation'): # strip 'server' from beginning
+        if name.startswith('validation'):  # strip 'validation' from beginning
             name = name[10:]
 
         abbrev = name[0] if name else 'Unknown'
@@ -894,19 +897,17 @@ class HistoryStateDField(DField):
         return r'<br />'.join(title_list)
 
     def transform_title(self, header, body):
-        return 'header=[%s]body=[%s]' % (_(header), body) # body is already translated
+        return 'header=[%s]body=[%s]' % (_(header), body)  # body is already translated
 
     def make_content(self):
         state_table = self.compute_state_data()
-        if self.owner_detail.history and len(state_table): # dont display history if state_table have no row
+        if self.owner_detail.history and len(state_table):  # dont display history if state_table have no row
             self.content = []
 
             display_state_list = self.state_list[1:]
             self.tag = 'table'
             self.tattr_list = table.tattr_list
             self.cssc = 'state_table section_table'
-
-
 
             # header
             self.add(tr(th(_('Date')), [th(attr(cssc='state_header_cell',
@@ -933,9 +934,6 @@ class HistoryStateDField(DField):
                 self.add(tr(td(noesc(self.get_states_title_for_row(state_table[0])))))
             else:
                 self.add(tr(td(self.get_state_title(0))))
-
-
-
 
 
 class BaseNHDField(DField):
@@ -966,6 +964,7 @@ class BaseNHDField(DField):
             self._value = self.current_field.value = self.resolve_value(value)
         else:
             self._value = self.current_field.value = None
+
     def _get_value(self):
         if self.current_field:
             return self.current_field._value
@@ -974,6 +973,7 @@ class BaseNHDField(DField):
 
     def _set_owner_detail(self, value):
         self._owner_detail = self.normal_field.owner_detail = self.history_field.owner_detail = value
+
     def _get_owner_detail(self):
         return self._owner_detail
     owner_detail = LateBindingProperty(_get_owner_detail, _set_owner_detail)
@@ -1017,6 +1017,7 @@ class CharNHDField(NHDField):
     def __init__(self, *content, **kwd):
         super(CharNHDField, self).__init__(CharDField(), HistoryDField(inner_field=CharDField()), *content, **kwd)
 
+
 class DiscloseCharNHDField(NHDField):
     def __init__(self, disclose_name=None, *content, **kwd):
         super(DiscloseCharNHDField, self).__init__(DiscloseCharDField(), HistoryDField(inner_field=DiscloseCharDField()), *content, **kwd)
@@ -1027,15 +1028,15 @@ class DiscloseCharNHDField(NHDField):
             then histories are sorted/merged according to requestId
             (if requestId is the same, then they are merged, otherwise sorted):
         """
-        all_dates = {} # key is (date, request_id), value is couple list of couple [hist_number, history record]
+        all_dates = {}  # key is (date, request_id), value is couple list of couple [hist_number, history record]
 
         for hist_num, hist in enumerate([hist1, hist2]):
             for rec in hist:
                 from_date = rec._from
-                if from_date: # from/to date can be empty, in that case we ignore it
+                if from_date:  # from/to date can be empty, in that case we ignore it
                     key = (from_date, rec.requestId)
                     val = [hist_num, rec]
-                    if all_dates.has_key(key):
+                    if key in all_dates:
                         all_dates[key].append(val)
                     else:
                         all_dates[key] = [val]
@@ -1060,15 +1061,15 @@ class DiscloseCharNHDField(NHDField):
                     hist_num, rec in rec_list if
                         rec.to and not isinstance(rec.to, fredtypes.Null)])
             for hist_num in (0, 1):
-                if not to_dict.has_key(hist_num):
+                if not hist_num in to_dict:
                     to_dict[hist_num] = last_hist_tos[hist_num]
                 if to_dict[hist_num] is None or \
-                    isinstance(to_dict[hist_num], fredtypes.Null): # remove None
+                    isinstance(to_dict[hist_num], fredtypes.Null):  # remove None
                     to_dict.pop(hist_num)
             all_are_null = all(isinstance(i, fredtypes.Null) for i in to_dict)
             if to_dict and not all_are_null:
                 to = min(to_dict.values())
-            else: # all are NULL dates, take one of them
+            else:  # all are NULL dates, take one of them
                 to = rec_list[0][1].to
             new_rec = Registry.HistoryRecord(_from=_from, to=to, value=value, requestId=request_id)
             new_hist.append(new_rec)

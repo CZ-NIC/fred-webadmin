@@ -5,7 +5,7 @@ import types
 import traceback
 import CosNaming
 from fred_webadmin.corba import CorbaServerDisconnectedException
-from logging import debug, error
+from logging import error
 
 from omniORB import CORBA
 
@@ -14,6 +14,7 @@ from fred_webadmin.webwidgets.gpyweb.gpyweb import attr, div, p, pre
 from fred_webadmin import config
 from fred_webadmin.corba import ccReg
 from fred_webadmin.translation import _
+
 
 def catch_webadmin_exceptions_decorator(view_func):
     ''' This decorator is applicated to all view methods of website,
@@ -71,12 +72,11 @@ def catch_webadmin_exceptions_decorator(view_func):
     return _wrapper
 
 
-
 class AdifPageMetaClass(type):
-    def __new__(mcs, name, bases, attrs):
+    def __new__(cls, name, bases, attrs):
         for attr_name, attr in attrs.items():
             if type(attr) == types.FunctionType and not attr_name.startswith('_'):
                 attrs[attr_name] = catch_webadmin_exceptions_decorator(attr)
                 attrs[attr_name].exposed = True
-        new_class = type.__new__(mcs, name, bases, attrs)
+        new_class = type.__new__(cls, name, bases, attrs)
         return new_class

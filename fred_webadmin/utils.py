@@ -1,4 +1,3 @@
-import datetime
 import logging
 import cherrypy
 import simplejson
@@ -8,9 +7,9 @@ from logging import debug
 import CosNaming
 
 import fred_webadmin.corbarecoder as recoder
-from corba import ccReg, Registry
+from corba import ccReg
 from corba import CorbaServerDisconnectedException
-from mappings import f_name_enum#, f_objectType_name
+from mappings import f_name_enum
 from mappings import f_enum_name
 from fred_webadmin.corba import Corba
 from fred_webadmin import config
@@ -26,13 +25,14 @@ from pylogger.corbalogger import Logger, LoggerFailSilent
 # one logger for each corba ior specified in config.iors
 loggers = {}
 
+
 def json_response(data):
     ''' Sets cherrypy contentype of response to text/javascript and return data as JSON '''
     cherrypy.response.headers['Content-Type'] = 'text/javascript'
     return simplejson.dumps(data)
 
 
-def update_meta (self, other):
+def update_meta(self, other):
     """ Taken from http://code.activestate.com/recipes/408713/ """
     self.__name__ = other.__name__
     self.__doc__ = other.__doc__
@@ -79,6 +79,7 @@ def get_current_url(request=None):
         addr += '?' + request.query_string
     return addr
 
+
 def append_getpar_to_url(url=None, add_par_dict=None, del_par_list=None):
     ''' Appends HTTP GET parameters to url from add_par_dict
         and deletes HTTP GET parameters of name given in del_par_list.
@@ -86,7 +87,7 @@ def append_getpar_to_url(url=None, add_par_dict=None, del_par_list=None):
     '''
     if url == None:
         url = cherrypy.request.path_info
-        get_pars = dict(http.parse_query_string(cherrypy.request.query_string)) # copy params of current url
+        get_pars = dict(http.parse_query_string(cherrypy.request.query_string))  # copy params of current url
     else:
         get_pars = {}
         raise NotImplementedError('Appending parametr to custom url was not yet added (need to parse url)')
@@ -96,7 +97,7 @@ def append_getpar_to_url(url=None, add_par_dict=None, del_par_list=None):
 
     if del_par_list:
         for par_name in del_par_list:
-            if get_pars.has_key(par_name):
+            if par_name in get_pars:
                 get_pars.pop(par_name)
 
     url += '?' + '&'.join(['%s=%s' % par for par in get_pars.items()])
@@ -110,7 +111,6 @@ def get_corba_session():
         return cherrypy.session.get('Admin').getSession(corbaSessionString)
     except ccReg.Admin.ObjectNotFound:
         raise CorbaServerDisconnectedException
-
 
 
 def _create_logger(corba_server_spec):
@@ -146,6 +146,7 @@ def _create_logger(corba_server_spec):
                 logger = LoggerFailSilent(dao=corba_logd, corba_module=ccReg)
     return logger
 
+
 def get_logger():
     # get logger from loggers by corba_ior or create new one for it
     current_corba_server = cherrypy.session['corba_server']
@@ -154,6 +155,7 @@ def get_logger():
         loggers[current_corba_server] = logger = _create_logger(current_corba_server)
     return logger
 
+
 def create_log_request(request_type, properties=None, references=None):
     log_req = get_logger().create_request(
         cherrypy.request.headers['Remote-Addr'], 'WebAdmin', request_type,
@@ -161,7 +163,10 @@ def create_log_request(request_type, properties=None, references=None):
     )
     return log_req
 
+
 details_cache = {}
+
+
 def get_detail(obj_type_name, obj_id, use_cache=True):
     """ If use_cache == False, we always get the object from
         server. """
@@ -180,6 +185,7 @@ def get_detail(obj_type_name, obj_id, use_cache=True):
 
     details_cache[(obj_type_name, obj_id)] = result
     return result
+
 
 def get_state_id_by_short_name(short_name):
     for state in cherrypy.session['Admin'].getObjectStatusDescList(config.lang[:2]):
@@ -344,7 +350,7 @@ class OrderedDict(dict):
         for k in self:
             yield (k, self[k])
 
-    def update(*args, **kwds):
+    def update(self, *args, **kwds):
         '''od.update(E, **F) -> None.  Update od from dict/iterable E and F.
 
         If E is a dict instance, does:           for k in E: od[k] = E[k]
@@ -353,16 +359,15 @@ class OrderedDict(dict):
         In either case, this is followed by:     for k, v in F.items(): od[k] = v
 
         '''
-        if len(args) > 2:
+        if len(args) > 1:
             raise TypeError('update() takes at most 2 positional '
                             'arguments (%d given)' % (len(args),))
         elif not args:
             raise TypeError('update() takes at least 1 argument (0 given)')
-        self = args[0]
         # Make progressively weaker assumptions about "other"
         other = ()
-        if len(args) == 2:
-            other = args[1]
+        if len(args) == 1:
+            other = args[0]
         if isinstance(other, dict):
             for key in other:
                 self[key] = other[key]

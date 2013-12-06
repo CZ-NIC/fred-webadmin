@@ -1,6 +1,5 @@
 import types
 import cherrypy
-from logging import debug
 
 import fred_webadmin as fred
 
@@ -53,7 +52,7 @@ def check_onperm(objects_nperms, check_type='all'):
             self = args[0]
             user = cherrypy.session.get('user', None)
             if user:
-                utils.details_cache = {} # invalidate details cache
+                utils.details_cache = {}  # invalidate details cache
                 nperms = []
                 if isinstance(objects_nperms, types.StringTypes):
                     onperms = [objects_nperms]

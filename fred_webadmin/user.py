@@ -1,4 +1,3 @@
-import sys
 import types
 
 import config
@@ -16,10 +15,11 @@ else:
 
 from fred_webadmin.webwidgets.utils import isiterable
 
+
 class User(object):
     def __init__(self, user):
         ''' Wrapper around corba User object '''
-        self._user = user # corba User object
+        self._user = user  # corba User object
         self.id = user._get_id()
         self.login = recoder.c2u(user._get_username())
         self.firstname = recoder.c2u(user._get_firstname())
@@ -53,12 +53,11 @@ class User(object):
             has_perm = self._authorizer.has_permission(parts[1], parts[0])
         return not has_perm
 
-
     def has_all_nperms(self, nperms):
-        if not nperms: # nprems are empty
+        if not nperms:  # nprems are empty
             return False
         for nperm in nperms:
-            if not self.has_nperm(nperm): # nperm not in self.nperms:
+            if not self.has_nperm(nperm):  # nperm not in self.nperms:
                 return False
         return True
 

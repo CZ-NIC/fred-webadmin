@@ -11,12 +11,13 @@ import cherrypy
 import fred_webadmin.nulltype as fredtypes
 
 from fred_webadmin.webwidgets.gpyweb.gpyweb import (
-    WebWidget, attr, br, select, option, span, input, span)
+    WebWidget, attr, br, select, option, input, span)
 from fred_webadmin.webwidgets.utils import ValidationError, ErrorList, isiterable
 from fred_webadmin.translation import _
 from fred_webadmin.utils import LateBindingProperty
 
 EMPTY_VALUES = (None, '', u'')
+
 
 class Field(WebWidget):
     creation_counter = 0
@@ -34,7 +35,7 @@ class Field(WebWidget):
         self._nperm_full = None
         self.help_text = help_text
         self.needs_multipart_form = False
-        self.order = 0 # order in form, set during form creation
+        self.order = 0  # order in form, set during form creation
         self.owner_form = None
         self.value_is_from_initial = False
         self.permitted = permitted
@@ -107,9 +108,10 @@ class Field(WebWidget):
 
 class CharField(Field):
     tattr_list = input.tattr_list
+
     def __init__(self, name='', value='', max_length=None, min_length=None, strip_spaces=True, *args, **kwargs):
         super(CharField, self).__init__(name=name, value=value, *args, **kwargs)
-        self.maxlength = self.max_length = max_length # `maxlength' as html tag attribute and max_length as object's attribute
+        self.maxlength = self.max_length = max_length  # `maxlength' as html tag attribute and max_length as object's attribute
         self.min_length = min_length
         self.tag = self.tag or u'input'
         self.strip_spaces = strip_spaces
@@ -147,6 +149,7 @@ class PasswordField(CharField):
 
 class FloatField(Field):
     tattr_list = input.tattr_list
+
     def __init__(self, name='', value='', max_value=None, min_value=None, *args, **kwargs):
         super(FloatField, self).__init__(name, value, *args, **kwargs)
         self.max_value = max_value
@@ -154,7 +157,6 @@ class FloatField(Field):
         self.tag = self.tag or u'input'
         if self.tag == u'input':
             self.type = u'text'
-
 
     def clean(self):
         """Validates that float() can be called on the input. Returns a float.
@@ -173,8 +175,10 @@ class FloatField(Field):
             raise ValidationError(_(u'Ensure this value is greater than or equal to %s.') % self.min_value)
         return value
 
+
 class DecimalField(Field):
     tattr_list = input.tattr_list
+
     def __init__(self, name='', value='', max_value=None, min_value=None, max_digits=None, decimal_places=None, *args, **kwargs):
         super(DecimalField, self).__init__(name, value, *args, **kwargs)
         self.max_value, self.min_value = max_value, min_value
@@ -216,28 +220,31 @@ class DecimalField(Field):
     def set_from_clean(self, value):
         self.value = unicode(value)
 
+
 class IntegerField(DecimalField):
     def __init__(self, name='', value='', max_value=None, min_value=None, *args, **kwargs):
         super(IntegerField, self).__init__(name=name, value=value, max_value=max_value, min_value=min_value, decimal_places=0, *args, **kwargs)
+
     def clean(self):
         if self.is_empty():
             return fredtypes.NullInt()
         return int(super(IntegerField, self).clean())
 
+
 DEFAULT_DATE_INPUT_FORMATS = (
-    u'%d.%m.%Y', # '25.10.2006'
-    u'%Y-%m-%d', u'%m/%d/%Y', '%m/%d/%y', # '2006-10-25', '10/25/2006', '10/25/06'
-    u'%b %d %Y', u'%b %d, %Y', # 'Oct 25 2006', 'Oct 25, 2006'
-    u'%d %b %Y', u'%d %b, %Y', # '25 Oct 2006', '25 Oct, 2006'
-    u'%B %d %Y', u'%B %d, %Y', # 'October 25 2006', 'October 25, 2006'
-    u'%d %B %Y', u'%d %B, %Y', # '25 October 2006', '25 October, 2006'
+    u'%d.%m.%Y',  # '25.10.2006'
+    u'%Y-%m-%d', u'%m/%d/%Y', '%m/%d/%y',  # '2006-10-25', '10/25/2006', '10/25/06'
+    u'%b %d %Y', u'%b %d, %Y',  # 'Oct 25 2006', 'Oct 25, 2006'
+    u'%d %b %Y', u'%d %b, %Y',  # '25 Oct 2006', '25 Oct, 2006'
+    u'%B %d %Y', u'%B %d, %Y',  # 'October 25 2006', 'October 25, 2006'
+    u'%d %B %Y', u'%d %B, %Y',  # '25 October 2006', '25 October, 2006'
 )
+
 
 class DateField(CharField):
     def __init__(self, name='', value='', input_formats=None, js_calendar=True, *args, **kwargs):
         super(DateField, self).__init__(name, value, *args, **kwargs)
         self.input_formats = input_formats or DEFAULT_DATE_INPUT_FORMATS
-
 
         self.add_css_class('datefield')
 
@@ -274,12 +281,14 @@ class DateField(CharField):
 
 
 DEFAULT_TIME_INPUT_FORMATS = (
-    u'%H:%M:%S', # '14:30:59'
-    u'%H:%M', # '14:30'
+    u'%H:%M:%S',  # '14:30:59'
+    u'%H:%M',  # '14:30'
 )
+
 
 class TimeField(CharField):
     tattr_list = input.tattr_list
+
     def __init__(self, name='', value='', input_formats=None, *args, **kwargs):
         super(TimeField, self).__init__(name, value, *args, **kwargs)
         self.input_formats = input_formats or DEFAULT_TIME_INPUT_FORMATS
@@ -307,22 +316,23 @@ class TimeField(CharField):
 
 
 DEFAULT_DATETIME_INPUT_FORMATS = (
-    u'%Y-%m-%d %H:%M:%S', # '2006-10-25 14:30:59'
-    u'%Y-%m-%d %H:%M', # '2006-10-25 14:30'
-    u'%Y-%m-%d', # '2006-10-25'
-    u'%m/%d/%Y %H:%M:%S', # '10/25/2006 14:30:59'
-    u'%m/%d/%Y %H:%M', # '10/25/2006 14:30'
-    u'%m/%d/%Y', # '10/25/2006'
-    u'%m/%d/%y %H:%M:%S', # '10/25/06 14:30:59'
-    u'%m/%d/%y %H:%M', # '10/25/06 14:30'
-    u'%m/%d/%y', # '10/25/06'
-    u'%d.%m.%Y', # '25.10.2007'
-    u'%d.%m.%Y %H:%M'         # '25.10.2007 15:30'
-
+    u'%Y-%m-%d %H:%M:%S',  # '2006-10-25 14:30:59'
+    u'%Y-%m-%d %H:%M',  # '2006-10-25 14:30'
+    u'%Y-%m-%d',  # '2006-10-25'
+    u'%m/%d/%Y %H:%M:%S',  # '10/25/2006 14:30:59'
+    u'%m/%d/%Y %H:%M',  # '10/25/2006 14:30'
+    u'%m/%d/%Y',  # '10/25/2006'
+    u'%m/%d/%y %H:%M:%S',  # '10/25/06 14:30:59'
+    u'%m/%d/%y %H:%M',  # '10/25/06 14:30'
+    u'%m/%d/%y',  # '10/25/06'
+    u'%d.%m.%Y',  # '25.10.2007'
+    u'%d.%m.%Y %H:%M'  # '25.10.2007 15:30'
 )
+
 
 class DateTimeField(Field):
     tattr_list = input.tattr_list
+
     def __init__(self, name='', value='', input_formats=None, *args, **kwargs):
         super(DateTimeField, self).__init__(name, value, *args, **kwargs)
         self.input_formats = input_formats or DEFAULT_DATETIME_INPUT_FORMATS
@@ -352,6 +362,7 @@ class DateTimeField(Field):
     def set_from_clean(self, value):
         datetime_format = self.input_formats[0]
         self.value = value.strftime(datetime_format)
+
 
 class RegexField(CharField):
     def __init__(self, name, value, regex, max_length=None, min_length=None, error_message=None, *args, **kwargs):
@@ -390,13 +401,15 @@ class RegexField(CharField):
 
 email_re = re.compile(
     r"(^[-!#$%&'*+/=?^_`{}|~0-9A-Z]+(\.[-!#$%&'*+/=?^_`{}|~0-9A-Z]+)*"  # dot-atom
-    r'|^"([\001-\010\013\014\016-\037!#-\[\]-\177]|\\[\001-011\013\014\016-\177])*"' # quoted-string
+    r'|^"([\001-\010\013\014\016-\037!#-\[\]-\177]|\\[\001-011\013\014\016-\177])*"'  # quoted-string
     r')@(?:[A-Z0-9-]+\.)+[A-Z]{2,6}$', re.IGNORECASE)  # domain
+
 
 class EmailField(RegexField):
     def __init__(self, name='', value='', max_length=None, min_length=None, *args, **kwargs):
         super(EmailField, self).__init__(name, value, email_re, max_length, min_length,
             _(u'Enter a valid e-mail address.'), *args, **kwargs)
+
     def __deepcopy__(self, memo):
         result = self.__class__(self.name, self.value, self.max_length, self.min_length, self.error_message)
         result.negation = self.negation
@@ -409,7 +422,7 @@ class EmailField(RegexField):
         return result
 
 
-class UploadedFile(object): #types.StringType):
+class UploadedFile(object):  # types.StringType):
     "A wrapper for files uploaded in a FileField"
     def __init__(self, filename, content):
         self.filename = filename
@@ -425,8 +438,10 @@ class UploadedFile(object): #types.StringType):
     def __str__(self):
         return self.filename
 
+
 class FileField(Field):
     tattr_list = input.tattr_list
+
     def __init__(self, name='', value='', *args, **kwargs):
         super(FileField, self).__init__(name, value, *args, **kwargs)
         self.tag = "input"
@@ -437,7 +452,7 @@ class FileField(Field):
 
 #    def clean(self, data):
     def clean(self):
-        super(FileField, self).clean()#data)
+        super(FileField, self).clean()  # data)
 #        if not self.required and data in EMPTY_VALUES:
         if self.value is None:
             return fredtypes.NullFile()
@@ -460,7 +475,6 @@ class FileField(Field):
         return f
 
     def _has_changed(self, initial, data):
-        #TODO(tom)
         if data is None:
             return False
         if initial in EMPTY_VALUES and data.filename in EMPTY_VALUES:
@@ -469,6 +483,7 @@ class FileField(Field):
             return True
         if not data.filename:
             return False
+
 
 class ImageField(FileField):
     def clean(self, data):
@@ -490,17 +505,18 @@ class ImageField(FileField):
             #  but it must be called immediately after the constructor
             trial_image = Image.open(StringIO(f.content))
             trial_image.verify()
-        except Exception: # Python Imaging Library doesn't recognize it as an image
+        except Exception:  # Python Imaging Library doesn't recognize it as an image
             raise ValidationError(_(u"Upload a valid image. The file you uploaded was either not an image or a corrupted image."))
         return f
 
 url_re = re.compile(
-    r'^https?://' # http:// or https://
-    r'(?:(?:[A-Z0-9-]+\.)+[A-Z]{2,6}|' #domain...
-    r'localhost|' #localhost...
-    r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
-    r'(?::\d+)?' # optional port
+    r'^https?://'  # http:// or https://
+    r'(?:(?:[A-Z0-9-]+\.)+[A-Z]{2,6}|'  # domain...
+    r'localhost|'  # localhost...
+    r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
+    r'(?::\d+)?'  # optional port
     r'(?:/?|/\S+)$', re.IGNORECASE)
+
 
 class URLField(RegexField):
     def __init__(self, name='', value='', max_length=None, min_length=None, verify_exists=False,
@@ -519,7 +535,6 @@ class URLField(RegexField):
             return value
         if self.verify_exists:
             import urllib2
-            from django.conf import settings
             headers = {
                 "Accept": "text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5",
                 "Accept-Language": "en-us,en;q=0.5",
@@ -529,15 +544,17 @@ class URLField(RegexField):
             }
             try:
                 req = urllib2.Request(value, None, headers)
-                u = urllib2.urlopen(req)
+                urllib2.urlopen(req)
             except ValueError:
                 raise ValidationError(_(u'Enter a valid URL.'))
-            except: # urllib2.URLError, httplib.InvalidURL, etc.
+            except:  # urllib2.URLError, httplib.InvalidURL, etc.
                 raise ValidationError(_(u'This URL appears to be a broken link.'))
         return value
 
+
 class BooleanField(Field):
     tattr_list = input.tattr_list
+
     def __init__(self, name='', value=None, *args, **kwargs):
         super(BooleanField, self).__init__(name, value, *args, **kwargs)
         self.tag = self.tag or u'input'
@@ -546,7 +563,7 @@ class BooleanField(Field):
         self._value = 1
         self.checked = None
         self.tattr['value'] = 1
-        self.__setattr__('value', value) # because it is not called from Parent class
+        self.__setattr__('value', value)  # because it is not called from Parent class
 
     def __setattr__(self, name, value):
         """
@@ -560,6 +577,7 @@ class BooleanField(Field):
                 self.checked = 'checked'
         else:
             super(BooleanField, self).__setattr__(name, value)
+
     def __getattr__(self, name):
         if name == 'value':
             return self._value
@@ -574,6 +592,7 @@ class BooleanField(Field):
         # Sometimes data or initial could be None or u'' which should be the
         # same thing as False.
         return bool(initial) != bool(data)
+
 
 class HiddenField(CharField):
     is_hidden = True
@@ -609,6 +628,7 @@ class HiddenIntegerField(IntegerField):
 
 class ChoiceField(Field):
     tattr_list = select.tattr_list
+
     def __init__(self, name='', value='', choices=None, required=True, label=None, initial=None, help_text=None, *arg, **kwargs):
         super(ChoiceField, self).__init__(name, value, required, label, initial, help_text, *arg, **kwargs)
         self.tag = 'select'
@@ -626,9 +646,9 @@ class ChoiceField(Field):
             nperm = nperms[0] if nperms else None
         self.content = []
         # add/remove empty choice according
-        if self.required and self.choices and self.choices[0] == self.empty_choice: # remove empty choice:
+        if self.required and self.choices and self.choices[0] == self.empty_choice:  # remove empty choice:
             self.choices.pop(0)
-        elif not self.required and (not self.choices or (self.choices and self.choices[0] != self.empty_choice)): # add empty choice:
+        elif not self.required and (not self.choices or (self.choices and self.choices[0] != self.empty_choice)):  # add empty choice:
             self.choices.insert(0, self.empty_choice)
 
         if self.choices:
@@ -653,7 +673,7 @@ class ChoiceField(Field):
             value = u''
         if value == u'':
             return value
-        valid_values = set([unicode(k) for k, v in self.choices])
+        valid_values = set([unicode(k) for k, dummy_v in self.choices])
         if value not in valid_values:
             raise ValidationError(_(u'Select a valid choice. That choice is not one of the available choices.'))
 
@@ -713,6 +733,7 @@ class NullBooleanField(ChoiceField):
         # same thing as False.
         return bool(initial) != bool(data)
 
+
 class MultipleChoiceField(ChoiceField):
     def __init__(self, name='', value='', choices=None, required=True, label=None, initial=None, help_text=None, *args, **kwargs):
         super(MultipleChoiceField, self).__init__(name, value, choices, required, label, initial, help_text, *args, **kwargs)
@@ -740,7 +761,7 @@ class MultipleChoiceField(ChoiceField):
         if not isinstance(value, (list, tuple)):
             value = list(value)
         # Validate that each value in the value list is in self.choices.
-        valid_values = set([unicode(k) for k, v in self.choices])
+        valid_values = set([unicode(k) for k, dummy_v in self.choices])
         for val in value:
             if val not in valid_values:
                 raise ValidationError(_(u'Select a valid choice. %s is not one of the available choices.') % val)
@@ -765,6 +786,7 @@ class MultipleChoiceField(ChoiceField):
             if unicode(value1) != unicode(value2):
                 return True
         return False
+
 
 class MultipleChoiceFieldCheckboxes(MultipleChoiceField):
     def __init__(self, *args, **kwargs):
@@ -822,6 +844,7 @@ class MultiValueField(Field):
 
     """
     tattr_list = span.tattr_list
+
     def __init__(self, name='', value='', fields=None, *args, **kwargs):
 
         # Set 'required' to False on the individual fields, because the
@@ -841,8 +864,10 @@ class MultiValueField(Field):
         self._name = value
         for i, field in enumerate(self.fields):
             field.name = self._name + '/%d' % i
+
     def _get_name(self):
         return self._name
+
     name = property(_get_name, _set_name)
 
     def _set_value(self, value):
@@ -856,10 +881,11 @@ class MultiValueField(Field):
                 raise TypeError(u'value of MultiValueField must be sequence with the same length as a number of fields in multifield (was % s)' % unicode(value))
             for i, val in enumerate(value):
                 self.fields[i].value = val
+
     def _get_value(self):
         return self._value
-    value = LateBindingProperty(_get_value, _set_value)
 
+    value = LateBindingProperty(_get_value, _set_value)
 
     def make_content(self):
         self.content = []
@@ -923,7 +949,7 @@ class MultiValueField(Field):
             self._value = val
     #        if not isiterable(val) and len(val) != len(self.fields):
     #            raise TypeError(u'value of MultiValueField must be sequence with same length as number of fields in multifield (was %s)' % unicode(val))
-        else: # value is empty string (comes from _set_one_compound_filter in FilterLoader)
+        else:  # value is empty string (comes from _set_one_compound_filter in FilterLoader)
             self.value = val
         for i, v in enumerate(self.value):
             self.fields[i].set_from_clean(v)
@@ -940,13 +966,14 @@ class MultiValueField(Field):
 
     def _has_changed(self, initial, data):
         if initial is None:
-            initial = [u'' for x in range(0, len(data))]
+            initial = [u'' for dummy_x in range(0, len(data))]
         else:
             initial = self.decompress(initial)
         for field, initial, data in zip(self.fields, initial, data):
             if field._has_changed(initial, data):
                 return True
         return False
+
 
 class SplitDateTimeField(MultiValueField):
     def __init__(self, name='', value='', *args, **kwargs):
@@ -967,22 +994,22 @@ class SplitDateTimeField(MultiValueField):
 
     def decompress(self, value):
         if value:
-            import datetime
             t = value.time()
             the_time = datetime.time(t.hour, t.minute, t.second)
             return [value.date(), the_time]
-        #TODO(tom): Should we return a Null type here?
+        # TODO(tom): Should we return a Null type here?
         return [None, None]
 
 
-
 ipv4_re = re.compile(r'^(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}$')
+
 
 class IPAddressField(RegexField):
     def __init__(self, name='', value='', *args, **kwargs):
         super(IPAddressField, self).__init__(name, value, ipv4_re,
                             error_message=_(u'Enter a valid IPv4 address.'),
                             *args, **kwargs)
+
 
 class SplitTimeField(MultiValueField):
     def __init__(self, name='', value='', *args, **kwargs):
@@ -1003,8 +1030,9 @@ class SplitTimeField(MultiValueField):
             return [value.hour, value.minute]
         return [u'0', u'0']
 
+
 class SplitDateSplitTimeField(SplitDateTimeField):
-    def __init__(self, name='', value='', *args, **kwargs): #  pylint: disable-msg=E1003
+    def __init__(self, name='', value='', *args, **kwargs):  # pylint: disable-msg=E1003
         fields = (DateField(size=10, cssc='split-datetime-date'), SplitTimeField())
         # Here is called really parent of parent of this class, to avoid self.fields initialization from parent:
         super(SplitDateTimeField, self).__init__(name, value, fields, *args, **kwargs)

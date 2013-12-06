@@ -36,23 +36,26 @@ importIDL(config.idl)
 ccReg = sys.modules['ccReg']
 Registry = sys.modules['Registry']
 
-def corbaname_to_classname(item):
+
+def corbaname_to_classname(corbaname):
     """ Return classname (class name in lowercase) for a given ccReg.FT_FILTER*
         type.
     """
     rules = {
-        ccReg.FT_STATEMENTITEM._v : 'bankstatement'
+        ccReg.FT_STATEMENTITEM._v: 'bankstatement'
     }
-    return rules.get(item._v, item._n[3:].lower())
+    return rules.get(corbaname._v, corbaname._n[3:].lower())
+
 
 def reverse_dict(dictionary):
     return dict([(value, key) for key, value in dictionary.items()])
 
+
 filter_type_items = [dict(
     [
-        ("classname", corbaname_to_classname(item)),
-        ("item", item)
-    ]) for item in ccReg.FilterType._items]
+        ("classname", corbaname_to_classname(corba_filter_name)),
+        ("item", corba_filter_name)
+    ]) for corba_filter_name in ccReg.FilterType._items]
 
 #dict {classname: enum_item) where enum_item is item in FilterType (from corba)
 # and url is base url of that object
@@ -82,6 +85,7 @@ f_header_ids = dict([(name, 'CT_%s_ID' % (name.upper())) for
 # dict {OT_*, classname}, where OT_* is from _Admin.idl ObjectType
 f_objectType_name = dict([(item, item._n[3:].lower()) for
     item in Registry.PublicRequest.ObjectType._items])
+
 
 def generate_dict(suffix):
     """ Returns a dict with (classname -> Classname + suffix) pairs. Note the
@@ -113,19 +117,19 @@ def generate_dict(suffix):
     rules = {
         # If more than the first letter should be capitalized, we have to do it
         # manually.
-        'nsset' : 'NSSet',
-        'keyset' : 'KeySet',
-        'publicrequest' : 'PublicRequest',
-        'bankstatement' : 'BankStatement',
-        'statementhead' : 'StatementHead',
+        'nsset': 'NSSet',
+        'keyset': 'KeySet',
+        'publicrequest': 'PublicRequest',
+        'bankstatement': 'BankStatement',
+        'statementhead': 'StatementHead',
     }
     result = dict(
         [
             (
-                item['classname'],
+                filter_type['classname'],
                 rules.get(
-                    item['classname'], item['classname'].capitalize()) + suffix)
-            for item in filter_type_items
+                    filter_type['classname'], filter_type['classname'].capitalize()) + suffix)
+            for filter_type in filter_type_items
         ])
     return result
 
@@ -138,8 +142,8 @@ f_name_actionname = generate_dict('')
 f_name_req_object_type = dict([(item['classname'], item['classname']) for
     item in filter_type_items])
 f_name_req_object_type['logger'] = 'request'
-for key in ('filter', 'obj', 'session', 'statementhead', 'zone'): # don't log references for these types:
-    f_name_req_object_type.pop(key)
+for object_type in ('filter', 'obj', 'session', 'statementhead', 'zone'):  # don't log references for these types:
+    f_name_req_object_type.pop(object_type)
 f_req_object_type_name = reverse_dict(f_name_req_object_type)
 
 # Overwrite some remaining non-matching (class -> action) mappings.
@@ -152,10 +156,10 @@ f_name_actionname['mail'] = 'Emails'
 f_name_actionname['action'] = 'Actions'
 f_name_actionname['logger'] = 'Request'
 
-f_name_actionfiltername = dict([(key, value + 'Filter') for key, value in
+f_name_actionfiltername = dict([(name, actionname + 'Filter') for name, actionname in
                            f_name_actionname.items()])
 
-f_name_actiondetailname = dict([(key, value + 'Detail') for key, value in
+f_name_actiondetailname = dict([(name, actionname + 'Detail') for name, actionname in
                            f_name_actionname.items()])
 
 f_name_default_sort = {

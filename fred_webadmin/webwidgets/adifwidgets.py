@@ -7,14 +7,12 @@ from logging import debug
 import cherrypy
 from itertools import izip, chain, repeat
 
-from gpyweb.gpyweb import (
-    WebWidget, attr, save, ul, li, a, table, tr, th, td, b, form,
-    textarea, input, script, tagid)
+from gpyweb.gpyweb import attr, save, ul, li, a, table, tr, th, td, b, form, textarea, input, script
 from fred_webadmin.mappings import f_urls, f_id_name, f_name_filterformname
 from fred_webadmin.translation import _
 from fred_webadmin.itertable import IterTable
-from fred_webadmin.webwidgets.forms.filterforms import UnionFilterForm
 from fred_webadmin.webwidgets.forms.filterforms import *
+
 
 class FilterList(ul):
     def __init__(self, filters, filter_name=None, *content, **kwd):
@@ -24,8 +22,8 @@ class FilterList(ul):
         super(FilterList, self).__init__(*content, **kwd)
         self.tag = 'ul'
         debug('LIST OF FILTERS: %s' % filters)
-        for filter in filters:
-            url_filter = f_urls[f_id_name[int(filter['Type'])]] + 'filter/?filter_id=' + filter['Id']
+        for obj_filter in filters:
+            url_filter = f_urls[f_id_name[int(obj_filter['Type'])]] + 'filter/?filter_id=' + obj_filter['Id']
             url_filter_with_form = url_filter + '&show_form=1'
             self.add(li(
                         a(attr(href=url_filter), filter['Name']),
@@ -33,23 +31,26 @@ class FilterList(ul):
                        ))
         if filter_name:
             self.add(li(a(attr(href=f_urls[filter_name] + 'filter/'), _('Custom filter'))))
+
     def _get_form_class(self, filter_name):
         form_name = f_name_filterformname[filter_name]
         form_class = getattr(sys.modules[self.__module__], form_name, None)
         if not form_class:
             raise RuntimeError('No such formclass in modules "%s"' % form_name)
         return form_class
-    def get_form(self, filter):
+
+    def get_form(self, obj_filter):
         key = cherrypy.session.get('corbaSessionString', '')
-        itertable = IterTable(f_id_name[int(filter['Type'])], key)
-        itertable.load_filter(int(filter['Id']))
+        itertable = IterTable(f_id_name[int(obj_filter['Type'])], key)
+        itertable.load_filter(int(obj_filter['Id']))
         if not itertable.all_fields_filled():
             filter_data = itertable.get_filter_data()
-            form_class = self._get_form_class(f_id_name[int(filter['Type'])])
-            form = UnionFilterForm(filter_data, data_cleaned=True, form_class=form_class)
+            form_class = self._get_form_class(f_id_name[int(obj_filter['Type'])])
+            filter_form = UnionFilterForm(filter_data, data_cleaned=True, form_class=form_class)
         else:
-            form = ''
-        return form
+            filter_form = ''
+        return filter_form
+
 
 class FilterListUnpacked(FilterList):
     def __init__(self, filters, filter_name=None, *content, **kwd):
@@ -59,18 +60,19 @@ class FilterListUnpacked(FilterList):
         ul.__init__(self, *content, **kwd)
         self.tag = 'ul'
         debug('LIST OF FILTERS(unpacked): %s' % filters)
-        for filter in filters:
-            url_filter = f_urls[f_id_name[int(filter['Type'])]] + 'filter/?filter_id=' + filter['Id']
+        for obj_filter in filters:
+            url_filter = f_urls[f_id_name[int(obj_filter['Type'])]] + 'filter/?filter_id=' + obj_filter['Id']
             url_filter_with_form = url_filter + '&show_form=1'
-            form = self.get_form(filter)
+            filter_form = self.get_form(obj_filter)
             self.add(li(
-                        a(attr(href=url_filter), filter['Name']),
+                        a(attr(href=url_filter), obj_filter['Name']),
                         ' (', a(attr(href=url_filter_with_form), _('form')), ')',
-                        form))
+                        filter_form))
         if filter_name:
             self.add(li(a(attr(href=f_urls[filter_name] + 'filter/'), _('Custom filter'))))
 
         self.add(script(attr(type='text/javascript'), 'Ext.onReady(function () {addFieldsButtons()})'))
+
 
 class FilterListCustomUnpacked(FilterList):
 
@@ -83,18 +85,18 @@ class FilterListCustomUnpacked(FilterList):
         debug('LIST OF FILTERS(unpacked): %s' % filters)
 
         custom_presented = False
-        for filter in filters:
-            url_filter = f_urls[f_id_name[int(filter['Type'])]] + 'filter/?filter_id=' + filter['Id']
+        for obj_filter in filters:
+            url_filter = f_urls[f_id_name[int(obj_filter['Type'])]] + 'filter/?filter_id=' + obj_filter['Id']
             url_filter_with_form = url_filter + '&show_form=1'
-            if filter['Name'].lower() == 'custom':
-                form = self.get_form(filter)
+            if obj_filter['Name'].lower() == 'custom':
+                filter_form = self.get_form(obj_filter)
                 custom_presented = True
             else:
-                form = None
+                filter_form = None
             self.add(li(
-                        a(attr(href=url_filter), filter['Name']),
+                        a(attr(href=url_filter), obj_filter['Name']),
                         ' (', a(attr(href=url_filter_with_form), _('form')), ')',
-                        form))
+                        filter_form))
         if not custom_presented and filter_name:
             self.add(li(a(attr(href=f_urls[filter_name] + 'filter/'), _('Custom filter')),
                         self.get_default_form(filter_name)
@@ -159,13 +161,13 @@ class FilterPanel(table):
 
     def _create_links(self, filters):
         for button_data in filters:
-            if len(button_data) == 1: # just add content whatever it is:
+            if len(button_data) == 1:  # just add content whatever it is:
                 self.filter_buttons.add(td(button_data))
-            if len(button_data) == 2: # url link
+            if len(button_data) == 2:  # url link
                 button_label, url = button_data
                 self.filter_buttons.add(td(a(attr(href=url), _(button_label))))
-            elif len(button_data) == 3: # object filter
-                button_label, obj_name, filter = button_data
+            elif len(button_data) == 3:  # object filter
+                button_label, obj_name, obj_filter = button_data
                 self.filter_buttons.add(
                     td(form(
                         attr(
@@ -175,8 +177,9 @@ class FilterPanel(table):
                             attr(
                                 style='display: none',
                                 name='json_linear_filter'),
-                            simplejson.dumps(filter)),
+                            simplejson.dumps(obj_filter)),
                         input(attr(type='submit', value=_(button_label))))))
+
 
 def grouper(n, iterable, padvalue=None):
     "grouper(3, 'abcdefg', 'x') --> ('a','b','c'), ('d','e','f'), ('g','x','x')"

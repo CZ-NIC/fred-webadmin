@@ -8,7 +8,6 @@ import twill.commands as tc
 
 from .test_adif import BaseADIFTestCase
 from fred_webadmin.corba import Registry, ccReg
-from fred_webadmin.corbarecoder import u2c
 from fred_webadmin.tests.webadmin.base import init_test_server, deinit_test_server
 from fred_webadmin.tests.webadmin.corba_detail_maker import CorbaDetailMaker
 from fred_webadmin.tests.webadmin.test_corbarecoder import Patched_datetype
@@ -217,7 +216,7 @@ class BaseTestAdministrativeBlockingAction(TestAdministrativeBlockingBase):
             'object_selection': '1'
         }
         cdm = CorbaDetailMaker()
-        self.session_mock.getDetail.side_effect = lambda obj_type, id: cdm.domain('test%s.cz' % id)
+        self.session_mock.getDetail.side_effect = lambda obj_type, obj_id: cdm.domain('test%s.cz' % obj_id)
 
         tc.go(self.START_URL)
         tc.showforms()

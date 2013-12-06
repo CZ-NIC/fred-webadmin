@@ -3,6 +3,7 @@ import fred_webadmin.controller.adiferrors
 from fred_webadmin.corba import ccReg
 from fred_webadmin.translation import _
 
+
 def authenticate_user(admin, username=None, password=None):
     """ Authenticate user using CORBA backend.
     """

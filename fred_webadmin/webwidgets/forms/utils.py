@@ -6,7 +6,6 @@ import fred_webadmin.webwidgets.forms.emptyvalue
 __all__ = ["flatten_form_data"]
 
 
-
 def _get_field_names(key, value, sep='.'):
     """ Construct @sep separated strings from form field names.
         One string for every path from any tree root to a leaf. """
@@ -18,6 +17,7 @@ def _get_field_names(key, value, sep='.'):
     return ["%s%s%s" % (key, sep, _get_field_names(k2, v2,
         sep)[0]) for k2, v2 in items]
 
+
 def _get_values(value):
     """ Returns an array of form field values. """
     # It's the last level in the hierarchy
@@ -28,6 +28,7 @@ def _get_values(value):
 
     items = value[1].items()
     return [_get_values(val)[0] for _, val in items]
+
 
 def _get_negations(value):
     """ For every path from any tree root to a leaf, return it's top-level
@@ -43,6 +44,7 @@ def _get_negations(value):
         for _ in _get_negations(item[1]):
             ret.append(value[0])
     return ret
+
 
 def flatten_form_data(data, sep='.'):
     """

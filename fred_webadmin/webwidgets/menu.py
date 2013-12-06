@@ -1,11 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import types
-import sys
-from gpyweb.gpyweb import WebWidget, attr, tagid, ul, li, a, div
+from gpyweb.gpyweb import attr, tagid, ul, li, a, div
 from fred_webadmin.menunode import MenuNode
-from utils import isiterable
+
 
 class Menu(ul):
     def __init__(self, menutree, selected_menu_handle, user, disabled=False, *content, **kwd):
@@ -20,7 +18,6 @@ class Menu(ul):
         self.open_nodes = []
         self.set_open_nodes()
         self.create_menu_tree()
-
 
     def set_open_nodes(self):
         '''Set selected node and all its parent nodes to open=True'''
@@ -46,8 +43,7 @@ class Menu(ul):
     def create_menu_tree(self):
         for menu in self.menutree.submenus:
             if self.user.check_nperms(menu.nperm, menu.nperm_type):
-                continue # user has negative permission for this menu -> don't display it
-
+                continue  # user has negative permission for this menu -> don't display it
 
             menu_open = menu in self.open_nodes
             cssc = menu.cssc
@@ -62,6 +58,7 @@ class Menu(ul):
 
             self.add(li(attr(cssc=cssc), a(attr(href=url), menu.caption), submenu))
 
+
 class MenuHoriz(Menu):
     "Menu for horizonal use (e.g. no nested ul ul), instead it is sequence of ul"
     def __init__(self, menutree, selected_menu_handle, user, *content, **kwd):
@@ -69,12 +66,11 @@ class MenuHoriz(Menu):
         super(MenuHoriz, self).__init__(menutree, selected_menu_handle, user, *content, **kwd)
         self.tag = 'div'
 
-
     def create_menu_tree(self):
         self.add(ul(tagid('_menu1')))
         for menu in self.menutree.submenus:
             if self.user.check_nperms(menu.nperm, menu.nperm_type):
-                continue # user has negative permission for this menu -> don't display it
+                continue  # user has negative permission for this menu -> don't display it
 
             menu_open = menu in self.open_nodes
             cssc = menu.cssc

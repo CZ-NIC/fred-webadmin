@@ -1,9 +1,7 @@
-import urlparse
-
 from fred_webadmin.webwidgets.gpyweb.gpyweb import (noesc, attr, table, thead, tbody, tfoot, tr, th, td, a, img, span,
-                                                    br, form, input, div)
+                                                    form, input)
 from fred_webadmin.translation import _
-from fred_webadmin.utils import get_current_url, append_getpar_to_url
+from fred_webadmin.utils import append_getpar_to_url
 from fred_webadmin.webwidgets.forms.forms import Form
 from fred_webadmin.webwidgets.forms.fields import HiddenField, ChoiceField, FakeField
 from fred_webadmin.controller.adif import Domain
@@ -39,11 +37,11 @@ class WIterTable(table):
 
         for i, htext in enumerate(itertable.header):
             col_num = i - 1
-            if col_num == -1: # first column is ID
+            if col_num == -1:  # first column is ID
                 header.add(th(attr(id='id_column_header_cell'), htext))
             else:
                 sort_dir = 1
-                if col_num == sort_col_num and sort_direction: # rendering column, according which is table sorted, so reverse direction for next click on this column
+                if col_num == sort_col_num and sort_direction:  # rendering column, according which is table sorted, so reverse direction for next click on this column
                     sort_dir = 0
                 th_cell = th(a(attr(href=append_getpar_to_url(add_par_dict={'sort_col': col_num, 'sort_dir': sort_dir}, del_par_list=['load', 'show_form'])), htext))
                 if col_num == sort_col_num:
@@ -58,7 +56,6 @@ class WIterTable(table):
                 row.add(self._render_col(col_num, col))
             rows.append(row)
         self.add(tbody(rows))
-
 
         # Pager
         pager = span()
@@ -116,6 +113,7 @@ class WIterTableWithSelection(WIterTable):
             val = span(input(attr(type='checkbox', name='object_selection', value=col.get('value'), cssc='object_selection',), val))
 
         return td(attr(cssc=col.get('cssc')), val)
+
 
 class WItertableInFormLayout(TableFormLayout):
     def render(self, indent_level=0):

@@ -20,6 +20,7 @@ class ErrorDict(dict, ul):
             self.add(li(message))
         return super(ErrorDict, self).render(indent_level)
 
+
 class ErrorList(list, ul):
     def __init__(self, from_list=None, *content, **kwd):
         list.__init__(self, from_list or [])
@@ -32,6 +33,7 @@ class ErrorList(list, ul):
         for message in self:
             self.add(li(message))
         return super(ErrorList, self).render(indent_level)
+
 
 class ValidationError(Exception):
     def __init__(self, message):
@@ -61,10 +63,9 @@ class SortedDict(dict):
         if isinstance(data, dict):
             self.keyOrder = data.keys()
         else:
-            self.keyOrder = [key for key, value in data]
+            self.keyOrder = [key for key, dummy_value in data]
 
     def __deepcopy__(self, memo):
-        from copy import deepcopy
         obj = self.__class__()
         for k, v in self.items():
             obj[k] = deepcopy(v, memo)
@@ -117,8 +118,8 @@ class SortedDict(dict):
         for key in self.keyOrder:
             yield dict.__getitem__(self, key)
 
-    def update(self, dict):
-        for k, v in dict.items():
+    def update(self, other_dict):
+        for k, v in other_dict.items():
             self.__setitem__(k, v)
 
     def setdefault(self, key, default):
@@ -157,10 +158,12 @@ class SortedDict(dict):
         """
         return '{%s}' % ', '.join(['%r: %r' % (k, v) for k, v in self.items()])
 
+
 def pretty_name(name):
     "Converts 'first_name' to 'First name'"
     name = name[0].upper() + name[1:]
     return name.replace('_', ' ')
+
 
 def isiterable(par):
     # we don't want to iterate over string characters
@@ -171,6 +174,7 @@ def isiterable(par):
         return True
     except TypeError:
         return False
+
 
 def escape_js_literal(literal):
     return literal.replace('\n', '\\n\\\n').replace("'", "\\'").replace('<', '\\<').replace('>', '\\>')
@@ -183,8 +187,8 @@ def convert_linear_filter_to_form_output(or_filters):
     def create_or_get_filter(new_or_filter, fname):
         splitted_name = fname.split('.')
         tmp_filter = new_or_filter
-        for name in splitted_name[:-1]: # last is actual name of filter
-            if not tmp_filter.has_key(name):
+        for name in splitted_name[:-1]:  # last is actual name of filter
+            if name not in tmp_filter:
                 tmp_filter['presention|' + name] = 'on'
                 tmp_filter[name] = {}
             tmp_filter = tmp_filter[name]
@@ -227,6 +231,7 @@ def convert_linear_filter_to_form_output(or_filters):
         result.append(new_or_filter)
     return result
 
+
 def find_and_update_datetime_offset_in_json(json_data, delta):
     """
         >>> json_data = {u'SvTRID': u'', u'presention|SvTRID': u'000', u'presention|Time': u'on', u'Time/4': u'0', u'Time/1/1/0': u'0', u'Time/0/0': u'', u'Time/2': u'', u'Time/3': u'12', u'Time/0/1/1': u'0', u'Time/0/1/0': u'0', u'Time/1/0': u'', u'Time/1/1/1': u'0'}
@@ -256,6 +261,7 @@ def find_and_update_datetime_offset_in_json(json_data, delta):
     offset = offset + delta
     json_data['Time/4'] = unicode(offset)
     return json_data
+
 
 def convert_corba_obj_to_form_data(corba_obj):
     data = corba_obj.__dict__

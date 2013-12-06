@@ -1,9 +1,9 @@
 import types
 
 from .formsets import BaseFormSet
-from .formsetlayouts import TableFormSetLayout#, FieldsetFormSetLayout
+from .formsetlayouts import TableFormSetLayout
 from .fields import (Field, DecimalField, ChoiceField, MultiValueField, DateField, SplitDateSplitTimeField,
-                     MultipleChoiceField, HiddenIntegerField)
+                     HiddenIntegerField)
 import fred_webadmin.corbarecoder as recoder
 from fred_webadmin.mappings import f_urls
 from fred_webadmin.webwidgets.utils import ValidationError, ErrorList, isiterable
@@ -15,10 +15,8 @@ from fred_webadmin import utils
 #COBRA imports:
 from fred_webadmin.corba import ccReg
 
-
-
-INTERVAL_CHOICES = [(choice._v, _(choice._n)) for choice in ccReg.DateTimeIntervalType._items[1:]] # first is None (which means that date is not active)
-INTERVAL_CHOICES_DATE_ONLY = [(choice._v, _(choice._n)) for choice in ccReg.DateTimeIntervalType._items[1:]] # first is None (which means that date is not active)
+INTERVAL_CHOICES = [(choice._v, _(choice._n)) for choice in ccReg.DateTimeIntervalType._items[1:]]  # first is None (which means that date is not active)
+INTERVAL_CHOICES_DATE_ONLY = [(choice._v, _(choice._n)) for choice in ccReg.DateTimeIntervalType._items[1:]]  # first is None (which means that date is not active)
 INTERVAL_CHOICES_DATE_ONLY.pop(ccReg.PAST_HOUR._v + -1)
 INTERVAL_CHOICES_DATE_ONLY.pop(ccReg.LAST_HOUR._v + -1)
 
@@ -45,9 +43,10 @@ class CompoundFilterField(Field):
 
     def _get_value(self):
         return self._value
+
     def _set_value(self, value):
         self._value = value
-        if self.initialized: # to form not instantiate at time, while form classes are being built
+        if self.initialized:  # to form not instantiate at time, while form classes are being built
 
             if value is None:
                 self.form = self.form_class(is_nested=True)
@@ -74,6 +73,7 @@ class CompoundFilterField(Field):
             else:
                 self.form = self.form_class(data=self.value, is_nested=True)
         return self.form.render(indent_level)
+
 
 class FormSetField(Field):
     "Field that wraps formset"
@@ -158,7 +158,6 @@ class FormSetField(Field):
 #            self.changed_data.append(form.changed_data)
         return has_changed
 
-
     def fire_actions(self, *args, **kwargs):
         self.create_formset_once()
         for form in self.formset.forms:
@@ -198,11 +197,13 @@ class CorbaEnumChoiceField(ChoiceField):
         else:
             return False
 
+
 class CorbaEnumChoiceIntegerField(CorbaEnumChoiceField):
     def clean(self):
         cleaned_data = super(CorbaEnumChoiceIntegerField, self).clean()
         if cleaned_data is not None:
             return cleaned_data._v
+
 
 class AbstractIntervalField(MultiValueField):
     ''' Abstract class field for DateIntervalField and DateTimeIntervalField'''
@@ -210,7 +211,7 @@ class AbstractIntervalField(MultiValueField):
         self.content_initialized = False
         # fields = (FROM, TO, DAY, TYPE, OFFSET)
         super(AbstractIntervalField, self).__init__(name, value, fields, *args, **kwargs)
-        self.fields[3].required = True # intertnal type is required
+        self.fields[3].required = True  # intertnal type is required
         self.media_files.append('/js/interval_fields.js')
         self.add_css_class('interval-field')
 
@@ -225,19 +226,18 @@ class AbstractIntervalField(MultiValueField):
         self.set_iterval_date_display()
 
     def set_iterval_date_display(self):
-        #if hasattr(self, 'date_interval_span'): # when initializing value, make_content method is not yet called, so this checks if it already was
-        if self.content_initialized: # when initializing value, make_content method is not yet called, so this checks if it already was
+        # if hasattr(self, 'date_interval_span'): # when initializing value, make_content method is not yet called, so this checks if it already was
+        if self.content_initialized:  # when initializing value, make_content method is not yet called, so this checks if it already was
             date_interval_display = 'none'
             date_day_display = 'none'
             date_interval_offset_span = 'none'
 
-            if int(self.value[3]) == ccReg.DAY._v: # day
+            if int(self.value[3]) == ccReg.DAY._v:  # day
                 date_day_display = 'inline'
-            elif int(self.value[3]) == ccReg.INTERVAL._v: # not normal interval
+            elif int(self.value[3]) == ccReg.INTERVAL._v:  # not normal interval
                 date_interval_display = 'inline'
-            elif int(self.value[3]) > ccReg.INTERVAL._v: # not normal interval
+            elif int(self.value[3]) > ccReg.INTERVAL._v:  # not normal interval
                 date_interval_offset_span = 'inline'
-
 
             self.date_interval_span.style = 'display: %s' % date_interval_display
             self.date_day_span.style = 'display: %s' % date_day_display
@@ -263,17 +263,17 @@ class AbstractIntervalField(MultiValueField):
 
     def clean(self):
         cleaned_data = super(AbstractIntervalField, self).clean()
-        if cleaned_data and int(cleaned_data[3]) == ccReg.INTERVAL._v and cleaned_data[0] and cleaned_data[1]: # if from and to field filled, and not day filled
-            if cleaned_data[0] > cleaned_data[1]: # if from > to
+        if cleaned_data and int(cleaned_data[3]) == ccReg.INTERVAL._v and cleaned_data[0] and cleaned_data[1]:  # if from and to field filled, and not day filled
+            if cleaned_data[0] > cleaned_data[1]:  # if from > to
                 errors = ErrorList(['"From" must be bigger than "To"'])
                 raise ValidationError(errors)
-        cleaned_data[3] = int(cleaned_data[3]) # choicefield intervaltype type to int
-        cleaned_data[4] = int(cleaned_data[4] or 0) # (offset) decmal to int
+        cleaned_data[3] = int(cleaned_data[3])  # choicefield intervaltype type to int
+        cleaned_data[4] = int(cleaned_data[4] or 0)  # (offset) decmal to int
 
         return cleaned_data
 
     def compress(self, data_list):
-        return data_list #retrun couple [from, to]
+        return data_list  # retrun couple [from, to]
 
     def decompress(self, value):
         return value
@@ -291,6 +291,7 @@ class DateIntervalField(AbstractIntervalField):
                   ChoiceField(content=[attr(onchange='onChangeDateIntervalType(this)')], choices=INTERVAL_CHOICES_DATE_ONLY),
                   DecimalField(initial=1, size=5, min_value=-32768, max_value=32767))
         super(DateIntervalField, self).__init__(name, value, fields, *args, **kwargs)
+
 
 class DateTimeIntervalField(AbstractIntervalField):
     def __init__(self, name='', value='', *args, **kwargs):
@@ -323,7 +324,6 @@ class ListObjectHiddenField(MultiValueField):
         super(ListObjectHiddenField, self).__init__(*args, **kwargs)
         self.fields_by_object_id = {}
 
-
     def _set_value(self, value):
         if not value:
             self._value = None
@@ -342,13 +342,13 @@ class ListObjectHiddenField(MultiValueField):
                 self.fields_by_object_id[int(val)] = field
 
     def compress(self, data_list):
-        if data_list and not isiterable(data_list): # wrap single non-empty value into list
+        if data_list and not isiterable(data_list):  # wrap single non-empty value into list
             return [data_list]
         else:
             return data_list
 
     def decompress(self, value):
-        if value and not isiterable(value): # wrap single non-empty value into list
+        if value and not isiterable(value):  # wrap single non-empty value into list
             return [value]
         else:
             return value

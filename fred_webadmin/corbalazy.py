@@ -6,19 +6,18 @@ Thus this data should be only constant (same for all server) as action type etc.
 at least for given version of server (all servers shoud be same version).
 '''
 
-import config
 import cherrypy
 import omniORB
 from logging import debug
-import sys
-from corbarecoder import DaphneCorbaRecode
 import fred_webadmin.corbarecoder as recoder
 from fred_webadmin.corba import ccReg
+
 
 class ServerNotAvailableError(Exception):
     """ CORBA server could not be connected to.
     """
     pass
+
 
 class CorbaLazyRequest(object):
     def __init__(self, object_name, mgr_getter_name, function_name,
@@ -59,6 +58,7 @@ class CorbaLazyRequest(object):
     def __repr__(self):
         return self.__str__()
 
+
 class CorbaLazyRequestIter(CorbaLazyRequest):
     '''
     Because some classes (as forms) are initialized when start of webadmin, this
@@ -94,7 +94,6 @@ class CorbaLazyRequestIter(CorbaLazyRequest):
         self._get_data()
         return self.data.pop(index)
 
-
     def __getitem__(self, index):
         self._get_data()
         return self.data[index]
@@ -111,6 +110,7 @@ class CorbaLazyRequest1V2L(CorbaLazyRequestIter):
     '''In corba is list of one value and output is generator of couples of that value: ([x,x] for x in corbaData)'''
     def _convert_data(self, data):
         return [[x, x] for x in data]
+
 
 class CorbaLazyRequestIterStruct(CorbaLazyRequestIter):
     def __init__(self, object_name, mgr_getter_name, function_name, mapping,
@@ -134,6 +134,7 @@ class CorbaLazyRequestIterStruct(CorbaLazyRequestIter):
             self.mapping = mapping
         else:
             raise RuntimeError('CorbaLazyRequestFromStruct __init__: parametr mapping must be list or tupple with length exactly 2.')
+
     def _convert_data(self, data):
         result = []
         for item in data:

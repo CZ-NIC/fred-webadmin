@@ -1,15 +1,12 @@
 import types
 import cherrypy
-from logging import debug
 
 from dfields import DField
 from fred_webadmin.webwidgets.gpyweb.gpyweb import WebWidget, attr, div, a, p
-from detaillayouts import TableDetailLayout, SectionDetailLayout
+from detaillayouts import SectionDetailLayout
 from fred_webadmin.webwidgets.utils import SortedDict
-from fred_webadmin.utils import get_detail_from_oid
-from fred_webadmin.corba import ccReg
 from fred_webadmin.translation import _
-from fred_webadmin.corba import Registry
+
 
 class DeclarativeDFieldsMetaclass(WebWidget.__metaclass__):
     """
@@ -50,9 +47,9 @@ class BaseDetail(div):
         self.history = history
         self.data = data or {}
         if data is not None:
-            if not isinstance(data, types.DictType): # data is some corba object
+            if not isinstance(data, types.DictType):  # data is some corba object
                 self.data = data.__dict__
-            else: # data is dict
+            else:  # data is dict
                 self.data = data
 
         self.label_suffix = label_suffix
@@ -125,7 +122,7 @@ class BaseDetail(div):
             self.add(p(a(attr(href=u'../edit/?id=' + unicode(self.data.get('id'))), _('Edit'))))
 
     def render(self, indent_level=0):
-        self.content = [] # empty previous content (if render would be called moretimes, there would be multiple forms instead one )
+        self.content = []  # empty previous content (if render would be called moretimes, there would be multiple forms instead one )
         self.add(self.layout_class(self))
         if self.check_nperms():
             # TODO: render error!

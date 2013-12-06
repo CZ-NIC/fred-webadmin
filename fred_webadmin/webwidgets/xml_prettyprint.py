@@ -6,12 +6,11 @@ try:
     import StringIO
     from xml.dom.ext import PrettyPrint
     from xml.dom.ext.reader import Sax2
-    import xml.dom.minidom
     python_xml_imported = True
 except ImportError:
     python_xml_imported = False
 
-try :
+try:
     # syntax highlighting using pygments
     from pygments import highlight
     from pygments.lexers import XmlLexer
@@ -34,6 +33,7 @@ def format_xml(xml_string):
     else:
         return ''
 
+
 def xml_highlight(xml_string):
     if xml_string:
         formated_xml = format_xml(xml_string)
@@ -41,6 +41,7 @@ def xml_highlight(xml_string):
         return highlight_xml
     else:
         return ''
+
 
 def uglify(xml):
     return '\n'.join('\n<'.join('>\n'.join(xml.split('>')).split('<')).split('\n\n'))
@@ -52,7 +53,7 @@ if python_xml_imported:
     else:
         xml_prettify = format_xml
 else:
-    xml_prettify = uglify # :-)
+    xml_prettify = uglify  # :-)
 
 
 def xml_prettify_webwidget(xml_string):

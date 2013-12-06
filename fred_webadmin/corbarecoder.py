@@ -1,16 +1,17 @@
 import types
 import codecs
-import exceptions
 import datetime
 import fred_webadmin.nulltype as fredtypes
-from corba import ccReg, Registry
+from corba import ccReg
 
 
 class UnsupportedEncodingError(Exception):
     pass
 
+
 class DecodeError(Exception):
     pass
+
 
 class CorbaRecode(object):
     """ Encodes and decodes corba entities to python entities, i.e.,
@@ -41,18 +42,18 @@ class CorbaRecode(object):
         if type(answer) in self.BasicTypes:
             return answer
         elif type(answer) in self.IterTypes:
-            return [ self.decode(x) for x in answer ]
+            return [self.decode(x) for x in answer]
         elif type(answer) == types.InstanceType:
             for name in dir(answer):
                 item = getattr(answer, name)
                 if name.startswith('__'):
-                    continue # internal python methods / attributes
+                    continue  # internal python methods / attributes
                 if name.startswith('_'):
-                    continue # internal module defined methods / attributes
+                    continue  # internal module defined methods / attributes
                 if type(item) == types.MethodType:
-                    continue # methods - don't call them
+                    continue  # methods - don't call them
                 if type(item) in self.BasicTypes:
-                    continue # nothing to do
+                    continue  # nothing to do
                 if type(item) in types.StringTypes:
                     answer.__dict__[name] = item.decode(self.coding)
                     continue
@@ -60,7 +61,7 @@ class CorbaRecode(object):
                     answer.__dict__[name] = self.decode(item)
                     continue
                 if type(item) in self.IterTypes:
-                    answer.__dict__[name] = [ self.decode(x) for x in item ]
+                    answer.__dict__[name] = [self.decode(x) for x in item]
                     continue
                 raise ValueError(
                     "%s attribute in %s is not convertable to CORBA." % (
@@ -73,18 +74,18 @@ class CorbaRecode(object):
         if type(answer) in self.BasicTypes:
             return answer
         elif type(answer) in self.IterTypes:
-            return [ self.encode(x) for x in answer ]
+            return [self.encode(x) for x in answer]
         elif type(answer) == types.InstanceType:
             for name in dir(answer):
                 item = getattr(answer, name)
                 if name.startswith('__'):
-                    continue # internal python methods / attributes
+                    continue  # internal python methods / attributes
                 if name.startswith('_'):
-                    continue # internal module defined methods / attributes
+                    continue  # internal module defined methods / attributes
                 if type(item) == types.MethodType:
-                    continue # methods - don't call them
+                    continue  # methods - don't call them
                 if type(item) in self.BasicTypes:
-                    continue # nothing to do
+                    continue  # nothing to do
                 if type(item) in types.StringTypes:
                     answer.__dict__[name] = item.encode(self.coding)
                     continue
@@ -92,12 +93,13 @@ class CorbaRecode(object):
                     answer.__dict__[name] = self.encode(item)
                     continue
                 if type(item) in self.IterTypes:
-                    answer.__dict__[name] = [ self.encode(x) for x in item ]
+                    answer.__dict__[name] = [self.encode(x) for x in item]
                     continue
                 raise ValueError(
                     "%s attribute in %s is not convertable to python type." % (
                         name, answer))
             return answer
+
 
 class DaphneCorbaRecode(CorbaRecode):
     """ TODO(tom): Bad code duplication here, refactor mercilessly!
@@ -110,7 +112,7 @@ class DaphneCorbaRecode(CorbaRecode):
         if type(answer) in self.BasicTypes:
             return answer
         elif type(answer) in self.IterTypes:
-            return [ self.decode(x) for x in answer ]
+            return [self.decode(x) for x in answer]
         if isinstance(answer, ccReg.DateTimeType):
             return corba_to_datetime(answer)
         if isinstance(answer, ccReg.DateType):
@@ -121,14 +123,14 @@ class DaphneCorbaRecode(CorbaRecode):
             for name in dir(answer):
                 item = getattr(answer, name)
                 if name.startswith('__'):
-                    continue # internal python methods / attributes
+                    continue  # internal python methods / attributes
                 if name.startswith('_') and name != "_from":
                     # HACK to handle that OMNIOrb mangles 'from' to '_from'
-                    continue # internal module defined methods / attributes
+                    continue  # internal module defined methods / attributes
                 if type(item) == types.MethodType:
-                    continue # methods - don't call them
+                    continue  # methods - don't call them
                 if type(item) in self.BasicTypes:
-                    continue # nothing to do
+                    continue  # nothing to do
                 if type(item) in types.StringTypes:
                     answer.__dict__[name] = item.decode(self.coding)
                     continue
@@ -136,7 +138,7 @@ class DaphneCorbaRecode(CorbaRecode):
                     answer.__dict__[name] = self.decode(item)
                     continue
                 if type(item) in self.IterTypes:
-                    answer.__dict__[name] = [ self.decode(x) for x in item ]
+                    answer.__dict__[name] = [self.decode(x) for x in item]
                     continue
                 raise ValueError(
                     "%s attribute in %s is not convertable to python type." % (
@@ -149,7 +151,7 @@ class DaphneCorbaRecode(CorbaRecode):
         if type(answer) in self.BasicTypes:
             return answer
         elif type(answer) in self.IterTypes:
-            return [ self.encode(x) for x in answer ]
+            return [self.encode(x) for x in answer]
         if isinstance(answer, datetime.datetime):
             return datetime_to_corba(answer)
         if isinstance(answer, datetime.date):
@@ -160,13 +162,13 @@ class DaphneCorbaRecode(CorbaRecode):
             for name in dir(answer):
                 item = getattr(answer, name)
                 if name.startswith('__'):
-                    continue # internal python methods / attributes
+                    continue  # internal python methods / attributes
                 if name.startswith('_'):
-                    continue # internal module defined methods / attributes
+                    continue  # internal module defined methods / attributes
                 if type(item) == types.MethodType:
-                    continue # methods - don't call them
+                    continue  # methods - don't call them
                 if type(item) in self.BasicTypes:
-                    continue # nothing to do
+                    continue  # nothing to do
                 if type(item) in types.StringTypes:
                     answer.__dict__[name] = item.encode(self.coding)
                     continue
@@ -174,7 +176,7 @@ class DaphneCorbaRecode(CorbaRecode):
                     answer.__dict__[name] = self.encode(item)
                     continue
                 if type(item) in self.IterTypes:
-                    answer.__dict__[name] = [ self.encode(x) for x in item ]
+                    answer.__dict__[name] = [self.encode(x) for x in item]
                     continue
                 if type(item) == datetime.date or \
                   type(item) == datetime.datetime:
@@ -190,12 +192,13 @@ class DaphneCorbaRecode(CorbaRecode):
             return answer
 
 null_encoding_rules = {
-    fredtypes.NullDate : ccReg.DateType(0, 0, 0),
-    fredtypes.NullDateTime : ccReg.DateTimeType(0, 0, 0, 0),
-    fredtypes.NullInt : 0,
-    fredtypes.NullDecimal : 0,
-    fredtypes.NullFloat : 0.0,
+    fredtypes.NullDate: ccReg.DateType(0, 0, 0),
+    fredtypes.NullDateTime: ccReg.DateTimeType(0, 0, 0, 0),
+    fredtypes.NullInt: 0,
+    fredtypes.NullDecimal: 0,
+    fredtypes.NullFloat: 0.0,
 }
+
 
 def _encode_null_type(item, objref):
     """ Transforms the Null subclass object to the respective CORBA type.
@@ -208,8 +211,9 @@ def _encode_null_type(item, objref):
 
 
 recoder = DaphneCorbaRecode('utf-8')
-c2u = recoder.decode # recode from corba string to unicode
-u2c = recoder.encode # recode from unicode to strings
+c2u = recoder.decode  # recode from corba string to unicode
+u2c = recoder.encode  # recode from unicode to strings
+
 
 def date_to_corba(date):
     """ onverted to ccReg.DateType. If date is None, then
@@ -223,7 +227,7 @@ def date_to_corba(date):
 
 
 def corba_to_date(corba_date):
-    if corba_date.year == 0: # empty date is in corba = DateType(0, 0, 0)
+    if corba_date.year == 0:  # empty date is in corba = DateType(0, 0, 0)
         return fredtypes.NullDate()
     return datetime.date(corba_date.year, corba_date.month, corba_date.day)
 
@@ -238,7 +242,7 @@ def datetime_to_corba(date_time):
 
 def corba_to_datetime(corba_date_time):
     corba_date = corba_date_time.date
-    if corba_date.year == 0: # empty date is in corba = DateType(0, 0, 0)
+    if corba_date.year == 0:  # empty date is in corba = DateType(0, 0, 0)
         return fredtypes.NullDateTime()
     return datetime.datetime(corba_date.year, corba_date.month, corba_date.day,
                              corba_date_time.hour, corba_date_time.minute, corba_date_time.second)
@@ -256,7 +260,7 @@ def date_time_interval_to_corba(val, date_conversion_method):
         interval_type = ccReg.DateTimeInterval
     c_from, c_to, c_day = [date_conversion_method(date) for date in val[:3]]
     if int(val[3]) == ccReg.DAY._v:
-        corba_interval = interval_type(c_day, c_to, ccReg.DAY, val[4] or 0) # c_to will be ignored
+        corba_interval = interval_type(c_day, c_to, ccReg.DAY, val[4] or 0)  # c_to will be ignored
     else:
         corba_interval = interval_type(c_from, c_to, ccReg.DateTimeIntervalType._items[val[3]], val[4] or 0)
     return corba_interval
