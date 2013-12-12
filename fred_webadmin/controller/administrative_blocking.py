@@ -24,6 +24,10 @@ def context_owners_other_domains(exc):
     }
 
 
+def context_unblockable_constacts(exc):
+    return {'contact_handles': '. '.join([contact.contactHandle for contact in exc.what])}
+
+
 DOMAIN_ID_NOT_FOUND_MSG = views.FieldErrMsg('objects', _('Domain(s) with id {domain_ids} not found.'),
                                             context_domain_id_list)
 DOMAIN_ID_ALREADY_BLOCKED_MSG = views.FieldErrMsg('objects', _('Domain(s) {domain_handles} are already blocked.'),
@@ -35,9 +39,12 @@ NEW_OWNER_DOES_NOT_EXISTS_MSG = views.FieldErrMsg('new_holder', _('New holder {e
 OWNER_HAS_OTHER_DOMAIN_MSG = views.FieldErrMsg(
     'objects',
     _('Cannot block holder(s) {holder_handles} because theirs domain(s) {domain_handles} are not blocked. '
-      'You can create copy of the owner.'),
+      'You can create copy of the holder.'),
     context_owners_other_domains
 )
+CONTACT_BLOCK_PROHIBITED_MSG = views.FieldErrMsg('owner_block_mode',
+    _('Contact(s) {contact_handles} cannot be blocked. You can create copy of the holder.'),
+    context_unblockable_constacts)
 
 
 class AdministrativeBlockingBaseView(views.ProcessFormCorbaLogView):
@@ -77,7 +84,8 @@ class ProcessBlockView(AdministrativeBlockingBaseView):
 
     field_exceptions = {Registry.Administrative.DOMAIN_ID_NOT_FOUND: DOMAIN_ID_NOT_FOUND_MSG,
                         Registry.Administrative.DOMAIN_ID_ALREADY_BLOCKED: DOMAIN_ID_ALREADY_BLOCKED_MSG,
-                        Registry.Administrative.OWNER_HAS_OTHER_DOMAIN: OWNER_HAS_OTHER_DOMAIN_MSG
+                        Registry.Administrative.OWNER_HAS_OTHER_DOMAIN: OWNER_HAS_OTHER_DOMAIN_MSG,
+                        Registry.Administrative.CONTACT_BLOCK_PROHIBITED: CONTACT_BLOCK_PROHIBITED_MSG,
                        }
 
     action_name = _('Block')

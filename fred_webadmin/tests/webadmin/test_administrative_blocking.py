@@ -319,6 +319,15 @@ class TestAdministrativeBlock(BaseTestAdministrativeBlockingAction):
         tc.url(self.START_URL)
         tc.find('Cannot block holder')
 
+    def test_unblockable_contact(self):
+        tc.fv(2, 'owner_block_mode', '1')
+        self.blocking_mock.blockDomainsId.side_effect = Registry.Administrative.CONTACT_BLOCK_PROHIBITED(
+            what=[Registry.Administrative.ContactIdHandle(contactId=1, contactHandle='I_R_MOJEID')]
+        )
+        tc.submit()
+        tc.url(self.START_URL)
+        tc.find('Contact\(s\) I_R_MOJEID cannot be blocked')
+
 
 class TestAdministrativeChangeBlocking(BaseTestAdministrativeBlockingAction):
     BLOCKING_ACTION = 'change_blocking'
