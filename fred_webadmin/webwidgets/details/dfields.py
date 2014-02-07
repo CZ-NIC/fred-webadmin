@@ -177,17 +177,10 @@ class XMLDField(CharDField):
 
     def resolve_value(self, value):
         value = super(XMLDField, self).resolve_value(value)
-        value = xml_prettify_webwidget(value)
-        return value
-
-
-class XMLOrCharDField(XMLDField):
-    def resolve_value(self, value):
-        val = super(XMLOrCharDField, self).resolve_value(value)
         try:
-            val_xml = xml_prettify_webwidget(val)
+            val_xml = xml_prettify_webwidget(value)
         except xml.sax.SAXParseException:
-            return val
+            return value
         return val_xml
 
 
