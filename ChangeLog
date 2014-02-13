@@ -1,3 +1,7 @@
+2014-02-13 Jiri Sadek (3.12.0)
+
+    * pin2 and pin3 buttons for message resending in public request details
+
 2013-11-06 Tomas Divis (3.11.0)
 
     * administrative blocking/unblocking domains (and holders)
