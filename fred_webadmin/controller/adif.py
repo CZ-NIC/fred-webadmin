@@ -90,6 +90,7 @@ from fred_webadmin.customview import CustomView
 from fred_webadmin.controller.perms import check_onperm, login_required
 from fred_webadmin.controller.administrative_blocking import (ProcessBlockView, ProcessUpdateBlockingView,
     ProcessUnblockView, ProcessBlacklistAndDeleteView)
+from . import administrative_verification
 from base import AdifPage
 
 
@@ -204,6 +205,7 @@ class ADIF(AdifPage):
         cherrypy.session['FileManager'] = corba_obj.getObject('FileManager', 'ccReg.FileManager')
         cherrypy.session['Messages'] = corba_obj.getObject('Messages', 'Registry.Messages')
         cherrypy.session['Blocking'] = corba_obj.getObject('Administrative', 'Registry.Administrative.Blocking')
+        cherrypy.session['Verification'] = corba_obj.getObject('AdminContactVerification', 'Registry.AdminContactVerification.Server')
 
         cherrypy.session['history'] = False
         utils.get_corba_session().setHistory(False)
@@ -1067,6 +1069,7 @@ def prepare_root():
     root.statistic = Statistics()
     root.devel = Development()
     root.group = Group()
+    root.contactcheck = administrative_verification.ContactCheck()
 
     return root
 

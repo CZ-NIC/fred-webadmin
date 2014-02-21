@@ -184,9 +184,14 @@ logs_node = MenuNode(
         'logs', _('Logs'), 'body-logs', 'menu-item menu-logs',
         submenu=log_submenu)
 
+verifications_node = MenuNode(
+    'contactcheck', _('Verifications'), 'body-contactcheck', 'menu-item menu-contactcheck',
+    url='/contactcheck/filter/')
+
+
 menu_tree = MenuNode(
     'root', '', '', 'menu-item', '#',
-    [summary_node, objects_node, registrars_node, logs_node])
+    [summary_node, objects_node, registrars_node, logs_node, verifications_node])
 
 
 if __name__ == '__main__':

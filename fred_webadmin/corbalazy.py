@@ -149,3 +149,7 @@ class CorbaLazyRequestIterStructToDict(CorbaLazyRequestIterStruct):
     def _convert_data(self, data):
         result = super(CorbaLazyRequestIterStructToDict, self)._convert_data(data)
         return dict(result)
+
+    def get(self, key, default=None):
+        self._get_data()
+        return self.data.get(key, default)

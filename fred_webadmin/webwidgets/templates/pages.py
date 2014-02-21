@@ -112,7 +112,7 @@ class BaseSiteMenu(BaseSite):
                        type='checkbox', onchange='setHistory(this)')),
                   label(attr(for_id='history_checkbox'), _('history'))
         )
-        if c.history:
+        if c.get('history'):
             self.history_checkbox.checked = ['', 'checked'][c.history]
 
 
@@ -432,3 +432,17 @@ class DomainBlockingResult(BaseSiteMenu):
                 else:
                     holder_change_text = None
                 self.blocked_object_ul.add(li(a(attr(href=c['detail_url'] % blocked_object.id), blocked_object.handle), holder_change_text))
+
+
+class ContactCheckList(BaseSiteMenu):
+    def __init__(self, context):
+        super(ContactCheckList, self).__init__(context)
+        c = self.context
+        self.main.add(h1(c.heading))
+        self.main.add(c.table_tag)
+        lang_code = config.lang[:2]
+        if lang_code == 'cs':  # conversion between cs and cz identifier of lagnguage
+            lang_code = 'cz'
+        self.head.add(script(attr(type='text/javascript'),
+                             'scwLanguage = "%s"; //sets language of js_calendar' % lang_code,
+                             'scwDateOutputFormat = "%s"; // set output format for js_calendar' % config.js_calendar_date_format))
