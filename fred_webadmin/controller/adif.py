@@ -62,7 +62,7 @@ from fred_webadmin import exposed
 from fred_webadmin.corba import Corba
 corba_obj = Corba()
 
-from fred_webadmin.corba import ccReg
+from fred_webadmin.corba import ccReg, Registry
 from fred_webadmin.translation import _
 
 # This must all be imported because of the way templates are dealt with.
@@ -979,6 +979,45 @@ class PublicRequest(AdifPage, ListTableMixin):
             log_req.close()
 
         raise cherrypy.HTTPRedirect(f_urls[self.classname] + 'filter/?reload=1&load=1')
+
+    @check_onperm('change')
+    def resend(self, pr_type, **kwd):
+        '''Resend associated message with public request, works only with serveral public request types'''
+        backend = cherrypy.session['Admin']
+        backend_call_switch = {
+            Registry.PublicRequest.PRT_MOJEID_CONTACT_IDENTIFICATION._n: backend.resendPin3Letter,
+            Registry.PublicRequest.PRT_CONTACT_IDENTIFICATION._n: backend.resendPin3Letter,
+            Registry.PublicRequest.PRT_MOJEID_CONTACT_CONDITIONAL_IDENTIFICATION._n: backend.resendPin2SMS,
+            Registry.PublicRequest.PRT_CONTACT_CONDITIONAL_IDENTIFICATION._n: backend.resendPin2SMS,
+        }
+        log_req = self._create_log_req_for_object_view('PublicRequestResendMessage', **kwd)
+        try:
+            method = backend_call_switch.get(pr_type)
+            if method:
+                method(int(kwd['id']))
+                log_req.result = 'Success'
+            else:
+                log_req.result = 'Fail'
+                raise CustomView(self._render(
+                    'error', {'message': [
+                        _(u'Invalid public request type', u'You can return back to '),
+                        a(attr(href=f_urls[self.classname] + 'detail/?id=%s' % kwd['id']),
+                            _('public request.'))
+                ]}))
+
+        except ccReg.Admin.OBJECT_NOT_FOUND:
+            log_req.result = 'Fail'
+            raise CustomView(self._render(
+                'error', {'message': [
+                    _(u'Associated message cannot be resend because request was already processed or has not valid type.'
+                    u'You can return back to '), a(attr(
+                        href=f_urls[self.classname] + 'detail/?id=%s' % kwd['id']),
+                        _('public request.'))
+            ]}))
+        finally:
+            log_req.close()
+
+        raise cherrypy.HTTPRedirect(f_urls[self.classname] + 'detail/?id=%s' % kwd['id'])
 
 
 class Invoice(AdifPage, ListTableMixin):

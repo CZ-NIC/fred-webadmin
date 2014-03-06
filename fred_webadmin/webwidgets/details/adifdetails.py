@@ -600,19 +600,39 @@ class PublicRequestDetail(Detail):
     resolveTime = CharDField(label=_('Close time'))
 
     def add_to_bottom(self):
-        if self.data and \
-            self.data.get('status') == Registry.PublicRequest.PRS_NEW:
-                self.media_files.append('/js/publicrequests.js')
-                self.add(FilterPanel([[
-                    [_('Accept_and_send'),
-                        "javascript:processPublicRequest('%s')" % \
-                        (f_urls['publicrequest'] + 'resolve/?id=%s' % \
+        type_specific_button = None
+        if self.data and self.data.get('status') == Registry.PublicRequest.PRS_NEW:
+            if self.data.get('type') in (Registry.PublicRequest.PRT_MOJEID_CONTACT_IDENTIFICATION,
+                                         Registry.PublicRequest.PRT_CONTACT_IDENTIFICATION):
+                type_specific_button = [
+                    _('Resend PIN3 Letter (copy)'),
+                    "javascript:processAction('%s', 'resend the message')" % \
+                        (f_urls['publicrequest'] + 'resend/%s/?id=%s' % \
+                            (self.data['type']._n, self.data.get('id')))
+                ]
+            elif self.data.get('type') in (Registry.PublicRequest.PRT_MOJEID_CONTACT_CONDITIONAL_IDENTIFICATION,
+                                           Registry.PublicRequest.PRT_CONTACT_CONDITIONAL_IDENTIFICATION):
+                type_specific_button = [
+                    _('Resend PIN2 SMS (copy)'),
+                    "javascript:processAction('%s', 'resend the message')" % \
+                        (f_urls['publicrequest'] + 'resend/%s/?id=%s' % \
+                            (self.data['type']._n, self.data.get('id')))
+                ]
+
+            self.media_files.append('/js/publicrequests.js')
+            buttons = [
+                [_('Accept_and_send'),
+                    "javascript:processPublicRequest('%s')" % \
+                    (f_urls['publicrequest'] + 'resolve/?id=%s' % \
+                        self.data.get('id'))],
+                [_('Invalidate_and_close'),
+                    "javascript:closePublicRequest('%s')" % \
+                        (f_urls['publicrequest'] + 'close/?id=%s' % \
                             self.data.get('id'))],
-                    [_('Invalidate_and_close'),
-                        "javascript:closePublicRequest('%s')" % \
-                            (f_urls['publicrequest'] + 'close/?id=%s' % \
-                                self.data.get('id'))],
-                ]]))
+            ]
+            if type_specific_button:
+                buttons.append(type_specific_button)
+            self.add(FilterPanel([buttons]))
         super(PublicRequestDetail, self).add_to_bottom()
 
 
