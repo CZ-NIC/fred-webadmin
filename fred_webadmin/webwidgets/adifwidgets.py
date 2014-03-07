@@ -114,11 +114,12 @@ class FilterPanel(table):
         Button can also be just simple link.
     '''
     def __init__(self, filters, max_row_size=5, *content, **kwd):
-        ''' filters is list of tripplet [button_label, object_name, filters] where filters in linear form. written
-            (e.g. [{'domain.registrar.handle'='ahoj', 'handle'=[True, 'ahoj']}] (True is for negation))
-            (so if there is negation, then value is list [value, negation], otherwise it is just value)
+        ''' filters is list of lists (sections) of filters (tripplet [button_label, object_name, filters] where
+            filters in linear form (e.g. [{'domain.registrar.handle'='ahoj', 'handle'=[True, 'ahoj']}]
+            (True is for negation)) (so if there is negation, then value is list [negation, value], otherwise it is
+            just a value).
             Alternatively, instead of filter (which is a triplet), can be used direct link (couple):
-            [button_label, url]
+            [button_label, url], or just one object in list which is added directly (e.g. any content like a Form)
         '''
         super(FilterPanel, self).__init__(*content, **kwd)
         self.tag = 'div'

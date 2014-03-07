@@ -446,3 +446,16 @@ class ContactCheckList(BaseSiteMenu):
         self.head.add(script(attr(type='text/javascript'),
                              'scwLanguage = "%s"; //sets language of js_calendar' % lang_code,
                              'scwDateOutputFormat = "%s"; // set output format for js_calendar' % config.js_calendar_date_format))
+
+
+class ContactCheckDetail(BaseSiteMenu):
+    def __init__(self, context):
+        super(ContactCheckDetail, self).__init__(context)
+        c = self.context
+        self.main.add(h1(
+            _('Contact checks detail'), '-', c.test_suit_name,
+            notag(attr(enclose_content=True), '(', a(attr(href=c.contact_url), c.check.contact_handle), ')'),
+            notag(attr(enclose_content=True), ' (', _('Created: '), c.check.created, ')'),
+        ))
+        self.main.add(c.detail)
+        self.main.add(c.panel)

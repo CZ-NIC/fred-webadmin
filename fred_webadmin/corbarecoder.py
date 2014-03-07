@@ -24,7 +24,8 @@ class CorbaRecode(object):
                 types.BooleanType,
                 types.FloatType,
                 types.IntType,
-                types.LongType
+                types.LongType,
+                types.NoneType
                 )
         self.IterTypes = (
                 types.TupleType,
@@ -122,15 +123,11 @@ class DaphneCorbaRecode(CorbaRecode):
         if type(answer) == types.InstanceType:
             for name in dir(answer):
                 item = getattr(answer, name)
-                if name.startswith('__'):
-                    continue  # internal python methods / attributes
                 if name.startswith('_') and name != "_from":
                     # HACK to handle that OMNIOrb mangles 'from' to '_from'
                     continue  # internal module defined methods / attributes
-                if type(item) == types.MethodType:
-                    continue  # methods - don't call them
-                if type(item) in self.BasicTypes:
-                    continue  # nothing to do
+                if isinstance(item, (types.MethodType,) + self.BasicTypes):
+                    continue  # None or methods - don't call them
                 if type(item) in types.StringTypes:
                     answer.__dict__[name] = item.decode(self.coding)
                     continue
