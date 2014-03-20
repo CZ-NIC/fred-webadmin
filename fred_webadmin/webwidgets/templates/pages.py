@@ -4,10 +4,11 @@
 from fred_webadmin.webwidgets.gpyweb.gpyweb import (
     div, span, p, a, h2, h3, attr, save, HTMLPage,
     label, input, h1, ul, li, script, pre, notag)
-from fred_webadmin.translation import _
-from fred_webadmin import config
-from fred_webadmin.utils import get_current_url, append_getpar_to_url
 
+from fred_webadmin import config
+from fred_webadmin.messages import get_messages
+from fred_webadmin.translation import _
+from fred_webadmin.utils import get_current_url, append_getpar_to_url
 from fred_webadmin.webwidgets.details import adifdetails
 
 
@@ -46,7 +47,7 @@ class BaseSite(BaseTemplate):
             div(
                 div(attr(id='menu_container'), save(self, 'menu_container')),
                 div(attr(id='right_menu_container'), save(self, 'right_menu_container'),
-                )
+               )
             )
         )
         self.branding.add(h1('Daphne'))
@@ -57,6 +58,14 @@ class BaseSite(BaseTemplate):
                                 span('User: %s(%s %s)' % (c.user.login, c.user.firstname, c.user.surname)),
                                 '|',
                                 a(attr(href="/logout"), 'Log out'))
+
+        messages = get_messages()
+        if messages:
+            self.main.add(div(attr(cssc='messages-wrapper'),
+                              ul(attr(cssc='messagelist'),
+                                 [li(attr(cssc=message.string_level), message) for message in messages]
+                                )
+                         ))
 
         if c.get('main'):
             self.main.add(c.main)
