@@ -75,7 +75,9 @@ class ContactCheck(AdifPage):
             yield row
 
     def _generate_update_tests_form_class(self, check):
-        choices = [[status, ContactCheckEnums.CHECK_STATUS_NAMES[status]] for status in self.SETTABLE_TEST_STATUSES]
+        choices = [['no_change', _('No change')]]
+        choices.extend([[status, ContactCheckEnums.CHECK_STATUS_NAMES[status]]
+                        for status in self.SETTABLE_TEST_STATUSES])
         fields = {}
         for test_data in check.test_list:
             fields[test_data.test_handle] = ChoiceField(test_data.test_handle, choices=choices)
@@ -149,21 +151,18 @@ class ContactCheck(AdifPage):
                     messages.warning(_('This contact check was already resolved.'))
                     raise cherrypy.HTTPRedirect(f_urls['contactcheck'] + 'detail/%s/' % check.check_handle)
 
-                current_statuses = {test_data.test_handle: test_data.status_history[-1].status
-                                    for test_data in check.test_list}
                 form = self._generate_update_tests_form_class(check)(
                     post_data,
-                    initial=current_statuses,
                     submit_button_text=_('Save'))
                 if form.is_valid():
                     changed_statuses = {}
-                    for check_handle in current_statuses:
-                        if form.cleaned_data[check_handle] != current_statuses[check_handle]:
-                            changed_statuses[check_handle] = form.cleaned_data[check_handle]
+                    for test_handle, field_value in form.cleaned_data.items():
+                        if field_value != 'no_change':
+                            changed_statuses[test_handle] = field_value
                     cherrypy.session['Verification'].updateContactCheckTests(
                         u2c(check.check_handle),
-                        u2c([Registry.AdminContactVerification.ContactTestUpdate(key, value)
-                             for key, value in changed_statuses.items()]),
+                        u2c([Registry.AdminContactVerification.ContactTestUpdate(test_handle, status)
+                             for test_handle, status in changed_statuses.items()]),
                         u2c(log_req.request_id))
                     messages.success(_('Changes have been saved.'))
                     raise cherrypy.HTTPRedirect('resolve/')
@@ -184,13 +183,17 @@ class ContactCheck(AdifPage):
                 # Tests statuses must be either all OK or all fail to be possible to resolve check as OK or fail.
                 # Tests wish status 'skipped' are irrelevant and ignored in these conditions:
                 if all([test.status_history[-1].status in self.OK_TEST_STATUSES for test in check.test_list]):
-                    filters[0].append([Form(action='ok/', method='post', submit_button_text=_('Resolve as OK'))])
+                    filters[0].append([Form(action='ok/', method='post', submit_button_text=_('Resolve as OK'),
+                                            onsubmit='return confirm("Are you sure?")')])
                 if all([test.status_history[-1].status in self.FAIL_TEST_STATUSES for test in check.test_list]):
-                    filters[0].append([Form(action='fail/', method='post', submit_button_text=_('Resolve as failed'))])
+                    filters[0].append([Form(action='fail/', method='post', submit_button_text=_('Resolve as failed'),
+                                            onsubmit='return confirm("Are you sure?")')])
 
-                filters[0].append([Form(action='invalidated/', method='post', submit_button_text=_('Invalidate'))])
+                filters[0].append([Form(action='invalidated/', method='post', submit_button_text=_('Invalidate'),
+                                            onsubmit='return confirm("Are you sure?")')])
 
                 panel = FilterPanel(filters)
+                panel.media_files.append('/js/public_profile.js')
             else:
                 panel = None
 

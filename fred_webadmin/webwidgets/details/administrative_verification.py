@@ -12,7 +12,7 @@ class VerificationCheckDetail(form):
     def __init__(self, check, resolve, form=None, *content, **kwd):
         super(VerificationCheckDetail, self).__init__(*content, **kwd)
         self.tag = 'form'
-        self.header = [_('Test'), _('Tested data'), _('Updated'), _('Processed by'), _('Error'), _('Status'), _('Update to')]
+        self.header = [_('Test'), _('Tested data'), _('Updated'), _('Processed by'), _('Error'), _('Status'), _('Change to')]
         self.check = check
         self.form = form
         self.method = 'post'
