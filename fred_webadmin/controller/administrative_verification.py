@@ -50,12 +50,12 @@ class ContactCheck(AdifPage):
         for check in checks:
             test_finished_python = c2u(check.last_test_finished)
             if test_finished_python:
-                if check.test_suite_handle == 'automatic':
-                    to_resolve = test_finished_python
-                elif check.test_suite_handle == 'manual':
+                if check.test_suite_handle == 'manual':
                     last_contact_update = c2u(check.last_contact_update)
                     to_resolve = min(test_finished_python + datetime.timedelta(30),  # TODO: put into config
                                      last_contact_update)
+                else:
+                    to_resolve = test_finished_python
                 to_resolve = to_resolve.isoformat()
             else:
                 to_resolve = ''
