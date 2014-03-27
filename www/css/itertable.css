@@ -16,7 +16,7 @@ table.itertable {
 .itertable thead th, .itertable thead td {
      white-space:nowrap;
      background: #E1E1E1 url(../img/admin/nav-bg.gif) repeat-x scroll left top;
-    text-align: left;>
+    text-align: left;
     border-bottom:1px solid #DDDDDD;
     border-left:1px solid #DDDDDD;
     color:#666666;
@@ -70,4 +70,35 @@ table thead th.sorted {
 .itertable .pager_text {
     float: right;
     margin-top:5px;
+}
+
+#changelist-filter ul {
+    padding-left: 0;
+    margin-left: 10px;
+    display: inline-block;
+}
+
+#changelist-filter li {
+    list-style-type: none;
+    margin-left: 0;
+    padding-left: 0;
+    display: inline-block;
+}
+
+#changelist-filter a {
+    color: #999;
+}
+
+#changelist-filter li.selected a {
+    color: #5b80b2 !important;
+    font-weight: bold;
+}
+
+#changelist-filter a:hover {
+    color: #036;
+}
+
+#changelist-filter li a.selected {
+    color: #5b80b2 !important;
+    font-weight: bold;
 }
