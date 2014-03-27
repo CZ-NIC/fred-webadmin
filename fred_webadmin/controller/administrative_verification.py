@@ -25,7 +25,7 @@ from fred_webadmin.webwidgets.adifwidgets import FilterPanel
 class ContactCheck(AdifPage):
     SETTABLE_TEST_STATUSES = ('ok', 'fail')
     OK_TEST_STATUSES = ('ok', 'skipped')
-    FAIL_TEST_STATUSES = ('fail', 'skipped')
+    FAIL_TEST_STATUSES = ('fail',)
     FINAL_CHECK_STATUSES = ('ok', 'fail', 'invalidated')
     UNCLOSABLE_CHECK_STATUSES = FINAL_CHECK_STATUSES + ('enqueued', 'running')
 
@@ -180,12 +180,13 @@ class ContactCheck(AdifPage):
             if resolve and self.is_check_closable(check):
                 filters = [[]]
 
-                # Tests statuses must be either all OK or all fail to be possible to resolve check as OK or fail.
-                # Tests wish status 'skipped' are irrelevant and ignored in these conditions:
+                # Tests statuses must be either all OK to be able to resolve as OK
+                # Tests with status 'skipped' are irrelevant and ignored in these conditions:
                 if all([test.status_history[-1].status in self.OK_TEST_STATUSES for test in check.test_list]):
                     filters[0].append([Form(action='ok/', method='post', submit_button_text=_('Resolve as OK'),
                                             onsubmit='return confirm("Are you sure?")')])
-                if all([test.status_history[-1].status in self.FAIL_TEST_STATUSES for test in check.test_list]):
+                # If at least one of test statuses is fail, it is possible to resolve check as failed:
+                if any([test.status_history[-1].status in self.FAIL_TEST_STATUSES for test in check.test_list]):
                     filters[0].append([Form(action='fail/', method='post', submit_button_text=_('Resolve as failed'),
                                             onsubmit='return confirm("Are you sure?")')])
 
