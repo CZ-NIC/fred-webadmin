@@ -65,13 +65,13 @@ class VerificationCheckDetail(form):
                 rows.append(row)
 
                 if cherrypy.session.get('history', False):
-                    for older_status in test_data.status_history[0:-1]:
+                    for older_status in reversed(test_data.status_history[0:-1]):
                         row = tr(attr(cssc='row%s' % ((row_num % 2) + 1)))
                         row.add(td(attr(colspan=2, cssc='borderless')))
                         self._render_status(row, older_status)
                         rows.append(row)
 
-                # one tbody per test - tbodies have oouble border in css to separate tests as sections:
+                # one tbody per test - tbodies have double border in css to separate tests as sections:
                 tests_table.add(tbody(rows))
 
             if self.resolve:
