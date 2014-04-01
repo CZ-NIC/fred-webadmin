@@ -38,7 +38,10 @@ class ContactCheck(AdifPage):
     def _get_contact_checks(self, test_suit=None, contact_id=None):
         log_req = create_log_request('ContactCheckFilter')
         try:
-            checks = cherrypy.session['Verification'].getActiveChecks(test_suit)
+            if contact_id:
+                checks = cherrypy.session['Verification'].getChecksOfContact(contact_id, None, 100)
+            else:
+                checks = cherrypy.session['Verification'].getActiveChecks(test_suit)
             log_req.result = 'Success'
             return checks
         finally:
@@ -101,16 +104,14 @@ class ContactCheck(AdifPage):
         return self._render('filter', ctx=context)
 
     @login_required
-    def json_filter(self, **kwd):
+    def json_filter(self, contact_id=None, **kwd):
         test_suit = kwd.get('test_suit')
-        try:
-            if kwd.get('contact_id'):
-                contact_id = int(kwd.get('contact_id'))
-            else:
-                contact_id = None
-        except (TypeError, ValueError):
-            context = {'main': _('Requires integer as parameter (got %s).' % kwd['contact_id'])}
-            raise CustomView(self._render('base', ctx=context))
+        if contact_id:
+            try:
+                contact_id = int(contact_id)
+            except (TypeError, ValueError):
+                context = {'main': _('Requires integer as parameter (got %s).' % contact_id)}
+                raise CustomView(self._render('base', ctx=context))
 
         cherrypy.response.headers['Content-Type'] = 'application/json'
         data = list(self._table_data_generator(test_suit, contact_id))
@@ -147,7 +148,7 @@ class ContactCheck(AdifPage):
             check = c2u(cherrypy.session['Verification'].getContactCheckDetail(check_handle))
 
             if resolve:
-                if not self.is_check_closable(check):
+                if not self._is_check_closable(check):
                     messages.warning(_('This contact check was already resolved.'))
                     raise cherrypy.HTTPRedirect(f_urls['contactcheck'] + 'detail/%s/' % check.check_handle)
 
@@ -177,7 +178,7 @@ class ContactCheck(AdifPage):
                 form=form
             )
 
-            if resolve and self.is_check_closable(check):
+            if resolve and self._is_check_closable(check):
                 filters = [[]]
 
                 # Tests statuses must be either all OK to be able to resolve as OK
@@ -232,5 +233,21 @@ class ContactCheck(AdifPage):
         return 'contactcheck'
 
     @classmethod
-    def is_check_closable(self, check):
+    def _is_check_closable(self, check):
         return check.status_history[-1].status not in self.UNCLOSABLE_CHECK_STATUSES
+
+    def create_check(self, contact_id, test_suite_handle, **kwd):
+        try:
+            contact_id = int(contact_id)
+        except (TypeError, ValueError):
+            context = {'main': _('Requires integer as parameter (got %s).' % contact_id)}
+            raise CustomView(self._render('base', ctx=context))
+
+        log_req = create_log_request('ContactCheckEnqueue', properties=[['test_suit_handle', test_suite_handle]])
+        try:
+            cherrypy.session['Verification'].enqueueContactCheck(contact_id, test_suite_handle, log_req.request_id)
+            log_req.result = 'Success'
+            messages.success(_('Contact check have been created.'))
+            raise cherrypy.HTTPRedirect(f_urls['contact'] + 'detail/?id=%s' % contact_id)
+        finally:
+            log_req.close()

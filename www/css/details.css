@@ -62,10 +62,21 @@
 .filter_panel td {
     height: 2.5em;
 }
-.filter_panel { text-align: center; }
-.filter_panel a { background:white url(../img/admin/nav-bg.gif) bottom repeat-x; padding:4px;  color:black; border:1px solid #bbb; border-color:#ddd #aaa #aaa #ddd; }
-.filter_panel a:active { background-image:url(../img/admin/nav-bg-reverse.gif); background-position:top; }
-
+.filter_panel {
+    text-align: center;
+}
+.filter_panel a {
+    background:white url(../img/admin/nav-bg.gif) bottom repeat-x; padding:4px;
+    color:black;
+    border:1px solid #bbb;
+    border-color:#ddd #aaa #aaa #ddd;
+    font-size: 11px;
+    font-family: "Lucida Grande",Verdana,Arial,sans-serif;
+}
+.filter_panel a:active {
+    background-image:url(../img/admin/nav-bg-reverse.gif);
+    background-position:top;
+}
 
 .object_list_detail_table th { text-align: left; }
 

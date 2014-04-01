@@ -45,7 +45,7 @@ $(document)
             $('#table_tag').dataTable({
                 "bProcessing" : false,
                 "bPaginate" : false,
-                "sAjaxSource" : '/contactcheck/json_filter/',
+                "sAjaxSource" : window.location.href.replace('filter', 'json_filter'),
                 "aaSorting" : [[3, "desc"]],
                 "aoColumnDefs" : [{
                     "aTargets" : [3],
