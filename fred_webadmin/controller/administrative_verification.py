@@ -48,17 +48,16 @@ class ContactCheck(AdifPage):
             log_req.close()
 
     def _table_data_generator(self, test_suit=None, contact_id=None):
-        checks = self._get_contact_checks(test_suit, contact_id)
+        checks = c2u(self._get_contact_checks(test_suit, contact_id))
 
         for check in checks:
-            test_finished_python = c2u(check.last_test_finished)
-            if test_finished_python:
+            if check.last_test_finished:
                 if check.test_suite_handle == 'manual':
-                    last_contact_update = c2u(check.last_contact_update)
-                    to_resolve = min(test_finished_python + datetime.timedelta(30),  # TODO: put into config
-                                     last_contact_update)
+                    to_resolve = check.last_test_finished + datetime.timedelta(30)  # TODO: put into config
+                    if check.last_contact_update > check.created:  # only updates wich happend after check was created
+                        to_resolve = min(to_resolve, check.last_contact_update)
                 else:
-                    to_resolve = test_finished_python
+                    to_resolve = check.last_test_finished
                 to_resolve = to_resolve.isoformat()
             else:
                 to_resolve = ''
@@ -66,14 +65,14 @@ class ContactCheck(AdifPage):
             check_link = '<a href="{0}detail/{1}/"><img src="/img/icons/open.png" title="{3}" /></a>'
             if check.current_status not in self.UNCLOSABLE_CHECK_STATUSES:
                 check_link += '''<a href="{0}detail/{1}/resolve/">{2}</a>'''
-            check_link = check_link.format(f_urls[self.classname], c2u(check.check_handle), _('Resolve'), _('Show'))
+            check_link = check_link.format(f_urls[self.classname], check.check_handle, _('Resolve'), _('Show'))
             row = [
                 check_link,
-                '<a href="{}detail/?id={}">{}</a>'.format(f_urls['contact'], c2u(check.contact_id), c2u(check.contact_handle)),
-                ContactCheckEnums.SUITE_NAMES.get(c2u(check.test_suite_handle), _('!Unknown error!')),
+                '<a href="{}detail/?id={}">{}</a>'.format(f_urls['contact'], check.contact_id, check.contact_handle),
+                ContactCheckEnums.SUITE_NAMES.get(check.test_suite_handle, _('!Unknown error!')),
                 to_resolve,
-                c2u(check.created).isoformat(),
-                ContactCheckEnums.CHECK_STATUS_NAMES.get(c2u(check.current_status), _('!Unknown error!')),
+                check.created.isoformat(),
+                ContactCheckEnums.CHECK_STATUS_NAMES.get(check.current_status, _('!Unknown error!')),
             ]
             yield row
 

@@ -46,7 +46,7 @@ $(document)
                 "bProcessing" : false,
                 "bPaginate" : false,
                 "sAjaxSource" : window.location.href.replace('filter', 'json_filter'),
-                "aaSorting" : [[3, "desc"]],
+                "aaSorting" : [[3, "asc"]],
                 "aoColumnDefs" : [{
                     "aTargets" : [3],
                     "mRender" : function(data, type, row) {
