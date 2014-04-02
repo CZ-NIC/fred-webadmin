@@ -22,7 +22,7 @@ class VerificationCheckDetail(form):
             self.header.pop()  # remove last column which contains form fields for resolving the check
 
     def _render_status(self, test_row, status):
-        test_row.add(td(status.update))
+        test_row.add(td(attr(cssc='no-wrap'), status.update))
 
         if status.logd_request_id:
             # TODO: Get user from detail of log request or myabe display ling to log req.
@@ -30,7 +30,7 @@ class VerificationCheckDetail(form):
         else:
             test_row.add(td(_('automat')))
         test_row.add(td(status.err_msg))
-        test_row.add(td(status.status))
+        test_row.add(td(attr(title=enums.TEST_STATUS_DESCS[status.status]), enums.TEST_STATUS_NAMES[status.status]))
 
     def render(self, indent_level=0):
         col_count = len(self.header)
@@ -45,10 +45,12 @@ class VerificationCheckDetail(form):
         tests_table.add(thead([th(item) for item in self.header]))
 
         if self.check.test_list:
-            for row_num, test_data in enumerate(self.check.test_list):
+            for row_num, test_data in enumerate(sorted(self.check.test_list,
+                                                       key=lambda k: enums.TEST_DESCS[k.test_handle])):
                 rows = []
                 row = tr(attr(cssc='row%s' % ((row_num % 2) + 1)))
-                row.add(td(enums.TEST_NAMES[test_data.test_handle]))
+                row.add(td(attr(title=enums.TEST_DESCS[test_data.test_handle]),
+                           enums.TEST_NAMES[test_data.test_handle]))
 
                 tested_data_td = td(test_data.tested_contact_data)
                 if test_data.current_contact_data != test_data.tested_contact_data:
