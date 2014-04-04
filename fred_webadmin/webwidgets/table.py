@@ -45,7 +45,7 @@ class WIterTable(table):
                     sort_dir = 0
                 th_cell = th(a(attr(href=append_getpar_to_url(add_par_dict={'sort_col': col_num, 'sort_dir': sort_dir}, del_par_list=['load', 'show_form'])), htext))
                 if col_num == sort_col_num:
-                    th_cell.cssc = 'sorted ' + ['ascending', 'descending'][sort_direction]
+                    th_cell.cssc = 'sorted ' + ['descending', 'ascending'][sort_direction]
                 header.add(th_cell)
         self.add(thead(header))
 

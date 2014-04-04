@@ -28,6 +28,48 @@ function set_selected_filter_button(button) {
     $('#table_tag').dataTable().fnDraw();
 }
 
+function datetimeMRender(data, type, row) {
+    if (type == 'display') {
+        if (data) {
+            date = new Date(Date.parse(data));
+            return date.scwFormat(scwDateOutputFormat);
+        }
+        return '';
+    }
+    return data;
+}
+
+// install custom sort function
+jQuery.fn.dataTableExt.oSort['null_last-asc'] = function(x, y) {
+    if (x == y) {
+        return 0;
+    }
+    if (x == "") {
+        return 1;
+    }
+    if (y == "") {
+        return -1;
+    }
+    if (x > y) {
+        return 1;
+    }
+};
+
+jQuery.fn.dataTableExt.oSort['null_last-desc'] = function(y, x) {
+    if (x == y) {
+        return 0;
+    }
+    if (x == "") {
+        return 1;
+    }
+    if (y == "") {
+        return -1;
+    }
+    if (x > y) {
+        return 1;
+    }
+};
+
 $(document)
     .ready(
         function() {
@@ -49,19 +91,11 @@ $(document)
                 "aaSorting" : [[3, "asc"]],
                 "aoColumnDefs" : [{
                     "aTargets" : [3],
-                    "mRender" : function(data, type, row) {
-                        if (data) {
-                            date = new Date(Date.parse(data));
-                            return date.scwFormat(scwDateOutputFormat);
-                        }
-                        return '';
-                    }
+                    "mRender" : datetimeMRender,
+                    "sType" : "null_last"
                 }, {
                     "aTargets" : [4],
-                    "mRender" : function(data, type, row) {
-                        date = new Date(Date.parse(data));
-                        return date.scwFormat(scwDateOutputFormat);
-                    }
+                    "mRender" : datetimeMRender
                 }]
             });
             $('#no-filter').click(function() {

@@ -54,11 +54,11 @@ table thead th.sorted {
 }
 
 .itertable thead th.ascending a, .itertable .sorting_asc {
-    background: transparent url(../img/admin/arrow-down.gif) no-repeat scroll right 0.4em;
+    background: transparent url(../img/admin/arrow-up.gif) no-repeat scroll right 0.4em;
 }
 
 .itertable thead th.descending a, .itertable .sorting_desc {
-    background: transparent url(../img/admin/arrow-up.gif) no-repeat scroll right 0.4em;
+    background: transparent url(../img/admin/arrow-down.gif) no-repeat scroll right 0.4em;
 }
 
 .itertable .sorting_desc, .itertable .sorting_asc {
