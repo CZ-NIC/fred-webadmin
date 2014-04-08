@@ -4,6 +4,8 @@ import json
 import cherrypy
 
 from .base import AdifPage
+from fred_webadmin.cache import cache
+from fred_webadmin import config
 from fred_webadmin.controller.perms import check_nperm, login_required
 from fred_webadmin.corba import Registry
 from fred_webadmin.corbarecoder import c2u, u2c
@@ -20,6 +22,8 @@ from fred_webadmin.webwidgets.gpyweb.gpyweb import DictLookup
 from fred_webadmin.webwidgets.simple_table import SimpleTable
 from fred_webadmin.webwidgets.templates.pages import ContactCheckList, ContactCheckDetail
 from fred_webadmin.webwidgets.adifwidgets import FilterPanel
+
+RESOLVE_LOCK_CACHE_KEY = 'admin_verification_resolve_%s'
 
 
 class ContactCheck(AdifPage):
@@ -64,7 +68,12 @@ class ContactCheck(AdifPage):
 
             check_link = '<a href="{0}detail/{1}/"><img src="/img/icons/open.png" title="{3}" /></a>'
             if check.current_status not in self.UNCLOSABLE_CHECK_STATUSES:
-                check_link += '''<a href="{0}detail/{1}/resolve/">{2}</a>'''
+                cache_key = (RESOLVE_LOCK_CACHE_KEY % check.check_handle).encode('utf-8')
+                resolving_user = cache.get(cache_key)
+                if resolving_user and resolving_user != cherrypy.session['user'].login:
+                    check_link += '%s resolving' % resolving_user
+                else:
+                    check_link += '''<a href="{0}detail/{1}/resolve/">{2}</a>'''
             check_link = check_link.format(f_urls[self.classname], check.check_handle, _('Resolve'), _('Show'))
             row = [
                 check_link,
@@ -126,8 +135,17 @@ class ContactCheck(AdifPage):
             return self._render('404_not_found')
 
         check_handle = args[0]
-        if len(args) > 1:  # can resolve the check
-            resolve = True
+        if len(args) > 1:
+            cache_key = RESOLVE_LOCK_CACHE_KEY % check_handle
+            stored = cache.add(cache_key,
+                               cherrypy.session['user'].login,
+                               config.verification_check_lock_default_duration)
+            current_resolving_user = cache.get(cache_key)
+            if stored or current_resolving_user == cherrypy.session['user'].login:
+                resolve = True
+            else:
+                messages.warning('This check is currently being resolved by user "%s"' % current_resolving_user)
+                raise cherrypy.HTTPRedirect(f_urls['contactcheck'] + 'detail/%s/' % check_handle)
         else:  # read only mode
             resolve = False
 
