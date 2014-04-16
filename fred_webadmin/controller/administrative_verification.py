@@ -57,7 +57,7 @@ class ContactCheck(AdifPage):
         for check in checks:
             if check.last_test_finished:
                 if check.test_suite_handle == 'manual':
-                    to_resolve = check.last_test_finished + datetime.timedelta(30)  # TODO: put into config
+                    to_resolve = check.last_test_finished + datetime.timedelta(config.verification_check_manual_waiting)
                     if check.last_contact_update > check.created:  # only updates wich happend after check was created
                         to_resolve = min(to_resolve, check.last_contact_update)
                 else:

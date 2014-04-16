@@ -79,6 +79,8 @@ blacklisting_link_add_month_count = 1
 
 # Administrative verification - default lock duration for resolving verification check
 verification_check_lock_default_duration = 5 * 60  # seconds
+# Administrative verification manual check waiting period before being "to resolve"
+verification_check_manual_waiting = 30  # days
 
 cherrycfg = {
     'global': {
