@@ -458,4 +458,3 @@ class ContactCheckDetail(BaseSiteMenu):
             notag(attr(enclose_content=True), ' (', _('Created: '), c.check.created, ')'),
         ))
         self.main.add(c.detail)
-        self.main.add(c.panel)

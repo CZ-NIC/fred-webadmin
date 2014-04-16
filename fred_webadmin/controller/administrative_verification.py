@@ -31,7 +31,8 @@ class ContactCheck(AdifPage):
     OK_TEST_STATUSES = ('ok', 'skipped')
     FAIL_TEST_STATUSES = ('fail',)
     FINAL_CHECK_STATUSES = ('ok', 'fail', 'invalidated')
-    UNCLOSABLE_CHECK_STATUSES = FINAL_CHECK_STATUSES + ('enqueued', 'running')
+    PRE_RUN_CHECK_STATUSES = ('enqueued', 'running')
+    UNCLOSABLE_CHECK_STATUSES = FINAL_CHECK_STATUSES + PRE_RUN_CHECK_STATUSES
 
     # TODO: permissions @check_nperm(['read.testsuit.automatic', 'read.testsuit.manual'])
     def index(self, *args, **kwargs):
@@ -129,9 +130,7 @@ class ContactCheck(AdifPage):
     @login_required
     def detail(self, *args, **kwd):
         # path can be 'detail/ID/' or 'detail/ID/resolve/'
-        if ((not 1 <= len(args) <= 3) or
-                (len(args) > 1 and args[1] != 'resolve') or
-                (len(args) == 3 and cherrypy.request.method != 'POST')):
+        if (not 1 <= len(args) <= 2) or (len(args) > 1 and args[1] != 'resolve'):
             return self._render('404_not_found')
 
         check_handle = args[0]
@@ -149,9 +148,6 @@ class ContactCheck(AdifPage):
         else:  # read only mode
             resolve = False
 
-        if len(args) == 3:
-            self._close_check(check_handle, args[2])  # closing check ends with redirection
-
         post_data = kwd if cherrypy.request.method == 'POST' else None
 
         if resolve and post_data:
@@ -165,13 +161,14 @@ class ContactCheck(AdifPage):
             check = c2u(cherrypy.session['Verification'].getContactCheckDetail(check_handle))
 
             if resolve:
-                if not self._is_check_closable(check):
+                if self._is_check_post_closed(check):
                     messages.warning(_('This contact check was already resolved.'))
                     raise cherrypy.HTTPRedirect(f_urls['contactcheck'] + 'detail/%s/' % check.check_handle)
+                elif self._is_check_pre_run(check):
+                    messages.warning(_('This contact check was not yet run.'))
+                    raise cherrypy.HTTPRedirect(f_urls['contactcheck'] + 'detail/%s/' % check.check_handle)
 
-                form = self._generate_update_tests_form_class(check)(
-                    post_data,
-                    submit_button_text=_('Save'))
+                form = self._generate_update_tests_form_class(check)(post_data)
                 if form.is_valid():
                     changed_statuses = {}
                     for test_handle, field_value in form.cleaned_data.items():
@@ -182,8 +179,16 @@ class ContactCheck(AdifPage):
                         u2c([Registry.AdminContactVerification.ContactTestUpdate(test_handle, status)
                              for test_handle, status in changed_statuses.items()]),
                         u2c(log_req.request_id))
-                    messages.success(_('Changes have been saved.'))
-                    raise cherrypy.HTTPRedirect('resolve/')
+                    if 'submit_fail' in post_data:
+                        status = 'fail'
+                    elif 'submit_invalidate' in post_data:
+                        status = 'invalidated'
+                    elif 'submit_ok' in post_data:
+                        status = 'ok'
+                    else:
+                        raise CustomView(self._render('error', ctx={'message': _('Unknown status to resolve.')}))
+
+                    self._close_check(check_handle, status)  # closing check ends with redirection
             else:
                 form = None
 
@@ -195,46 +200,25 @@ class ContactCheck(AdifPage):
                 form=form
             )
 
-            if resolve and self._is_check_closable(check):
-                filters = [[]]
-
-                # Tests statuses must be either all OK to be able to resolve as OK
-                # Tests with status 'skipped' are irrelevant and ignored in these conditions:
-                if all([test.status_history[-1].status in self.OK_TEST_STATUSES for test in check.test_list]):
-                    filters[0].append([Form(action='ok/', method='post', submit_button_text=_('Resolve as OK'),
-                                            onsubmit='return confirm("Are you sure?")')])
-                # If at least one of test statuses is fail, it is possible to resolve check as failed:
-                if any([test.status_history[-1].status in self.FAIL_TEST_STATUSES for test in check.test_list]):
-                    filters[0].append([Form(action='fail/', method='post', submit_button_text=_('Resolve as failed'),
-                                            onsubmit='return confirm("Are you sure?")')])
-
-                filters[0].append([Form(action='invalidated/', method='post', submit_button_text=_('Invalidate'),
-                                            onsubmit='return confirm("Are you sure?")')])
-
-                panel = FilterPanel(filters)
-                panel.media_files.append('/js/public_profile.js')
-            else:
-                panel = None
 
             context = DictLookup({
                 'test_suit_name': ContactCheckEnums.SUITE_NAMES.get(check.test_suite_handle),
                 'check': check,
                 'contact_url': f_urls['contact'] + 'detail/?id=%s' % check.contact_id,
                 'detail': detail,
-                'panel': panel,
             })
             return self._render('detail', ctx=context)
         finally:
             log_req.close()
 
     def _close_check(self, check_handle, close_status):
-        log_req = create_log_request('ContactCheckDetail', properties=[['check_handle', check_handle]])
+        log_req = create_log_request('ContactCheckResolve', properties=[['check_handle', check_handle]])
         try:
             cherrypy.session['Verification'].resolveContactCheckStatus(check_handle, close_status, log_req.request_id)
             log_req.result = 'Success'
             messages.success(_('Contact check has been resolved as {}.').format(
                                ContactCheckEnums.CHECK_STATUS_NAMES[close_status]))
-            raise cherrypy.HTTPRedirect('../')
+            raise cherrypy.HTTPRedirect(f_urls['contactcheck'] + 'detail/%s/' % check_handle)
         finally:
             log_req.close()
 
@@ -250,8 +234,11 @@ class ContactCheck(AdifPage):
         return 'contactcheck'
 
     @classmethod
-    def _is_check_closable(self, check):
-        return check.status_history[-1].status not in self.UNCLOSABLE_CHECK_STATUSES
+    def _is_check_pre_run(self, check):
+        return check.status_history[-1].status in self.PRE_RUN_CHECK_STATUSES
+
+    def _is_check_post_closed(self, check):
+        return check.status_history[-1].status in self.FINAL_CHECK_STATUSES
 
     def create_check(self, contact_id, test_suite_handle, **kwd):
         try:
