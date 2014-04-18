@@ -14,7 +14,7 @@ from fred_webadmin.enums import ContactCheckEnums
 from fred_webadmin.mappings import f_urls
 from fred_webadmin import messages
 from fred_webadmin.translation import _
-from fred_webadmin.utils import create_log_request
+from fred_webadmin.utils import create_log_request, get_detail
 from fred_webadmin.webwidgets.details.administrative_verification import VerificationCheckDetail
 from fred_webadmin.webwidgets.forms.forms import Form
 from fred_webadmin.webwidgets.forms.fields import ChoiceField
@@ -200,12 +200,18 @@ class ContactCheck(AdifPage):
                 form=form
             )
 
+            contact_detail = get_detail('contact', check.contact_id)
+            contact_display_fields = ['organization', 'ident', 'vat', 'fax', 'notifyEmail']
+            if check.test_suite_handle != 'automatic':
+                contact_display_fields += ['name', 'telephone']
 
             context = DictLookup({
                 'test_suit_name': ContactCheckEnums.SUITE_NAMES.get(check.test_suite_handle),
                 'check': check,
                 'contact_url': f_urls['contact'] + 'detail/?id=%s' % check.contact_id,
                 'detail': detail,
+                'contact_detail': contact_detail,
+                'contact_display_fields': contact_display_fields,
             })
             return self._render('detail', ctx=context)
         finally:

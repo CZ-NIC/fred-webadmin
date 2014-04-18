@@ -9,7 +9,7 @@ from fred_webadmin import config
 from fred_webadmin.messages import get_messages
 from fred_webadmin.translation import _
 from fred_webadmin.utils import get_current_url, append_getpar_to_url
-from fred_webadmin.webwidgets.details import adifdetails
+from fred_webadmin.webwidgets.details import adifdetails, administrative_verification
 
 
 class BaseTemplate(HTMLPage):
@@ -458,3 +458,5 @@ class ContactCheckDetail(BaseSiteMenu):
             notag(attr(enclose_content=True), ' (', _('Created: '), c.check.created, ')'),
         ))
         self.main.add(c.detail)
+        self.main.add(adifdetails.ContactDetail(c.contact_detail, c.history, is_nested=True,
+                                                sections=((_('Other contact data'), c.contact_display_fields),)))
