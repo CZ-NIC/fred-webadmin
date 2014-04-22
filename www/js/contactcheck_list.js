@@ -5,14 +5,11 @@
 function filter_by_testsuite_type(oSettings, aData, iDataIndex) {
     var selected_filter = $('#changelist-filter .selected').attr('id');
 
-    if (selected_filter != 'no-filter') {
-        test_suite_handle = selected_filter.substring(7, selected_filter.length);
-        if (aData[2] == test_suite_handle) {
-            return true;
-        }
-        return false;
+    if ((selected_filter == 'no-filter') || (selected_filter == 'filter-automatic' && aData[2] == 'automatic')
+        || (selected_filter == 'filter-manual' && (aData[2] == 'manual' || aData[2] == 'thank_you'))) {
+        return true;
     }
-    return true;
+    return false;
 }
 
 function set_selected_filter_button(button) {
