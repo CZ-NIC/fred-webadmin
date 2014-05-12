@@ -11,7 +11,7 @@ import cherrypy
 import fred_webadmin.nulltype as fredtypes
 
 from fred_webadmin.webwidgets.gpyweb.gpyweb import (
-    WebWidget, attr, br, select, option, input, span)
+    WebWidget, attr, br, select, option, input, label, span, tagid)
 from fred_webadmin.webwidgets.utils import ValidationError, ErrorList, isiterable
 from fred_webadmin.translation import _
 from fred_webadmin.utils import LateBindingProperty
@@ -629,14 +629,19 @@ class HiddenIntegerField(IntegerField):
 class ChoiceField(Field):
     tattr_list = select.tattr_list
 
-    def __init__(self, name='', value='', choices=None, required=True, label=None, initial=None, help_text=None, *arg, **kwargs):
+    def __init__(self, name='', value='', choices=None, required=True, label=None, initial=None, help_text=None,
+                 as_radio_buttons=False, *arg, **kwargs):
         super(ChoiceField, self).__init__(name, value, required, label, initial, help_text, *arg, **kwargs)
-        self.tag = 'select'
+        if as_radio_buttons:
+            self.tag = 'div'
+        else:
+            self.tag = 'select'
         self.empty_choice = ['', '']
         if choices is None:
             self.choices = []
         else:
             self.choices = choices
+        self.as_radio_buttons = as_radio_buttons
 
     def make_content(self):
         nperm = None
@@ -656,10 +661,16 @@ class ChoiceField(Field):
             for value, caption in list(self.choices):
                 if user and nperm and user.has_nperm(nperm, value):
                     continue
-                if unicode(value) == unicode(self.value):
-                    self.add(option(attr(value=value, selected='selected'), caption))
+                if self.as_radio_buttons:
+                    item = label(input(attr(type='radio', name=self.name, value=value), tagid('radio_input'), caption))
                 else:
-                    self.add(option(attr(value=value), caption))
+                    item = option(attr(value=value), caption)
+                if unicode(value) == unicode(self.value):
+                    if self.as_radio_buttons:
+                        item.radio_input.checked = 'checked'
+                    else:
+                        item.selected = 'selected'
+                self.add(item)
 
     def render(self, indent_level=0):
         self.make_content()

@@ -87,12 +87,17 @@ class ContactCheck(AdifPage):
             yield row
 
     def _generate_update_tests_form_class(self, check):
-        choices = [['no_change', _('No change')]]
-        choices.extend([[status, ContactCheckEnums.CHECK_STATUS_NAMES[status]]
-                        for status in self.SETTABLE_TEST_STATUSES])
         fields = {}
         for test_data in check.test_list:
-            fields[test_data.test_handle] = ChoiceField(test_data.test_handle, choices=choices)
+            choices = []
+
+            choices.extend([[status, ContactCheckEnums.TEST_STATUS_NAMES[status]]
+                            for status in self.SETTABLE_TEST_STATUSES])
+            current_test_status = test_data.status_history[-1].status
+            if current_test_status not in self.SETTABLE_TEST_STATUSES:
+                choices.append([current_test_status, ContactCheckEnums.TEST_STATUS_NAMES[current_test_status]])
+
+            fields[test_data.test_handle] = ChoiceField(test_data.test_handle, choices=choices, as_radio_buttons=True)
         return type('CheckTestsForm', (Form,), fields)
 
     @login_required
@@ -168,12 +173,14 @@ class ContactCheck(AdifPage):
                     messages.warning(_('This contact check was not yet run.'))
                     raise cherrypy.HTTPRedirect(f_urls['contactcheck'] + 'detail/%s/' % check.check_handle)
 
-                form = self._generate_update_tests_form_class(check)(post_data)
+                initial = {test_data.test_handle: test_data.status_history[-1].status for test_data in check.test_list}
+                form = self._generate_update_tests_form_class(check)(post_data, initial=initial)
                 if form.is_valid():
                     changed_statuses = {}
-                    for test_handle, field_value in form.cleaned_data.items():
-                        if field_value != 'no_change':
-                            changed_statuses[test_handle] = field_value
+                    for test_data in check.test_list:
+                        status_in_form = form.cleaned_data[test_data.test_handle]
+                        if status_in_form != test_data.status_history[-1].status:
+                            changed_statuses[test_data.test_handle] = status_in_form
                     cherrypy.session['Verification'].updateContactCheckTests(
                         u2c(check.check_handle),
                         u2c([Registry.AdminContactVerification.ContactTestUpdate(test_handle, status)

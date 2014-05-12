@@ -22,11 +22,13 @@ class VerificationCheckDetail(form):
 
     def _render_status(self, test_row, status, test_handle, is_current_status):
         test_row.add(td(status.err_msg))
-        status_td = td(attr(cssc='no-wrap', style='text-align: right;'),
-                       span(attr(title=enums.TEST_STATUS_DESCS[status.status]), enums.TEST_STATUS_NAMES[status.status]))
+        status_td = td(attr(cssc='no-wrap'))
 
         if is_current_status and self.resolve:
             status_td.add(self.form.fields[test_handle])
+        else:
+            status_td.add(span(attr(title=enums.TEST_STATUS_DESCS[status.status]),
+                               enums.TEST_STATUS_NAMES[status.status]))
         test_row.add(status_td)
 
         if status.logd_request_id:
