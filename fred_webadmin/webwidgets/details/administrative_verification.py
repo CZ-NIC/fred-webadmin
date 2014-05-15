@@ -1,7 +1,8 @@
 import cherrypy
 
 from fred_webadmin.enums import ContactCheckEnums as enums
-from fred_webadmin.webwidgets.gpyweb.gpyweb import (attr, table, form, thead, tbody, tfoot, tr, th, td, input, span)
+from fred_webadmin.webwidgets.gpyweb.gpyweb import (attr, save,
+                                                    table, form, input, thead, tbody, tfoot, tr, th, td, span)
 from fred_webadmin.translation import _
 from fred_webadmin.webwidgets.adifwidgets import FilterPanel
 
@@ -22,7 +23,7 @@ class VerificationCheckDetail(form):
 
     def _render_status(self, test_row, status, test_handle, is_current_status):
         test_row.add(td(status.err_msg))
-        status_td = td(attr(cssc='no-wrap'))
+        status_td = td(attr(cssc='no-wrap status_col'))
 
         if is_current_status and self.resolve:
             status_td.add(self.form.fields[test_handle])
@@ -55,7 +56,7 @@ class VerificationCheckDetail(form):
 
         tests_table = table()
         self.add(tests_table)
-        tests_table.media_files.append('/css/details.css')
+        tests_table.media_files.extend(['/css/details.css', '/js/contactcheck_detail.js'])
         tests_table.add_css_class('section_table')
         if cherrypy.session.get('history', False):
             tests_table.add_css_class('history')
@@ -71,6 +72,13 @@ class VerificationCheckDetail(form):
                                                        key=lambda k: enums.TEST_DESCS[k.test_handle])):
                 rows = []
                 row = tr(attr(cssc='row%s' % ((row_num % 2) + 1)))
+
+                current_status = test_data.status_history[-1]
+                if current_status.status == 'ok':
+                    row.add_css_class('status_ok')
+                elif current_status.status == 'fail':
+                    row.add_css_class('status_fail')
+
                 row.add(td(attr(title=enums.TEST_DESCS[test_data.test_handle]),
                            enums.TEST_NAMES[test_data.test_handle]))
 
@@ -81,7 +89,6 @@ class VerificationCheckDetail(form):
                     else:
                         row.add(td())
 
-                current_status = test_data.status_history[-1]
                 self._render_status(row, current_status, test_data.test_handle, True)
 
                 rows.append(row)
@@ -96,15 +103,17 @@ class VerificationCheckDetail(form):
                 # one tbody per test - tbodies have double border in css to separate tests as sections:
                 tests_table.add(tbody(rows))
 
-#             if self.resolve:
-#                 tests_table.add(tbody(tr(td(attr(colspan=col_count - 1)),
-#                                          td())))
-
-        tests_table.add(tfoot(th(attr(colspan=col_count - 1), _('Overall status:'),
-                                td(span(attr(title=enums.CHECK_STATUS_DESCS[self.check.status_history[-1].status]),
-                                        enums.CHECK_STATUS_NAMES[self.check.status_history[-1].status]))
-                                if self.check.status_history else _('No status'))
-                       ))
+        current_check_status = self.check.status_history[-1].status
+        tests_table.add(tfoot(tr(save(self, 'footer_th'),
+                                 th(attr(colspan=col_count - 1), _('Overall status:')),
+                                 th(span(attr(title=enums.CHECK_STATUS_DESCS[current_check_status]),
+                                         enums.CHECK_STATUS_NAMES[current_check_status]))
+                                 if self.check.status_history else _('No status')
+                       )))
+        if current_check_status == 'ok':
+            self.footer_th.add_css_class('status_ok')
+        elif current_check_status == 'fail':
+            self.footer_th.add_css_class('status_fail')
 
         if self.resolve:
             filters = [[
@@ -113,7 +122,6 @@ class VerificationCheckDetail(form):
                 [input(attr(type='submit', name='submit_ok', value=_('Resolve as OK')))],
             ]]
             panel = FilterPanel(filters)
-            panel.media_files.append('/js/public_profile.js')
             self.add(panel)
 
         return super(VerificationCheckDetail, self).render(indent_level)

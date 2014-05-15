@@ -1,5 +1,5 @@
-.discloseTrue { background-color: #BF8; }
-.discloseFalse { background-color: #FBB; }
+.discloseTrue, .status_ok { background-color: #BF8; }
+.discloseFalse, .status_fail { background-color: #FBB; }
 
 .detail_table { margin: 0.5em 0em; }
 .detail_table th { text-align: left; }
