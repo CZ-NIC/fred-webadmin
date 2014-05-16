@@ -1,8 +1,8 @@
 import cherrypy
 
 from fred_webadmin.enums import ContactCheckEnums as enums
-from fred_webadmin.webwidgets.gpyweb.gpyweb import (attr, save,
-                                                    table, form, input, thead, tbody, tfoot, tr, th, td, span)
+from fred_webadmin.webwidgets.gpyweb.gpyweb import (attr, save, form, input, span,
+                                                    table, caption, thead, tbody, tfoot, tr, th, td)
 from fred_webadmin.translation import _
 from fred_webadmin.webwidgets.adifwidgets import FilterPanel
 
@@ -54,7 +54,7 @@ class VerificationCheckDetail(form):
     def render(self, indent_level=0):
         col_count = len(self.header)
 
-        tests_table = table()
+        tests_table = table(caption(attr(cssc='section_label'), _('Tests:')))
         self.add(tests_table)
         tests_table.media_files.extend(['/css/details.css', '/js/contactcheck_detail.js'])
         tests_table.add_css_class('section_table')

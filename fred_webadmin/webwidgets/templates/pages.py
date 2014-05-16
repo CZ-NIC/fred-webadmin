@@ -3,7 +3,7 @@
 
 from fred_webadmin.webwidgets.gpyweb.gpyweb import (
     div, span, p, a, h2, h3, attr, save, HTMLPage,
-    label, input, h1, ul, li, script, pre, notag)
+    label, input, table, tr, th, td, h1, ul, li, script, pre, notag)
 
 from fred_webadmin import config
 from fred_webadmin.messages import get_messages
@@ -452,10 +452,10 @@ class ContactCheckDetail(BaseSiteMenu):
     def __init__(self, context):
         super(ContactCheckDetail, self).__init__(context)
         c = self.context
-        self.main.add(h1(
-            _('Contact checks detail'), '-', c.test_suit_name,
-            notag(attr(enclose_content=True), '(', a(attr(href=c.contact_url), c.check.contact_handle), ')'),
-            notag(attr(enclose_content=True), ' (', _('Created: '), c.check.created, ')'),
+        self.main.add(h1(_('Contact checks detail'), '-', c.test_suit_name))
+        self.main.add(table(attr(cssc='section_table'),
+            tr(td(attr(cssc='left_label'), _('Contact:'), td(a(attr(href=c.contact_url), c.check.contact_handle)))),
+            tr(td(attr(cssc='left_label'), _('Created: '), td(c.check.created))),
         ))
         self.main.add(c.detail)
         self.main.add(adifdetails.ContactDetail(c.contact_detail, c.history, is_nested=True,

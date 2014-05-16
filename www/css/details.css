@@ -38,6 +38,13 @@
     width: 55em;
 }
 
+.nested_detail_table {
+    border-collapse: collapse;
+}
+
+.nested_detail_table > tbody > tr > td {
+    padding: 0;
+}
 
 .section_label {
     font-weight: bold;
