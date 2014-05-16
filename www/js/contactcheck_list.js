@@ -70,21 +70,29 @@ jQuery.fn.dataTableExt.oSort['null_last-desc'] = function(y, x) {
 $(document)
     .ready(
         function() {
-            $('#table_tag')
-                .before(
-                    '<h2>Filter:</h2>\
-                     <div id="changelist-filter">\
-                        <label>Check type:</label>\
-                        <ul>\
-                            <li><a class="filter-button selected" id="no-filter">All</a></li>\
-                            <li><a class="filter-button" id="filter-automatic">Automatic</a></li>\
-                            <li><a class="filter-button" id="filter-manual">Manual</a></li>\
-                        </ul>\
-                    </div>');
+            if (typeof dontDisplayFilter === "undefined") {
+                dontDisplayFilter = false;
+            }
+            if (!dontDisplayFilter) {
+                $('#table_tag')
+                    .before(
+                        '<h3>Filter:</h3>\
+                         <div id="changelist-filter">\
+                            <label>Check type:</label>\
+                            <ul>\
+                                <li><a class="filter-button" id="filter-automatic">Automatic</a></li>\
+                                <li><a class="filter-button" id="filter-manual">Manual</a></li>\
+                                <li><a class="filter-button selected" id="no-filter">All</a></li>\
+                            </ul>\
+                         </div>');
+            }
+
             $('#table_tag').dataTable({
                 "bProcessing" : false,
                 "bPaginate" : false,
-                "sAjaxSource" : window.location.href.replace('filter', 'json_filter'),
+                "bFilter" : !dontDisplayFilter,
+                "bInfo" : !dontDisplayFilter,
+                "sAjaxSource" : ajaxSourceURLOfChecks,
                 "aaSorting" : [[3, "asc"]],
                 "aoColumnDefs" : [{
                     "aTargets" : [3],

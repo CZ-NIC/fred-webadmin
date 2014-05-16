@@ -438,6 +438,8 @@ class ContactCheckList(BaseSiteMenu):
     def __init__(self, context):
         super(ContactCheckList, self).__init__(context)
         c = self.context
+        self.head.add(script(attr(type='text/javascript'),
+                             'ajaxSourceURLOfChecks = "%s";' % c.ajax_json_filter_url))
         self.main.add(h1(c.heading))
         self.main.add(c.table_tag)
         lang_code = config.lang[:2]
@@ -452,6 +454,9 @@ class ContactCheckDetail(BaseSiteMenu):
     def __init__(self, context):
         super(ContactCheckDetail, self).__init__(context)
         c = self.context
+        self.head.add(script(attr(type='text/javascript'),
+                             'ajaxSourceURLOfChecks = "%s";' % c.ajax_json_filter_url,
+                             'dontDisplayFilter = true;'))
         self.main.add(h1(_('Contact checks detail'), '-', c.test_suit_name))
         self.main.add(table(attr(cssc='section_table'),
             tr(td(attr(cssc='left_label'), _('Contact:'), td(a(attr(href=c.contact_url), c.check.contact_handle)))),
@@ -460,3 +465,10 @@ class ContactCheckDetail(BaseSiteMenu):
         self.main.add(c.detail)
         self.main.add(adifdetails.ContactDetail(c.contact_detail, c.history, is_nested=True,
                                                 sections=((_('Other contact data'), c.contact_display_fields),)))
+        self.main.add(h2(_('All checks of this contact:')))
+        self.main.add(c.table_tag)
+
+        lang_code = config.lang[:2]
+        self.head.add(script(attr(type='text/javascript'),
+                             'scwLanguage = "%s"; //sets language of js_calendar' % lang_code,
+                             'scwDateOutputFormat = "%s"; // set output format for js_calendar' % config.js_calendar_date_format))

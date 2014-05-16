@@ -100,8 +100,7 @@ class ContactCheck(AdifPage):
             fields[test_data.test_handle] = ChoiceField(test_data.test_handle, choices=choices, as_radio_buttons=True)
         return type('CheckTestsForm', (Form,), fields)
 
-    @login_required
-    def filter(self, contact_id=None):
+    def _get_checks_table_tag(self):
         table_tag = SimpleTable(
                      header=[_('Action'), _('Contact'), _('Check type'), _('To resolve since'), _('Create date'), _('Status')],
                      data=None,
@@ -111,9 +110,14 @@ class ContactCheck(AdifPage):
         table_tag.media_files.extend(['/css/itertable.css',
                                       '/js/scw.js', '/js/scwLanguages.js',
                                       '/js/jquery.dataTables.js', '/js/contactcheck_list.js'])
+        return table_tag
+
+    @login_required
+    def filter(self, contact_id=None):
         context = DictLookup({
             'heading': _('Contact checks'),
-            'table_tag': table_tag,
+            'ajax_json_filter_url': f_urls['contactcheck'] + 'json_filter/' + ('%s/' % contact_id if contact_id else ''),
+            'table_tag': self._get_checks_table_tag(),
         })
         return self._render('filter', ctx=context)
 
@@ -219,6 +223,8 @@ class ContactCheck(AdifPage):
                 'detail': detail,
                 'contact_detail': contact_detail,
                 'contact_display_fields': contact_display_fields,
+                'ajax_json_filter_url': f_urls['contactcheck'] + 'json_filter/%s/' % check.contact_id,
+                'table_tag': self._get_checks_table_tag(),
             })
             return self._render('detail', ctx=context)
         finally:
