@@ -1,7 +1,7 @@
 import cherrypy
 
 from fred_webadmin.enums import ContactCheckEnums as enums
-from fred_webadmin.webwidgets.gpyweb.gpyweb import (attr, save, form, input, span,
+from fred_webadmin.webwidgets.gpyweb.gpyweb import (attr, save, form, input, span, br,
                                                     table, caption, thead, tbody, tfoot, tr, th, td)
 from fred_webadmin.translation import _
 from fred_webadmin.webwidgets.adifwidgets import FilterPanel
@@ -51,6 +51,9 @@ class VerificationCheckDetail(form):
 
         return tested_data_changed
 
+    def _format_tested_data(self, tested_data):
+        return br().join([item for item in tested_data if item])
+
     def render(self, indent_level=0):
         col_count = len(self.header)
 
@@ -82,10 +85,10 @@ class VerificationCheckDetail(form):
                 row.add(td(attr(title=enums.TEST_DESCS[test_data.test_handle]),
                            enums.TEST_NAMES[test_data.test_handle]))
 
-                row.add(td(test_data.tested_contact_data))
+                row.add(td(self._format_tested_data(test_data.tested_contact_data)))
                 if tested_data_changed:
                     if test_data.current_contact_data != test_data.tested_contact_data:
-                        row.add(td(test_data.current_contact_data))
+                        row.add(td(self._format_tested_data(test_data.current_contact_data)))
                     else:
                         row.add(td())
 
