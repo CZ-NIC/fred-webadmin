@@ -300,3 +300,13 @@ def test_cssc_manipulation():
 
     # return False when webwidged didn't have such a class:
     assert_equal(b2.remove_css_class('non_existent_class'), False)
+
+
+def test_join():
+    result = br().join(['a', 'b', 'c'])
+    assert_equal(str(result), '''\ta
+\t<br />
+\tb
+\t<br />
+\tc
+''')
