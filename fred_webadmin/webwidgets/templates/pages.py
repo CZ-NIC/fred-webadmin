@@ -468,6 +468,9 @@ class ContactCheckDetail(BaseSiteMenu):
         self.main.add(h2(_('All checks of this contact:')))
         self.main.add(c.table_tag)
 
+        self.main.add(h2(_('Contact checks messages:')))
+        self.main.add(c.messages_list)
+
         lang_code = config.lang[:2]
         self.head.add(script(attr(type='text/javascript'),
                              'scwLanguage = "%s"; //sets language of js_calendar' % lang_code,

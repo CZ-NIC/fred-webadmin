@@ -18,10 +18,9 @@ from fred_webadmin.utils import create_log_request, get_detail
 from fred_webadmin.webwidgets.details.administrative_verification import VerificationCheckDetail
 from fred_webadmin.webwidgets.forms.forms import Form
 from fred_webadmin.webwidgets.forms.fields import ChoiceField
-from fred_webadmin.webwidgets.gpyweb.gpyweb import DictLookup
+from fred_webadmin.webwidgets.gpyweb.gpyweb import DictLookup, a, attr, img
 from fred_webadmin.webwidgets.simple_table import SimpleTable
 from fred_webadmin.webwidgets.templates.pages import ContactCheckList, ContactCheckDetail
-from fred_webadmin.webwidgets.adifwidgets import FilterPanel
 
 RESOLVE_LOCK_CACHE_KEY = 'admin_verification_resolve_%s'
 
@@ -136,6 +135,23 @@ class ContactCheck(AdifPage):
         json_data = json.dumps({'aaData': data})
         return json_data
 
+    def _get_check_messages_list(self, check):
+        messages = c2u(cherrypy.session['Verification'].getContactCheckMessages(u2c(check.contact_id)))
+
+        if len(messages):
+            messages_table = SimpleTable(
+                header=[_('Id'), _('Created'), _('Channel'), _('Type'), _('Updated'), _('Status')],
+                data=[(a(attr(href=f_urls['mail' if msg.type_handle == 'email' else 'message'] + 'detail/%s/' % msg.id),
+                         img(src='/img/icons/open.png')),
+                       msg.created, msg.type_handle, msg.content_handle, msg.updated, msg.status)
+                       for msg in messages],
+                cssc='itertable'
+            )
+            messages_table.media_files.append('/css/itertable.css')
+            return messages_table
+        else:
+            return _('No messages have been sent.')
+
     @login_required
     def detail(self, *args, **kwd):
         # path can be 'detail/ID/' or 'detail/ID/resolve/'
@@ -225,6 +241,7 @@ class ContactCheck(AdifPage):
                 'contact_display_fields': contact_display_fields,
                 'ajax_json_filter_url': f_urls['contactcheck'] + 'json_filter/%s/' % check.contact_id,
                 'table_tag': self._get_checks_table_tag(),
+                'messages_list': self._get_check_messages_list(check)
             })
             return self._render('detail', ctx=context)
         finally:
