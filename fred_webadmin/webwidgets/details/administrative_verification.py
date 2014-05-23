@@ -1,23 +1,21 @@
 import cherrypy
 
 from fred_webadmin.enums import ContactCheckEnums as enums
-from fred_webadmin.webwidgets.gpyweb.gpyweb import (attr, save, form, input, span, br,
+from fred_webadmin.webwidgets.gpyweb.gpyweb import (attr, save, tagid, form, input, span, br, div,
                                                     table, caption, thead, tbody, tfoot, tr, th, td)
 from fred_webadmin.translation import _
 from fred_webadmin.webwidgets.adifwidgets import FilterPanel
 
 
-class VerificationCheckDetail(form):
+class VerificationCheckDetail(div):
     ''' Simple HTML table widget '''
 
     def __init__(self, check, resolve, form=None, *content, **kwd):
         super(VerificationCheckDetail, self).__init__(*content, **kwd)
-        self.tag = 'form'
-        self.onsubmit = 'return confirm("%s")' % _('Are you sure?')
+        self.tag = 'div'
         self.header = [_('Test'), _('Tested data'), _('Error'), _('Status'), _('Processed by'), _('Updated')]
         self.check = check
         self.form = form
-        self.method = 'post'
 
         self.resolve = resolve
 
@@ -57,8 +55,15 @@ class VerificationCheckDetail(form):
     def render(self, indent_level=0):
         col_count = len(self.header)
 
-        tests_table = table(caption(attr(cssc='section_label'), _('Tests:')))
-        self.add(tests_table)
+        tests_table = table(attr(cssc='verification_check_table'),
+                            caption(attr(cssc='section_label'), _('Tests:')))
+
+        if self.resolve:
+            self.add(form(attr(method='post', onsubmit='return confirm("%s")' % _('Are you sure?')),
+                          tests_table))
+        else:
+            self.add(tests_table)
+
         tests_table.media_files.extend(['/css/details.css', '/js/contactcheck_detail.js'])
         tests_table.add_css_class('section_table')
         if cherrypy.session.get('history', False):
@@ -107,24 +112,28 @@ class VerificationCheckDetail(form):
                 tests_table.add(tbody(rows))
 
         current_check_status = self.check.status_history[-1].status
-        tests_table.add(tfoot(tr(save(self, 'footer_th'),
-                                 th(attr(colspan=col_count - 1), _('Overall status:')),
-                                 th(span(attr(title=enums.CHECK_STATUS_DESCS[current_check_status]),
-                                         enums.CHECK_STATUS_NAMES[current_check_status]))
-                                 if self.check.status_history else _('No status')
-                       )))
+        tests_table.add(tfoot(save(tests_table, 'footer'),
+                              tr(save(tests_table, 'footer_th'),
+                                 th(attr(colspan=col_count), _('Overall status:'),
+                                    span(attr(title=enums.CHECK_STATUS_DESCS[current_check_status]),
+                                         enums.CHECK_STATUS_NAMES[current_check_status])
+                                    if self.check.status_history else _('No status')))
+                       ))
         if current_check_status == 'ok':
-            self.footer_th.add_css_class('status_ok')
+            tests_table.footer_th.add_css_class('status_ok')
         elif current_check_status == 'fail':
-            self.footer_th.add_css_class('status_fail')
+            tests_table.footer_th.add_css_class('status_fail')
 
         if self.resolve:
-            filters = [[
-                [input(attr(type='submit', name='submit_fail', value=_('Resolve as failed')))],
-                [input(attr(type='submit', name='submit_invalidate', value=_('Invalidate')))],
-                [input(attr(type='submit', name='submit_ok', value=_('Resolve as OK')))],
-            ]]
-            panel = FilterPanel(filters)
-            self.add(panel)
+            tests_table.footer.add(tr(td(attr(colspan=col_count),
+                table(attr(cssc='submit_row_table'),
+                      tr(td(input(attr(type='submit', name='submit_fail', value=_('Resolve as failed')))),
+                         td(input(attr(type='submit', name='submit_invalidate', value=_('Invalidate')))),
+                         td(input(attr(type='submit', name='submit_ok', value=_('Resolve as OK'))))))
+            )))
+
+        filters = [[[_('Domains_owner'), 'domain', [{'Registrant.Handle': self.check.contact_handle}]]]]
+        panel = FilterPanel(filters)
+        self.add(panel)
 
         return super(VerificationCheckDetail, self).render(indent_level)

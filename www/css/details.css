@@ -169,3 +169,13 @@ td > .no_access:first-child {
 .section_table.history tbody {
     border: medium double gray;
 }
+
+.verification_check_table tfoot > tr > td, .verification_check_table tfoot > tr > th {
+    border: medium double gray;
+}
+
+.submit_row_table {
+    width: 100%;
+    text-align: center;
+    table-layout: fixed;
+}
