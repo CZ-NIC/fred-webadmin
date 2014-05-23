@@ -12,6 +12,7 @@ from fred_webadmin.messages import get_messages
 from fred_webadmin.translation import _
 from fred_webadmin.utils import get_current_url, append_getpar_to_url
 from fred_webadmin.webwidgets.details import adifdetails, administrative_verification
+from fred_webadmin.webwidgets.details.sectionlayouts import DirectSectionLayout
 
 
 class BaseTemplate(HTMLPage):
@@ -466,7 +467,8 @@ class ContactCheckDetail(BaseSiteMenu):
         ))
         self.main.add(c.detail)
         self.main.add(adifdetails.ContactDetail(c.contact_detail, c.history, is_nested=True,
-                                                sections=((_('Other contact data'), c.contact_display_fields),)))
+                                                sections=((_('Other contact data'), c.contact_display_fields),
+                                                          (_('Contact states'), ('states',), DirectSectionLayout))))
         if cherrypy.session.get('history', False):
             self.main.add(h2(_('All checks of this contact:')))
             self.main.add(c.table_tag)
