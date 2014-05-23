@@ -230,7 +230,7 @@ class ContactCheck(AdifPage):
             contact_detail = get_detail('contact', check.contact_id)
             contact_display_fields = ['organization', 'ident', 'vat', 'fax', 'notifyEmail']
             if check.test_suite_handle != 'automatic':
-                contact_display_fields += ['name', 'telephone',
+                contact_display_fields += ['name', 'telephone', 'email',
                                            'street1', 'street2', 'street3', 'postalcode', 'city', 'country']
 
             context = DictLookup({
