@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import cherrypy
+
 from fred_webadmin.webwidgets.gpyweb.gpyweb import (
     div, span, p, a, h2, h3, attr, save, HTMLPage,
     label, input, table, tr, th, td, h1, ul, li, script, pre, notag)
@@ -465,11 +467,12 @@ class ContactCheckDetail(BaseSiteMenu):
         self.main.add(c.detail)
         self.main.add(adifdetails.ContactDetail(c.contact_detail, c.history, is_nested=True,
                                                 sections=((_('Other contact data'), c.contact_display_fields),)))
-        self.main.add(h2(_('All checks of this contact:')))
-        self.main.add(c.table_tag)
+        if cherrypy.session.get('history', False):
+            self.main.add(h2(_('All checks of this contact:')))
+            self.main.add(c.table_tag)
 
-        self.main.add(h2(_('Contact checks messages:')))
-        self.main.add(c.messages_list)
+            self.main.add(h2(_('Contact checks messages:')))
+            self.main.add(c.messages_list)
 
         lang_code = config.lang[:2]
         self.head.add(script(attr(type='text/javascript'),

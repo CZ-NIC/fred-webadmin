@@ -240,9 +240,12 @@ class ContactCheck(AdifPage):
                 'contact_detail': contact_detail,
                 'contact_display_fields': contact_display_fields,
                 'ajax_json_filter_url': f_urls['contactcheck'] + 'json_filter/%s/' % check.contact_id,
-                'table_tag': self._get_checks_table_tag(),
-                'messages_list': self._get_check_messages_list(check)
             })
+            if cherrypy.session.get('history', False):
+                context.update({
+                    'table_tag': self._get_checks_table_tag(),
+                    'messages_list': self._get_check_messages_list(check)
+                })
             return self._render('detail', ctx=context)
         finally:
             log_req.close()
