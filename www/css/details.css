@@ -174,8 +174,12 @@ td > .no_access:first-child {
     border: medium double gray;
 }
 
-.submit_row_table {
+table.submit-row {
     width: 100%;
     text-align: center;
     table-layout: fixed;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: none;
 }

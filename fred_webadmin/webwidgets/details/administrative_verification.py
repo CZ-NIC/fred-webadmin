@@ -1,7 +1,7 @@
 import cherrypy
 
-from fred_webadmin.enums import ContactCheckEnums as enums
-from fred_webadmin.webwidgets.gpyweb.gpyweb import (attr, save, tagid, form, input, span, br, div,
+from fred_webadmin.enums import ContactCheckEnums as enums, get_status_action
+from fred_webadmin.webwidgets.gpyweb.gpyweb import (attr, save, form, button, span, br, div,
                                                     table, caption, thead, tbody, tfoot, tr, th, td)
 from fred_webadmin.translation import _
 from fred_webadmin.webwidgets.adifwidgets import FilterPanel
@@ -125,11 +125,13 @@ class VerificationCheckDetail(div):
             tests_table.footer_th.add_css_class('status_fail')
 
         if self.resolve:
+
             tests_table.footer.add(tr(td(attr(colspan=col_count),
-                table(attr(cssc='submit_row_table'),
-                      tr(td(input(attr(type='submit', name='submit_fail', value=_('Resolve as failed')))),
-                         td(input(attr(type='submit', name='submit_invalidate', value=_('Invalidate')))),
-                         td(input(attr(type='submit', name='submit_ok', value=_('Resolve as OK'))))))
+                table(attr(cssc='submit-row'),
+                      tr(td(button(attr(type='submit', name='status_action', value=status_action), action_name))
+                         for status_action, action_name in get_status_action(self.check.test_suite_handle, current_check_status).items()
+
+                      ))
             )))
 
         filters = [[[_('Domains_owner'), 'domain', [{'Registrant.Handle': self.check.contact_handle}]]]]

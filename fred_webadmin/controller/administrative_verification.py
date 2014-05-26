@@ -10,7 +10,7 @@ from fred_webadmin.controller.perms import check_nperm, login_required
 from fred_webadmin.corba import Registry
 from fred_webadmin.corbarecoder import c2u, u2c
 from fred_webadmin.customview import CustomView
-from fred_webadmin.enums import ContactCheckEnums
+from fred_webadmin.enums import ContactCheckEnums, get_status_action
 from fred_webadmin.mappings import f_urls
 from fred_webadmin import messages
 from fred_webadmin.translation import _
@@ -55,16 +55,20 @@ class ContactCheck(AdifPage):
         checks = c2u(self._get_contact_checks(test_suit, contact_id))
 
         for check in checks:
-            if check.last_test_finished:
+            if check.test_suite_handle == 'manual' and check.current_status in ('enqueue_req', 'fail_req'):
+                to_resolve = check.updated
+            elif check.last_test_finished:
                 if check.test_suite_handle == 'manual':
                     to_resolve = check.last_test_finished + datetime.timedelta(config.verification_check_manual_waiting)
                     if check.last_contact_update > check.created:  # only updates wich happend after check was created
                         to_resolve = min(to_resolve, check.last_contact_update)
                 else:
                     to_resolve = check.last_test_finished
-                to_resolve = to_resolve.isoformat()
+
             else:
                 to_resolve = ''
+            if to_resolve:
+                to_resolve = to_resolve.isoformat()
 
             check_link = '<a href="{0}detail/{1}/"><img src="/img/icons/open.png" title="{3}" /></a>'
             if check.current_status not in self.UNCLOSABLE_CHECK_STATUSES:
@@ -189,7 +193,7 @@ class ContactCheck(AdifPage):
                 if self._is_check_post_closed(check):
                     messages.warning(_('This contact check was already resolved.'))
                     raise cherrypy.HTTPRedirect(f_urls['contactcheck'] + 'detail/%s/' % check.check_handle)
-                elif self._is_check_pre_run(check):
+                elif self._is_check_pre_run(check) and check.status_history[-1].status != 'enqueue_req':
                     messages.warning(_('This contact check was not yet run.'))
                     raise cherrypy.HTTPRedirect(f_urls['contactcheck'] + 'detail/%s/' % check.check_handle)
 
@@ -201,21 +205,14 @@ class ContactCheck(AdifPage):
                         status_in_form = form.cleaned_data[test_data.test_handle]
                         if status_in_form != test_data.status_history[-1].status:
                             changed_statuses[test_data.test_handle] = status_in_form
-                    cherrypy.session['Verification'].updateContactCheckTests(
-                        u2c(check.check_handle),
-                        u2c([Registry.AdminContactVerification.ContactTestUpdate(test_handle, status)
-                             for test_handle, status in changed_statuses.items()]),
-                        u2c(log_req.request_id))
-                    if 'submit_fail' in post_data:
-                        status = 'fail'
-                    elif 'submit_invalidate' in post_data:
-                        status = 'invalidated'
-                    elif 'submit_ok' in post_data:
-                        status = 'ok'
-                    else:
-                        raise CustomView(self._render('error', ctx={'message': _('Unknown status to resolve.')}))
+                    if changed_statuses:
+                        cherrypy.session['Verification'].updateContactCheckTests(
+                            u2c(check.check_handle),
+                            u2c([Registry.AdminContactVerification.ContactTestUpdate(test_handle, status)
+                                 for test_handle, status in changed_statuses.items()]),
+                            u2c(log_req.request_id))
 
-                    self._close_check(check_handle, status)  # closing check ends with redirection
+                    self._update_check(check, post_data)
             else:
                 form = None
 
@@ -251,14 +248,37 @@ class ContactCheck(AdifPage):
         finally:
             log_req.close()
 
-    def _close_check(self, check_handle, close_status):
-        log_req = create_log_request('ContactCheckResolve', properties=[['check_handle', check_handle]])
+    def _update_check(self, check, post_data):
+        status_action = post_data['status_action']
+        if status_action not in get_status_action(check.test_suite_handle, check.status_history[-1].status):
+            raise CustomView(self._render('error',
+                                          ctx={'message': _('Unknown status_action "%s" to resolve.' % status_action)}))
+        status, action = status_action.split(':')
+
+        log_req = create_log_request('ContactCheckResolve', properties=[['check_handle', check.check_handle]])
         try:
-            cherrypy.session['Verification'].resolveContactCheckStatus(check_handle, close_status, log_req.request_id)
+            if status == 'confirm_enqueue':
+                cherrypy.session['Verification'].confirmEnqueueingContactCheck(u2c(check.check_handle),
+                                                                               log_req.request_id)
+                messages.success(_('Contact check has been enqueue.'))
+            else:
+                cherrypy.session['Verification'].resolveContactCheckStatus(u2c(check.check_handle),
+                                                                           u2c(status), log_req.request_id)
+                messages.success(_('Contact check has been resolved as {}.').format(
+                    ContactCheckEnums.CHECK_STATUS_NAMES[status]))
+
+            if action == 'add_manual':
+                self.create_check(check.contact_id, 'manual', redirect_to_contact=False)
+            elif action == 'add_thank_you':
+                self.create_check(check.contact_id, 'thank_you', redirect_to_contact=False)
+            elif action == 'delete_domains':
+                cherrypy.session['Verification'].deleteDomainsAfterFailedManualCheck(u2c(check.check_handle))
+                messages.success(_('All domains held by the contact {} were deleted.').format(check.contact_handle))
+
+
             log_req.result = 'Success'
-            messages.success(_('Contact check has been resolved as {}.').format(
-                               ContactCheckEnums.CHECK_STATUS_NAMES[close_status]))
-            raise cherrypy.HTTPRedirect(f_urls['contactcheck'] + 'detail/%s/' % check_handle)
+
+            raise cherrypy.HTTPRedirect(f_urls['contactcheck'] + 'detail/%s/' % check.check_handle)
         finally:
             log_req.close()
 
@@ -280,7 +300,7 @@ class ContactCheck(AdifPage):
     def _is_check_post_closed(self, check):
         return check.status_history[-1].status in self.FINAL_CHECK_STATUSES
 
-    def create_check(self, contact_id, test_suite_handle, **kwd):
+    def create_check(self, contact_id, test_suite_handle, redirect_to_contact=True, **kwd):
         try:
             contact_id = int(contact_id)
         except (TypeError, ValueError):
@@ -291,7 +311,8 @@ class ContactCheck(AdifPage):
         try:
             cherrypy.session['Verification'].enqueueContactCheck(contact_id, test_suite_handle, log_req.request_id)
             log_req.result = 'Success'
-            messages.success(_('Contact check have been created.'))
-            raise cherrypy.HTTPRedirect(f_urls['contact'] + 'detail/?id=%s' % contact_id)
+            messages.success(_('New %s contact check has been created.' % test_suite_handle))
+            if redirect_to_contact:
+                raise cherrypy.HTTPRedirect(f_urls['contact'] + 'detail/?id=%s' % contact_id)
         finally:
             log_req.close()
