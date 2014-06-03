@@ -9,6 +9,7 @@ from fred_webadmin.translation import _
 import fred_webadmin.utils as utils
 
 from fred_webadmin.webwidgets.templates.pages import BaseSiteMenu
+from fred_webadmin.customview import CustomView
 
 
 def login_required(view_func):
@@ -19,6 +20,31 @@ def login_required(view_func):
         redir_addr = '/login/?next=%s' % get_current_url(cherrypy.request)
         raise cherrypy.HTTPRedirect(redir_addr)
     return _wrapper
+
+
+def check_nperm_func(nperms, nperm_type='all', raise_err=False):
+    ''' Like check_nperm decorator, but it's normal function, used when you cannot use as decorator, for example
+        when you need to get permission from string from other object, which is instantiated in the function.
+    '''
+    user = cherrypy.session.get('user', None)
+    if user:
+        if not user.check_nperms(nperms, nperm_type):
+            return True
+        else:
+            if raise_err:
+                context = {'main': div()}
+                context['main'].add(
+                    p(_("You don't have permissions for this page!")))
+                if fred.config.debug:
+                    context['main'].add(
+                        p('nperms=%s, nperm_type=%s' % (
+                            nperms, nperm_type)))
+                raise CustomView(BaseSiteMenu(context).render())
+            else:
+                return False
+    else:
+        redir_addr = '/login/?next=%s' % get_current_url(cherrypy.request)
+        raise cherrypy.HTTPRedirect(redir_addr)
 
 
 def check_nperm(nperms, nperm_type='all'):

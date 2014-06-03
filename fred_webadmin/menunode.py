@@ -186,7 +186,9 @@ logs_node = MenuNode(
 
 verifications_node = MenuNode(
     'contactcheck', _('Verifications'), 'body-contactcheck', 'menu-item menu-contactcheck',
-    url='/contactcheck/filter/')
+    url='/contactcheck/filter/', nperm=['read.contactcheck_automatic',
+                                        'read.contactcheck_manual',
+                                        'read.contactcheck_thank_you'])
 
 
 menu_tree = MenuNode(

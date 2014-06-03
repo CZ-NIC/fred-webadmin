@@ -73,19 +73,21 @@ $(document)
             if (typeof dontDisplayFilter === "undefined") {
                 dontDisplayFilter = false;
             }
-            if (!dontDisplayFilter) {
-                $('#table_tag')
-                    .before(
-                        '<h3>Filter:</h3>\
-                         <div id="changelist-filter">\
-                            <label>Check type:</label>\
-                            <ul>\
-                                <li><a class="filter-button" id="filter-automatic">Automatic</a></li>\
-                                <li><a class="filter-button" id="filter-manual">Manual</a></li>\
-                                <li><a class="filter-button selected" id="no-filter">All</a></li>\
-                            </ul>\
-                         </div>');
+            if (typeof defaultTypeFilter === "undefined") {
+                defaultTypeFilter = 'no-filter';
             }
+            $('#table_tag')
+                .before(
+                    '<h3>Filter:</h3>\
+                     <div id="changelist-filter">\
+                        <label>Check type:</label>\
+                        <ul>\
+                            <li><a class="filter-button" id="filter-automatic">Automatic</a></li>\
+                            <li><a class="filter-button" id="filter-manual">Manual</a></li>\
+                            <li><a class="filter-button" id="no-filter">All</a></li>\
+                        </ul>\
+                     </div>');
+            $('#' + defaultTypeFilter).addClass('selected');
 
             $('#table_tag').dataTable({
                 "bProcessing" : false,

@@ -6,7 +6,7 @@ import cherrypy
 from .base import AdifPage
 from fred_webadmin.cache import cache
 from fred_webadmin import config
-from fred_webadmin.controller.perms import check_nperm, login_required
+from fred_webadmin.controller.perms import check_nperm, check_nperm_func, login_required
 from fred_webadmin.corba import Registry
 from fred_webadmin.corbarecoder import c2u, u2c
 from fred_webadmin.customview import CustomView
@@ -55,6 +55,8 @@ class ContactCheck(AdifPage):
         checks = c2u(self._get_contact_checks(test_suit, contact_id))
 
         for check in checks:
+            if not check_nperm_func('read.contactcheck_%s' % check.test_suite_handle):
+                continue
             if check.test_suite_handle == 'manual' and check.current_status in ('enqueue_req', 'fail_req'):
                 to_resolve = check.updated
             elif check.last_test_finished:
@@ -71,13 +73,14 @@ class ContactCheck(AdifPage):
                 to_resolve = to_resolve.isoformat()
 
             check_link = '<a href="{0}detail/{1}/"><img src="/img/icons/open.png" title="{3}" /></a>'
-            if check.current_status not in self.UNCLOSABLE_CHECK_STATUSES:
+            if (check.current_status not in self.UNCLOSABLE_CHECK_STATUSES
+                    and check_nperm_func('change.contactcheck_%s' % check.test_suite_handle)):
                 cache_key = (RESOLVE_LOCK_CACHE_KEY % check.check_handle).encode('utf-8')
                 resolving_user = cache.get(cache_key)
                 if resolving_user and resolving_user != cherrypy.session['user'].login:
-                    check_link += '%s resolving' % resolving_user
+                    check_link += '&nbsp;%s resolving' % resolving_user
                 else:
-                    check_link += '''<a href="{0}detail/{1}/resolve/">{2}</a>'''
+                    check_link += '''&nbsp;<a href="{0}detail/{1}/resolve/">{2}</a>'''
             check_link = check_link.format(f_urls[self.classname], check.check_handle, _('Resolve'), _('Show'))
             row = [
                 check_link,
@@ -105,26 +108,29 @@ class ContactCheck(AdifPage):
 
     def _get_checks_table_tag(self):
         table_tag = SimpleTable(
-                     header=[_('Action'), _('Contact'), _('Check type'), _('To resolve since'), _('Create date'), _('Status')],
-                     data=None,
-                     id='table_tag',
-                     cssc='itertable',
-                 )
+            header=[_('Action'), _('Contact'), _('Check type'), _('To resolve since'), _('Create date'), _('Status')],
+            data=None,
+            id='table_tag',
+            cssc='itertable',
+        )
         table_tag.media_files.extend(['/css/itertable.css',
                                       '/js/scw.js', '/js/scwLanguages.js',
                                       '/js/jquery.dataTables.js', '/js/contactcheck_list.js'])
         return table_tag
 
-    @login_required
+    @check_nperm(['read.contactcheck_automatic', 'read.contactcheck_manual', 'read.contactcheck_thank_you'])
     def filter(self, contact_id=None):
         context = DictLookup({
             'heading': _('Contact checks'),
             'ajax_json_filter_url': f_urls['contactcheck'] + 'json_filter/' + ('%s/' % contact_id if contact_id else ''),
             'table_tag': self._get_checks_table_tag(),
         })
+        if contact_id is None:  # don't set filter when user is wating check of particular contact:
+            context['default_js_type_filter'] = 'filter-manual' if check_nperm_func('change.contactcheck_manual') \
+                                                                else 'filter-automatic'
         return self._render('filter', ctx=context)
 
-    @login_required
+    @check_nperm(['read.contactcheck_automatic', 'read.contactcheck_manual', 'read.contactcheck_thank_you'])
     def json_filter(self, contact_id=None, **kwd):
         test_suit = kwd.get('test_suit')
         if contact_id:
@@ -188,6 +194,10 @@ class ContactCheck(AdifPage):
 
         try:
             check = c2u(cherrypy.session['Verification'].getContactCheckDetail(check_handle))
+            if resolve:
+                check_nperm_func('change.contactcheck_%s' % check.test_suite_handle, raise_err=True)
+            else:
+                check_nperm_func('read.contactcheck_%s' % check.test_suite_handle, raise_err=True)
 
             if resolve:
                 if self._is_check_post_closed(check):
@@ -268,9 +278,9 @@ class ContactCheck(AdifPage):
                     ContactCheckEnums.CHECK_STATUS_NAMES[status]))
 
             if action == 'add_manual':
-                self.create_check(check.contact_id, 'manual', redirect_to_contact=False)
+                self._create_check(check.contact_id, 'manual', redirect_to_contact=False)
             elif action == 'add_thank_you':
-                self.create_check(check.contact_id, 'thank_you', redirect_to_contact=False)
+                self._create_check(check.contact_id, 'thank_you', redirect_to_contact=False)
             elif action == 'delete_domains':
                 cherrypy.session['Verification'].deleteDomainsAfterFailedManualCheck(u2c(check.check_handle))
                 messages.success(_('All domains held by the contact {} were deleted.').format(check.contact_handle))
@@ -300,7 +310,8 @@ class ContactCheck(AdifPage):
     def _is_check_post_closed(self, check):
         return check.status_history[-1].status in self.FINAL_CHECK_STATUSES
 
-    def create_check(self, contact_id, test_suite_handle, redirect_to_contact=True, **kwd):
+    def _create_check(self, contact_id, test_suite_handle, redirect_to_contact=True):
+        check_nperm_func('add.contactcheck_%s' % test_suite_handle, raise_err=True)
         try:
             contact_id = int(contact_id)
         except (TypeError, ValueError):
@@ -316,3 +327,6 @@ class ContactCheck(AdifPage):
                 raise cherrypy.HTTPRedirect(f_urls['contact'] + 'detail/?id=%s' % contact_id)
         finally:
             log_req.close()
+
+    def create_check(self, contact_id, test_suite_handle, **kwd):
+        return self._create_check(contact_id, test_suite_handle)

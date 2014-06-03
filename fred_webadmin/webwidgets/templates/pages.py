@@ -443,6 +443,9 @@ class ContactCheckList(BaseSiteMenu):
         c = self.context
         self.head.add(script(attr(type='text/javascript'),
                              'ajaxSourceURLOfChecks = "%s";' % c.ajax_json_filter_url))
+        if 'default_js_type_filter' in c:
+            self.head.add(script(attr(type='text/javascript'),
+                                 'defaultTypeFilter = "%s";' % c.default_js_type_filter))
         self.main.add(h1(c.heading))
         self.main.add(c.table_tag)
         lang_code = config.lang[:2]

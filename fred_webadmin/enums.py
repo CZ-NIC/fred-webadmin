@@ -8,6 +8,7 @@ from fred_webadmin.corbalazy import CorbaLazyRequestIterStructToDict
 from fred_webadmin.translation import _
 from fred_webadmin.webwidgets.gpyweb.gpyweb import DictLookup
 
+
 if sys.version_info >= (2, 7):
     from collections import OrderedDict
 else:
@@ -61,6 +62,15 @@ def get_status_action(test_suite_handle, current_status):
             status_action = OrderedDict((('fail:add_manual', _('Resolve as failed')),
                                          ('invalidated:', _('Invalidate')),
                                          ('ok:', _('Resolve as OK'))))
+    if status_action is not None:
+        # filter out action that are not allowed by permission:
+        from fred_webadmin.controller.perms import check_nperm_func
+        for key in status_action:
+            action = key.split(':')[1]
+            if (action.startswith('add_') and not check_nperm_func('add.contactcheck_%s' % action[4:])
+                    or action == 'delete_domains' and not  check_nperm_func('delete.domain')):
+                del status_action[key]
+
     if status_action is None:
         raise RuntimeError('Unknown current_status "%s" of contact check with suite "%s".' % (current_status, test_suite_handle))
     return status_action

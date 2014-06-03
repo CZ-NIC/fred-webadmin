@@ -12,7 +12,7 @@ class SimpleTable(table):
 
     def render(self, indent_level=0):
         if self.header:
-            self.add(thead([th(item) for item in self.header]))
+            self.add(thead(tr([th(item) for item in self.header])))
 
         if self.data:
             rows = []
