@@ -4,7 +4,9 @@ from fred_webadmin.enums import ContactCheckEnums as enums, get_status_action
 from fred_webadmin.webwidgets.gpyweb.gpyweb import (attr, save, form, button, span, br, div,
                                                     table, caption, thead, tbody, tfoot, tr, th, td)
 from fred_webadmin.translation import _
+from fred_webadmin.utils import get_detail
 from fred_webadmin.webwidgets.adifwidgets import FilterPanel
+
 
 
 class VerificationCheckDetail(div):
@@ -31,8 +33,8 @@ class VerificationCheckDetail(div):
         test_row.add(status_td)
 
         if status.logd_request_id:
-            # TODO: Get user from detail of log request or myabe display link to log req.
-            test_row.add(td('A good guy', status.logd_request_id))
+            log_req_detail = get_detail('logger', status.logd_request_id)
+            test_row.add(td(log_req_detail.user_name))
         else:
             test_row.add(td(_('automat')))
 
