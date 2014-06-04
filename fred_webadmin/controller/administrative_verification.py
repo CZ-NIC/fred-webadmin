@@ -40,7 +40,7 @@ class ContactCheck(AdifPage):
         return self._render('base', ctx=context)
 
     def _get_contact_checks(self, test_suit=None, contact_id=None):
-        log_req = create_log_request('ContactCheckFilter')
+        log_req = create_log_request('ContactCheckFilter', references=[('contact', int(contact_id))] if contact_id else None)
         try:
             if contact_id:
                 checks = cherrypy.session['Verification'].getChecksOfContact(contact_id, None, 100)
@@ -189,9 +189,11 @@ class ContactCheck(AdifPage):
             req_type = 'ContactCheckUpdateTestStatuses'
         else:
             req_type = 'ContactCheckDetail'
-        props = [['check_handle', check_handle]]
-        log_req = create_log_request(req_type, props)
 
+        log_req = create_log_request(req_type, properties=[['check_handle', check_handle]])
+        out_props = []
+
+        check = None
         try:
             check = c2u(cherrypy.session['Verification'].getContactCheckDetail(check_handle))
             if resolve:
@@ -221,8 +223,11 @@ class ContactCheck(AdifPage):
                             u2c([Registry.AdminContactVerification.ContactTestUpdate(test_handle, status)
                                  for test_handle, status in changed_statuses.items()]),
                             u2c(log_req.request_id))
-
+                    log_req.result = 'Success'
+                    out_props += [['changed_statuses', '']] + [[key, val, True] for key, val in changed_statuses.items()]
                     self._update_check(check, post_data)
+                else:
+                    log_req.result = 'Fail'
             else:
                 form = None
 
@@ -255,8 +260,11 @@ class ContactCheck(AdifPage):
                     'messages_list': self._get_check_messages_list(check)
                 })
             return self._render('detail', ctx=context)
+        except Registry.AdminContactVerification.INVALID_CHECK_HANDLE:
+            log_req.result = 'Fail'
+            return self._render('404_not_found')
         finally:
-            log_req.close()
+            log_req.close(properties=out_props, references=[('contact', check.contact_id)] if check else None)
 
     def _update_check(self, check, post_data):
         status_action = post_data['status_action']
@@ -265,7 +273,11 @@ class ContactCheck(AdifPage):
                                           ctx={'message': _('Unknown status_action "%s" to resolve.' % status_action)}))
         status, action = status_action.split(':')
 
-        log_req = create_log_request('ContactCheckResolve', properties=[['check_handle', check.check_handle]])
+        props = [['check_handle', check.check_handle],
+                 ['status', status],
+                 ['action', action]]
+        log_req = create_log_request('ContactCheckResolve', properties=props,
+                                      references=[('contact', check.contact_id)])
         try:
             if status == 'confirm_enqueue':
                 cherrypy.session['Verification'].confirmEnqueueingContactCheck(u2c(check.check_handle),
@@ -284,7 +296,6 @@ class ContactCheck(AdifPage):
             elif action == 'delete_domains':
                 cherrypy.session['Verification'].deleteDomainsAfterFailedManualCheck(u2c(check.check_handle))
                 messages.success(_('All domains held by the contact {} were deleted.').format(check.contact_handle))
-
 
             log_req.result = 'Success'
 
@@ -318,7 +329,8 @@ class ContactCheck(AdifPage):
             context = {'main': _('Requires integer as parameter (got %s).' % contact_id)}
             raise CustomView(self._render('base', ctx=context))
 
-        log_req = create_log_request('ContactCheckEnqueue', properties=[['test_suit_handle', test_suite_handle]])
+        log_req = create_log_request('ContactCheckEnqueue', properties=[['test_suit_handle', test_suite_handle]],
+                                     references=[('contact', int(contact_id))])
         try:
             cherrypy.session['Verification'].enqueueContactCheck(contact_id, test_suite_handle, log_req.request_id)
             log_req.result = 'Success'
