@@ -15,13 +15,14 @@ class VerificationCheckDetail(div):
     def __init__(self, check, resolve, form=None, *content, **kwd):
         super(VerificationCheckDetail, self).__init__(*content, **kwd)
         self.tag = 'div'
+        self.col_count = 0  # is initialized in render()
         self.header = [_('Test'), _('Tested data'), _('Error'), _('Status'), _('Processed by'), _('Updated')]
         self.check = check
         self.form = form
 
         self.resolve = resolve
 
-    def _render_status(self, test_row, status, test_handle, is_current_status):
+    def _render_test_status(self, test_row, status, test_handle, is_current_status):
         test_row.add(td(status.err_msg))
         status_td = td(attr(cssc='no-wrap status_col'))
 
@@ -40,6 +41,20 @@ class VerificationCheckDetail(div):
 
         test_row.add(td(attr(cssc='no-wrap'), status.update))
 
+    def _render_check_status(self, tests_table, check_status, is_current_status):
+        col_tag = th if is_current_status else td
+        tests_table.footer.add(tr(col_tag(attr(colspan=self.col_count - 3), 'Overall status:'),
+                                  col_tag(span(attr(title=enums.CHECK_STATUS_DESCS[check_status.status]),
+                                               enums.CHECK_STATUS_NAMES[check_status.status])),
+                                  td(get_detail('logger', check_status.logd_request_id).user_name \
+                                     if check_status.logd_request_id else _('automat')),
+                                  td(attr(cssc='no-wrap'), check_status.update)))
+        if is_current_status:
+            if check_status.status == 'ok':
+                tests_table.footer.content[0].add_css_class('status_ok')
+            elif check_status.status == 'fail':
+                tests_table.footer.content[0].add_css_class('status_fail')
+
     def get_data_info(self):
         ''' In one cycle, get info that:
              * any test contains changed contact data
@@ -55,7 +70,7 @@ class VerificationCheckDetail(div):
         return br().join([item for item in tested_data if item])
 
     def render(self, indent_level=0):
-        col_count = len(self.header)
+        col_count = self.col_count = len(self.header)
 
         tests_table = table(attr(cssc='verification_check_table'),
                             caption(attr(cssc='section_label'), _('Tests:')))
@@ -99,7 +114,7 @@ class VerificationCheckDetail(div):
                     else:
                         row.add(td())
 
-                self._render_status(row, current_status, test_data.test_handle, True)
+                self._render_test_status(row, current_status, test_data.test_handle, True)
 
                 rows.append(row)
 
@@ -107,31 +122,25 @@ class VerificationCheckDetail(div):
                     for older_status in reversed(test_data.status_history[0:-1]):
                         row = tr(attr(cssc='row%s' % ((row_num % 2) + 1)))
                         row.add(td(attr(colspan=3 if tested_data_changed else 2, cssc='borderless')))
-                        self._render_status(row, older_status, test_data.test_handle, False)
+                        self._render_test_status(row, older_status, test_data.test_handle, False)
                         rows.append(row)
 
                 # one tbody per test - tbodies have double border in css to separate tests as sections:
                 tests_table.add(tbody(rows))
 
-        current_check_status = self.check.status_history[-1].status
-        tests_table.add(tfoot(save(tests_table, 'footer'),
-                              tr(save(tests_table, 'footer_th'),
-                                 th(attr(colspan=col_count), _('Overall status:'),
-                                    span(attr(title=enums.CHECK_STATUS_DESCS[current_check_status]),
-                                         enums.CHECK_STATUS_NAMES[current_check_status])
-                                    if self.check.status_history else _('No status')))
-                       ))
-        if current_check_status == 'ok':
-            tests_table.footer_th.add_css_class('status_ok')
-        elif current_check_status == 'fail':
-            tests_table.footer_th.add_css_class('status_fail')
+        current_check_status = self.check.status_history[-1]
+        tests_table.add(tfoot(save(tests_table, 'footer')))
+        self._render_check_status(tests_table, current_check_status, is_current_status=True)
+        if cherrypy.session.get('history', False):
+            for check_status in reversed(self.check.status_history[:-1]):
+                self._render_check_status(tests_table, check_status, is_current_status=False)
 
         if self.resolve:
-
             tests_table.footer.add(tr(td(attr(colspan=col_count),
                 table(attr(cssc='submit-row'),
                       tr(td(button(attr(type='submit', name='status_action', value=status_action), action_name))
-                         for status_action, action_name in get_status_action(self.check.test_suite_handle, current_check_status).items()
+                         for status_action, action_name in get_status_action(self.check.test_suite_handle,
+                                                                             current_check_status.status).items()
 
                       ))
             )))
