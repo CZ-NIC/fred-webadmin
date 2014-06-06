@@ -95,7 +95,7 @@ $(document)
                 "bFilter" : !dontDisplayFilter,
                 "bInfo" : !dontDisplayFilter,
                 "sAjaxSource" : ajaxSourceURLOfChecks,
-                "aaSorting" : [[3, "asc"]],
+                "aaSorting" : dontDisplayFilter ? [[4, "desc"]] : [[3, "asc"]],
                 "aoColumnDefs" : [{
                     "aTargets" : [3],
                     "mRender" : datetimeMRender,
