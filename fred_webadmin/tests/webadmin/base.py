@@ -91,8 +91,6 @@ def init_test_server():
     cherrypy.server.start()
     # Redirect HTTP requests.
     twill.add_wsgi_intercept('localhost', 8080, lambda: wsgiApp)
-    # Keep Twill quiet (suppress normal Twill output).
-    twill.set_output(twill_output)
 
 
 @nose.tools.nottest

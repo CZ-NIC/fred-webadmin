@@ -209,7 +209,6 @@ class TestADIFAuthentication(BaseADIFTestCase):
             fred_webadmin.controller.adif, 'auth', corba_auth)
 
         twill.commands.go("http://localhost:8080/login")
-        twill.commands.showforms()
         twill.commands.fv(1, "login", "test")
         twill.commands.fv(1, "password", "test pwd")
         twill.commands.fv(1, "corba_server", "0")
@@ -230,7 +229,6 @@ class TestADIFAuthentication(BaseADIFTestCase):
 #        self.corba_mock.ReplayAll()
 #
 #        twill.commands.go("http://localhost:8080/login")
-#        twill.commands.showforms()
 #        twill.commands.fv(1, "login", u"ěščěšřéýí汉语unicode")
 #        twill.commands.fv(1, "password", "test pwd")
 #        twill.commands.fv(1, "corba_server", "0")
@@ -248,7 +246,6 @@ class TestADIFAuthentication(BaseADIFTestCase):
             mocked_authenticateUser.side_effect = ccReg.Admin.AuthFailed
 
             twill.commands.go("http://localhost:8080/login")
-            twill.commands.showforms()
             twill.commands.fv(1, "login", "test")
             twill.commands.fv(1, "password", "test pwd")
             twill.commands.fv(1, "corba_server", "0")
@@ -270,7 +267,6 @@ class TestADIFAuthentication(BaseADIFTestCase):
         """ Login fails when submitting invalid form.
         """
         twill.commands.go("http://localhost:8080/login/")
-        twill.commands.showforms()
         twill.commands.fv(1, "login", "")
         twill.commands.fv(1, "password", "")
         twill.commands.code(200)
@@ -298,7 +294,6 @@ class TestADIFAuthenticationLDAP(BaseADIFTestCase):
         """ Login passes when valid credentials are supplied when using LDAP.
         """
         twill.commands.go("http://localhost:8080/login")
-        twill.commands.showforms()
         twill.commands.fv(1, "login", "test")
         twill.commands.fv(1, "password", "test pwd")
         twill.commands.fv(1, "corba_server", "0")
@@ -315,7 +310,6 @@ class TestADIFAuthenticationLDAP(BaseADIFTestCase):
         self.ldap_open_mock.return_value.simple_bind_s.side_effect = ldap.INVALID_CREDENTIALS
 
         twill.commands.go("http://localhost:8080/login")
-        twill.commands.showforms()
         twill.commands.fv(1, "login", "test")
         twill.commands.fv(1, "password", "test pwd")
         twill.commands.fv(1, "corba_server", "0")
@@ -332,7 +326,6 @@ class TestADIFAuthenticationLDAP(BaseADIFTestCase):
         self.ldap_open_mock.return_value.simple_bind_s.side_effect = ldap.SERVER_DOWN
 
         twill.commands.go("http://localhost:8080/login")
-        twill.commands.showforms()
         twill.commands.fv(1, "login", "test")
         twill.commands.fv(1, "password", "test pwd")
         twill.commands.fv(1, "corba_server", "0")
@@ -391,7 +384,6 @@ class TestRegistrar(TestRegistrarBase):
     def test_edit_correct_args(self):
         """ Registrar editation passes. """
         twill.commands.go("http://localhost:8080/registrar/edit/?id=42")
-        twill.commands.showforms()
         twill.commands.fv(2, "handle", "test handle")
         twill.commands.submit()
 
@@ -403,7 +395,6 @@ class TestRegistrar(TestRegistrarBase):
         """ Registrar editation does not pass when invalid zone date
             provided. """
         twill.commands.go("http://localhost:8080/registrar/edit/?id=42")
-        twill.commands.showforms()
 
         twill.commands.fv(2, "handle", "test handle")
         twill.commands.fv(2, "zones-0-toDate", "test invalid date")
@@ -418,7 +409,6 @@ class TestRegistrar(TestRegistrarBase):
         """
         # Create the registrar.
         twill.commands.go("http://localhost:8080/registrar/create")
-        twill.commands.showforms()
         twill.commands.fv(2, "handle", "test handle")
         twill.commands.submit()
 
@@ -433,7 +423,6 @@ class TestRegistrar(TestRegistrarBase):
             'From' date (ticket #3530)."""
         # Create the registrar.
         twill.commands.go("http://localhost:8080/registrar/create")
-        twill.commands.showforms()
         twill.commands.fv(2, "handle", "test handle")
         # Fill in the zone name (mandatory field).
         twill.commands.fv(2, "zones-0-name", "test zone")
@@ -453,7 +442,6 @@ class TestRegistrar(TestRegistrarBase):
             'From' date."""
         # Create the registrar.
         twill.commands.go("http://localhost:8080/registrar/create")
-        twill.commands.showforms()
         twill.commands.fv(2, "handle", "test handle")
         # Fill in the zone name (mandatory field).
         twill.commands.fv(2, "zones-0-name", "test zone")
@@ -473,7 +461,6 @@ class TestRegistrar(TestRegistrarBase):
             Ticket #3079. """
         # Create the first registrar.
         twill.commands.go("http://localhost:8080/registrar/create")
-        twill.commands.showforms()
         twill.commands.fv(2, "handle", "test handle")
         twill.commands.submit()
 
@@ -485,7 +472,6 @@ class TestRegistrar(TestRegistrarBase):
         self.session_mock.updateRegistrar.side_effect = ccReg.Admin.UpdateFailed
 
         twill.commands.go("http://localhost:8080/registrar/create")
-        twill.commands.showforms()
         twill.commands.fv(2, "handle", "test handle")
         twill.commands.submit()
 
@@ -504,7 +490,6 @@ class TestRegistrarGroups(TestRegistrarBase):
             lambda reg_id: [Registry.Registrar.Group.MembershipByRegistrar(1, 1,
                             ccReg.DateType(1, 1, 2008), ccReg.DateType(0, 0, 0))])
 
-        twill.commands.showforms()
         twill.commands.fv(2, "groups-0-id", "1")
         twill.commands.submit()
 
@@ -521,7 +506,6 @@ class TestRegistrarGroups(TestRegistrarBase):
 
         # now with normal getMembershipsByRegistar method which returns empty list:
 
-        twill.commands.showforms()
         twill.commands.fv(2, "groups-0-DELETE", "1")
         twill.commands.submit()
 
@@ -538,7 +522,6 @@ class TestRegistrarCertifications(TestRegistrarBase):
         """
         with tempfile.NamedTemporaryFile() as tmp_file:
             twill.commands.go("http://localhost:8080/registrar/edit/?id=42")
-            twill.commands.showforms()
             twill.commands.fv(2, "certifications-0-fromDate", datetime.date.today().isoformat())
             twill.commands.fv(2, "certifications-0-toDate", (datetime.date.today() + datetime.timedelta(7)).isoformat())
             twill.commands.fv(2, "certifications-0-score", "2")
@@ -569,14 +552,12 @@ class TestRegistrarCertifications(TestRegistrarBase):
 
             twill.commands.code(200)
             twill.commands.url(r"http://localhost:8080/registrar/detail/\?id=42")
-            twill.commands.showforms()
             twill.commands.find(r'''<a href="/file/detail/\?id=17"''')
 
     def test_add_certification_no_file(self):
         """ Certification is not added when no file has been uploaded.
         """
         twill.commands.go("http://localhost:8080/registrar/edit/?id=42")
-        twill.commands.showforms()
         twill.commands.fv(2, "certifications-0-fromDate", datetime.date.today().isoformat())
         twill.commands.fv(2, "certifications-0-toDate", (datetime.date.today() + datetime.timedelta(7)).isoformat())
         twill.commands.fv(2, "certifications-0-score", "2")
@@ -616,13 +597,11 @@ class TestRegistrarCertifications(TestRegistrarBase):
                           get_cert_by_reg_mock)
 
         twill.commands.go("http://localhost:8080/registrar/edit/?id=42")
-        twill.commands.showforms()
         twill.commands.fv(2, "certifications-0-toDate", "2009-12-12")
         twill.commands.submit()
 
         twill.commands.code(200)
         twill.commands.url(r"http://localhost:8080/registrar/detail/\?id=42")
-        twill.commands.showforms()
         twill.commands.find(r'''<a href="/file/detail/\?id=17"''')
         twill.commands.find("2009-12-12")
 
@@ -696,7 +675,6 @@ class TestBankStatement(BaseADIFTestCase):
         self.session_mock.getDetail.side_effect = lambda ft_type, obj_id: \
              statement_after_pairing if (ft_type, obj_id) == (ccReg.FT_STATEMENTITEM, 42) else None
 
-        twill.commands.showforms()
         twill.commands.fv(2, "type", "3")
         twill.commands.submit()
 
@@ -724,7 +702,6 @@ class TestBankStatement(BaseADIFTestCase):
         self.session_mock.getDetail.side_effect = lambda ft_type, obj_id: \
              statement_after_pairing if (ft_type, obj_id) == (ccReg.FT_STATEMENTITEM, 42) else None
 
-        twill.commands.showforms()
         twill.commands.fv(2, "handle", "invalid handle")
         twill.commands.fv(2, "type", "3")
         twill.commands.submit()
@@ -744,7 +721,6 @@ class TestBankStatement(BaseADIFTestCase):
 
         # Go to the pairing form
         twill.commands.go("http://localhost:8080/bankstatement/detail/?id=42")
-        twill.commands.showforms()
         twill.commands.fv(2, "handle", "test handle")
         twill.commands.fv(2, "type", "2")
         twill.commands.submit()
@@ -764,7 +740,6 @@ class TestBankStatement(BaseADIFTestCase):
 
         # Go to the pairing form
         twill.commands.go("http://localhost:8080/bankstatement/detail/?id=42")
-        twill.commands.showforms()
         twill.commands.fv(2, "handle", "test handle")
         twill.commands.fv(2, "type", "2")
         twill.commands.submit()
@@ -788,7 +763,6 @@ class TestBankStatement(BaseADIFTestCase):
 
             # Go to the pairing form
             twill.commands.go("http://localhost:8080/bankstatement/detail/?id=42")
-            twill.commands.showforms()
             twill.commands.notfind("""<input type="text" name="handle" value=\"\"""")
 
 
@@ -821,7 +795,6 @@ class TestLoggerNoLogView(BaseADIFTestCase):
         self.monkey_patch(fred_webadmin.controller.adif, 'auth', corba_auth)
 
         twill.commands.go("http://localhost:8080/login")
-        twill.commands.showforms()
         twill.commands.fv(1, "login", "test")
         twill.commands.fv(1, "password", "test pwd")
         twill.commands.fv(1, "corba_server", "0")
@@ -838,7 +811,6 @@ class TestRegistrarGroupEditor(BaseADIFTestCase):
         """ Two registrar groups are displayed.
         """
         twill.commands.go("http://localhost:8080/group")
-        twill.commands.showforms()
         twill.commands.code(200)
 
         twill.commands.find(
@@ -854,7 +826,6 @@ class TestRegistrarGroupEditor(BaseADIFTestCase):
         self.monkey_patch(self.admin_mock.group_manager_mock, 'getGroups', lambda: [])
 
         twill.commands.go("http://localhost:8080/group")
-        twill.commands.showforms()
         twill.commands.code(200)
         twill.commands.find(
             '''<input type="text" name="groups-0-name" value="" />''')
@@ -877,12 +848,10 @@ class TestRegistrarGroupEditor(BaseADIFTestCase):
             Registry.Registrar.Group.GroupData(
                 1, "test_group_1", ccReg.DateType(20, 10, 2009))])
 
-        twill.commands.showforms()
         twill.commands.code(200)
         twill.commands.fv(2, "groups-0-DELETE", "1")
         twill.commands.submit()
 
-        twill.commands.showforms()
         twill.commands.code(200)
         twill.commands.notfind(
             '''<input title="test_group_1" type="text" name="groups-0-name"'''
@@ -905,12 +874,10 @@ class TestRegistrarGroupEditor(BaseADIFTestCase):
         self.monkey_patch(self.admin_mock.group_manager_mock, 'deleteGroup', deleteGroup_mock)
 
         twill.commands.go("http://localhost:8080/group")
-        twill.commands.showforms()
         twill.commands.code(200)
         twill.commands.fv(2, "groups-0-DELETE", "1")
         twill.commands.submit()
 
-        twill.commands.showforms()
         twill.commands.code(200)
         twill.commands.find(
             '''<input title="test_group_1" type="text" name="groups-0-name"'''
