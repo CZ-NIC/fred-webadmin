@@ -67,6 +67,8 @@ localepath = locale_dir
 # lang = 'cs_CZ'
 lang = 'en_US'
 
+memcached_server = '127.0.0.1:11211'
+
 js_calendar_date_format = 'D.M.YYYY'
 # Date format for edit fields
 js_calendar_date_format_edit = 'YYYY-MM-DD'
@@ -74,6 +76,11 @@ js_calendar_date_format_edit = 'YYYY-MM-DD'
 # Javascript links to set date "new + X months" for administrative domain blocking and delete & blacklist forms:
 blocking_link_add_month_count = 4
 blacklisting_link_add_month_count = 1
+
+# Administrative verification - default lock duration for resolving verification check
+verification_check_lock_default_duration = 5 * 60  # seconds
+# Administrative verification manual check waiting period before being "to resolve"
+verification_check_manual_waiting = 30  # days
 
 cherrycfg = {
     'global': {

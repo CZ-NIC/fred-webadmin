@@ -22,14 +22,7 @@ import fred_webadmin.perms.dummy
 import fred_webadmin.utils
 
 
-class DaphneTestCase(object):
-    """ Serves as a base class for testing Daphne controller layer (that's
-        basically adif).
-        Takes care of mocking admin, session and user CORBA objects. Also
-        monkey patches the dynamically created cherrypy.session dict.
-        Uses DummyLogger, so that we do not have to care about audit logging
-        (that's SessionLogger).
-    """
+class DaphneBaseTestCase(object):
     def __init__(self):
         self._on_teardown = []
 
@@ -61,6 +54,16 @@ class DaphneTestCase(object):
             helper-for-monkey-patching-in-tests.html"""
         for func in reversed(self._on_teardown):
             func()
+
+
+class DaphneTestCase(DaphneBaseTestCase):
+    """ Serves as a base class for testing Daphne controller layer (that's
+        basically adif).
+        Takes care of mocking admin, session and user CORBA objects. Also
+        monkey patches the dynamically created cherrypy.session dict.
+        Uses DummyLogger, so that we do not have to care about audit logging
+        (that's SessionLogger).
+    """
 
     def setUp(self):
         self.monkey_patch(

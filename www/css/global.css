@@ -92,8 +92,8 @@ textarea { vertical-align:top !important; }
 input[type=text], input[type=password], textarea, select, .vTextField { border:1px solid #ccc; }
 
 /*  FORM BUTTONS  */
-input[type=submit], input[type=button], input[type=reset], .submit-row input { background:white url(../img/admin/nav-bg.gif) bottom repeat-x; padding:3px; color:black; border:1px solid #bbb; border-color:#ddd #aaa #aaa #ddd; }
-input[type=submit]:active, input[type=button]:active, input[type=reset]:active { background-image:url(../img/admin/nav-bg-reverse.gif); background-position:top; }
+input[type=submit], input[type=button], input[type=reset], .submit-row input, .submit-row button { background:white url(../img/admin/nav-bg.gif) bottom repeat-x; padding:3px; color:black; border:1px solid #bbb; border-color:#ddd #aaa #aaa #ddd; }
+input[type=submit]:active, input[type=button]:active, input[type=reset]:active, .submit-row button:active { background-image:url(../img/admin/nav-bg-reverse.gif); background-position:top; }
 input[type=submit].default, .submit-row input.default { border:2px solid #5b80b2; background:#7CA0C7 url(../img/admin/default-bg.gif) bottom repeat-x; font-weight:bold; color:white; }
 input[type=submit].default:active { background-image:url(../img/admin/default-bg-reverse.gif); background-position:top; }
 
@@ -109,6 +109,13 @@ input[type=submit].default:active { background-image:url(../img/admin/default-bg
 /* MESSAGES & ERRORS */
 ul.messagelist { padding:0 0 5px 0; margin:0; }
 ul.messagelist li { font-size:12px; display:block; padding:4px 5px 4px 25px; margin:0 0 3px 0; border-bottom:1px solid #ddd; color:#666; background:#ffc url(../img/admin/icon_success.gif) 5px .3em no-repeat; }
+ul.messagelist li.warning{
+    background-image: url(../img/admin/icon_alert.gif);
+}
+ul.messagelist li.error{
+    background-image: url(../img/admin/icon_error.gif);
+}
+
 .errornote { font-size:12px !important; display:block; padding:4px 5px 4px 25px; margin:0 0 3px 0; border:1px solid red; color:red;background:#ffc url(../img/admin/icon_error.gif) 5px .3em no-repeat; }
 ul.errorlist { margin:0 !important; padding:0 !important; }
 .errorlist li { font-size:12px !important; display:block; padding:4px 5px 4px 25px; margin:0 0 3px 0; border:1px solid red; color:white; background:red url(../img/admin/icon_alert.gif) 5px .3em no-repeat; }

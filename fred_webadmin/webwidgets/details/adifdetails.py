@@ -8,6 +8,7 @@ from fred_webadmin.webwidgets.details.sectionlayouts import DirectSectionLayout
 from fred_webadmin.webwidgets.details.adifsections import DatesSectionLayout
 from fred_webadmin.webwidgets.details.detaillayouts import DirectSectionDetailLayout
 from fred_webadmin.webwidgets.details.adifdetaillayouts import DomainsNSSetDetailLayout, DomainsKeySetDetailLayout
+from fred_webadmin.webwidgets.forms.forms import Form
 from fred_webadmin.webwidgets.adifwidgets import FilterPanel
 from fred_webadmin.corbalazy import CorbaLazyRequestIterStructToDict
 from fred_webadmin.utils import get_state_id_by_short_name
@@ -211,7 +212,14 @@ class ContactDetail(ObjectDetail):
                     [_('Public Requests'), 'publicrequest',
                         [{'Object.Handle': self.data.get('handle')}]],
                     [_('Messages'), 'message',
-                        [{'MessageContact.Handle': self.data.get('handle')}]]
+                        [{'MessageContact.Handle': self.data.get('handle')}]],
+                    [_('Verification checks'), f_urls['contactcheck'] + 'filter/%s/' % self.data.get('id')],
+                    [Form(action=f_urls['contactcheck'] + 'create_check/%s/automatic/' % self.data.get('id'),
+                          method='post', submit_button_text=_('Add automatic check'),
+                          onsubmit='return confirm("Are you sure?")')],
+                    [Form(action=f_urls['contactcheck'] + 'create_check/%s/manual/' % self.data.get('id'),
+                          method='post', submit_button_text=_('Add manual check'),
+                          onsubmit='return confirm("Are you sure?")')],
                 ]
             ]
             if not cherrypy.session['user'].check_nperms('read.logger'):

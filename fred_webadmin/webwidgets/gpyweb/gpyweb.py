@@ -336,6 +336,15 @@ class WebWidget(object):
                 self.cssc = None
         return removed
 
+    def join(self, iterable):
+        container = notag()
+        length = len(iterable)
+        for i, item in enumerate(iterable):
+            container.add(item)
+            if i < length - 1:
+                container.add(self)
+        return container
+
 
 class notag(WebWidget):
     def __init__(self, *content, **kwd):

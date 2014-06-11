@@ -7,3 +7,4 @@
 /www/js/boxover.js -whitespace
 /www/js/ext/* -whitespace
 /www/js/scw.js -whitespace
+/www/js/jquery.dataTables.js -whitespace

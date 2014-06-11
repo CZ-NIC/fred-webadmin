@@ -1,5 +1,5 @@
-.discloseTrue { background-color: #BF8; }
-.discloseFalse { background-color: #FBB; }
+.discloseTrue, .status_ok { background-color: #BF8; }
+.discloseFalse, .status_fail { background-color: #FBB; }
 
 .detail_table { margin: 0.5em 0em; }
 .detail_table th { text-align: left; }
@@ -20,6 +20,12 @@
     border-collapse: collapse;
 }
 
+/* center forms inside filter panel */
+.filter_panel .form_table {
+    margin-left: auto;
+    margin-right: auto;
+}
+
 .section_table caption, .section_label {
     padding: 0.3em 0;
 }
@@ -32,6 +38,13 @@
     width: 55em;
 }
 
+.nested_detail_table {
+    border-collapse: collapse;
+}
+
+.nested_detail_table > tbody > tr > td {
+    padding: 0;
+}
 
 .section_label {
     font-weight: bold;
@@ -46,16 +59,31 @@
 }
 .section_table > tbody > tr > td, .section_table > tbody > tr > th,
 .section_table > thead > tr > td, .section_table > thead > tr > th,
-.filter_panel td {
+.filter_panel > tbody > tr > td {
     border: thin solid gray;
 }
+.section_table > thead, .section_table > tfoot {
+    border: medium double gray;
+}
+
 .filter_panel td {
     height: 2.5em;
 }
-.filter_panel { text-align: center; }
-.filter_panel a { background:white url(../img/admin/nav-bg.gif) bottom repeat-x; padding:4px;  color:black; border:1px solid #bbb; border-color:#ddd #aaa #aaa #ddd; }
-.filter_panel a:active { background-image:url(../img/admin/nav-bg-reverse.gif); background-position:top; }
-
+.filter_panel {
+    text-align: center;
+}
+.filter_panel a {
+    background:white url(../img/admin/nav-bg.gif) bottom repeat-x; padding:4px;
+    color:black;
+    border:1px solid #bbb;
+    border-color:#ddd #aaa #aaa #ddd;
+    font-size: 11px;
+    font-family: "Lucida Grande",Verdana,Arial,sans-serif;
+}
+.filter_panel a:active {
+    background-image:url(../img/admin/nav-bg-reverse.gif);
+    background-position:top;
+}
 
 .object_list_detail_table th { text-align: left; }
 
@@ -132,4 +160,26 @@
 
 td > .no_access:first-child {
     padding: 0;
+}
+
+.borderless {
+    border: none!important;
+}
+
+.section_table.history tbody {
+    border: medium double gray;
+}
+
+.verification_check_table tfoot > tr > td, .verification_check_table tfoot > tr > th {
+    border: thin solid gray;
+}
+
+table.submit-row {
+    width: 100%;
+    text-align: center;
+    table-layout: fixed;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: none;
 }

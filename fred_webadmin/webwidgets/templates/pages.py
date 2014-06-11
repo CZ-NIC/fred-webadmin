@@ -1,14 +1,18 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import cherrypy
+
 from fred_webadmin.webwidgets.gpyweb.gpyweb import (
     div, span, p, a, h2, h3, attr, save, HTMLPage,
-    label, input, h1, ul, li, script, pre, notag)
-from fred_webadmin.translation import _
-from fred_webadmin import config
-from fred_webadmin.utils import get_current_url, append_getpar_to_url
+    label, input, table, tr, th, td, h1, ul, li, script, pre, notag)
 
-from fred_webadmin.webwidgets.details import adifdetails
+from fred_webadmin import config
+from fred_webadmin.messages import get_messages
+from fred_webadmin.translation import _
+from fred_webadmin.utils import get_current_url, append_getpar_to_url
+from fred_webadmin.webwidgets.details import adifdetails, administrative_verification
+from fred_webadmin.webwidgets.details.sectionlayouts import DirectSectionLayout
 
 
 class BaseTemplate(HTMLPage):
@@ -46,7 +50,7 @@ class BaseSite(BaseTemplate):
             div(
                 div(attr(id='menu_container'), save(self, 'menu_container')),
                 div(attr(id='right_menu_container'), save(self, 'right_menu_container'),
-                )
+               )
             )
         )
         self.branding.add(h1('Daphne'))
@@ -57,6 +61,14 @@ class BaseSite(BaseTemplate):
                                 span('User: %s(%s %s)' % (c.user.login, c.user.firstname, c.user.surname)),
                                 '|',
                                 a(attr(href="/logout"), 'Log out'))
+
+        messages = get_messages()
+        if messages:
+            self.main.add(div(attr(cssc='messages-wrapper'),
+                              ul(attr(cssc='messagelist'),
+                                 [li(attr(cssc=message.string_level), message) for message in messages]
+                                )
+                         ))
 
         if c.get('main'):
             self.main.add(c.main)
@@ -103,7 +115,7 @@ class BaseSiteMenu(BaseSite):
                        type='checkbox', onchange='setHistory(this)')),
                   label(attr(for_id='history_checkbox'), _('history'))
         )
-        if c.history:
+        if c.get('history'):
             self.history_checkbox.checked = ['', 'checked'][c.history]
 
 
@@ -423,3 +435,51 @@ class DomainBlockingResult(BaseSiteMenu):
                 else:
                     holder_change_text = None
                 self.blocked_object_ul.add(li(a(attr(href=c['detail_url'] % blocked_object.id), blocked_object.handle), holder_change_text))
+
+
+class ContactCheckList(BaseSiteMenu):
+    def __init__(self, context):
+        super(ContactCheckList, self).__init__(context)
+        c = self.context
+        self.head.add(script(attr(type='text/javascript'),
+                             'ajaxSourceURLOfChecks = "%s";' % c.ajax_json_filter_url))
+        if 'default_js_type_filter' in c:
+            self.head.add(script(attr(type='text/javascript'),
+                                 'defaultTypeFilter = "%s";' % c.default_js_type_filter))
+        self.main.add(h1(c.heading))
+        self.main.add(c.table_tag)
+        lang_code = config.lang[:2]
+        if lang_code == 'cs':  # conversion between cs and cz identifier of lagnguage
+            lang_code = 'cz'
+        self.head.add(script(attr(type='text/javascript'),
+                             'scwLanguage = "%s"; //sets language of js_calendar' % lang_code,
+                             'scwDateOutputFormat = "%s"; // set output format for js_calendar' % config.js_calendar_date_format))
+
+
+class ContactCheckDetail(BaseSiteMenu):
+    def __init__(self, context):
+        super(ContactCheckDetail, self).__init__(context)
+        c = self.context
+        self.head.add(script(attr(type='text/javascript'),
+                             'ajaxSourceURLOfChecks = "%s";' % c.ajax_json_filter_url,
+                             'dontDisplayFilter = true;'))
+        self.main.add(h1(_('Contact checks detail'), '-', c.test_suit_name))
+        self.main.add(table(attr(cssc='section_table'),
+            tr(td(attr(cssc='left_label'), _('Contact:'), td(a(attr(href=c.contact_url), c.check.contact_handle)))),
+            tr(td(attr(cssc='left_label'), _('Created: '), td(c.check.created))),
+        ))
+        self.main.add(c.detail)
+        self.main.add(adifdetails.ContactDetail(c.contact_detail, c.history, is_nested=True,
+                                                sections=((_('Other contact data'), c.contact_display_fields),
+                                                          (_('Contact states'), ('states',), DirectSectionLayout))))
+        if cherrypy.session.get('history', False):
+            self.main.add(h2(_('All checks of this contact:')))
+            self.main.add(c.table_tag)
+
+            self.main.add(h2(_('Contact checks messages:')))
+            self.main.add(c.messages_list)
+
+        lang_code = config.lang[:2]
+        self.head.add(script(attr(type='text/javascript'),
+                             'scwLanguage = "%s"; //sets language of js_calendar' % lang_code,
+                             'scwDateOutputFormat = "%s"; // set output format for js_calendar' % config.js_calendar_date_format))

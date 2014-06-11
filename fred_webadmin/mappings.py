@@ -76,6 +76,7 @@ f_id_name = reverse_dict(f_name_id)
 # dict {enum_item: url}
 f_urls = dict([(name, '/%s/' % (name)) for name in f_name_enum.keys()])
 f_urls['group'] = "/group/"
+f_urls['contactcheck'] = "/contactcheck/"
 
 # dict {classname: CT_*_ID}, where * is uppercase classname (used in itertable
 # headers for 'Id' column)
