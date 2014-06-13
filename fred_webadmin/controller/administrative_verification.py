@@ -151,7 +151,7 @@ class ContactCheck(AdifPage):
         if len(messages):
             messages_table = SimpleTable(
                 header=[_('Id'), _('Created'), _('Channel'), _('Type'), _('Updated'), _('Status')],
-                data=[(a(attr(href=f_urls['mail' if msg.type_handle == 'email' else 'message'] + 'detail/%s/' % msg.id),
+                data=[(a(attr(href=f_urls['mail' if msg.type_handle == 'email' else 'message'] + 'detail/?id=%s' % msg.id),
                          img(src='/img/icons/open.png')),
                        msg.created, msg.type_handle, msg.content_handle, msg.updated, msg.status)
                        for msg in messages],
