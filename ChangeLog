@@ -1,3 +1,9 @@
+2014-06-12 Tomas Divis (3.13.0)
+
+    * admin. contact verification impl.
+
+    * fix logger filter - server / request_type
+
 2014-02-13 Jiri Sadek (3.12.0)
 
     * pin2 and pin3 buttons for message resending in public request details
