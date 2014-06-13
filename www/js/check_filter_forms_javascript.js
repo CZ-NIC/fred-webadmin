@@ -1,6 +1,5 @@
-
 function checkFilterFormsJavascriptLoaded() {
-    if (typeof(allFieldsDict) == 'undefined') {
+    if (typeof allFieldsDict == 'undefined') {
         var elems = Ext.query('.for_fields_button');
         for (var i = 0; i < elems.length; i++) {
             var elem = elems[i];
@@ -9,7 +8,7 @@ function checkFilterFormsJavascriptLoaded() {
             err.className = 'error';
             elem.appendChild(err);
         }
-        }
+    }
 }
 
 /* Generate choices for ActionType filter field in log request filter form. */
@@ -21,10 +20,12 @@ function filter_action_types() {
     }
     var service_select = document.getElementById("logger_service_type_id");
     var actions = []
-    var show_all = service_select == null || service_select.selectedIndex == 0
+    var show_all = service_select == null || service_select.value == "";
     if (show_all) {
-        /* Glue together all the choices for every service type and display
-         * them all. */
+        /*
+         * Glue together all the choices for every service type and display them
+         * all.
+         */
         var actions_by_types = get_actions();
         for (a in actions_by_types) {
             actions = actions.concat(actions_by_types[a])
@@ -32,15 +33,15 @@ function filter_action_types() {
     } else {
         /* Only display the actions for the given service type. */
         // Minus one for the empty type.
-        var index = service_select.selectedIndex - 1;
+        var service_num = service_select.value;
         var actions_by_types = get_actions();
-        actions = actions_by_types[index]
+        actions = actions_by_types[service_num]
     }
     /* Delete all the choices except the empty value. */
     action_select.length = 1;
 
     /* Display the action choices. */
-    for (var i=0; i<actions.length; ++i) {
+    for (var i = 0; i < actions.length; ++i) {
         var newOption = document.createElement('option');
         action_select.add(newOption, null);
         newOption.value = actions[i][0];
