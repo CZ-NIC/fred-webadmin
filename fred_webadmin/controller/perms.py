@@ -98,9 +98,6 @@ def check_onperm(objects_nperms, check_type='all'):
                                 'usernperm = %s,' % user.nperms, br(),
                                 'nperms=%s,' % nperms, br(),
                                 'nperm_type=%s' % check_type, br()))
-                        context['message'].add(p(
-                            "a tohle to je udelano nejsofistikovanejsim "
-                            "decoratorem"))
                     return self._render('error', context)
                 return view_func(*args, **kwd)
 

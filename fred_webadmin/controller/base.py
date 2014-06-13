@@ -66,7 +66,6 @@ class AdifPage(Page):
             # module of this class, if there is no such, then it returns
             # BaseSiteMenu:
             template_name = self.__class__.__name__ + action.capitalize()
-            debug('Trying to get template:' + template_name)
             template = getattr(
                 sys.modules[__name__], template_name, None)
             if template is None:
@@ -74,8 +73,6 @@ class AdifPage(Page):
                       "BaseSiteMenu" % (template_name,
                       sys.modules[__name__]))
                 template = BaseSiteMenu
-            else:
-                debug('...OK, template %s taken' % template_name)
             if not issubclass(template, WebWidget):
                 raise RuntimeError("%s is not derived from WebWidget - it "
                                    "cannot be template!" % repr(template))

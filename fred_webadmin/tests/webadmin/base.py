@@ -86,7 +86,7 @@ def init_test_server():
     root = fred_webadmin.controller.adif.prepare_root()
     wsgiApp = cherrypy.tree.mount(root)
     cherrypy.config.update({'server.socket_host': '0.0.0.0',
-                             'server.socket_port': 8080,
+                            'server.socket_port': 8080,
                            })
     cherrypy.server.start()
     # Redirect HTTP requests.

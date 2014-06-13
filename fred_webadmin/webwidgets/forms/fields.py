@@ -72,7 +72,6 @@ class Field(WebWidget):
         self.value = value
 
     def value_from_datadict(self, data):
-        debug('Jsem %s (orig %s) a beru si data %s' % (self.name, self.name_orig, data.get(self.name, None)))
         return data.get(self.name, None)
 
     def is_empty(self):
@@ -966,7 +965,6 @@ class MultiValueField(Field):
             self.fields[i].set_from_clean(v)
 
     def value_from_datadict(self, data):
-        debug('beru data z %s k fieldum se jmeny %s' % (str(data), str([f.name for f in self.fields])))
         return [field.value_from_datadict(data) for field in self.fields]
 
     def is_empty(self):
