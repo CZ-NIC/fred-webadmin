@@ -204,7 +204,7 @@ class ADIF(AdifPage):
         cherrypy.session['Mailer'] = corba_obj.getObject('Mailer', 'ccReg.Mailer')
         cherrypy.session['FileManager'] = corba_obj.getObject('FileManager', 'ccReg.FileManager')
         cherrypy.session['Messages'] = corba_obj.getObject('Messages', 'Registry.Messages')
-        cherrypy.session['Blocking'] = corba_obj.getObject('Administrative', 'Registry.Administrative.Blocking')
+        cherrypy.session['Blocking'] = corba_obj.getObject('AdminBlocking', 'Registry.Administrative.Blocking')
         cherrypy.session['Verification'] = corba_obj.getObject('AdminContactVerification', 'Registry.AdminContactVerification.Server')
 
         cherrypy.session['history'] = False
