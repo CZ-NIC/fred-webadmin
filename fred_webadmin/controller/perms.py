@@ -53,6 +53,7 @@ def check_nperm(nperms, nperm_type='all'):
         def _wrapper(*args, **kwd):
             user = cherrypy.session.get('user', None)
             if user:
+                utils.details_cache = {}  # invalidate details cache
                 if not user.check_nperms(nperms, nperm_type):
                     return view_func(*args, **kwd)
                 else:
