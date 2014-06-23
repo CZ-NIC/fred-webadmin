@@ -28,6 +28,7 @@ def check_nperm_func(nperms, nperm_type='all', raise_err=False):
     '''
     user = cherrypy.session.get('user', None)
     if user:
+        utils.details_cache = {}  # invalidate details cache
         if not user.check_nperms(nperms, nperm_type):
             return True
         else:
