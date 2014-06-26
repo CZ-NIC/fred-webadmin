@@ -1,3 +1,4 @@
+from functools import wraps
 from StringIO import StringIO
 
 import cherrypy
@@ -99,3 +100,41 @@ def deinit_test_server():
     twill.remove_wsgi_intercept('localhost', 8080)
     # Shut down Cherrypy server.
     cherrypy.server.stop()
+
+
+def enable_corba_comparison(corba_type):
+    def corba_eq(self, other):
+        if not isinstance(other, self.__class__):
+            return False
+        import omniORB
+        corba_type_desc = omniORB.findType(self._NP_RepositoryId)
+        for i in range(4, len(corba_type_desc), 2):
+            attr_name = corba_type_desc[i]
+            if getattr(self, attr_name, None) != getattr(other, attr_name, None):
+                return False
+        return True
+
+    def corba_not_eq(self, other):
+        return not self.__eq__(other)
+
+    corba_type.__eq__ = corba_eq
+    corba_type.__ne__ = corba_not_eq
+
+
+def revert_to_default_corba_comparison(corba_type):
+    delattr(corba_type, '__eq__')
+    delattr(corba_type, '__ne__')
+
+
+def enable_corba_comparison_decorator(corba_type):
+    def wrapper(func):
+        @wraps(func)
+        def wrapped(*args, **kwargs):
+            enable_corba_comparison(corba_type)
+            try:
+                retval = func(*args, **kwargs)
+            finally:
+                revert_to_default_corba_comparison(corba_type)
+            return retval
+        return wrapped
+    return wrapper
