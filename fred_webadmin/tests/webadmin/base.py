@@ -138,3 +138,33 @@ def enable_corba_comparison_decorator(corba_type):
             return retval
         return wrapped
     return wrapper
+
+
+class TestAuthorizer(object):
+    """ Implements the authorizer interface and allows every action.
+        To be used when permission checking is disabled.
+    """
+    def __init__(self, username='testUser', test_perms=None):
+        self._username = username
+        if test_perms is None:
+            self._perms = []
+        else:
+            self._perms = test_perms
+
+    def has_permission(self, obj, action):
+        return '{}.{}'.format(action, obj) in self._perms
+
+    def add_perms(self, *perms):
+        for perm in perms:
+            self._perms.append(perm)
+
+    def rem_perms(self, *perms):
+        for perm in perms:
+            if perm in self._perms:
+                self._perms.remove(perm)
+
+    def has_permission_detailed(self, obj, action, obj_id):
+        return True
+
+    def check_detailed_present(self, obj, action):
+        return False
