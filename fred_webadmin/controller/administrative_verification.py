@@ -51,24 +51,28 @@ class ContactCheck(AdifPage):
         finally:
             log_req.close()
 
+    @staticmethod
+    def _get_to_resolve_date(check):
+            if check.test_suite_handle == 'manual' and check.current_status in ('enqueue_req', 'fail_req'):
+                to_resolve = check.updated
+            elif check.last_test_finished:
+                if check.test_suite_handle in ('manual', 'thank_you'):
+                    to_resolve = check.last_test_finished + datetime.timedelta(config.verification_check_manual_waiting)
+                    if check.last_contact_update > check.created:  # only updates wich happend after check was created
+                        to_resolve = min(to_resolve, check.last_contact_update)
+                else:
+                    to_resolve = check.last_test_finished
+            else:
+                to_resolve = ''
+            return to_resolve
+
     def _table_data_generator(self, test_suit=None, contact_id=None):
         checks = c2u(self._get_contact_checks(test_suit, contact_id))
 
         for check in checks:
             if not check_nperm_func('read.contactcheck_%s' % check.test_suite_handle):
                 continue
-            if check.test_suite_handle == 'manual' and check.current_status in ('enqueue_req', 'fail_req'):
-                to_resolve = check.updated
-            elif check.last_test_finished:
-                if check.test_suite_handle == 'manual':
-                    to_resolve = check.last_test_finished + datetime.timedelta(config.verification_check_manual_waiting)
-                    if check.last_contact_update > check.created:  # only updates wich happend after check was created
-                        to_resolve = min(to_resolve, check.last_contact_update)
-                else:
-                    to_resolve = check.last_test_finished
-
-            else:
-                to_resolve = ''
+            to_resolve = self._get_to_resolve_date(check)
             if to_resolve:
                 to_resolve = to_resolve.isoformat()
 

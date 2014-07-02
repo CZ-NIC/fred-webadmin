@@ -661,7 +661,7 @@ class ChoiceField(Field):
                 if user and nperm and user.has_nperm(nperm, value):
                     continue
                 if self.as_radio_buttons:
-                    item = label(input(attr(type='radio', name=self.name, value=value), tagid('radio_input'), caption))
+                    item = label(input(attr(type='radio', name=self.name, value=value), tagid('radio_input')), caption)
                 else:
                     item = option(attr(value=value), caption)
                 if unicode(value) == unicode(self.value):
