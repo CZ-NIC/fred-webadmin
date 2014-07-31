@@ -88,13 +88,10 @@ class IterTable(object):
 
     def _map_request(self, session_key):
         try:
-            debug('GETTING ADMIN, which is: %s a sessionkey=%s' %
-                  (cherrypy.session.get('Admin', 'Admin'), session_key))
             corbaSession = cherrypy.session.get('Admin').getSession(session_key)
         except ccReg.Admin.ObjectNotFound:
             raise CorbaServerDisconnectedException
         try:
-            debug(f_name_enum)
             table = corbaSession.getPageTable(f_name_enum[self.request_object])
             if not table:
                 raise ValueError(
@@ -288,12 +285,10 @@ class IterTable(object):
 
     def get_sort(self):
         col_num, direction = self._table.getSortedBy()
-        print "SORT GETTING %s, %s" % (col_num, direction)
         return col_num, direction
 
     def set_sort(self, col_num, bool_dir):
         ''' col_num == 0 is first column AFTER ID (column ID is ignored)'''
-        print "SORT SETTING %s, %s" % (col_num, bool_dir)
         self._table.sortByColumn(col_num, bool_dir)
 
     def set_sort_by_name(self, column_name, direction):

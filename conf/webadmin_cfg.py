@@ -96,8 +96,9 @@ cherrycfg = {
         'tools.sessions.storage_type': 'file',
         'tools.sessions.storage_path': sessions_dir,
         'tools.sessions.timeout': 60,  # in minutes
-        'server.log_to_screen': False,
-        'server.log_file': log_dir + 'fred-webadmin.log',
+        'log.screen': False,
+        'log.access_file': '',
+        'log.error_file': '',
     },
     '/': {'tools.staticdir.root': www_dir},
     '/css': {'tools.staticdir.on': True,

@@ -219,7 +219,6 @@ class BaseTestAdministrativeBlockingAction(TestAdministrativeBlockingBase):
         self.session_mock.getDetail.side_effect = lambda obj_type, obj_id: cdm.domain('test%s.cz' % obj_id)
 
         tc.go(self.START_URL)
-        tc.showforms()
         tc.fv(2, 'reason', self.REASON_TEXT)
 
     def test_no_reason(self):

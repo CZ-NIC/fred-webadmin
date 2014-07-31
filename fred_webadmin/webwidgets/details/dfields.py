@@ -473,8 +473,6 @@ class ListObjectDField(DField):
         self.cssc = u'section_table history_list_table'
 
     def resolve_value(self, value):
-        # tady asi bude neco jak if isinstance(data, OID_type), tak tohle, else: a ziskani dat specifikovane nepovinnym parametrem (jmeno funkce nebo ukazaetel na funkci)
-        # navic je tu jeste treti moznost, ze objekt je nejaka struktura, tudis je to primo corba structura - v takovem pripade se musi vzit jen data.__dict__
         if value:
             new_value = []
             for obj_data in value:

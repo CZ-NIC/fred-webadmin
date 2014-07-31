@@ -1,3 +1,4 @@
+from functools import wraps
 from StringIO import StringIO
 
 import cherrypy
@@ -86,13 +87,11 @@ def init_test_server():
     root = fred_webadmin.controller.adif.prepare_root()
     wsgiApp = cherrypy.tree.mount(root)
     cherrypy.config.update({'server.socket_host': '0.0.0.0',
-                             'server.socket_port': 8080,
+                            'server.socket_port': 8080,
                            })
     cherrypy.server.start()
     # Redirect HTTP requests.
     twill.add_wsgi_intercept('localhost', 8080, lambda: wsgiApp)
-    # Keep Twill quiet (suppress normal Twill output).
-    twill.set_output(twill_output)
 
 
 @nose.tools.nottest
@@ -101,3 +100,71 @@ def deinit_test_server():
     twill.remove_wsgi_intercept('localhost', 8080)
     # Shut down Cherrypy server.
     cherrypy.server.stop()
+
+
+def enable_corba_comparison(corba_type):
+    def corba_eq(self, other):
+        if not isinstance(other, self.__class__):
+            return False
+        import omniORB
+        corba_type_desc = omniORB.findType(self._NP_RepositoryId)
+        for i in range(4, len(corba_type_desc), 2):
+            attr_name = corba_type_desc[i]
+            if getattr(self, attr_name, None) != getattr(other, attr_name, None):
+                return False
+        return True
+
+    def corba_not_eq(self, other):
+        return not self.__eq__(other)
+
+    corba_type.__eq__ = corba_eq
+    corba_type.__ne__ = corba_not_eq
+
+
+def revert_to_default_corba_comparison(corba_type):
+    delattr(corba_type, '__eq__')
+    delattr(corba_type, '__ne__')
+
+
+def enable_corba_comparison_decorator(corba_type):
+    def wrapper(func):
+        @wraps(func)
+        def wrapped(*args, **kwargs):
+            enable_corba_comparison(corba_type)
+            try:
+                retval = func(*args, **kwargs)
+            finally:
+                revert_to_default_corba_comparison(corba_type)
+            return retval
+        return wrapped
+    return wrapper
+
+
+class TestAuthorizer(object):
+    """ Implements the authorizer interface and allows every action.
+        To be used when permission checking is disabled.
+    """
+    def __init__(self, username='testUser', test_perms=None):
+        self._username = username
+        if test_perms is None:
+            self._perms = []
+        else:
+            self._perms = test_perms
+
+    def has_permission(self, obj, action):
+        return '{}.{}'.format(action, obj) in self._perms
+
+    def add_perms(self, *perms):
+        for perm in perms:
+            self._perms.append(perm)
+
+    def rem_perms(self, *perms):
+        for perm in perms:
+            if perm in self._perms:
+                self._perms.remove(perm)
+
+    def has_permission_detailed(self, obj, action, obj_id):
+        return True
+
+    def check_detailed_present(self, obj, action):
+        return False

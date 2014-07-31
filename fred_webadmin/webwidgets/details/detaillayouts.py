@@ -44,7 +44,6 @@ class SectionDetailLayout(TableDetailLayout):
         section_layout = SectionLayout
         if len(section_spec) > 2:
             section_layout = section_spec[2]
-            debug("layout: %s" % section_layout)
             # List of layouts, first for detail without history,
             # second for detail with history.
             if isinstance(section_layout, types.ListType):

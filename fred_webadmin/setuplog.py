@@ -18,6 +18,6 @@ def setup_log():
                         format='%(asctime)s %(levelname)-8s %(message)s',
                         filename=logfilename,
                         filemode=mode)
-    # display log messages to standard output
+    # log messages to standard output
     console = logging.StreamHandler()
     logging.getLogger('').addHandler(console)
