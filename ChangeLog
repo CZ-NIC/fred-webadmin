@@ -1,3 +1,9 @@
+2014-08-01 Tomas Divis (3.13.1)
+
+    * fix memcached dependency
+
+    * add tests for admin. contact verification
+
 2014-06-12 Tomas Divis (3.13.0)
 
     * admin. contact verification impl.
