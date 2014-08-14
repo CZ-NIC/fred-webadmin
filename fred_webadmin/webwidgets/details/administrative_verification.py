@@ -8,7 +8,6 @@ from fred_webadmin.utils import get_detail
 from fred_webadmin.webwidgets.adifwidgets import FilterPanel
 
 
-
 class VerificationCheckDetail(div):
     ''' Simple HTML table widget '''
 
