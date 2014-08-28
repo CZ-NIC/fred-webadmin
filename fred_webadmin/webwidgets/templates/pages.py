@@ -5,12 +5,12 @@ import cherrypy
 
 from fred_webadmin.webwidgets.gpyweb.gpyweb import (
     div, span, p, a, h2, h3, attr, save, HTMLPage,
-    label, input, table, tr, th, td, h1, ul, li, script, pre, notag)
+    label, input, table, tr, th, td, h1, ul, li, script, strong, pre, notag)
 
 from fred_webadmin import config
 from fred_webadmin.messages import get_messages
 from fred_webadmin.translation import _
-from fred_webadmin.utils import get_current_url, append_getpar_to_url
+from fred_webadmin.utils import get_current_url, append_getpar_to_url, contact_has_state
 from fred_webadmin.webwidgets.details import adifdetails
 
 
@@ -463,9 +463,17 @@ class ContactCheckDetail(BaseSiteMenu):
                              'ajaxSourceURLOfChecks = "%s";' % c.ajax_json_filter_url,
                              'dontDisplayFilter = true;'))
         self.main.add(h1(_('Contact checks detail'), '-', c.test_suit_name))
+        if contact_has_state(c.contact_detail, 'validatedContact'):
+            verified_info = _('Conontact is validated')
+        elif contact_has_state(c.contact_detail, 'identifiedContact'):
+            verified_info = _('Conontact is identified')
+        else:
+            verified_info = None
         self.main.add(table(attr(cssc='section_table'),
             tr(td(attr(cssc='left_label'), _('Contact:'), td(a(attr(href=c.contact_url), c.check.contact_handle)))),
             tr(td(attr(cssc='left_label'), _('Created: '), td(c.check.created))),
+            tr(td(attr(cssc='left_label'), _('Verified status:'), td(strong(attr(cssc='highlight_ok'), verified_info)))
+              ) if verified_info else None
         ))
         self.main.add(c.detail)
         self.main.add(h2('Detail of contact:'))

@@ -1,3 +1,4 @@
+import datetime
 import logging
 import cherrypy
 import simplejson
@@ -13,8 +14,10 @@ from mappings import f_name_enum
 from mappings import f_enum_name
 from fred_webadmin.corba import Corba
 from fred_webadmin import config
+from fred_webadmin.nulltype import Null
 from pylogger.dummylogger import DummyLogger
 from pylogger.corbalogger import Logger, LoggerFailSilent
+
 
 # recoder of CORBA objects
 #from corbarecoder import CorbaRecode
@@ -207,6 +210,23 @@ def get_property_list(fname=None):
         line = line.strip()
         result.append((line, line))
     return result
+
+
+def contact_has_state(contact, state_name):
+    ''' Returns True when contact has currently the given state active.
+        `contact` is contact detail from get_detail function.
+        `state_name` is name of a state
+    '''
+    state_names_by_id = {state.id: state.shortName
+                         for state in cherrypy.session['Admin'].getObjectStatusDescList(config.lang[:2])}
+    for state in contact.states:
+        if state_names_by_id[state.id] == state_name \
+            and state._from < datetime.datetime.now() \
+            and (isinstance(state.to, Null)
+                 or state.to > datetime.datetime.now()):
+            return True
+    return False
+
 
 ## {{{ http://code.activestate.com/recipes/576693/ (r9)
 # Backport of OrderedDict() class that runs on Python 2.4, 2.5, 2.6, 2.7 and pypy.
