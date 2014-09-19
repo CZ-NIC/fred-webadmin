@@ -163,6 +163,7 @@ class ObjectDetail(Detail):
 
 class ContactAddressDetail(Detail):
     type = CharDField(label=_('Type'))
+    companyName = CharDField(label=_('Company name'))
     street1 = CharDField(label=_('Street'))
     street2 = CharDField(label='')
     street3 = CharDField(label='')
