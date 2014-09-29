@@ -284,7 +284,7 @@ class TestADIFAuthenticationLDAP(BaseADIFTestCase):
         # Mock out ldap.initialize method. We must not mock the whole ldap package,
         # because ldap_auth uses ldap exceptions.
         self.ldap_initialize_mock = mock.create_autospec(ldap.initialize)
-        self.monkey_patch(fred_webadmin.auth.ldap_auth.ldap, 'initialize', self.ldap_initialize_mock)  # @UndefinedVariable
+        self.monkey_patch(ldap_auth.ldap, 'initialize', self.ldap_initialize_mock)
 
     def assert_ldap_called(self):
         assert_equal(self.ldap_initialize_mock.mock_calls, [call('test ldap server'),
