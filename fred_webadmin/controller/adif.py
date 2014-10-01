@@ -28,6 +28,7 @@ import dns.resolver
 import dns.query
 
 from fred_webadmin import config
+from fred_webadmin import messages
 
 # Conditional import. Business decision. User should not be forced to import
 # ldap if he does not wish to use ldap authentication.
@@ -849,6 +850,9 @@ class PublicRequest(AdifPage, ListTableMixin):
                         href=f_urls[self.classname] + 'detail/?id=%s' % kwd['id']),
                         _('public request.'))
             ]}))
+        except ccReg.Admin.MessageCopyProhibited:
+            log_req.result = 'Fail'
+            messages.error(_(u'Message cannot be re-send because it is still in queue.'))
         finally:
             log_req.close()
 
