@@ -202,8 +202,8 @@ class ContactDetail(ObjectDetail):
         (None, ('handleEPPId', 'organization', 'name', 'ident', 'vat', 'vat', 'telephone', 'fax', 'email', 'notifyEmail', 'authInfo')),
         (_('Selected registrar'), ('registrar',), DirectSectionLayout),
         (_('Dates'), (), DatesSectionLayout),
-        (_('Address'), ('street1', 'street2', 'street3', 'postalcode', 'city', 'country')),
-        (_('Addresses'), ('addresses',), DirectSectionLayout),
+        (_('Permanent address'), ('street1', 'street2', 'street3', 'postalcode', 'city', 'country')),
+        (_('Other addresses'), ('addresses',), DirectSectionLayout),
         (_('States'), ('states',), DirectSectionLayout)
     )
 
