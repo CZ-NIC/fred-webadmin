@@ -837,7 +837,7 @@ class PublicRequest(AdifPage, ListTableMixin):
                 log_req.result = 'Fail'
                 messages.error(_('Invalid public request type.'))
 
-        except ccReg.Admin.OBJECT_NOT_FOUND:
+        except ccReg.Admin.ObjectNotFound:
             log_req.result = 'Fail'
             messages.error(_(u'Associated message cannot be resend because request was already processed or has not valid type.'))
         except ccReg.Admin.MessageCopyProhibited:
