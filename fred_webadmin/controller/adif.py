@@ -28,6 +28,7 @@ import dns.resolver
 import dns.query
 
 from fred_webadmin import config
+from fred_webadmin import messages
 
 # Conditional import. Business decision. User should not be forced to import
 # ldap if he does not wish to use ldap authentication.
@@ -831,24 +832,17 @@ class PublicRequest(AdifPage, ListTableMixin):
             if method:
                 method(int(kwd['id']))
                 log_req.result = 'Success'
+                messages.success(_('Message was succesfully enqueued for re-send.'))
             else:
                 log_req.result = 'Fail'
-                raise CustomView(self._render(
-                    'error', {'message': [
-                        _(u'Invalid public request type', u'You can return back to '),
-                        a(attr(href=f_urls[self.classname] + 'detail/?id=%s' % kwd['id']),
-                            _('public request.'))
-                ]}))
+                messages.error(_('Invalid public request type.'))
 
-        except ccReg.Admin.OBJECT_NOT_FOUND:
+        except ccReg.Admin.ObjectNotFound:
             log_req.result = 'Fail'
-            raise CustomView(self._render(
-                'error', {'message': [
-                    _(u'Associated message cannot be resend because request was already processed or has not valid type.'
-                    u'You can return back to '), a(attr(
-                        href=f_urls[self.classname] + 'detail/?id=%s' % kwd['id']),
-                        _('public request.'))
-            ]}))
+            messages.error(_(u'Associated message cannot be resend because request was already processed or has not valid type.'))
+        except ccReg.Admin.MessageCopyProhibited:
+            log_req.result = 'Fail'
+            messages.error(_(u'Message cannot be re-send because it is still in queue.'))
         finally:
             log_req.close()
 
