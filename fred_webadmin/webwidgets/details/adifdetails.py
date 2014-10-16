@@ -161,6 +161,18 @@ class ObjectDetail(Detail):
     states = HistoryStateDField()
 
 
+class ContactAddressDetail(Detail):
+    type = CharDField(label=_('Type'))
+    companyName = CharDField(label=_('Company name'))
+    street1 = CharDField(label=_('Street'))
+    street2 = CharDField(label='')
+    street3 = CharDField(label='')
+    city = CharDField(label=_('City'))
+    stateorprovince = CharDField(label=_('State'))
+    postalcode = CharDField(label=_('ZIP'))
+    country = CharDField(label=_('Country'))
+
+
 class ContactDetail(ObjectDetail):
     organization = DiscloseCharNHDField(label=_('Organization'))
     name = DiscloseCharNHDField(label=_('Name'))
@@ -180,11 +192,18 @@ class ContactDetail(ObjectDetail):
     city = DiscloseCharNHDField(label=_('City'), disclose_name='discloseAddress')
     country = DiscloseCharNHDField(label=_('Country'), disclose_name='discloseAddress')
 
+    addresses = NHDField(
+        ListObjectDField(
+            detail_class=ContactAddressDetail,),
+        HistoryListObjectDField(
+            detail_class=ContactAddressDetail,))
+
     sections = (
         (None, ('handleEPPId', 'organization', 'name', 'ident', 'vat', 'vat', 'telephone', 'fax', 'email', 'notifyEmail', 'authInfo')),
         (_('Selected registrar'), ('registrar',), DirectSectionLayout),
         (_('Dates'), (), DatesSectionLayout),
-        (_('Address'), ('street1', 'street2', 'street3', 'postalcode', 'city', 'country')),
+        (_('Permanent address'), ('street1', 'street2', 'street3', 'postalcode', 'city', 'country')),
+        (_('Other addresses'), ('addresses',), DirectSectionLayout),
         (_('States'), ('states',), DirectSectionLayout)
     )
 
