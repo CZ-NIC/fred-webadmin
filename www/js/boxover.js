@@ -358,15 +358,19 @@ function checkMove(e) {
 }
 
 function showSelects(){
+   /* This breaks hidden selectboxes and is fix for IE which we don't use:
    var elements = document.getElementsByTagName("select");
    for (i=0;i< elements.length;i++){
       elements[i].style.visibility='visible';
    }
+   */
 }
 
 function hideSelects(){
+   /* This breaks hidden selectboxes and is fix for IE which we don't use:
    var elements = document.getElementsByTagName("select");
    for (i=0;i< elements.length;i++){
    elements[i].style.visibility='hidden';
    }
+   */
 }

@@ -251,10 +251,6 @@ class ContactCheck(AdifPage):
             )
 
             contact_detail = get_detail('contact', check.contact_id)
-            contact_display_fields = ['organization', 'ident', 'vat', 'fax', 'notifyEmail']
-            if check.test_suite_handle != 'automatic':
-                contact_display_fields += ['name', 'telephone', 'email',
-                                           'street1', 'street2', 'street3', 'postalcode', 'city', 'country']
 
             context = DictLookup({
                 'test_suit_name': ContactCheckEnums.SUITE_NAMES.get(check.test_suite_handle),
@@ -262,7 +258,6 @@ class ContactCheck(AdifPage):
                 'contact_url': f_urls['contact'] + 'detail/?id=%s' % check.contact_id,
                 'detail': detail,
                 'contact_detail': contact_detail,
-                'contact_display_fields': contact_display_fields,
                 'ajax_json_filter_url': f_urls['contactcheck'] + 'json_filter/%s/' % check.contact_id,
             })
             if cherrypy.session.get('history', False):

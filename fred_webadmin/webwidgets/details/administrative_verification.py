@@ -1,12 +1,11 @@
 import cherrypy
 
 from fred_webadmin.enums import ContactCheckEnums as enums, get_status_action
-from fred_webadmin.webwidgets.gpyweb.gpyweb import (attr, save, form, button, span, br, div,
+from fred_webadmin.webwidgets.gpyweb.gpyweb import (attr, save, a, form, button, span, br, div,
                                                     table, caption, thead, tbody, tfoot, tr, th, td)
 from fred_webadmin.translation import _
 from fred_webadmin.utils import get_detail
 from fred_webadmin.webwidgets.adifwidgets import FilterPanel
-
 
 
 class VerificationCheckDetail(div):
@@ -66,8 +65,12 @@ class VerificationCheckDetail(div):
 
         return tested_data_changed
 
-    def _format_tested_data(self, tested_data):
-        return br().join([item for item in tested_data if item])
+    def _format_tested_data(self, tested_data, test_handle):
+        addition_to_data = []
+        if test_handle in ('cz_address_existence', 'contactability', 'send_letter'):
+            data_on_line = ' '.join([item for item in (tested_data + [addition_to_data]) if item])
+            addition_to_data.append(a(attr(href='http://www.google.com/#q=' + data_on_line), _('Search on Google')))
+        return br().join([item for item in (tested_data + addition_to_data) if item])
 
     def render(self, indent_level=0):
         col_count = self.col_count = len(self.header)
@@ -107,7 +110,7 @@ class VerificationCheckDetail(div):
                 row.add(td(attr(title=enums.TEST_DESCS[test_data.test_handle]),
                            enums.TEST_NAMES[test_data.test_handle]))
 
-                row.add(td(self._format_tested_data(test_data.tested_contact_data)))
+                row.add(td(self._format_tested_data(test_data.tested_contact_data, test_data.test_handle)))
                 if tested_data_changed:
                     if test_data.current_contact_data != test_data.tested_contact_data:
                         row.add(td(self._format_tested_data(test_data.current_contact_data)))
