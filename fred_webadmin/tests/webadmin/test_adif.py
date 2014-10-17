@@ -281,13 +281,13 @@ class TestADIFAuthenticationLDAP(BaseADIFTestCase):
         self.monkey_patch(fred_webadmin.config, 'auth_method', 'LDAP')
         self.monkey_patch(fred_webadmin.config, 'LDAP_scope', 'test ldap scope %s')
         self.monkey_patch(fred_webadmin.config, 'LDAP_server', 'test ldap server')
-        # Mock out ldap.open method. We must not mock the whole ldap package,
+        # Mock out ldap.initialize method. We must not mock the whole ldap package,
         # because ldap_auth uses ldap exceptions.
-        self.ldap_open_mock = mock.create_autospec(ldap.open)
-        self.monkey_patch(fred_webadmin.auth.ldap_auth.ldap, 'open', self.ldap_open_mock)  # @UndefinedVariable
+        self.ldap_initialize_mock = mock.create_autospec(ldap.initialize)
+        self.monkey_patch(ldap_auth.ldap, 'initialize', self.ldap_initialize_mock)
 
     def assert_ldap_called(self):
-        assert_equal(self.ldap_open_mock.mock_calls, [call('test ldap server'),
+        assert_equal(self.ldap_initialize_mock.mock_calls, [call('test ldap server'),
                                                       call().simple_bind_s('test ldap scope test', 'test pwd')])
 
     def test_login_ldap_valid_credentials(self):
@@ -307,7 +307,7 @@ class TestADIFAuthenticationLDAP(BaseADIFTestCase):
     def test_login_ldap_invalid_credentials(self):
         """ Login fails when invalid credentials are supplied when using LDAP.
         """
-        self.ldap_open_mock.return_value.simple_bind_s.side_effect = ldap.INVALID_CREDENTIALS
+        self.ldap_initialize_mock.return_value.simple_bind_s.side_effect = ldap.INVALID_CREDENTIALS
 
         twill.commands.go("http://localhost:8080/login")
         twill.commands.fv(1, "login", "test")
@@ -323,7 +323,7 @@ class TestADIFAuthenticationLDAP(BaseADIFTestCase):
     def test_login_ldap_server_down(self):
         """ Login fails when using LDAP and LDAP server is down.
         """
-        self.ldap_open_mock.return_value.simple_bind_s.side_effect = ldap.SERVER_DOWN
+        self.ldap_initialize_mock.return_value.simple_bind_s.side_effect = ldap.SERVER_DOWN
 
         twill.commands.go("http://localhost:8080/login")
         twill.commands.fv(1, "login", "test")
