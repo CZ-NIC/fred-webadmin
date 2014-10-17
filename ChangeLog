@@ -1,3 +1,11 @@
+2014-10-17 Tomas Divis, Jiri Sadek (3.14.0)
+
+    * additional addreses at contact detail page
+
+    * ldap ssl support
+
+    * contact verification enhancements
+
 2014-10-02 Jiri Sadek (3.13.2)
 
     * fix pin2/pin3 message resending
