@@ -464,9 +464,9 @@ class ContactCheckDetail(BaseSiteMenu):
                              'dontDisplayFilter = true;'))
         self.main.add(h1(_('Contact checks detail'), '-', c.test_suit_name))
         if contact_has_state(c.contact_detail, 'validatedContact'):
-            verified_info = _('Conontact is validated')
+            verified_info = _('Contact is validated')
         elif contact_has_state(c.contact_detail, 'identifiedContact'):
-            verified_info = _('Conontact is identified')
+            verified_info = _('Contact is identified')
         else:
             verified_info = None
         self.main.add(table(attr(cssc='section_table'),
