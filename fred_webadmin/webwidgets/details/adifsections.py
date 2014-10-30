@@ -1,4 +1,5 @@
-from fred_webadmin.webwidgets.gpyweb.gpyweb import attr, tr, th, td
+from fred_webadmin.translation import _
+from fred_webadmin.webwidgets.gpyweb.gpyweb import attr, tr, td
 from fred_webadmin.webwidgets.details.sectionlayouts import SectionLayout
 
 
@@ -34,7 +35,7 @@ class DatesSectionLayout(SectionLayout):
             row.add(td(attr(cssc='left_label'), label_str),
                     td(colspan_attr, date_field))
             if registrar_field:
-                row.add(th('by_registrar:'),
+                row.add(td(attr(cssc='left_label'), _('By registrar:')),
                         td(registrar_field.inner_detail.fields['handle_url'])
                        )
             self.tbody.add(row)
