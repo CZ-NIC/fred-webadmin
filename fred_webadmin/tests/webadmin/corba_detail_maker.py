@@ -83,6 +83,7 @@ class CorbaDetailMaker(object):
             discloseIdent=hist_rec(True),
             discloseVat=hist_rec(True),
             discloseNotifyEmail=hist_rec(True),
+            addresses=hist_rec([]),
             states=[]
         ))
 
