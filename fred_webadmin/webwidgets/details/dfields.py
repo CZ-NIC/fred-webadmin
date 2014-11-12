@@ -993,6 +993,8 @@ class NHDField(BaseNHDField):
                 self.displaying_history = True
                 self.history_field.owner_detail = self.owner_detail
                 self._assign_current_field(self.history_field)
+                for history_record in value:
+                    recoder.c2u(from_any(history_record.value, True))
                 return value
             else:
                 self.normal_field.owner_detail = self.owner_detail
