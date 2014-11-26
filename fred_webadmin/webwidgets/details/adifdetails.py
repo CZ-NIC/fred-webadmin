@@ -168,7 +168,7 @@ class ContactAddressDetail(Detail):
     street2 = CharDField(label='')
     street3 = CharDField(label='')
     city = CharDField(label=_('City'))
-    stateorprovince = CharDField(label=_('State'))
+    province = CharDField(label=_('State'))
     postalcode = CharDField(label=_('ZIP'))
     country = CharDField(label=_('Country'))
 
