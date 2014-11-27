@@ -190,6 +190,7 @@ class ContactDetail(ObjectDetail):
 
     postalcode = DiscloseCharNHDField(label=_('ZIP'), disclose_name='discloseAddress')
     city = DiscloseCharNHDField(label=_('City'), disclose_name='discloseAddress')
+    province = DiscloseCharNHDField(label=_('State or province'), disclose_name='discloseAddress')
     country = DiscloseCharNHDField(label=_('Country'), disclose_name='discloseAddress')
 
     addresses = NHDField(
@@ -202,7 +203,7 @@ class ContactDetail(ObjectDetail):
         (None, ('handleEPPId', 'organization', 'name', 'ident', 'vat', 'vat', 'telephone', 'fax', 'email', 'notifyEmail', 'authInfo')),
         (_('Selected registrar'), ('registrar',), DirectSectionLayout),
         (_('Dates'), (), DatesSectionLayout),
-        (_('Permanent address'), ('street1', 'street2', 'street3', 'postalcode', 'city', 'country')),
+        (_('Permanent address'), ('street1', 'street2', 'street3', 'postalcode', 'city', 'province', 'country')),
         (_('Other addresses'), ('addresses',), DirectSectionLayout),
         (_('States'), ('states',), DirectSectionLayout)
     )
