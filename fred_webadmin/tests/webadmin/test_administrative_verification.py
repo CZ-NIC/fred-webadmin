@@ -223,7 +223,9 @@ class TestCheckDetailBase(TestContactVerificationBase):
                        Registry.AdminContactVerification.ContactTest(test_handle='cz_address_existence', created=ccReg.DateTimeType(date=ccReg.DateType(day=6, month=6, year=2014), hour=15, minute=35, second=18),
                            status_history=[Registry.AdminContactVerification.ContactTestStatus(status='enqueued', err_msg='', update=ccReg.DateTimeType(date=ccReg.DateType(day=6, month=6, year=2014), hour=15, minute=35, second=18), logd_request_id=None),
                                            Registry.AdminContactVerification.ContactTestStatus(status='running', err_msg='', update=ccReg.DateTimeType(date=ccReg.DateType(day=6, month=6, year=2014), hour=15, minute=35, second=19), logd_request_id=None),
-                                           Registry.AdminContactVerification.ContactTestStatus(status='fail', err_msg='', update=ccReg.DateTimeType(date=ccReg.DateType(day=6, month=6, year=2014), hour=15, minute=35, second=19), logd_request_id=None)], tested_contact_data=['Namesti republiky 1230/12', 'Praha', '12000', 'CZ'], current_contact_data=['Namesti republiky 1230/12', 'Praha', '12000', 'CZ']),
+                                           Registry.AdminContactVerification.ContactTestStatus(status='fail', err_msg='', update=ccReg.DateTimeType(date=ccReg.DateType(day=6, month=6, year=2014), hour=15, minute=35, second=19), logd_request_id=None)],
+                                                                                               tested_contact_data=['Namesti republiky 1230/12', 'Praha', '12000', 'CZ'],
+                                                                                               current_contact_data=['Namesti generala Fejlureho 1/1', 'Praha', '13000', 'CZ']),
                        Registry.AdminContactVerification.ContactTest(test_handle='email_host_existence', created=ccReg.DateTimeType(date=ccReg.DateType(day=6, month=6, year=2014), hour=15, minute=35, second=18),
                            status_history=[Registry.AdminContactVerification.ContactTestStatus(status='enqueued', err_msg='', update=ccReg.DateTimeType(date=ccReg.DateType(day=6, month=6, year=2014), hour=15, minute=35, second=18), logd_request_id=None),
                                            Registry.AdminContactVerification.ContactTestStatus(status='running', err_msg='', update=ccReg.DateTimeType(date=ccReg.DateType(day=6, month=6, year=2014), hour=15, minute=35, second=21), logd_request_id=None),
@@ -241,6 +243,10 @@ class TestCheckDetail(TestCheckDetailBase):
         tc.go('http://localhost:8080/contactcheck/detail/%s/' % self.check_handle)
         tc.find('KONTAKT')
         tc.notfind('running')
+
+        # check that both current contact data and tested contact data are displayed:
+        tc.find('Namesti republiky')
+        tc.find('Namesti generala Fejlureho')
 
     def test_detail_page_history(self):
         self.web_session_mock['history'] = True
