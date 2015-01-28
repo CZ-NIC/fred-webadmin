@@ -733,6 +733,7 @@ class BankStatementDetail(Detail):
         label=_('Invoice Id'), object_type_name="invoice", id_name="invoiceId",
         handle_name="invoiceId")
     crTime = CharDField(label=_('crTime'))
+    destAccountNumber = CharDField(label=_('Destination Account'))
 
 
 class SMSDetail(Detail):
