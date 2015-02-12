@@ -113,7 +113,7 @@ class VerificationCheckDetail(div):
                 row.add(td(self._format_tested_data(test_data.tested_contact_data, test_data.test_handle)))
                 if tested_data_changed:
                     if test_data.current_contact_data != test_data.tested_contact_data:
-                        row.add(td(self._format_tested_data(test_data.current_contact_data)))
+                        row.add(td(self._format_tested_data(test_data.current_contact_data, test_data.test_handle)))
                     else:
                         row.add(td())
 
