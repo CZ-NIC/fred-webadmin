@@ -248,6 +248,11 @@ class TestCheckDetail(TestCheckDetailBase):
         tc.find('Namesti republiky')
         tc.find('Namesti generala Fejlureho')
 
+    def test_detail_page_deleted_contact(self):
+        self.session_mock.getDetail.side_effect = ccReg.Admin.ObjectNotFound
+        tc.go('http://localhost:8080/contactcheck/detail/%s/' % self.check_handle)
+        tc.find('Contact was deleted')
+
     def test_detail_page_history(self):
         self.web_session_mock['history'] = True
         self.verif_mock.getContactCheckMessages.return_value = [

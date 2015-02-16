@@ -463,12 +463,17 @@ class ContactCheckDetail(BaseSiteMenu):
                              'ajaxSourceURLOfChecks = "%s";' % c.ajax_json_filter_url,
                              'dontDisplayFilter = true;'))
         self.main.add(h1(_('Contact checks detail'), '-', c.test_suit_name))
-        if contact_has_state(c.contact_detail, 'validatedContact'):
-            verified_info = _('Contact is validated')
-        elif contact_has_state(c.contact_detail, 'identifiedContact'):
-            verified_info = _('Contact is identified')
-        else:
+        if c.contact_detail is None:
+            self.main.add(h2(_('Contact was deleted')))
             verified_info = None
+        else:
+            if contact_has_state(c.contact_detail, 'validatedContact'):
+                verified_info = _('Contact is validated')
+            elif contact_has_state(c.contact_detail, 'identifiedContact'):
+                verified_info = _('Contact is identified')
+            else:
+                verified_info = None
+
         self.main.add(table(attr(cssc='section_table'),
             tr(td(attr(cssc='left_label'), _('Contact:'), td(a(attr(href=c.contact_url), c.check.contact_handle)))),
             tr(td(attr(cssc='left_label'), _('Created: '), td(c.check.created))),
@@ -476,8 +481,9 @@ class ContactCheckDetail(BaseSiteMenu):
               ) if verified_info else None
         ))
         self.main.add(c.detail)
-        self.main.add(h2('Detail of contact:'))
-        self.main.add(adifdetails.ContactDetail(c.contact_detail, c.history, is_nested=True))
+        if c.contact_detail:
+            self.main.add(h2('Detail of contact:'))
+            self.main.add(adifdetails.ContactDetail(c.contact_detail, c.history, is_nested=True))
         if cherrypy.session.get('history', False):
             self.main.add(h2(_('All checks of this contact:')))
             self.main.add(c.table_tag)

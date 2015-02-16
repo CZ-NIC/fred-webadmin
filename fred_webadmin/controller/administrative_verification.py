@@ -7,7 +7,7 @@ from .base import AdifPage
 from fred_webadmin.cache import cache
 from fred_webadmin import config
 from fred_webadmin.controller.perms import check_nperm, check_nperm_func, login_required
-from fred_webadmin.corba import Registry
+from fred_webadmin.corba import Registry, ccReg
 from fred_webadmin.corbarecoder import c2u, u2c
 from fred_webadmin.customview import CustomView
 from fred_webadmin.enums import ContactCheckEnums, get_status_action
@@ -250,7 +250,10 @@ class ContactCheck(AdifPage):
                 form=form
             )
 
-            contact_detail = get_detail('contact', check.contact_id)
+            try:
+                contact_detail = get_detail('contact', check.contact_id)
+            except ccReg.Admin.ObjectNotFound:
+                contact_detail = None
 
             context = DictLookup({
                 'test_suit_name': ContactCheckEnums.SUITE_NAMES.get(check.test_suite_handle),
