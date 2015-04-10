@@ -826,7 +826,7 @@ class PublicRequest(AdifPage, ListTableMixin):
 
         raise cherrypy.HTTPRedirect(f_urls[self.classname] + 'filter/?reload=1&load=1')
 
-    @check_onperm('change')
+    @check_onperm('resend')
     def resend(self, pr_type, **kwd):
         '''Resend associated message with public request, works only with serveral public request types'''
         backend = cherrypy.session['Admin']
