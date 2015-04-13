@@ -786,10 +786,20 @@ class PublicRequest(AdifPage, ListTableMixin):
             raise CustomView(self._render(
                 'error', {'message': [
                     _(u'This object is blocked, request cannot be accepted.'
-                    u'You can return back to '), a(attr(
-                        href=f_urls[self.classname] + 'detail/?id=%s' % kwd['id']),
-                        _('public request.'))
-            ]}))
+                      u'You can return back to '),
+                    a(attr(href=f_urls[self.classname] + 'detail/?id=%s' % kwd['id']),
+                      _('public request.'))
+                ]}))
+        except ccReg.Admin.OBJECT_NOT_FOUND:
+            log_req.result = 'Fail'
+            raise CustomView(self._render(
+                'error', {'message': [
+                    _(u'No such public request. Maybe it was already resolved, '
+                      u'or this type of public request cannot be resolved. '
+                      u'You can return back to '),
+                    a(attr(href=f_urls[self.classname] + 'detail/?id=%s' % kwd['id']),
+                      _('public request.'))
+                ]}))
         finally:
             log_req.close()
 
@@ -807,10 +817,10 @@ class PublicRequest(AdifPage, ListTableMixin):
             raise CustomView(self._render(
                 'error', {'message': [
                     _(u'Request cannot be accepted.'
-                    u'You can return back to '), a(attr(
-                        href=f_urls[self.classname] + 'detail/?id=%s' % kwd['id']),
-                        _('public request.'))
-            ]}))
+                      u'You can return back to '),
+                    a(attr(href=f_urls[self.classname] + 'detail/?id=%s' % kwd['id']),
+                      _('public request.'))
+                ]}))
         finally:
             log_req.close()
 
