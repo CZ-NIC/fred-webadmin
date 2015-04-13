@@ -651,11 +651,11 @@ class PublicRequestDetail(Detail):
             self.media_files.append('/js/publicrequests.js')
             buttons = [
                 [_('Accept_and_send'),
-                    "javascript:processPublicRequest('%s')" % \
+                    "javascript:processAction('%s', 'accept and send')" % \
                     (f_urls['publicrequest'] + 'resolve/?id=%s' % \
                         self.data.get('id'))],
                 [_('Invalidate_and_close'),
-                    "javascript:closePublicRequest('%s')" % \
+                    "javascript:processAction('%s', 'invalidate and close')" % \
                         (f_urls['publicrequest'] + 'close/?id=%s' % \
                             self.data.get('id'))],
             ]
