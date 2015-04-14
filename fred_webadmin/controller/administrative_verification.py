@@ -92,7 +92,10 @@ class ContactCheck(AdifPage):
                 ContactCheckEnums.SUITE_NAMES.get(check.test_suite_handle, _('!Unknown error!')),
                 to_resolve,
                 check.created.isoformat(),
-                ContactCheckEnums.CHECK_STATUS_NAMES.get(check.current_status, _('!Unknown error!')),
+                '<span title="%s">%s</span>' % (
+                    ContactCheckEnums.CHECK_STATUS_DESCS.get(check.current_status, _('!Unknown error!')),
+                    ContactCheckEnums.CHECK_STATUS_NAMES.get(check.current_status, _('!Unknown error!'))
+                ),
             ]
             yield row
 
