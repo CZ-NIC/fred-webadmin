@@ -176,6 +176,7 @@ class ContactAddressDetail(Detail):
 class ContactDetail(ObjectDetail):
     organization = DiscloseCharNHDField(label=_('Organization'))
     name = DiscloseCharNHDField(label=_('Name'))
+    identType = CharNHDField(label=_('Identification type'))
     ident = DiscloseCharNHDField(label=_('Identification data'))
 
     vat = DiscloseCharNHDField(label=_('DPH'))
@@ -200,7 +201,7 @@ class ContactDetail(ObjectDetail):
             detail_class=ContactAddressDetail,))
 
     sections = (
-        (None, ('handleEPPId', 'organization', 'name', 'ident', 'vat', 'vat', 'telephone', 'fax', 'email', 'notifyEmail', 'authInfo')),
+        (None, ('handleEPPId', 'organization', 'name', 'ident', 'identType', 'vat', 'vat', 'telephone', 'fax', 'email', 'notifyEmail', 'authInfo')),
         (_('Selected registrar'), ('registrar',), DirectSectionLayout),
         (_('Dates'), (), DatesSectionLayout),
         (_('Permanent address'), ('street1', 'street2', 'street3', 'postalcode', 'city', 'province', 'country')),
