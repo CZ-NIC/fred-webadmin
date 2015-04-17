@@ -167,9 +167,9 @@ class ContactAddressDetail(Detail):
     street1 = CharDField(label=_('Street'))
     street2 = CharDField(label='')
     street3 = CharDField(label='')
+    postalcode = CharDField(label=_('ZIP'))
     city = CharDField(label=_('City'))
     province = CharDField(label=_('State'))
-    postalcode = CharDField(label=_('ZIP'))
     country = CharDField(label=_('Country'))
 
 
@@ -194,7 +194,7 @@ class ContactDetail(ObjectDetail):
     country = DiscloseCharNHDField(label=_('Country'), disclose_name='discloseAddress')
 
     addresses = NHDField(
-        ListObjectDField(
+        ListObjectAddressDField(
             detail_class=ContactAddressDetail,),
         HistoryListObjectDField(
             detail_class=ContactAddressDetail,))
@@ -204,7 +204,7 @@ class ContactDetail(ObjectDetail):
         (_('Selected registrar'), ('registrar',), DirectSectionLayout),
         (_('Dates'), (), DatesSectionLayout),
         (_('Permanent address'), ('street1', 'street2', 'street3', 'postalcode', 'city', 'province', 'country')),
-        (_('Other addresses'), ('addresses',), DirectSectionLayout),
+        (None, ('addresses',), DirectSectionLayout),
         (_('States'), ('states',), DirectSectionLayout)
     )
 

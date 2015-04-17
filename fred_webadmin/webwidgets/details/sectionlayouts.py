@@ -56,7 +56,8 @@ class DirectSectionLayout(SectionLayout):
 
     def layout_start(self):
         section_name = self.section_spec[0]
-        self.add(div(attr(cssc='section_label'), section_name + ':'))
+        if section_name is not None:
+            self.add(div(attr(cssc='section_label'), section_name + ':'))
 
     def layout_fields(self):
         fields_in_section = self.get_fields()
