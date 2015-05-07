@@ -628,7 +628,8 @@ class TestBankStatement(BaseADIFTestCase):
                     accountEvid='07-14-2-756/2400', accountDate='31.07.2007',
                     accountMemo='Urok 07/2007', invoiceId=0L,
                     accountName='CZ.NIC, z.s.p.o.',
-                    crTime='31.07.2007 02:00:00'))
+                    crTime='31.07.2007 02:00:00',
+                    destAccountNumber='Raiffeisen - cz 42/5500'))
 
     def test_successfull_statementitem_payment_pairing(self):
         """ Payment pairing works OK when correct registrar handle
