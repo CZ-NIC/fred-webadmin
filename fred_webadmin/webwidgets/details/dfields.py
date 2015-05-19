@@ -528,25 +528,28 @@ class ListObjectAddressDField(ListObjectDField):
             for detail in self.inner_details:
                 if detail.data['type'] == u'MAILING':
                     del detail.fields['type']
+                    del detail.fields['companyName']
                     detail.layout_class = SectionDetailLayout
                     parent.add(div(attr(cssc='section_label'), 'Mailing address:'))
                     parent.add(detail)
+                    self.inner_details.remove(detail)
                     break
 
-            # Header:
-            parent.add(table(tagid('others'),attr(cssc='section_table history_list_table')))
-            parent.others.add(div(attr(cssc='section_label'), 'Other addresses:'))
-            thead_row = tr()
-            for field in self.inner_details[0].fields.values():
-                thead_row.add(th(field.label))
-            parent.others.add(thead(thead_row))
+            if self.inner_details:
+                # Header:
+                parent.add(table(tagid('others'),attr(cssc='section_table history_list_table')))
+                parent.others.add(div(attr(cssc='section_label'), 'Other addresses:'))
+                thead_row = tr()
+                for field in self.inner_details[0].fields.values():
+                    thead_row.add(th(field.label))
+                parent.others.add(thead(thead_row))
 
-            # rows (each row is made from one detail of object in object list
-            parent.others.add(tbody(tagid('tbody')))
+                # rows (each row is made from one detail of object in object list
+                parent.others.add(tbody(tagid('tbody')))
 
-            for detail in self.inner_details:
-                if not detail.data['type'] == u'MAILING':
-                    parent.others.tbody.add(detail)
+                for detail in self.inner_details:
+                    if not detail.data['type'] == u'MAILING':
+                        parent.others.tbody.add(detail)
 
         else:
             self.add(div(attr(cssc='field_empty')))
