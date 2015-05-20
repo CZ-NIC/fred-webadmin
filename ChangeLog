@@ -1,3 +1,20 @@
+2015-05-20 Jiri Sadek, Vladimír Červeň (3.15.0)
+
+    * add destination account number to payment detail page
+
+    * mailing address has same layout as permanent address
+
+    * separate permission for public request message resending
+
+    * fix - show contact identification type on detail page
+
+    * fix - appropriate error message when processing public request
+            which has been already processed
+
+    * fix - public request processing confirmation message content
+
+    * fix - add explanatory note for admin. verification check status in list  view
+
 2015-02-12 Tomas Divis (3.14.1)
 
     * admin. contact verification fixes - contact check detail
