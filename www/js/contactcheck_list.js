@@ -67,6 +67,20 @@ jQuery.fn.dataTableExt.oSort['null_last-desc'] = function(y, x) {
     }
 };
 
+jQuery.fn.dataTableExt.oSort['resolving_last-asc'] = function(x, y) {
+    if (x.search("resolving") >= 0) {
+        return 1;
+    }
+    if (y.search("resolving") >= 0) {
+        return -1;
+    }
+    return 0;
+};
+
+jQuery.fn.dataTableExt.oSort['resolving_last-desc'] = function(x, y) {
+    return jQuery.fn.dataTableExt.oSort['resolving_last-asc'](y, x);
+};
+
 $(document)
     .ready(
         function() {
@@ -95,7 +109,7 @@ $(document)
                 "bFilter" : !dontDisplayFilter,
                 "bInfo" : !dontDisplayFilter,
                 "sAjaxSource" : ajaxSourceURLOfChecks,
-                "aaSorting" : dontDisplayFilter ? [[4, "desc"]] : [[3, "asc"]],
+                "aaSorting" : [[0, "asc"], dontDisplayFilter ? [4, "desc"] : [3, "asc"]],
                 "aoColumnDefs" : [{
                     "aTargets" : [3],
                     "mRender" : datetimeMRender,
@@ -103,6 +117,9 @@ $(document)
                 }, {
                     "aTargets" : [4],
                     "mRender" : datetimeMRender
+                }, {
+                    "aTargets" : [0],
+                    "sType" : "resolving_last"
                 }]
             });
             $('#no-filter').click(function() {
