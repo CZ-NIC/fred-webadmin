@@ -176,7 +176,7 @@ class ContactAddressDetail(Detail):
 class ContactDetail(ObjectDetail):
     organization = DiscloseCharNHDField(label=_('Organization'))
     name = DiscloseCharNHDField(label=_('Name'))
-    identType = CharNHDField(label=_('Identification type'))
+    identType = DiscloseCharNHDField(label=_('Identification type'), disclose_name='discloseIdent')
     ident = DiscloseCharNHDField(label=_('Identification data'))
 
     vat = DiscloseCharNHDField(label=_('DPH'))
