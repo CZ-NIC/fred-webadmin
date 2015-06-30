@@ -794,7 +794,7 @@ class PublicRequest(AdifPage, ListTableMixin):
             log_req.result = 'Fail'
             raise CustomView(self._render(
                 'error', {'message': [
-                    _(u'No such public request. Maybe it was already resolved, '
+                    _(u'No such public request. Maybe it has already been resolved '
                       u'or this type of public request cannot be resolved. '
                       u'You can return back to '),
                     a(attr(href=f_urls[self.classname] + 'detail/?id=%s' % kwd['id']),
