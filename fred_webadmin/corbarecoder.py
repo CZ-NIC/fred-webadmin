@@ -37,6 +37,9 @@ class CorbaRecode(object):
         except LookupError, e:
             raise UnsupportedEncodingError(e)
 
+    def isInstance(self, obj):
+        return type(obj) == types.InstanceType or (hasattr(obj, '__class__') and ('__dict__' in dir(obj) or hasattr(obj, '__slots__')))
+    
     def decode(self, answer):
         if type(answer) in types.StringTypes:
             return answer.decode(self.coding)
@@ -44,7 +47,7 @@ class CorbaRecode(object):
             return answer
         elif type(answer) in self.IterTypes:
             return [self.decode(x) for x in answer]
-        elif type(answer) == types.InstanceType:
+        elif self.isInstance(answer):
             for name in dir(answer):
                 item = getattr(answer, name)
                 if name.startswith('__'):
@@ -58,7 +61,7 @@ class CorbaRecode(object):
                 if type(item) in types.StringTypes:
                     answer.__dict__[name] = item.decode(self.coding)
                     continue
-                if type(item) == types.InstanceType:
+                if self.isInstance(item):
                     answer.__dict__[name] = self.decode(item)
                     continue
                 if type(item) in self.IterTypes:
@@ -76,7 +79,7 @@ class CorbaRecode(object):
             return answer
         elif type(answer) in self.IterTypes:
             return [self.encode(x) for x in answer]
-        elif type(answer) == types.InstanceType:
+        elif self.isInstance(answer):
             for name in dir(answer):
                 item = getattr(answer, name)
                 if name.startswith('__'):
@@ -90,7 +93,7 @@ class CorbaRecode(object):
                 if type(item) in types.StringTypes:
                     answer.__dict__[name] = item.encode(self.coding)
                     continue
-                if type(item) == types.InstanceType:
+                if self.isInstance(item):
                     answer.__dict__[name] = self.encode(item)
                     continue
                 if type(item) in self.IterTypes:
@@ -120,7 +123,7 @@ class DaphneCorbaRecode(CorbaRecode):
             return corba_to_date(answer)
         # OMNIOrbpy uses old style classes => check whether type is
         # InstanceType.
-        if type(answer) == types.InstanceType:
+        if self.isInstance(answer):
             for name in dir(answer):
                 item = getattr(answer, name)
                 if name.startswith('_') and name != "_from":
@@ -131,7 +134,7 @@ class DaphneCorbaRecode(CorbaRecode):
                 if type(item) in types.StringTypes:
                     answer.__dict__[name] = item.decode(self.coding)
                     continue
-                if type(item) == types.InstanceType:
+                if self.isInstance(item):
                     answer.__dict__[name] = self.decode(item)
                     continue
                 if type(item) in self.IterTypes:
@@ -155,7 +158,7 @@ class DaphneCorbaRecode(CorbaRecode):
             return date_to_corba(answer)
         # OMNIOrbpy uses old style classes => check whether type is
         # InstanceType.
-        if type(answer) == types.InstanceType:
+        if self.isInstance(answer):
             for name in dir(answer):
                 item = getattr(answer, name)
                 if name.startswith('__'):
@@ -169,7 +172,7 @@ class DaphneCorbaRecode(CorbaRecode):
                 if type(item) in types.StringTypes:
                     answer.__dict__[name] = item.encode(self.coding)
                     continue
-                if type(item) == types.InstanceType:
+                if self.isInstance(item):
                     answer.__dict__[name] = self.encode(item)
                     continue
                 if type(item) in self.IterTypes:
