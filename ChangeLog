@@ -1,3 +1,7 @@
+2016-02-16 Vladimír Červeň (3.16.0)
+
+    * admin. contact verification - sort table in resolving status
+
 2015-05-20 Jiri Sadek, Vladimír Červeň (3.15.0)
 
     * add destination account number to payment detail page
