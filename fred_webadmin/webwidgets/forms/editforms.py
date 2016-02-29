@@ -230,8 +230,11 @@ class CertificationEditForm(EditForm):
         super(CertificationEditForm, self).set_fields_values()
         if not self.initial.get("id"):
             now = date.today()
-            initToDate = datetime.date(
-                year=now.year + 1, month=now.month, day=now.day)
+            if now.month == 2 and now.day == 29:
+                # Handle leap year
+                initToDate = datetime.date(year=now.year + 1, month=3, day=1)
+            else:
+                initToDate = datetime.date(year=now.year + 1, month=now.month, day=now.day)
             # TODO(Tom): Some funny stuff is happening here, take a look at it.
             if (self.fields['toDate'].is_empty() or
                 self.fields['fromDate'].is_empty()):
