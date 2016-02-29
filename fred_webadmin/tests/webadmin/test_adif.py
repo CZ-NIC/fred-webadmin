@@ -15,6 +15,7 @@ except ImportError:
     error("Could not import ldap, some test will probably fail...")
 
 import twill.commands
+from wsgi_intercept import add_wsgi_intercept
 
 try:
     from fred_webadmin.auth import ldap_auth, corba_auth
@@ -529,8 +530,7 @@ class TestRegistrarCertifications(TestRegistrarBase):
 
             file_upload_mock = mock.Mock()
             self.file_mgr_mock.save.side_effect = lambda name, mimetype, filetype: \
-                file_upload_mock if name == tmp_file.name \
-                                     and mimetype == "application/octet-stream" \
+                file_upload_mock if tmp_file.name.endswith(name) \
                                      and filetype == 6 \
                                  else None
             file_upload_mock.finalize_upload.return_value = 17
@@ -547,7 +547,6 @@ class TestRegistrarCertifications(TestRegistrarBase):
                         ccReg.DateType(1, 1, 2010), 2, 17)
                 ]
             ]
-
             twill.commands.submit()
 
             twill.commands.code(200)
@@ -781,14 +780,14 @@ class TestLoggerNoLogView(BaseADIFTestCase):
 
         root = fred_webadmin.controller.adif.prepare_root()
         wsgiApp = cherrypy.tree.mount(root)
-        twill.add_wsgi_intercept('localhost', 8080, lambda: wsgiApp)
+        add_wsgi_intercept('localhost', 8080, lambda: wsgiApp)
 
     def tearDown(self):
         super(TestLoggerNoLogView, self).tearDown()
         # return back normal web root
         root = fred_webadmin.controller.adif.prepare_root()
         wsgiApp = cherrypy.tree.mount(root)
-        twill.add_wsgi_intercept('localhost', 8080, lambda: wsgiApp)
+        add_wsgi_intercept('localhost', 8080, lambda: wsgiApp)
 
     def test_logger_hidden_when_log_view_is_disabled_in_config(self):
         # Replace fred_webadmin.controller.adif.auth module with CORBA

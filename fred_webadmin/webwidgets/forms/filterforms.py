@@ -567,7 +567,6 @@ def get_filter_forms_javascript(filter_form_classes):
     """
     output = u''
     all_fields_dict = {}
-#    import ipdb; ipdb.set_trace()
     for form_class in filter_form_classes:
         form = form_class()
         # Function for generating field of form

@@ -5,6 +5,7 @@ from  urllib import urlencode
 import cherrypy
 import mock
 import twill.commands as tc
+from omniORB import CORBA
 
 from .test_adif import BaseADIFTestCase
 from fred_webadmin.corba import Registry, ccReg
@@ -155,46 +156,23 @@ class TestAdministrativeBlockingStart(TestAdministrativeBlockingBase):
         pagetable_mock.getSortedBy.return_value = (0, False)
         self.session_mock.getPageTable.return_value = pagetable_mock
 
-    def get_mechanized_browser(self):
-        # needed because twill doesn't have public interface for disabling following HTTP redirects
-        # and sending POST requests without filling form
-        mb = tc.get_browser()._browser  # pylint: disable=W0212
-        return mb
-
     def test_block_start_no_domain_selected(self):
-        mb = self.get_mechanized_browser()
-        mb.set_handle_redirect(False)
-        try:
-            post_data = urlencode({'pre_blocking_form': '1',
-                                   'blocking_action': 'block',
-                                  })
-            assert_not_in('pre_blocking_form_data', self.web_session_mock)
-            try:
-                response = mb.open('http://localhost:8080/domain//filter/blocking_start/', post_data)
-            except urllib2.HTTPError, response_redirect:
-                response = response_redirect
-            assert_in('You must select at least one domain!', response.get_data())
-            assert_not_in('pre_blocking_form_data', self.web_session_mock)
-        finally:
-            mb.set_handle_redirect(True)
+        tc.go('/domain/filter/blocking_start/')
+        tc.fv(2, 'blocking_action', 'block')
+        tc.submit()
+        tc.find('You must select at least one domain!')
+        assert_not_in('pre_blocking_form_data', self.web_session_mock)
 
     def test_block_start_ok(self):
-        mb = self.get_mechanized_browser()
-        mb.set_handle_redirect(False)
-        try:
-            post_data = urlencode({'pre_blocking_form': '1',
-                                   'blocking_action': 'block',
-                                   'object_selection': '1'
-                                  })
-            assert_not_in('pre_blocking_form_data', self.web_session_mock)
-            try:
-                response = mb.open('http://localhost:8080/domain//filter/blocking_start/', post_data)
-            except urllib2.HTTPError, response_redirect:
-                response = response_redirect
-            assert_equal(response.info().getheader('location'), 'http://localhost:8080/domain/blocking/')
-            assert_in('pre_blocking_form_data', self.web_session_mock)
-        finally:
-            mb.set_handle_redirect(True)
+        post_data = {
+            'pre_blocking_form': '1',
+            'blocking_action': 'block',
+            'object_selection': '1'
+        }
+        assert_not_in('pre_blocking_form_data', self.web_session_mock)
+        response = tc.browser._session.post('http://localhost:8080/domain/filter/blocking_start/', data=post_data, allow_redirects=False)
+        assert_equal(response.headers['location'], 'http://localhost:8080/domain/blocking/')
+        assert_in('pre_blocking_form_data', self.web_session_mock)
 
 
 class TestAdministrativeBlockingView(TestAdministrativeBlockingBase):
@@ -229,6 +207,10 @@ class BaseTestAdministrativeBlockingAction(TestAdministrativeBlockingBase):
 
 class TestAdministrativeBlock(BaseTestAdministrativeBlockingAction):
     BLOCKING_ACTION = 'block'
+
+    def setUp(self):
+        super(TestAdministrativeBlock, self).setUp()
+        tc.fv(2, 'owner_block_mode', '0')
 
     def test_submit_default_data(self):
         self.blocking_mock.blockDomainsId.return_value = []

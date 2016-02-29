@@ -4,6 +4,7 @@ from StringIO import StringIO
 import cherrypy
 import nose
 import twill
+from wsgi_intercept import add_wsgi_intercept, requests_intercept, remove_wsgi_intercept
 
 import fred_webadmin.config
 import fred_webadmin.controller.adif
@@ -84,22 +85,23 @@ twill_output = StringIO()
 
 @nose.tools.nottest
 def init_test_server():
+    requests_intercept.install()
     root = fred_webadmin.controller.adif.prepare_root()
     wsgiApp = cherrypy.tree.mount(root)
     cherrypy.config.update({'server.socket_host': '0.0.0.0',
-                            'server.socket_port': 8080,
-                           })
+                            'server.socket_port': 8080})
     cherrypy.server.start()
     # Redirect HTTP requests.
-    twill.add_wsgi_intercept('localhost', 8080, lambda: wsgiApp)
+    add_wsgi_intercept('localhost', 8080, lambda: wsgiApp)
 
 
 @nose.tools.nottest
 def deinit_test_server():
     # Remove the intercept.
-    twill.remove_wsgi_intercept('localhost', 8080)
+    remove_wsgi_intercept('localhost', 8080)
     # Shut down Cherrypy server.
     cherrypy.server.stop()
+    requests_intercept.uninstall()
 
 
 def enable_corba_comparison(corba_type):
