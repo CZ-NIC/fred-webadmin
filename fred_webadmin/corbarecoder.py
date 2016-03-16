@@ -156,6 +156,12 @@ class DaphneCorbaRecode(CorbaRecode):
             return datetime_to_corba(answer)
         if isinstance(answer, datetime.date):
             return date_to_corba(answer)
+        # encode function ignored special valuetypes. Those are now 
+        # included in isInstance checking, so they have to be
+        # ignored specially
+        suc, val = _encode_null_type(answer, None)
+        if suc:
+            return
         # OMNIOrbpy uses old style classes => check whether type is
         # InstanceType.
         if self.isInstance(answer):
