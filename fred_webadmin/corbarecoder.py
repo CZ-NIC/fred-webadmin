@@ -39,7 +39,7 @@ class CorbaRecode(object):
 
     def isInstance(self, obj):
         return type(obj) == types.InstanceType or (hasattr(obj, '__class__') and ('__dict__' in dir(obj) or hasattr(obj, '__slots__')))
-    
+
     def decode(self, answer):
         if type(answer) in types.StringTypes:
             return answer.decode(self.coding)
@@ -156,7 +156,7 @@ class DaphneCorbaRecode(CorbaRecode):
             return datetime_to_corba(answer)
         if isinstance(answer, datetime.date):
             return date_to_corba(answer)
-        # encode function ignored special valuetypes. Those are now 
+        # encode function ignored special valuetypes. Those are now
         # included in isInstance checking, so they have to be
         # ignored specially
         suc, val = _encode_null_type(answer, None)
