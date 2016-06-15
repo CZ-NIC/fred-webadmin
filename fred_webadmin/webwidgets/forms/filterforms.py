@@ -595,7 +595,7 @@ def get_service_actions_javascript(logd):
     types = [item.id for item in logd.getServices()]
     result = {}
     for t in types:
-        actions = sorted(logd.getRequestTypesByService(t), key=lambda ac: ac.name)
+        actions = sorted(logd.getRequestTypesByService(t), key=lambda ac: ac.name.lower())
         result[t] = [[a.id, a.name] for a in actions]
     js = """function get_actions() { var res=%s; return res;}""" % result
     return js
