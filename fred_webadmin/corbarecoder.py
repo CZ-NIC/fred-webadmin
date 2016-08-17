@@ -178,6 +178,10 @@ class DaphneCorbaRecode(CorbaRecode):
                 if type(item) in types.StringTypes:
                     answer.__dict__[name] = item.encode(self.coding)
                     continue
+                suc, val = _encode_null_type(item, answer)
+                if suc:
+                    answer.__dict__[name] = val
+                    continue
                 if self.isInstance(item):
                     answer.__dict__[name] = self.encode(item)
                     continue
@@ -187,10 +191,6 @@ class DaphneCorbaRecode(CorbaRecode):
                 if type(item) == datetime.date or \
                   type(item) == datetime.datetime:
                     answer.__dict__[name] = self.encode(item)
-                    continue
-                suc, val = _encode_null_type(item, answer)
-                if suc:
-                    answer.__dict__[name] = val
                     continue
                 raise ValueError(
                     "%s attribute in %s is not convertable to Corba type." % (
