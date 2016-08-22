@@ -3,14 +3,16 @@
     border-collapse: collapse;
     border-width: 1px;
     border-style: solid;
-    padding: 0px;
-    margin: 0px;
+    padding: 0;
+    margin: 0;
 }
+
 .filtertable .filtertable {
     width: 100%;
 }
 
-.filtertable td, .filtertable th {
+.filtertable td,
+.filtertable th {
     padding: 3px;
 }
 
@@ -21,7 +23,7 @@
 
 .filtertable .filtertable_header th {
     font-size: 13px;
-    color: #666666;
+    color: #666;
     vertical-align: middle;
 }
 
@@ -34,13 +36,13 @@
     border-collapse: collapse;
     border-width: 3px;
     border-style: solid;
-    margin: 1em 0em;
+    margin: 1em 0;
 }
 
-.unionfiltertable>tbody>tr>td{
+.unionfiltertable > tbody > tr > td {
     padding: 1px;
-    /*margin: 0px;*/
 }
+
 .unionfiltertable .or_cell {
     border-top-width: 2px;
     border-top-style: solid;
@@ -61,21 +63,23 @@
     vertical-align: top;
 }
 
-.unionfiltertable .submit_row td, .unionfiltertable .or_cell {
+.unionfiltertable .submit_row td,
+.unionfiltertable .or_cell {
     padding: 0.1em 0.3em;
 }
 
-.filtertable .filtertable .filtertable_header{
+.filtertable .filtertable .filtertable_header {
     display: none;
 }
 
-/* Exjt grid row mouse over*/
+/* Exjt grid row mouse over */
 .extjs .x-grid3-row-over {
-    background-color:#D0DEF0;
+    background-color: #d0def0;
     background-image: none;
 }
 
-.extjs .x-grid3-row td, .extjs .x-grid3-summary-row td {
-    -moz-user-select:text!important; /* it is not possible to set it to 'normal', but 'text' has propably same effect
-/*    -khtml-user-select: normal !important;*/
+.extjs .x-grid3-row td,
+.extjs .x-grid3-summary-row td {
+    -moz-user-select: text !important; /* it is not possible to set it to 'normal', but 'text' has propably same effect
+/*    -khtml-user-select: normal !important; */
 }

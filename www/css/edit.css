@@ -4,14 +4,16 @@
     border: 1px solid grey;
     height: 1.3em;
 }
+
 .view:hover {
     border: 1px solid black;
 }
+
 .edit {
     z-index: 10000;
     padding: 2px;
     border: 1px solid gray;
-    background-color: #ffffcc;
+    background-color: #ffc;
     display: block;
     visibility: hidden;
     width: 97%;
@@ -20,31 +22,39 @@
 select.edit {
     padding: 1px;
 }
+
 .collapse {
     border-collapse: collapse;
     display: table;
 }
+
 .hidden {
     display: none;
 }
+
 .inplace {
     width: 100%;
     border-collapse: collapse;
 }
+
 .inplace td {
-    border-color: #D9D9D9;
+    border-color: #d9d9d9;
     border-style: solid;
-    border-width: 0px 1px;
+    border-width: 0 1px;
 }
+
 .tdhalf {
     width: 45%;
 }
+
 .tdfull {
     width: 90%;
 }
+
 .tdbutton {
     width: 10%;
 }
+
 .certString {
     width: 67%;
 }

@@ -1,7 +1,7 @@
-@import url('forms.css');
+@import url("forms.css");
 
 #content-main {
-    padding: 0em 1em 1em 1em;
+    padding: 0 1em 1em;
 }
 
 #right_menu_container {
@@ -9,35 +9,29 @@
     margin: 0.5em 1em;
 }
 
-#main-menu li {
+/* #main-menu li { } */
 
-}
-
-
-#main-menu {
-
-}
-
+/* #main-menu { } */
 
 #main-menu ul {
-    /*padding: 3px;*/
-    margin: 0px;
+    /* padding: 3px; */
+    margin: 0;
 }
 
 #main-menu ul li {
+    /* float: left; */
     list-style: None;
-    /*float: left;*/
     display: inline;
     margin-right: 0.8em;
     margin-left: 0.8em;
 }
 
-#main-menu ul ul {
-    /*position: absolute;*/
-    /*left: 0px;*/
-}
+/* #main-menu ul ul {
+    position: absolute;
+    left: 0px;
+} */
 
-.menu-item { padding: 0.2em }
+.menu-item { padding: 0.2em; }
 
 .menu-item > a { text-decoration: none; }
 
@@ -49,4 +43,5 @@
 .pointer_cursor { cursor: pointer; }
 .warning { color: red; }
 
-td, th { padding: 1px}
+td,
+th { padding: 1px; }
