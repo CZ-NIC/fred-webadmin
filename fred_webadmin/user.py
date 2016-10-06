@@ -49,8 +49,11 @@ class User(object):
                 # permission.
                 has_perm = self._authorizer.has_permission(parts[1], parts[0])
         else:
-            # We're only checking for high-level permission.
-            has_perm = self._authorizer.has_permission(parts[1], parts[0])
+            # We're only checking for permissions not specific for an object instance.
+            if len(parts) == 2:
+                has_perm = self._authorizer.has_permission(parts[1], parts[0])
+            elif len(parts) == 3:
+                has_perm = self._authorizer.has_field_permission(parts[1], parts[0], parts[2])
         return not has_perm
 
     def has_all_nperms(self, nperms):
