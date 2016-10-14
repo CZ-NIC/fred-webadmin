@@ -162,7 +162,7 @@ class AdminMock(object):
 
 class CorbaConnectionMock(object):
     def __init__(self, admin=AdminMock(), logger_obj=logger.DummyLogger(), mailer=None, filemgr=None, messages=None,
-                 blocking=None, verification=None):
+                 blocking=None, verification=None, notification=None):
         super(CorbaConnectionMock, self).__init__()
         self.obj = {
             "ccReg.Admin": admin,
@@ -172,6 +172,7 @@ class CorbaConnectionMock(object):
             "Registry.Messages": messages,
             "Registry.Administrative.Blocking": blocking,
             "Registry.AdminContactVerification.Server": verification,
+            "Registry.Notification.Server": notification,
         }
 
     def getObject(self, obj1, obj2):

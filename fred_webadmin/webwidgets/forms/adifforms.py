@@ -1,11 +1,15 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+from logging import error
+import csv
 import datetime
+
 
 from fred_webadmin import config
 from .forms import Form
-from .fields import (CharField, ChoiceField, PasswordField, HiddenField, BooleanField, MultipleChoiceFieldCheckboxes)
+from .fields import (BooleanField, CharField, ChoiceField, FileField, HiddenField, MultipleChoiceFieldCheckboxes,
+                     PasswordField)
 from .adiffields import DateFieldWithJsLink
 
 from fred_webadmin.translation import _
@@ -121,3 +125,45 @@ class DomainBlacklistAndDeleteForm(DomainBlockingBase):
 
 class DomainUnblacklistAndCreateForm(DomainBlockingBase):
     pass
+
+
+class ImportNotifEmailsForm(Form):
+    EMAILS_COLUMN = 'Email list'
+    ID_COLUMN = 'Id'
+
+    domains_emails = FileField(label=_("Upload file"), type="file", required=True)
+
+    submit_button_text = _('Save')
+
+    def __init__(self, *content, **kwd):
+        super(ImportNotifEmailsForm, self).__init__(*content, **kwd)
+        self.method = 'post'
+        self.enctype = 'multipart/form-data'
+
+    def clean_domains_emails(self):
+        csv_file = self.cleaned_data['domains_emails'].content.file
+        try:
+            reader = csv.DictReader(csv_file)
+            if not reader.fieldnames:
+                raise ValidationError('Wrong file format.')
+            if self.EMAILS_COLUMN not in reader.fieldnames:
+                raise ValidationError('Missing column "%s" in the file.' % self.EMAILS_COLUMN)
+            if self.ID_COLUMN not in reader.fieldnames:
+                raise ValidationError('Missing column "%s" in the file.' % self.ID_COLUMN)
+
+            domain_email_list = []
+            for row in reader:
+                try:
+                    domain_id = int(row[self.ID_COLUMN])
+                except ValueError:
+                    raise ValidationError('Invalid value in column Id: "%s". It must be a whole number.' %
+                                          row[self.ID_COLUMN])
+                emails = row[self.EMAILS_COLUMN].strip()
+                if emails.strip():
+                    email_list = emails.split(',')
+                    for email in email_list:
+                        domain_email_list.append((domain_id, email.strip()))
+            return domain_email_list
+        except csv.Error, e:
+            error('Error during reading CSV:', e)
+            raise ValidationError('A correct CSV file is needed!')

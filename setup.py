@@ -99,6 +99,9 @@ def main():
           author_email='tdivis@nic.cz',
           url='http://www.nic.cz',
           packages=packages,
+          package_data = {
+              'fred_webadmin.tests.webadmin': ['data/*'],
+          },
           scripts=['fred-webadmin'],
           i18n_files=['fred_webadmin/locale/cs_CZ/LC_MESSAGES/adif.po',
                       'fred_webadmin/locale/en_US/LC_MESSAGES/adif.po'],

@@ -451,6 +451,18 @@ class DomainBlockingResult(BaseSiteMenu):
                 self.blocked_object_ul.add(li(a(attr(href=c['detail_url'] % blocked_object.id), blocked_object.handle), holder_change_text))
 
 
+class FormPage(BaseSiteMenu):
+    def __init__(self, context):
+        super(FormPage, self).__init__(context)
+        c = self.context
+        self.main.add(
+            h1(c['heading']) if 'heading' in c else None,
+            p(c['before_form']) if 'before_form' in c else None,
+            c['form'] if 'form' in c else None,
+            p(c['after_form']) if 'after_form' in c else None
+        )
+
+
 class ContactCheckList(BaseSiteMenu):
     def __init__(self, context):
         super(ContactCheckList, self).__init__(context)

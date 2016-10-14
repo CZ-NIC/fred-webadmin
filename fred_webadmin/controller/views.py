@@ -126,6 +126,7 @@ class FormMixin(object):
         kwargs = {'initial': self.get_initial()}
         if cherrypy.request.method in ('POST', 'PUT'):
             kwargs.update({
+                'method': 'post',
                 'data': cherrypy.request.params,
                 'files': cherrypy.request.body_params,
             })
@@ -138,8 +139,7 @@ class FormMixin(object):
         if self.success_url:
             url = self.success_url
         else:
-            raise RuntimeError(
-                "No URL to redirect to. Provide a success_url.")
+            url = cherrypy.url()
         return url
 
     def form_valid(self):  # pylint: disable=W0613
@@ -263,19 +263,15 @@ class ProcessFormCorbaLogView(ProcessFormCorbaView):
         super(ProcessFormCorbaLogView, self).__init__(**kwargs)
 
     def initialize_log_req(self):
-        for prop_name in self.log_input_props_names:
-            prop_value = self.form.cleaned_data[prop_name]
-            if isinstance(prop_value, types.ListType):
-                self.props.extend([(prop_name, prop_item_value)
-                                   for prop_item_value in self.form.cleaned_data[prop_name]])
-            else:
-                self.props.append((prop_name, prop_value))
+        if self.log_input_props_names:
+            for prop_name in self.log_input_props_names:
+                prop_value = self.form.cleaned_data[prop_name]
+                if isinstance(prop_value, types.ListType):
+                    self.props.extend([(prop_name, prop_item_value)
+                                       for prop_item_value in self.form.cleaned_data[prop_name]])
+                else:
+                    self.props.append((prop_name, prop_value))
         self.log_req = utils.create_log_request(self.log_req_type, properties=self.props, references=self.refs)
-
-    def get_corba_function_arguments(self):
-        corba_arguments = super(ProcessFormCorbaLogView, self).get_corba_function_arguments()
-        corba_arguments.append(self.log_req.request_id)  # assuming that log_request_id is last argument
-        return corba_arguments
 
     def corba_call_success(self, return_value):
         super(ProcessFormCorbaLogView, self).corba_call_success(return_value)
@@ -285,7 +281,6 @@ class ProcessFormCorbaLogView(ProcessFormCorbaView):
         super(ProcessFormCorbaLogView, self).corba_call_fail(exception)
         self.log_req.result = 'Fail'
         self.output_props.append(('error', type(exception).__name__))
-        self.output_props.append(('error_subject_handle', exception.what))  # pylint: disable=E1101
 
     def form_valid(self):
         self.initialize_log_req()
