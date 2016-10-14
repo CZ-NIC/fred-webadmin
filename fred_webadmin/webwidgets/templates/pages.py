@@ -5,7 +5,7 @@ import cherrypy
 
 from fred_webadmin.webwidgets.gpyweb.gpyweb import (
     div, span, p, a, h2, h3, attr, save, HTMLPage,
-    label, input, table, tr, th, td, h1, ul, li, script, strong, pre, notag)
+    label, input, table, tr, th, td, h1, ul, li, script, strong, pre, notag, tagid)
 
 from fred_webadmin import config
 from fred_webadmin.messages import get_messages
@@ -169,7 +169,8 @@ class FilterPage(BaseSiteMenu):
                 self.main.add(h1(attr(id='blocking_text'), _('Administrative blocking')))
             self.main.add(c.witertable)
             if not c.get('blocking_mode'):
-                self.main.add(p(_('Table_as'), a(attr(href='?txt=1'), 'TXT'), ',', a(attr(href='?csv=1'), 'CSV')))
+                self.main.add(p(tagid('exports'), _('Table_as'), a(attr(href='?txt=1'), 'TXT'), ',',
+                                a(attr(href='?csv=1'), 'CSV')))
 
         if c.get("display_jump_links"):
             # Display the 'previous' and 'next' links (they auto-submit
@@ -191,6 +192,20 @@ class FilterPage(BaseSiteMenu):
 
         if c.get('blocking_possible') and not c.get('blocking_mode'):
             self.main.add(p(a(attr(href='./blocking_start/'), _('Administrative blocking'))))
+
+
+class DomainFilterPage(FilterPage):
+    NOTIFICATION_EXPORT_COLUMNS_QUERY = 'columns=Out Zone date|Id|FQDN|Registrant name|Registrant organization|Email list'
+
+    def __init__(self, context=None):
+        super(DomainFilterPage, self).__init__(context)
+        c = self.context
+        if hasattr(self.main, 'exports'):
+            self.main.exports.add(
+                p(_('Export for out-of-zone notification'),
+                a(attr(href='?txt=1&%s' % self.NOTIFICATION_EXPORT_COLUMNS_QUERY), 'TXT'), ',',
+                a(attr(href='?csv=1&%s' % self.NOTIFICATION_EXPORT_COLUMNS_QUERY), 'CSV'))
+            )
 
 
 class DetailPage(BaseSiteMenu):

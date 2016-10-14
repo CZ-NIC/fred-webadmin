@@ -69,7 +69,7 @@ from fred_webadmin.translation import _
 
 # This must all be imported because of the way templates are dealt with.
 from fred_webadmin.webwidgets.templates.pages import (BaseSiteMenu,
-    DomainBlocking, DomainBlockingResult, BankStatementDetailWithPaymentPairing, GroupEditorPage)
+    DomainBlocking, DomainBlockingResult, DomainFilterPage, BankStatementDetailWithPaymentPairing, GroupEditorPage)
 from fred_webadmin.webwidgets.gpyweb.gpyweb import (
     DictLookup, noesc, attr, ul, li, a, div, p)
 
@@ -657,6 +657,8 @@ class Domain(AdifPage, ListTableMixin):
             return DomainBlocking
         elif action == 'blocking_result':
             return DomainBlockingResult
+        elif action in ('filter', 'list'):
+            return DomainFilterPage
         else:
             return AdifPage._template(self, action=action)
 
