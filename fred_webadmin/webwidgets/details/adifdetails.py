@@ -130,7 +130,7 @@ class RegistrarDetail(Detail):
             if self.data.get('is_blocked'):
                 filters.append([[_('Unblock'),
                     "javascript:processAction('%s', '%s')" % \
-                    (f_urls['registrar'] + 'unblock/?id=%s' % \
+                    (f_urls['registrar'] + 'unblock/%s/' % \
                         self.data.get('id'), 'unblock registrar')]])
 
             self.add(FilterPanel(filters))
