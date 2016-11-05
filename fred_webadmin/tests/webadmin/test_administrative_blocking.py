@@ -157,7 +157,7 @@ class TestAdministrativeBlockingStart(TestAdministrativeBlockingBase):
         self.session_mock.getPageTable.return_value = pagetable_mock
 
     def test_block_start_no_domain_selected(self):
-        tc.go('/domain/filter/blocking_start/')
+        tc.go('http://localhost:8080/domain/filter/blocking_start/')
         tc.fv(2, 'blocking_action', 'block')
         tc.submit()
         tc.find('You must select at least one domain!')
