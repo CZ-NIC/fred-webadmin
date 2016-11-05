@@ -273,7 +273,7 @@ class TestCheckDetail(TestCheckDetailBase):
         tc.go('http://localhost:8080/contactcheck/detail/%s/resolve/' % self.check_handle)
         tc.fv(2, 'email_host_existence', 'fail')
 
-        tc.submit(11)  # submit changes os test states, resolve check as fail and create a new manual Check
+        tc.submit('fail:add_manual')  # submit changes os test states, resolve check as fail and create a new manual Check
         self.verif_mock.updateContactCheckTests.assert_called_once_with(self.check_handle,
             [Registry.AdminContactVerification.ContactTestUpdate('email_host_existence', 'fail')], 0)
         self.verif_mock.resolveContactCheckStatus.assert_called_once_with(self.check_handle, 'fail', 0)

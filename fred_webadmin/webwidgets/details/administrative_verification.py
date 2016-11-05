@@ -141,7 +141,8 @@ class VerificationCheckDetail(div):
         if self.resolve:
             tests_table.footer.add(tr(td(attr(colspan=col_count),
                 table(attr(cssc='submit-row'),
-                      tr(td(button(attr(type='submit', name='status_action', value=status_action), action_name))
+                      tr(td(button(attr(type='submit', name='status_action', value=status_action, id=status_action),
+                                   action_name))
                          for status_action, action_name in get_status_action(self.check.test_suite_handle,
                                                                              current_check_status.status).items()
 
