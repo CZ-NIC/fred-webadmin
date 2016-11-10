@@ -86,7 +86,6 @@ unknown user
             parts = perm.split(".")
             if len(parts) != 4:
                 continue
-#            import ipdb; ipdb.set_trace()
             composed_part = "%s.%s" % (parts[0], parts[2])  # example: read.auth_info
             if (composed_part == action and parts[1] == obj and
                     parts[3] == str(obj_id)):

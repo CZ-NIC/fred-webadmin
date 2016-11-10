@@ -99,14 +99,14 @@ class TestCheckList(TestContactVerificationBase):
         self.verif_mock.getActiveChecks.return_value = [
             Registry.AdminContactVerification.ContactCheckListItem(check_handle='a', test_suite_handle='automatic', contact_id=75L, contact_handle='KONTAKT', checked_contact_hid=1L, created=ccReg.DateTimeType(date=ccReg.DateType(day=6, month=6, year=2014), hour=16, minute=13, second=14), updated=ccReg.DateTimeType(date=ccReg.DateType(day=6, month=6, year=2014), hour=16, minute=13, second=32), last_test_finished=ccReg.DateTimeType(date=ccReg.DateType(day=6, month=6, year=2014), hour=14, minute=13, second=14), last_contact_update=ccReg.DateTimeType(date=ccReg.DateType(day=6, month=6, year=2014), hour=14, minute=13, second=0), current_status='auto_fail'), ]
         tc.go('http://localhost:8080/contactcheck/json_filter/')
-        data = json.loads(tc.browser.result.page)
+        data = json.loads(tc.browser.result.text)
         assert_equal(data['aaData'][0][2], 'automatic')
 
     def test_json_filter_contact_id(self):
         self.verif_mock.getChecksOfContact.return_value = [
             Registry.AdminContactVerification.ContactCheckListItem(check_handle='a', test_suite_handle='manual', contact_id=75L, contact_handle='KONTAKT', checked_contact_hid=1L, created=ccReg.DateTimeType(date=ccReg.DateType(day=6, month=6, year=2014), hour=16, minute=13, second=14), updated=ccReg.DateTimeType(date=ccReg.DateType(day=6, month=6, year=2014), hour=16, minute=13, second=32), last_test_finished=ccReg.DateTimeType(date=ccReg.DateType(day=6, month=6, year=2014), hour=14, minute=13, second=14), last_contact_update=ccReg.DateTimeType(date=ccReg.DateType(day=6, month=6, year=2014), hour=14, minute=13, second=0), current_status='enqueued'), ]
         tc.go('http://localhost:8080/contactcheck/json_filter/75/')
-        data = json.loads(tc.browser.result.page)
+        data = json.loads(tc.browser.result.text)
         assert_equal(data['aaData'][0][2], 'manual')
 
     def test_to_resolve_since_date_automatic(self):
@@ -174,14 +174,14 @@ class TestCheckList(TestContactVerificationBase):
         authorizer.add_perms('read.contactcheck_automatic')
         tc.go('http://localhost:8080/contactcheck/json_filter/')
         tc.notfind('don\'t have permissions')
-        data = json.loads(tc.browser.result.page)
+        data = json.loads(tc.browser.result.text)
         assert_equal(data['aaData'][0][2], 'automatic')
 
         authorizer.rem_perms('read.contactcheck_automatic')
         authorizer.add_perms('read.contactcheck_manual')
         tc.go('http://localhost:8080/contactcheck/json_filter/')
         tc.notfind('Resolve')
-        data = json.loads(tc.browser.result.page)
+        data = json.loads(tc.browser.result.text)
         assert_equal(len(data), 1)
         assert_equal(data['aaData'][0][2], 'manual')
 
@@ -273,7 +273,7 @@ class TestCheckDetail(TestCheckDetailBase):
         tc.go('http://localhost:8080/contactcheck/detail/%s/resolve/' % self.check_handle)
         tc.fv(2, 'email_host_existence', 'fail')
 
-        tc.submit(6)  # submit changes os test states, resolve check as fail and create a new manual Check
+        tc.submit('fail:add_manual')  # submit changes os test states, resolve check as fail and create a new manual Check
         self.verif_mock.updateContactCheckTests.assert_called_once_with(self.check_handle,
             [Registry.AdminContactVerification.ContactTestUpdate('email_host_existence', 'fail')], 0)
         self.verif_mock.resolveContactCheckStatus.assert_called_once_with(self.check_handle, 'fail', 0)

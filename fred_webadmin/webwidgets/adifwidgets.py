@@ -126,7 +126,6 @@ class FilterPanel(table):
 
 #        chunks = grouper(max_row_size, filters)
         first = True
-#        import ipdb; ipdb.set_trace()
         filter_count = max([len(l) for l in filters])
 
         for chunk in filters:
