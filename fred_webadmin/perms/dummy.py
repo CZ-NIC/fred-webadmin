@@ -13,3 +13,6 @@ class Authorizer(object):
 
     def check_detailed_present(self, obj, action):
         return False
+
+    def has_field_permission(self, obj, action, field_name):
+        return True
