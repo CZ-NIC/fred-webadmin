@@ -142,18 +142,21 @@ class ListTableMixin(object):
                     elif table.num_rows == 1:
                         rowId = table.get_row_id(0)
                         raise (cherrypy.HTTPRedirect(f_urls[self.classname] + 'detail/?id=%s' % rowId))
-                    if kwd.get('txt', None):
+                    if 'txt' in kwd or 'csv' in kwd:
                         cherrypy.response.headers["Content-Type"] = "text/plain"
-                        cherrypy.response.headers["Content-Disposition"] = \
-                            "inline; filename=%s_%s.txt" % (self.classname,
-                            time.strftime('%Y-%m-%d'))
-                        return fileGenerator(table)
-                    elif kwd.get('csv', None):
-                        cherrypy.response.headers["Content-Type"] = "text/plain"
-                        cherrypy.response.headers["Content-Disposition"] = \
-                            "attachment; filename=%s_%s.csv" % (
-                                self.classname, time.strftime('%Y-%m-%d'))
-                        return fileGenerator(table)
+                        if 'txt' in kwd:
+                            cherrypy.response.headers["Content-Disposition"] = \
+                                "inline; filename=%s_%s.txt" % (self.classname,
+                                                                time.strftime('%Y-%m-%d'))
+                        elif 'csv' in kwd:
+                            cherrypy.response.headers["Content-Disposition"] = \
+                                "attachment; filename=%s_%s.csv" % (self.classname,
+                                                                    time.strftime('%Y-%m-%d'))
+                        if 'columns' in kwd:
+                            columns = kwd['columns'].split('|')
+                        else:
+                            columns = None
+                        return fileGenerator(table, columns)
                     table.set_page(page)
                     itertable_widget = WIterTable(table)
 

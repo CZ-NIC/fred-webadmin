@@ -68,8 +68,9 @@ from fred_webadmin.corba import ccReg, Registry
 from fred_webadmin.translation import _
 
 # This must all be imported because of the way templates are dealt with.
-from fred_webadmin.webwidgets.templates.pages import (BaseSiteMenu,
-    DomainBlocking, DomainBlockingResult, BankStatementDetailWithPaymentPairing, GroupEditorPage)
+from fred_webadmin.webwidgets.templates.pages import (BaseSiteMenu, DomainBlocking, DomainBlockingResult,
+                                                      DomainFilterPage, BankStatementDetailWithPaymentPairing,
+                                                      GroupEditorPage, FormPage)
 from fred_webadmin.webwidgets.gpyweb.gpyweb import (
     DictLookup, noesc, attr, ul, li, a, div, p)
 
@@ -91,6 +92,7 @@ from fred_webadmin.customview import CustomView
 from fred_webadmin.controller.perms import check_onperm, login_required
 from fred_webadmin.controller.administrative_blocking import (ProcessBlockView, ProcessUpdateBlockingView,
     ProcessUnblockView, ProcessBlacklistAndDeleteView)
+from fred_webadmin.controller.domain import ImportNotifEmailsView
 from . import administrative_verification
 from base import AdifPage
 
@@ -207,6 +209,7 @@ class ADIF(AdifPage):
         cherrypy.session['Messages'] = corba_obj.getObject('Messages', 'Registry.Messages')
         cherrypy.session['Blocking'] = corba_obj.getObject('AdminBlocking', 'Registry.Administrative.Blocking')
         cherrypy.session['Verification'] = corba_obj.getObject('AdminContactVerification', 'Registry.AdminContactVerification.Server')
+        cherrypy.session['Notification'] = corba_obj.getObject('Notification', 'Registry.Notification.Server')
 
         cherrypy.session['history'] = False
         utils.get_corba_session().setHistory(False)
@@ -298,6 +301,8 @@ class Summary(AdifPage):
     def index(self):
         context = DictLookup()
         context.main = ul(li(a(attr(href='''/file/filter/?json_data=[{%22presention|CreateTime%22:%22on%22,%22CreateTime/3%22:%2210%22,%22CreateTime/0/0%22:%22%22,%22CreateTime/0/1/0%22:%220%22,%22CreateTime/0/1/1%22:%220%22,%22CreateTime/1/0%22:%22%22,%22CreateTime/1/1/0%22:%220%22,%22CreateTime/1/1/1%22:%220%22,%22CreateTime/4%22:%22-2%22,%22CreateTime/2%22:%22%22,%22presention|Type%22:%22000%22,%22Type%22:%225%22}]'''), _('Domain expiration letters'))))
+        context.main.add(li(a(attr(href='/domain/import_notif_emails/'),
+                              _('Import emails for out-of-zone notification'))))
         return self._render('summary', ctx=context)
 
 
@@ -657,6 +662,10 @@ class Domain(AdifPage, ListTableMixin):
             return DomainBlocking
         elif action == 'blocking_result':
             return DomainBlockingResult
+        elif action in ('filter', 'list'):
+            return DomainFilterPage
+        elif action == 'import_notif_emails':
+            return FormPage
         else:
             return AdifPage._template(self, action=action)
 
@@ -721,6 +730,11 @@ class Domain(AdifPage, ListTableMixin):
         else:
             context['heading'] = _('The result page has expired.')
         return self._render('blocking_result', ctx=context)
+
+    @check_onperm('change')
+    def import_notif_emails(self, **dummy_kwd):
+        context = ImportNotifEmailsView.as_view()()
+        return self._render('import_notif_emails', ctx=context)
 
 
 class Contact(AdifPage, ListTableMixin):

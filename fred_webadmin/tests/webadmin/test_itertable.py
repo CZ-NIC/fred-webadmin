@@ -2,12 +2,12 @@ import cherrypy
 from omniORB import CORBA
 import omniORB
 
-from mock import Mock, call
+from mock import MagicMock, Mock, call
 from nose.tools import assert_equal, assert_is_not_none, raises  # @UnresolvedImport
 from fred_webadmin.corba import Registry
 
 import fred_webadmin.itertable
-from fred_webadmin.itertable import IterTable
+from fred_webadmin.itertable import IterTable, fileGenerator
 
 test_type_corba_enum = 42
 
@@ -300,3 +300,30 @@ class TestIteration(Initializer):
                 assert_equal(row[0].get(u'value'), "")
             else:
                 assert_equal(row[0].get(u'value'), str(i))
+
+
+class TestFileGenerator(object):
+    def setUp(self):
+        rows = [
+            [{'value': '1'}, {'value': '2'}, {'value': '3'}, {'value': '4'}],
+            [{'value': '4'}, {'value': '3'}, {'value': '2'}, {'value': '1'}],
+        ]
+        self.source_mock = MagicMock()
+        self.source_mock.__getitem__.side_effect = rows
+        self.source_mock.rawheader = ['First', 'Second', 'Third', 'Fourth']
+        self.source_mock.num_rows = 2
+
+    def test_without_columns(self):
+        expected = ('First,Second,Third,Fourth\r\n'
+                    '1,2,3,4\r\n'
+                    '4,3,2,1\r\n')
+        result = ''.join(fileGenerator(self.source_mock))
+        assert_equal(result, expected)
+
+    def test_with_columns(self):
+        columns = ['Third', 'Additional', 'First']
+        expected = ('Third,Additional,First\r\n'
+                    '3,,1\r\n'
+                    '2,,4\r\n')
+        result = ''.join(fileGenerator(self.source_mock, columns))
+        assert_equal(result, expected)

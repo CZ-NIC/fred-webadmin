@@ -69,9 +69,18 @@ class AdministrativeBlockingBaseView(views.ProcessFormCorbaLogView):
         }
         del cherrypy.session['pre_blocking_form_data']
 
+    def corba_call_fail(self, exception):
+        super(AdministrativeBlockingBaseView, self).corba_call_fail(exception)
+        self.output_props.append(('error_subject_handle', exception.what))  # pylint: disable=E1101
+
     def initialize_log_req(self):
         self.refs.extend([('domain', domain) for domain in self.form.cleaned_data['objects']])
         super(AdministrativeBlockingBaseView, self).initialize_log_req()
+
+    def get_corba_function_arguments(self):
+        corba_arguments = super(AdministrativeBlockingBaseView, self).get_corba_function_arguments()
+        corba_arguments.append(self.log_req.request_id)  # assuming that log_request_id is last argument
+        return corba_arguments
 
 
 class ProcessBlockView(AdministrativeBlockingBaseView):

@@ -18,20 +18,38 @@ from fred_webadmin.corba import (
 import fred_webadmin.webwidgets.forms.emptyvalue
 
 
-def fileGenerator(source):
-    "Generates CSV stream from IterTable object"
+def fileGenerator(source, columns=None):
+    """ Generates CSV stream from IterTable object
+
+        Optional argument `columns` can be a list containing names of the columns as they are in source.rawheader.
+        If `columns` is present, return only the specified columns in the given order. If a name of a column is not in
+        the source, keep it in headers, but insert empty values.
+    """
 
     # CSV writer only supports files for output => we have to use StringIO.
     out = StringIO.StringIO()
     w = csv.writer(out)
 
     data = source.rawheader
-    w.writerow([unicode(item).encode('utf-8') for item in data])
+
+    if columns:
+        columns_indices = []
+        for column_name in columns:
+            try:
+                columns_indices.append(data.index(column_name))
+            except ValueError:
+                columns_indices.append(None)
+        w.writerow([unicode(item).encode('utf-8') for item in columns])
+    else:
+        w.writerow([unicode(item).encode('utf-8') for item in data])
     yield out.getvalue()
 
     for i in xrange(source.num_rows):
         row = source[i]
-        data = [col['value'] for col in row]
+        if columns:
+            data = [row[col_index]['value'] if col_index is not None else '' for col_index in columns_indices]
+        else:
+            data = [col['value'] for col in row]
         out.seek(0)
         w.writerow([unicode(item).encode('utf-8') for item in data])
         # Truncate from current pos to end (if something remained
