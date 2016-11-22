@@ -1,3 +1,17 @@
+2016-11-22 (3.17.0)
+
+    * import csv form for custom e-mail notification about domain
+      going outzone (after expiration)
+
+    * negative permissions for object fields (to hide values of specific
+      attributes)
+
+    * tests - migration to twill-2.0 (Cito@github)
+
+    * fix - registrar update form (leap year, corba decoder bugs)
+
+    * fix - registrar unblock link
+
 2016-06-13 Vladimír Červeň (3.16.2)
 
     * fix - sort request types by name (alphabetically)
