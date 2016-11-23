@@ -122,6 +122,7 @@ class ADIF(AdifPage):
                 result = filterforms.get_filter_forms_javascript(
                     cherrypy.session['filterforms'])
                 cherrypy.session['filter_forms_javascript'] = result
+                cherrypy.response.headers['Content-Type'] = 'text/javascript'
                 return result
             elif args[0] == 'set_history':
                 new_history = simplejson.loads(kwd.get('history', 'false'))
@@ -130,6 +131,7 @@ class ADIF(AdifPage):
                 debug('History set to %s' % new_history)
                 return json_response(new_history)
             elif args[0] == 'service_actions.js':
+                cherrypy.response.headers['Content-Type'] = 'text/javascript'
                 result = filterforms.get_service_actions_javascript(
                     cherrypy.session.get("Logger"))
                 return result
