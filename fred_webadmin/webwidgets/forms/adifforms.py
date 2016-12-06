@@ -152,7 +152,11 @@ class ImportNotifEmailsForm(Form):
                 raise ValidationError('Missing column "%s" in the file.' % self.ID_COLUMN)
 
             domain_email_list = []
-            for row in reader:
+            for row_num, row in enumerate(reader, start=2):  # data in spreadsheet starts on line 2
+                if row[self.ID_COLUMN] is None:
+                    raise ValidationError('Missing column "%s" on the row %d.' % (self.ID_COLUMN, row_num))
+                if row[self.EMAILS_COLUMN] is None:
+                    raise ValidationError('Missing column "%s" on the row %d.' % (self.EMAILS_COLUMN, row_num))
                 try:
                     domain_id = int(row[self.ID_COLUMN])
                 except ValueError:

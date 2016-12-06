@@ -74,3 +74,17 @@ class TestImportNotifEmails(BaseADIFTestCase):
                 Registry.Notification.DomainEmail(domain_id=9, email='pokus3@nic.cz')])]
         )
         tc.find('The file contains these invalid emails: pok@s1@nic.cz')
+
+    @enable_corba_comparison_decorator(Registry.Notification.DomainEmail)
+    def test_file_missing_column_email(self):
+        tc.formfile(2, 'domains_emails', os.path.join(os.path.dirname(__file__),
+                                                      'data/domain_2016-09-16_missing_column_email.csv'))
+        tc.submit()
+        tc.find('Missing column "Email list" on the row 3.')
+
+    @enable_corba_comparison_decorator(Registry.Notification.DomainEmail)
+    def test_file_missing_columns(self):
+        tc.formfile(2, 'domains_emails', os.path.join(os.path.dirname(__file__),
+                                                      'data/domain_2016-09-16_missing_column_id.csv'))
+        tc.submit()
+        tc.find('Missing column "Id" on the row 2.')
