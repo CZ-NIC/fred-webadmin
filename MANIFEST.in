@@ -1,2 +1,3 @@
 recursive-include doc *
+include fred-webadmin.spec
 include MANIFEST.in
