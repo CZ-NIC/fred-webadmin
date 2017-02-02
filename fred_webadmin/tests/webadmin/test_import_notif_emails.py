@@ -88,3 +88,14 @@ class TestImportNotifEmails(BaseADIFTestCase):
                                                       'data/domain_2016-09-16_missing_column_id.csv'))
         tc.submit()
         tc.find('Missing column "Id" on the row 2.')
+
+    def test_file_unicode_in_email(self):
+        self.notif_mock.set_domain_outzone_unguarded_warning_emails.side_effect = \
+            Registry.Notification.DOMAIN_EMAIL_VALIDATION_ERROR(
+                [Registry.Notification.DomainEmail(domain_id=4, email='lukas.jaba@example.cz\xc2\xa0')]
+            )
+
+        tc.formfile(2, 'domains_emails', os.path.join(os.path.dirname(__file__),
+                                                      'data/domain_2017-02-01_unicode_in_email.csv'))
+        tc.submit()
+        tc.find('The file contains these invalid emails: lukas.jaba@example.cz\xc2\xa0'.decode('utf-8'))

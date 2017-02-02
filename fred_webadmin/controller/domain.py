@@ -10,7 +10,7 @@ from fred_webadmin.webwidgets.forms.adifforms import ImportNotifEmailsForm
 INVALID_EMAILS_MSG = FieldErrMsg(
     'domains_emails',
     _('The file contains these invalid emails: {invalid_emails}'),
-    lambda exc: {'invalid_emails': ', '.join([domain_email.email for domain_email in exc.domain_invalid_email_seq])}
+    lambda exc: {'invalid_emails': ', '.join([domain_email.email.decode('utf-8') for domain_email in exc.domain_invalid_email_seq])}
 )
 
 
