@@ -1,3 +1,11 @@
+2017-03-02 (3.18.0)
+
+    * Add CI configuration
+
+    * Linter CSS
+
+    * Fedora packaging
+
 2016-11-22 (3.17.0)
 
     * import csv form for custom e-mail notification about domain
