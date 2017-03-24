@@ -71,7 +71,6 @@ class DaphneTestCase(DaphneBaseTestCase):
         self.monkey_patch(
             fred_webadmin.user, 'auth_user', fred_webadmin.perms.dummy)
         self.web_session_mock = {}
-        self.web_session_mock['Logger'] = logger.DummyLogger()
 
         self.monkey_patch(cherrypy, 'session', self.web_session_mock)
         self.monkey_patch(fred_webadmin, 'config', test_config)

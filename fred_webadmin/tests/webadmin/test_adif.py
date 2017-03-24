@@ -27,6 +27,7 @@ import fred_webadmin.controller.adif
 import fred_webadmin.webwidgets.forms
 
 from fred_webadmin.corba import Registry, ccReg
+from fred_webadmin.webwidgets.forms.filterforms import DomainFilterForm
 import pylogger.dummylogger as logger
 import fred_webadmin.user as fred_webadmin_user
 
@@ -47,6 +48,8 @@ class BaseADIFTestCase(DaphneTestCase):
         self.web_session_mock['user'] = fred_webadmin_user.User(UserMock())
         self.file_mgr_mock = mock.Mock(ccReg._objref_FileManager)  # pylint: disable=W0212
         self.web_session_mock['FileManager'] = self.file_mgr_mock
+        self.logger_mock = mock.Mock(ccReg._objref_Logger)  # pylint: disable=W0212
+        self.web_session_mock['Logger'] = self.logger_mock
         self.corba_conn_mock = CorbaConnectionMock(admin=self.admin_mock)
         self.monkey_patch(fred_webadmin.controller.adif, 'corba_obj', self.corba_conn_mock)
 
@@ -883,3 +886,19 @@ class TestRegistrarGroupEditor(BaseADIFTestCase):
         twill.commands.find(
             '''<input title="test_group_1" type="text" name="groups-0-name"'''
             ''' value="test_group_1" />''')
+
+
+class TestGeneratedJavascripts(BaseADIFTestCase):
+    def test_filter_forms_javascript(self):
+        self.web_session_mock['filterforms'] = [DomainFilterForm]
+        twill.commands.go("http://localhost:8080/filter_forms_javascript.js")
+        twill.commands.code(200)
+        assert_equal(twill.browser.result.headers['Content-Type'], 'text/javascript;charset=utf-8')
+        twill.commands.find('function createRowdomain')
+
+    def test_service_actions(self):
+        self.logger_mock.getServices.return_value = []
+        twill.commands.go("http://localhost:8080/service_actions.js")
+        twill.commands.code(200)
+        assert_equal(twill.browser.result.headers['Content-Type'], 'text/javascript;charset=utf-8')
+        twill.commands.find('function get_actions')
