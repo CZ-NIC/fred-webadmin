@@ -1,3 +1,15 @@
+2017-03-24 (3.19.0)
+
+    * button 'domains all' in domain detail also filters tech-c of associated
+      keyset and nsset
+
+    * fix unicode error in error message (csv import of custom e-mail notification
+      about domain going outzone)
+
+    * fix generated javascript content type (doesn't work with X-Content-Type-Options 'nosniff')
+
+    * removed cherrypy server from tests
+
 2017-03-02 (3.18.0)
 
     * Add CI configuration
