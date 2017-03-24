@@ -88,9 +88,6 @@ def init_test_server():
     requests_intercept.install()
     root = fred_webadmin.controller.adif.prepare_root()
     wsgiApp = cherrypy.tree.mount(root)
-    cherrypy.config.update({'server.socket_host': '0.0.0.0',
-                            'server.socket_port': 8080})
-    cherrypy.server.start()
     # Redirect HTTP requests.
     add_wsgi_intercept('localhost', 8080, lambda: wsgiApp)
 
@@ -99,8 +96,6 @@ def init_test_server():
 def deinit_test_server():
     # Remove the intercept.
     remove_wsgi_intercept('localhost', 8080)
-    # Shut down Cherrypy server.
-    cherrypy.server.stop()
     requests_intercept.uninstall()
 
 
