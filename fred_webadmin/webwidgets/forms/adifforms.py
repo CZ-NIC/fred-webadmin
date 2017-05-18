@@ -67,7 +67,7 @@ class DomainBlockBase(DomainBlockingBase):  # base for block and change blocking
         self.fields['blocking_status_list'] = MultipleChoiceFieldCheckboxes(
             name='blocking_status_list',
             choices=CorbaLazyRequestIterStruct('Blocking', None, 'getBlockingStatusDescList',
-                                               ['shortName', 'name'], None, config.lang[:2].upper()),
+                                               ['shortName', 'name'], None, None, config.lang[:2].upper()),
             label=_('Blocking statuses'),
             initial=['serverDeleteProhibited', 'serverTransferProhibited', 'serverUpdateProhibited']
         )
