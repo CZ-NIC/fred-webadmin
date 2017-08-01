@@ -1,27 +1,29 @@
 import cherrypy
 import time
 import sys
+from datetime import datetime
 
 from fred_webadmin import exposed
 from fred_webadmin import config
 
 from fred_webadmin.translation import _
 
+import fred_webadmin.webwidgets.forms.emptyvalue
 import fred_webadmin.webwidgets.forms.utils as form_utils
 from fred_webadmin.controller.perms import check_onperm, login_required
+from fred_webadmin.corbarecoder import u2c
 from fred_webadmin.webwidgets.forms.filterforms import UnionFilterForm
 from fred_webadmin.itertable import IterTable, fileGenerator
 from fred_webadmin.mappings import (f_name_id, f_name_editformname, f_urls,
     f_name_actionfiltername, f_name_filterformname)
 import simplejson
-from fred_webadmin.webwidgets.gpyweb.gpyweb import div, p, h1
+from fred_webadmin.webwidgets.gpyweb.gpyweb import attr, div, p, h1, script
 from fred_webadmin.webwidgets.utils import convert_linear_filter_to_form_output
 from fred_webadmin.webwidgets.adifwidgets import FilterListCustomUnpacked
+from fred_webadmin.webwidgets.forms.adifforms import ObjectPrintoutForm
 from fred_webadmin.customview import CustomView
-from fred_webadmin.corba import ccReg
+from fred_webadmin.corba import ccReg, Registry
 from fred_webadmin.utils import get_detail, create_log_request
-
-import fred_webadmin.webwidgets.forms.emptyvalue
 
 
 class ListTableMixin(object):
@@ -342,3 +344,42 @@ class ListTableMixin(object):
         except (ccReg.Admin.ObjectNotFound,):
             context['main'] = _("Object_not_found")
             raise CustomView(self._render('base', ctx=context))
+
+    @check_onperm('printout')
+    def printout(self, handle, **kwd):
+        lang_code = config.lang[:2]
+        if lang_code == 'cs':  # conversion between cs and cz identifier of lagnguage
+            lang_code = 'cz'
+        context = {
+            'main': div()
+        }
+        context['main'].add(script(attr(type='text/javascript'),
+            'scwLanguage = "%s"; //sets language of js_calendar' % lang_code,
+            'scwDateOutputFormat = "%s"; // set output format for js_calendar' % config.js_calendar_date_format))
+
+        if cherrypy.request.method == 'POST':
+            form = ObjectPrintoutForm(data=kwd)
+            if form.is_valid():
+                for_time = form.cleaned_data['for_time']
+                props = [('handle', handle),
+                         ('for_time', for_time)]
+                log_req = create_log_request('RecordStatement', properties=props)
+                try:
+                    return self._get_printout_pdf(handle, for_time)
+                except Registry.RecordStatement.OBJECT_NOT_FOUND:
+                    form.add_error('for_time', _('Object "{}" was not found for the given date.'.format(handle)))
+                finally:
+                    log_req.close()
+        else:
+            form = ObjectPrintoutForm()
+
+        context['heading'] = _('Download printout')
+        context['form'] = form
+        return self._render('printout', context)
+
+    def _get_printout_pdf(self, handle, for_time):
+        corba_function = getattr(cherrypy.session['RecordsStatement'], 'historic_{}_printout'.format(self.classname))
+        for_time_in_yet_another_fred_datetime_corba_type = Registry.RecordStatement.DateTime(for_time.isoformat() + 'Z')
+        pdf_content = corba_function(u2c(handle), for_time_in_yet_another_fred_datetime_corba_type).data
+        cherrypy.response.headers['Content-Type'] = 'application/pdf'
+        return pdf_content

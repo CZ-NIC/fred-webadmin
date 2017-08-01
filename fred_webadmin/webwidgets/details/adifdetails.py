@@ -12,7 +12,8 @@ from fred_webadmin.webwidgets.forms.forms import Form
 from fred_webadmin.webwidgets.adifwidgets import FilterPanel
 from fred_webadmin.corbalazy import CorbaLazyRequestIterStructToDict
 from fred_webadmin.utils import get_state_id_by_short_name
-from fred_webadmin.webwidgets.gpyweb.gpyweb import form, input
+from fred_webadmin.webwidgets.gpyweb.gpyweb import attr, div, form, h2, input
+from fred_webadmin.webwidgets.forms.adifforms import ObjectPrintoutForm
 
 # Limit the number of filter results for actions (when pressing the actions
 # button) by only asking for the results for the last month.
@@ -160,6 +161,16 @@ class ObjectDetail(Detail):
 
     states = HistoryStateDField()
 
+    def add_to_bottom(self):
+        if not cherrypy.session['user'].check_nperms('printout.%s' % self.get_object_name()):
+            self.add(div(attr(id='printout-form'),
+                         h2(_('Download printout')),
+                         ObjectPrintoutForm(
+                             action=f_urls[self.get_object_name()] + 'printout/%s/' % self.data.get('handle', self.data.get('fqdn'))
+                         )
+                        )
+                    )
+        super(ObjectDetail, self).add_to_bottom()
 
 class ContactAddressDetail(Detail):
     type = CharDField(label=_('Type'))

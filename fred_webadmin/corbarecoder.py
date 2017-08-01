@@ -121,6 +121,8 @@ class DaphneCorbaRecode(CorbaRecode):
             return corba_to_datetime(answer)
         if isinstance(answer, ccReg.DateType):
             return corba_to_date(answer)
+        if isinstance(answer, ccReg.DateType):
+            return corba_to_date(answer)
         # OMNIOrbpy uses old style classes => check whether type is
         # InstanceType.
         if self.isInstance(answer):

@@ -212,6 +212,7 @@ class ADIF(AdifPage):
         cherrypy.session['Blocking'] = corba_obj.getObject('AdminBlocking', 'Registry.Administrative.Blocking')
         cherrypy.session['Verification'] = corba_obj.getObject('AdminContactVerification', 'Registry.AdminContactVerification.Server')
         cherrypy.session['Notification'] = corba_obj.getObject('Notification', 'Registry.Notification.Server')
+        cherrypy.session['RecordsStatement'] = corba_obj.getObject('RecordStatement', 'Registry.RecordStatement.Server')
 
         cherrypy.session['history'] = False
         utils.get_corba_session().setHistory(False)

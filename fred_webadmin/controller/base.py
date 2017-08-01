@@ -9,6 +9,7 @@ from fred_webadmin import utils
 from fred_webadmin.customview import CustomView
 from fred_webadmin.mappings import (f_name_actiondetailname, f_name_req_object_type)
 from fred_webadmin.menunode import menu_tree
+from fred_webadmin.translation import _
 from fred_webadmin.webwidgets.gpyweb.gpyweb import WebWidget, DictLookup
 from fred_webadmin.webwidgets.menu import MenuHoriz
 # This must all be imported because of the way templates are dealt with.
@@ -19,7 +20,7 @@ from fred_webadmin.webwidgets.templates.pages import (
     PublicRequestDetail, MailDetail, InvoiceDetail, LoggerDetail,
     RegistrarEdit, BankStatementPairingEdit, BankStatementDetail,
     BankStatementDetailWithPaymentPairing, GroupEditorPage, MessageDetail,
-    DomainBlocking, DomainBlockingResult
+    DomainBlocking, DomainBlockingResult, FormPage
 )
 
 
@@ -61,6 +62,8 @@ class AdifPage(Page):
             return BankStatementPairingEdit
         elif action == 'setinzonestatus':
             return SetInZoneStatusPage
+        elif action == 'printout':
+            return FormPage
         else:
             # returns ClassName + Action (e.g. DomainDetail) class from
             # module of this class, if there is no such, then it returns
