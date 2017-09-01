@@ -265,7 +265,7 @@ class ObjectStateFilterForm(FilterForm):
         label=_('State Type'),
         choices=CorbaLazyRequestIterStruct(
             'Admin', None, 'getObjectStatusDescList',
-            ['id', 'shortName'], None, config.lang[:2]))
+            ['id', 'shortName'], None, None, config.lang[:2]))
 
     ValidFrom = DateTimeIntervalField(label=_('Valid from'))
     ValidTo = DateTimeIntervalField(label=_('Valid to'))
@@ -383,7 +383,7 @@ class LoggerFilterForm(FilterForm):
         id="logger_service_type_id",
         label=_('Service type'),
         choices=CorbaLazyRequestIterStruct(
-            'Logger', None, 'getServices', ['id', 'name'], None),
+            'Logger', None, 'getServices', ['id', 'name'], None, 'name'),
         onchange="filter_action_types();")
     SourceIp = CharField(label=_('Source IP'))
     UserName = CharField(label=_('Username'))

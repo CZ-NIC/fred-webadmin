@@ -114,7 +114,7 @@ class CorbaLazyRequest1V2L(CorbaLazyRequestIter):
 
 class CorbaLazyRequestIterStruct(CorbaLazyRequestIter):
     def __init__(self, object_name, mgr_getter_name, function_name, mapping,
-                 selector=None, *args, **kwargs):
+                 selector=None, sort_field=None, *args, **kwargs):
         """ Arguments:
                 object_name: Key of thne respective CORBA object in
                     cherrypy.session dict.
@@ -127,6 +127,8 @@ class CorbaLazyRequestIterStruct(CorbaLazyRequestIter):
                 mapping: Specifies fields of the result object to be displayed.
                 selector: If not None, only include items in the result that
                     the selector function returns True when called on.
+                sort_field: Name of the field for sorting the corba data
+                    strutct.
         """
         super(CorbaLazyRequestIterStruct, self).__init__(
             object_name, mgr_getter_name, function_name, selector, *args, **kwargs)
@@ -134,8 +136,11 @@ class CorbaLazyRequestIterStruct(CorbaLazyRequestIter):
             self.mapping = mapping
         else:
             raise RuntimeError('CorbaLazyRequestFromStruct __init__: parametr mapping must be list or tupple with length exactly 2.')
+        self.sort_field = sort_field
 
     def _convert_data(self, data):
+        if self.sort_field:
+            data = sorted(data, key=lambda item: getattr(item, self.sort_field).lower())
         result = []
         for item in data:
             result_item = []
