@@ -1,3 +1,7 @@
+2017-09-11 (3.19.1)
+
+    * Add sorting of Logger services
+
 2017-03-24 (3.19.0)
 
     * button 'domains all' in domain detail also filters tech-c of associated
