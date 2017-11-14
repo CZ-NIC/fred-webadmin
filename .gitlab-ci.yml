@@ -1,12 +1,23 @@
 stages:
     - analysis
 
-before_script:
-    - pip list
+########################################################################################################################
+# Basic declarations
+.requires-python: &requires-python
+    tags:
+        - python
 
+.stylelint-xenial: &stylelint-xenial
+    image: cznic/ubuntu_xenial_stylelint:latest
+
+########################################################################################################################
+# Individual jobs
 css:
-    image: cznic/stylelint_runner:latest
+    <<: *requires-python
+    <<: *stylelint-xenial
     stage: analysis
     script:
         - stylelint --version
-        - NODE_PATH="/usr/local/lib/node_modules" make check-css
+        - make check-css
+    variables:
+        NODE_PATH: "/usr/local/lib/node_modules"
