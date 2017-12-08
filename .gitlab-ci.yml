@@ -3,21 +3,23 @@ stages:
 
 ########################################################################################################################
 # Basic declarations
-.requires-python: &requires-python
+.requires-nodejs: &requires-nodejs
     tags:
-        - python
+        - nodejs
 
-.stylelint-xenial: &stylelint-xenial
-    image: cznic/ubuntu_xenial_stylelint:latest
+.nodejs-xenial: &nodejs-xenial
+    image: cznic/ubuntu_xenial_nodejs:latest
 
 ########################################################################################################################
 # Individual jobs
 css:
-    <<: *requires-python
-    <<: *stylelint-xenial
+    <<: *requires-nodejs
+    <<: *nodejs-xenial
     stage: analysis
+    before_script:
+        - npm install -g stylelint stylelint-config-standard postcss-sass
+        - npm list --global
     script:
-        - stylelint --version
         - make check-css
     variables:
-        NODE_PATH: "/usr/local/lib/node_modules"
+        NODE_PATH: "/usr/lib/node_modules"
