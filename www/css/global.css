@@ -221,6 +221,51 @@ a.quiet:visited {
 
 .nowrap { white-space: nowrap; }
 
+/* MODULES */
+.module {
+    border: 1px solid #ccc;
+    margin-bottom: 5px;
+    background: white;
+}
+
+.module p,
+.module ul,
+.module h3,
+.module h4,
+.module dl,
+.module pre {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.module blockquote {
+    margin-left: 12px;
+}
+
+.module ul,
+.module ol {
+    margin-left: 1.5em;
+}
+
+.module h3 {
+    margin-top: 0.6em;
+}
+
+.module h2,
+.module caption {
+    margin: 0;
+    padding: 2px 5px 3px;
+    font-size: 11px;
+    text-align: left;
+    font-weight: bold;
+    background: #7ca0c7 url("../img/admin/default-bg.gif") top left repeat-x;
+    color: white;
+}
+
+.module table {
+    border-collapse: collapse;
+}
+
 /* TABLES */
 .form_table,
 .form_table table {
@@ -371,51 +416,6 @@ input[type=submit].default:active {
     background-position: top;
 }
 
-/* MODULES */
-.module {
-    border: 1px solid #ccc;
-    margin-bottom: 5px;
-    background: white;
-}
-
-.module p,
-.module ul,
-.module h3,
-.module h4,
-.module dl,
-.module pre {
-    padding-left: 10px;
-    padding-right: 10px;
-}
-
-.module blockquote {
-    margin-left: 12px;
-}
-
-.module ul,
-.module ol {
-    margin-left: 1.5em;
-}
-
-.module h3 {
-    margin-top: 0.6em;
-}
-
-.module h2,
-.module caption {
-    margin: 0;
-    padding: 2px 5px 3px;
-    font-size: 11px;
-    text-align: left;
-    font-weight: bold;
-    background: #7ca0c7 url("../img/admin/default-bg.gif") top left repeat-x;
-    color: white;
-}
-
-.module table {
-    border-collapse: collapse;
-}
-
 /* MESSAGES & ERRORS */
 ul.messagelist {
     padding: 0 0 5px;
@@ -455,7 +455,7 @@ ul.errorlist {
     padding: 0 !important;
 }
 
-.errorlist li {
+ul.errorlist li {
     font-size: 12px !important;
     display: block;
     padding: 4px 5px 4px 25px;
@@ -557,6 +557,7 @@ a.deletelink:hover {
     padding-left: 3.5em;
 }
 
+/* stylelint-disable-next-line no-descending-specificity */
 .object-tools li {
     display: block;
     float: left;

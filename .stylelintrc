@@ -1,4 +1,9 @@
 {
+  "ignoreFiles": [
+     # exclude library css
+     "www/css/ext/css/*.css",
+     "www/css/ext/legacy/*.css",
+  ],
   "extends": "stylelint-config-standard",
   "rules": {
       "indentation": 4

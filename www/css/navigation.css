@@ -35,6 +35,12 @@
     border-left: 5px solid #d9d9d9;
 }
 
+#navigation a.active {
+    color: #000;
+    background: #ffd8a6;
+    border-left-color: #ffb453;
+}
+
 #navigation li li li a,
 #navigation li li li a.active {
     font-size: 85%;
@@ -43,22 +49,16 @@
     border-left: 5px solid #ffb453;
 }
 
+#navigation li li li a.active {
+    color: #000;
+    background: #ffe5c3;
+    border-left-color: #d93300;
+}
+
 #navigation a:hover,
 #navigation a:hover.active,
 #navigation li li li a:hover.active {
     text-decoration: underline;
     background: #f2f2f2;
-    border-left-color: #d93300;
-}
-
-#navigation a.active {
-    color: #000;
-    background: #ffd8a6;
-    border-left-color: #ffb453;
-}
-
-#navigation li li li a.active {
-    color: #000;
-    background: #ffe5c3;
     border-left-color: #d93300;
 }

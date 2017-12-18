@@ -1,3 +1,6 @@
+@import url("section_table.css");
+@import url("detail_table.css");
+
 .discloseTrue,
 .status_ok { background-color: #bf8; }
 
@@ -8,92 +11,21 @@
     color: green;
 }
 
-.detail_table { margin: 0.5em 0; }
-
-.detail_table th { text-align: left; }
-
-.detail_table th,
-.detail_table td {
-    vertical-align: top;
-    padding: 0;
-    border-collapse: collapse;
-}
-
-.section_table,
-.section_div,
-.filter_panel {
-    width: 70em;
-    border: medium double gray;
-}
-
-.section_table,
-.filter_panel {
-    border-collapse: collapse;
-}
-
 /* center forms inside filter panel */
 .filter_panel .form_table {
     margin-left: auto;
     margin-right: auto;
 }
 
-.section_table caption,
-.section_label {
-    padding: 0.3em 0;
-}
-
-.section_table td,
-.section_table th {
-    padding: 2px;
-}
-
-.nested_section_table {
-    width: 55em;
-}
-
-.nested_detail_table {
-    border-collapse: collapse;
-}
-
-.nested_detail_table > tbody > tr > td {
-    padding: 0;
-}
-
-.section_label {
-    font-weight: bold;
-    text-align: left;
-}
-
-.section_table .left_label {
-    width: 14em;
-    font-weight: bold;
-}
-
 .filter_panel {
     table-layout: fixed;
     margin-left: 2px;
     border: medium gray;
-}
-
-.section_table > tbody > tr > td,
-.section_table > tbody > tr > th,
-.section_table > thead > tr > td,
-.section_table > thead > tr > th,
-.filter_panel > tbody > tr > td {
-    border: thin solid gray;
-}
-
-.section_table > thead,
-.section_table > tfoot {
-    border: medium double gray;
+    text-align: center;
 }
 
 .filter_panel td {
     height: 2.5em;
-}
-
-.filter_panel {
-    text-align: center;
 }
 
 .filter_panel a {
@@ -111,8 +43,6 @@
     background-position: top;
 }
 
-.object_list_detail_table th { text-align: left; }
-
 .history_list_table {
     border-collapse: collapse;
 }
@@ -121,22 +51,8 @@
     border: thin solid gray;
 }
 
-.section_table .history_list_table {
-    margin: 0 0 -1px;
-    width: 100%;
-}
-
-.section_div {
-    padding: 0;
-    margin-left: -2px;
-}
-
 .history_dates_field { /* "from", "to" and "action" fiedl of history row */
     background-color: #eee;
-}
-
-.detail_table .history_dates_field {
-    vertical-align: middle;
 }
 
 .history_list_table tr.history_row {
@@ -150,12 +66,6 @@
 
 .history_list_table tr td.history_dates_field:last-child {
     width: 1.5em;
-}
-
-.section_table .history_division_row td,
-.section_table .history_division_row th { /* if history list, this is first row of one list, so it should be visualy divided */
-    border-top-width: medium;
-    border-top-style: double;
 }
 
 .field_empty { /* When field is empty it displays span with this css class */
@@ -198,10 +108,6 @@ td > .no_access:first-child {
 
 .borderless {
     border: none !important;
-}
-
-.section_table.history tbody {
-    border: medium double gray;
 }
 
 .verification_check_table tfoot > tr > td,

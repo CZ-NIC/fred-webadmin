@@ -96,13 +96,13 @@ table thead th.sorted {
     color: #999;
 }
 
+#changelist-filter a:hover {
+    color: #036;
+}
+
 #changelist-filter li.selected a {
     color: #5b80b2 !important;
     font-weight: bold;
-}
-
-#changelist-filter a:hover {
-    color: #036;
 }
 
 #changelist-filter li a.selected {

@@ -1,0 +1,63 @@
+.section_table,
+.section_div,
+.filter_panel {
+    width: 70em;
+    border: medium double gray;
+}
+
+.section_table,
+.filter_panel {
+    border-collapse: collapse;
+}
+
+.section_table caption,
+.section_label {
+    padding: 0.3em 0;
+}
+
+.section_table td,
+.section_table th {
+    padding: 2px;
+}
+
+.nested_section_table {
+    width: 55em;
+}
+
+.section_label {
+    font-weight: bold;
+    text-align: left;
+}
+
+.section_table .left_label {
+    width: 14em;
+    font-weight: bold;
+}
+
+.section_table > tbody > tr > td,
+.section_table > tbody > tr > th,
+.section_table > thead > tr > td,
+.section_table > thead > tr > th,
+.filter_panel > tbody > tr > td {
+    border: thin solid gray;
+}
+
+.section_table > thead,
+.section_table > tfoot {
+    border: medium double gray;
+}
+
+.section_div {
+    padding: 0;
+    margin-left: -2px;
+}
+
+.section_table .history_division_row td,
+.section_table .history_division_row th { /* if history list, this is first row of one list, so it should be visualy divided */
+    border-top-width: medium;
+    border-top-style: double;
+}
+
+.section_table.history tbody {
+    border: medium double gray;
+}
