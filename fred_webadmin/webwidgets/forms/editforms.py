@@ -93,7 +93,7 @@ class EditForm(Form):
 
 
 class AccessEditForm(EditForm):
-    password = CharField(label=_('Password'))
+    password = ValueNotLoggedCharField(label=_('Password'))
     md5Cert = CharField(label=_('MD5 of cert.'))
 
 

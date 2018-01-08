@@ -400,7 +400,7 @@ class Registrar(AdifPage, ListTableMixin):
                         if field.value and field.value.filename:
                             props.append(("set_%s" % key, field.value.filename, True))
                     else:
-                        props.append(("set_%s" % key, field.value, True))
+                        props.append(("set_%s" % key, field.get_log_value(), True))
 
     def _construct_changed_fields(self, form):
         props = []
@@ -411,7 +411,7 @@ class Registrar(AdifPage, ListTableMixin):
                 if getattr(field, "formset", False):
                     self._get_changed_fields_formset(field.formset, field_name, props)
                 else:
-                    props.append(("set_%s" % field_name, field.value))
+                    props.append(("set_%s" % field_name, field.get_log_value()))
         return props
 
     def _process_valid_form(self, form, reg, reg_id,
