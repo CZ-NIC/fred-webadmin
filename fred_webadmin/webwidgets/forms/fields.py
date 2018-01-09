@@ -19,6 +19,12 @@ from fred_webadmin.utils import LateBindingProperty
 EMPTY_VALUES = (None, '', u'')
 
 
+class ValueNotLoggedFieldMixin(object):
+
+    def get_log_value(self):
+        return "VALUE-NOT-LOGGED"
+
+
 class Field(WebWidget):
     creation_counter = 0
     is_hidden = False
@@ -104,6 +110,9 @@ class Field(WebWidget):
     def fire_actions(self, *args, **kwargs):
         pass
 
+    def get_log_value(self):
+        return self.value
+
 
 class CharField(Field):
     tattr_list = input.tattr_list
@@ -131,6 +140,10 @@ class CharField(Field):
         if self.min_length is not None and value_length < self.min_length:
             raise ValidationError(_(u'Ensure this value has at least %(min)d characters (it has %(length)d).') % {'min': self.min_length, 'length': value_length})
         return self.value
+
+
+class ValueNotLoggedCharField(ValueNotLoggedFieldMixin, CharField):
+    pass
 
 
 class PasswordField(CharField):
