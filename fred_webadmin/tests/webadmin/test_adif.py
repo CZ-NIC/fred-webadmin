@@ -373,7 +373,7 @@ class TestRegistrarBase(BaseADIFTestCase):
                         md5Cert='60:7E:DF:39:62:C3:9D:3C:EB:5A:87:80:C1:73:4F:99'),
                     Registry.Registrar.EPPAccess(
                         password='passwd',
-                        md5Cert='39:D1:0C:CA:05:3A:CC:C0:0B:EC:6F:3F:81:0D:C7:9E')],
+                        md5Cert='6A:AC:49:24:F8:32:1E:B7:A1:83:B5:D4:CB:74:29:98')],
                     zones=[
                         Registry.Registrar.ZoneAccess(
                             id=1L, name='0.2.4.e164.arpa', credit='0',
