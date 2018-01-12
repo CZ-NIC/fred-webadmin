@@ -95,7 +95,7 @@ class CorbaDetailMaker(object):
             telephone='', fax='', email='kuk@nic.cz', url='www.nic.cz',
             credit='478456.78', unspec_credit='0.00',
             access=[Registry.Registrar.EPPAccess(password='passwd',
-                                                 md5Cert='39:D1:0C:CA:05:3A:CC:C0:0B:EC:6F:3F:81:0D:C7:9E')],
+                                                 md5Cert='6A:AC:49:24:F8:32:1E:B7:A1:83:B5:D4:CB:74:29:98')],
             zones=[Registry.Registrar.ZoneAccess(id=1L, name='0.2.4.e164.arpa', credit='103696.18',
                                                  fromDate=ccReg.DateType(day=1, month=1, year=2007),
                                                  toDate=ccReg.DateType(day=0, month=0, year=0)),
