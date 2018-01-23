@@ -35,7 +35,7 @@ FILTER_LOG_REQUEST_TIME_LIMIT_LAST_MONTH = {
 
 
 class AccessDetail(Detail):
-    password = CharDField(label=_('Password'))
+    password = PasswordDField(label=_('Password'))
     md5Cert = CharDField(label=_('MD5'))  # registrar name
 
 

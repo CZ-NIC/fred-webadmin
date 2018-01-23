@@ -206,6 +206,11 @@ class CorbaEnumDField(CharDField):
         return value
 
 
+class PasswordDField(CharDField):
+    def make_content(self):
+        self.add('******')
+
+
 class RequestPropertyDField(DField):
     """ ccReg.RequestProperty detail field.
         Note: Currently only used by LoggerDetail.
