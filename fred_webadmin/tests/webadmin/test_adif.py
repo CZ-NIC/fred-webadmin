@@ -369,9 +369,11 @@ class TestRegistrarBase(BaseADIFTestCase):
                     email='', url='www.nic.cz', credit='0.00',
                     unspec_credit=u'120.00',
                     access=[Registry.Registrar.EPPAccess(
+                        id=1,
                         password='123456789',
                         md5Cert='60:7E:DF:39:62:C3:9D:3C:EB:5A:87:80:C1:73:4F:99'),
                     Registry.Registrar.EPPAccess(
+                        id=2,
                         password='passwd',
                         md5Cert='6A:AC:49:24:F8:32:1E:B7:A1:83:B5:D4:CB:74:29:98')],
                     zones=[

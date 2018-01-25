@@ -492,6 +492,12 @@ class Registrar(AdifPage, ListTableMixin):
         context['form'] = form
         return context
 
+    def _get_detail(self, obj_id):
+        detail = super(Registrar, self)._get_detail(obj_id=obj_id)
+        for access in detail.access:
+            access.password = ''
+        return detail
+
     @check_onperm('read')
     def detail(self, **kwd):
         log_req = self._create_log_req_for_object_view(**kwd)
