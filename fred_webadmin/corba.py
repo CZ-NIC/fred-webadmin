@@ -5,15 +5,13 @@
 import sys
 # extension imports
 import omniORB
-#import omniORB.codesets
 import CosNaming
-#from omniORB import CORBA, importIDL
 
+from fred_idl import Registry, ccReg
 
 # own exceptions
 class IorNotFoundError(Exception):
     pass
-
 
 class AlreadyLoggedInError(Exception):
     pass
@@ -65,22 +63,12 @@ omniORB.installTransientExceptionHandler(handler_cookie, transientFailure)
 omniORB.installCommFailureExceptionHandler(handler_cookie, commFailure)
 # omniORB.installSystemExceptionHandler(handler_cookie, systemFailure)
 
-import config
-#module_name = importIDL(config.idl)[0] # this hase to be here because cherrypy session needs to know ccReg module on start (while loadin session from file)
-omniORB.importIDL(config.idl)
-ccReg = sys.modules['ccReg']
-Registry = sys.modules['Registry']
 orb = omniORB.CORBA.ORB_init(["-ORBnativeCharCodeSet", "UTF-8"], omniORB.CORBA.ORB_ID)
-#orb = CORBA.ORB_init(["-ORBnativeCharCodeSet", "UTF-8", "-ORBtraceLevel", "10"], CORBA.ORB_ID)
-#omniORB.setClientCallTimeout(2000)
 
 
 class Corba(object):
     def __init__(self):
         object.__init__(self)
-        #self.module = sys.modules[module_name] #sys.modules[
-            #importIDL(idl or os.path.join(os.path.dirname(os.path.abspath(__file__)), IDL_FILE))[0]
-            #]
         self.context = None
 
     def connect(self, ior='localhost', context_name='fred'):
@@ -94,7 +82,7 @@ class Corba(object):
 
         # get idl type from idl_type_str:
         idl_type_parts = idl_type_str.split('.')
-        idl_type = sys.modules[idl_type_parts[0]]
+        idl_type = sys.modules['fred_idl.' + idl_type_parts[0]]
         for part in idl_type_parts[1:]:
             idl_type = getattr(idl_type, part)
 

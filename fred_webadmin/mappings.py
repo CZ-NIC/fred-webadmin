@@ -27,14 +27,10 @@
 
 import sys
 from pprint import pprint
-from omniORB import importIDL
 
-import fred_webadmin.config as config
+from fred_idl import Registry, ccReg
 from fred_webadmin.translation import _
 
-importIDL(config.idl)
-ccReg = sys.modules['ccReg']
-Registry = sys.modules['Registry']
 
 
 def corbaname_to_classname(corbaname):

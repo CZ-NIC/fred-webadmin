@@ -50,10 +50,6 @@ permissions = {
     'csv_file': 'DU_DATAROOTDIR/perms.csv',
 }
 
-### CORBA settings
-# Path to the main IDL file (ccReg.idl) of the FRED CORBA interface
-# '/usr/share/idl/fred/ccReg.idl'
-idl = 'DU_IDL_DIR/ccReg.idl'
 # List (tuple) of backends (FRED servers) available for login
 # Each backend is a tuple (label, nshost, nscontext) where:
 # label - the label displayed in the drop-down menu on the login screen,

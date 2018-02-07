@@ -21,7 +21,6 @@ class FredWebAdminInstall(install):
         ('webadminport=', None, 'Port of fred-webadmin  [18456]'),
         ('ldapserver=', None, 'LDAP server'),
         ('ldapscope=', None, 'LDAP scope'),
-        ("idldir=", "d", "directory where IDL files reside [PREFIX/share/idl/fred]"),
     ]
 
     DEPS_PYMODULE = ('simplejson', 'omniORB.CORBA', 'dns', 'cherrypy (>= 3.0.0)', 'cherrypy (<= 4.0.0)')
@@ -29,7 +28,6 @@ class FredWebAdminInstall(install):
     def initialize_options(self):
         install.initialize_options(self)
 
-        self.idldir = None
         self.nscontext = DEFAULT_NSCONTEXT
         self.nshost = DEFAULT_NSHOST
         self.nsport = DEFAULT_NSPORT
@@ -40,8 +38,6 @@ class FredWebAdminInstall(install):
 
     def finalize_options(self):
         install.finalize_options(self)
-        if not self.idldir:
-            self.idldir = self.expand_filename('$data/share/idl/fred')
 
         if self.ldapserver and self.ldapscope:
             self.authentization = 'LDAP'
@@ -57,7 +53,6 @@ class FredWebAdminInstall(install):
 
     def update_webadmin_cfg(self, filename):
         content = open(filename).read()
-        content = content.replace('DU_IDL_DIR', os.path.normpath(self.idldir))
         content = content.replace('DU_DATAROOTDIR', self.expand_filename('$data/share'))
         content = content.replace('DU_LOCALSTATEDIR', self.expand_filename('$localstate'))
         content = content.replace('DU_SYSCONFDIR', self.expand_filename('$sysconf'))
