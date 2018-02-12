@@ -93,8 +93,19 @@ class EditForm(Form):
 
 
 class AccessEditForm(EditForm):
-    password = ValueNotLoggedCharField(label=_('Password'))
+    id = HiddenIntegerField(initial=0)
+    password = ValueNotLoggedCharField(label=_('Password'), required=False)
     md5Cert = CharField(label=_('MD5 of cert.'))
+    md5Cert2SamePasswd = CharField(label=_('MD5 of cert. same password'), required=False)
+
+    def clean(self):
+        if int(self.fields['id'].value) == 0:
+            if self.fields['password'].value == '':
+                raise ValidationError('Password is required for new certificate')
+        else:
+            if self.fields['md5Cert2SamePasswd'].value and self.fields['password'].value:
+                raise ValidationError('Please do not change password when adding new certificate with same password as existing one')
+        return self.cleaned_data
 
 
 class ZoneEditForm(EditForm):
