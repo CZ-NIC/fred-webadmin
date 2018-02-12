@@ -758,7 +758,24 @@ class KeySet(AdifPage, ListTableMixin):
 
 
 class Mail(AdifPage, ListTableMixin):
-    pass
+
+    @check_onperm('read')
+    def detail(self, **kwd):
+        log_req = self._create_log_req_for_object_view(**kwd)
+        try:
+            mail_id = int(kwd['id'])
+            mailer = cherrypy.session.get('Mailer')
+            rendered_mail = mailer.renderMail(recoder.u2c(mail_id))
+            detail = self._get_detail(obj_id=mail_id)
+            result = detail.__dict__
+            result['content'] = recoder.c2u(rendered_mail)
+            context = {'result': result}
+            log_req.result = 'Success'
+        except ccReg.Mailer.UnknownMailid, e:
+            log_req.result = 'Fail'
+        finally:
+            log_req.close()
+        return self._render('detail', context)
 
 
 class File(AdifPage, ListTableMixin):
