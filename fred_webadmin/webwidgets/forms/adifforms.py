@@ -14,6 +14,7 @@ from .adiffields import DateFieldWithJsLink
 
 from fred_webadmin.translation import _
 from fred_webadmin.webwidgets.forms.adiffields import ListObjectHiddenField, CorbaEnumChoiceField
+from fred_webadmin.webwidgets.forms.fields import SplitDateSplitTimeField
 from fred_webadmin.mappings import f_name_translated_plural
 from fred_webadmin.corba import Registry
 from fred_webadmin.corbalazy import CorbaLazyRequestIterStruct
@@ -171,3 +172,14 @@ class ImportNotifEmailsForm(Form):
         except csv.Error, e:
             error('Error during reading CSV:', e)
             raise ValidationError('A correct CSV file is needed!')
+
+
+class ObjectPrintoutForm(Form):
+    def __init__(self, *content, **kwd):
+        super(ObjectPrintoutForm, self).__init__(*content, **kwd)
+        self.method = 'post'
+        self.fields['for_time'].fields[0].required = True
+
+    for_time = SplitDateSplitTimeField(label=_('For the date'), required=True)
+
+    submit_button_text = _('Download printout')

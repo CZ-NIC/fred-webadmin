@@ -209,6 +209,14 @@ class DomainFilterPage(FilterPage):
 
 
 class DetailPage(BaseSiteMenu):
+    def __init__(self, *args, **kwd):
+        super(DetailPage, self).__init__(*args, **kwd)
+        lang_code = config.lang[:2]
+        if lang_code == 'cs':  # conversion between cs and cz identifier of lagnguage
+            lang_code = 'cz'
+        self.head.add(script(attr(type='text/javascript'),
+                             'scwLanguage = "%s"; //sets language of js_calendar' % lang_code,
+                             'scwDateOutputFormat = "%s"; // set output format for js_calendar' % config.js_calendar_date_format))
     @classmethod
     def get_object_name(cls):
         return cls.__name__[:-len('Detail')].lower()

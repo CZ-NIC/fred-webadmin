@@ -1,5 +1,7 @@
 import datetime
 import logging
+import time
+
 import cherrypy
 import simplejson
 from cherrypy.lib import http
@@ -516,3 +518,9 @@ class DynamicWrapper(object):
 
     def __setattr__(self, name, value):
         setattr(self._get_object_function(), name, value)
+
+
+def datetime_to_string_with_timezone(local_datetime):
+    local_timestamp = time.mktime(local_datetime.timetuple())
+    utc_datetime = datetime.datetime.utcfromtimestamp(local_timestamp)
+    return utc_datetime.isoformat('T') + 'Z'  # 'Z' for Zulu, see IDL interface commentary
