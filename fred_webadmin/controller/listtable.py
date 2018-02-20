@@ -23,7 +23,7 @@ from fred_webadmin.webwidgets.adifwidgets import FilterListCustomUnpacked
 from fred_webadmin.webwidgets.forms.adifforms import ObjectPrintoutForm
 from fred_webadmin.customview import CustomView
 from fred_webadmin.corba import ccReg, Registry
-from fred_webadmin.utils import get_detail, create_log_request
+from fred_webadmin.utils import get_detail, create_log_request, datetime_to_string_with_timezone
 
 
 class ListTableMixin(object):
@@ -379,7 +379,9 @@ class ListTableMixin(object):
 
     def _get_printout_pdf(self, handle, for_time):
         corba_function = getattr(cherrypy.session['RecordsStatement'], 'historic_{}_printout'.format(self.classname))
-        for_time_in_yet_another_fred_datetime_corba_type = Registry.RecordStatement.DateTime(for_time.isoformat() + 'Z')
+        for_time_in_yet_another_fred_datetime_corba_type = Registry.RecordStatement.DateTime(
+            datetime_to_string_with_timezone(for_time)
+        )
         pdf_content = corba_function(u2c(handle), for_time_in_yet_another_fred_datetime_corba_type).data
         cherrypy.response.headers['Content-Type'] = 'application/pdf'
         return pdf_content

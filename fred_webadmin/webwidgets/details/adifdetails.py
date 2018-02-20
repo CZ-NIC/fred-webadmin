@@ -164,7 +164,7 @@ class ObjectDetail(Detail):
     def add_to_bottom(self):
         if not cherrypy.session['user'].check_nperms('printout.%s' % self.get_object_name()):
             self.add(div(attr(id='printout-form'),
-                         h2(_('Download printout')),
+                         h2(_('Generate record statement')),
                          ObjectPrintoutForm(
                              action=f_urls[self.get_object_name()] + 'printout/%s/' % self.data.get('handle', self.data.get('fqdn'))
                          )
