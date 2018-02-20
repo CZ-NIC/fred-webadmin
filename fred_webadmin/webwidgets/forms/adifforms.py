@@ -175,11 +175,16 @@ class ImportNotifEmailsForm(Form):
 
 
 class ObjectPrintoutForm(Form):
+    for_time = SplitDateSplitTimeField(label=_('For the date'), required=True)
+
+    submit_button_text = _('Download PDF')
+
     def __init__(self, *content, **kwd):
         super(ObjectPrintoutForm, self).__init__(*content, **kwd)
         self.method = 'post'
         self.fields['for_time'].fields[0].required = True
 
-    for_time = SplitDateSplitTimeField(label=_('For the date'), required=True)
-
-    submit_button_text = _('Download printout')
+    def clean_for_time(self):
+        if self.cleaned_data['for_time'] and self.cleaned_data['for_time'] > datetime.datetime.now():
+            raise ValidationError('Record statement date must not be in the future.')
+        return self.cleaned_data['for_time']
