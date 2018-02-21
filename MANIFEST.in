@@ -1,5 +1,7 @@
-recursive-include doc *
-include contrib/*
-include MANIFEST.in
+graft contrib
+graft fred_webadmin
+graft conf
+graft doc
+include dependency_links.txt
 include COPYING
 include LICENSE
