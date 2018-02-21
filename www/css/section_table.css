@@ -17,7 +17,7 @@
 
 .section_table td,
 .section_table th {
-    padding: 2px;
+    padding: 0.2em;
 }
 
 .nested_section_table {

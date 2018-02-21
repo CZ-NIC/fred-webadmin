@@ -1,5 +1,5 @@
-@import url("section_table.css");
 @import url("detail_table.css");
+@import url("section_table.css");
 
 .discloseTrue,
 .status_ok { background-color: #bf8; }

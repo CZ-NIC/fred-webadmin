@@ -1,9 +1,9 @@
 .detail_table { margin: 0.5em 0; }
 
-.detail_table th { text-align: left; }
+.detail_table > thead > tr > th { text-align: left; }
 
-.detail_table th,
-.detail_table td {
+.detail_table > thead > tr > th,
+.detail_table > tbody > tr > td {
     vertical-align: top;
     padding: 0;
     border-collapse: collapse;
@@ -17,4 +17,4 @@
     padding: 0;
 }
 
-.object_list_detail_table th { text-align: left; }
+.object_list_detail_table > thead > tr > th { text-align: left; }
