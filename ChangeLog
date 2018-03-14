@@ -1,3 +1,7 @@
+2018-03-14 (3.22.0)
+
+    * Switch to new common date/time and buffer data types in idl
+
 2018-03-08 (3.21.0)
 
     * Adapt to mail_archive changes (get e-mail detail by pyfred-mailer renderMail method)
