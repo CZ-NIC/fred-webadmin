@@ -24,6 +24,18 @@ def teardown_module():
     deinit_test_server()
 
 
+class Patched_IsoDate(Registry.IsoDate):
+    def __str__(self):
+        return "PatchedIsoDate(%s)" % (self.value)
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __eq__(self, obj):
+        """ Equality is defined so that we can assert it easier """
+        return self.value == obj.value
+
+
 def get_blocking_mock():
     ''' Used for mock backend during development, this is not used for automatic tests '''
     blocking_mock = mock.Mock()
@@ -338,7 +350,7 @@ class TestAdministrativeChangeBlocking(BaseTestAdministrativeBlockingAction):
         self.blocking_mock.updateBlockDomainsId.assert_called_once_with(
             [1],
             ['serverDeleteProhibited', 'serverRenewProhibited'],
-            Patched_datetype(block_to_date.day, block_to_date.month, block_to_date.year),
+            Patched_IsoDate(block_to_date.isoformat()),
             self.REASON_TEXT,
             0
         )
@@ -511,7 +523,7 @@ class TestAdministrativeBlacklistAndDelete(BaseTestAdministrativeBlockingAction)
 
         self.blocking_mock.blacklistAndDeleteDomainsId.assert_called_once_with(
             [1],
-            Patched_datetype(blacklist_to_date.day, blacklist_to_date.month, blacklist_to_date.year),
+            Patched_IsoDate(blacklist_to_date.isoformat()),
             self.REASON_TEXT,
             0
         )

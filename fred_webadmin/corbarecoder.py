@@ -1,8 +1,11 @@
 import types
 import codecs
 import datetime
+
+from pyfco.recoder import decode_iso_date, decode_iso_datetime, encode_iso_date, encode_iso_datetime
+
 import fred_webadmin.nulltype as fredtypes
-from corba import ccReg
+from corba import ccReg, Registry
 
 
 class UnsupportedEncodingError(Exception):
@@ -123,6 +126,10 @@ class DaphneCorbaRecode(CorbaRecode):
             return corba_to_date(answer)
         if isinstance(answer, ccReg.DateType):
             return corba_to_date(answer)
+        if isinstance(answer, Registry.IsoDate):
+            return decode_iso_date(answer)
+        if isinstance(answer, Registry.IsoDateTime):
+            return decode_iso_datetime(answer)
         # OMNIOrbpy uses old style classes => check whether type is
         # InstanceType.
         if self.isInstance(answer):
@@ -198,6 +205,18 @@ class DaphneCorbaRecode(CorbaRecode):
                     "%s attribute in %s is not convertable to Corba type." % (
                         name, answer))
             return answer
+
+
+class IsoDateTimeCorbaRecode(DaphneCorbaRecode):
+    """Corba recoder for IsoDate and IsoDateTime format support."""
+
+    def encode(self, answer):
+        if isinstance(answer, datetime.datetime):
+            return encode_iso_datetime(answer)
+        if isinstance(answer, datetime.date):
+            return encode_iso_date(answer)
+        return super(IsoDateTimeCorbaRecode, self).encode(answer)
+
 
 null_encoding_rules = {
     fredtypes.NullDate: ccReg.DateType(0, 0, 0),

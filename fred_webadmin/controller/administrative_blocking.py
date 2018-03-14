@@ -1,5 +1,6 @@
 import cherrypy
 
+from fred_webadmin.corbarecoder import IsoDateTimeCorbaRecode
 from fred_webadmin.controller import views
 from fred_webadmin.corba import Registry
 from fred_webadmin.mappings import f_urls
@@ -55,6 +56,11 @@ class AdministrativeBlockingBaseView(views.ProcessFormCorbaLogView):
     success_url = f_urls['domain'] + 'blocking/result/'
 
     action_name = None  # Translated name of action used for heading and buttons
+
+    recoder = IsoDateTimeCorbaRecode('utf-8')
+
+    def convert_corba_arguments(self, arguments):
+        return [self.recoder.encode(argument) for argument in arguments]
 
     def get_context_data(self, **kwargs):
         kwargs['heading'] = self.action_name
