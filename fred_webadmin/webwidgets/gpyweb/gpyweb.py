@@ -1,8 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import time
 import types
 from cgi import escape
+from datetime import datetime
+
+import pytz
+
 import fred_webadmin.nulltype as fredtypes
 
 
@@ -288,6 +293,9 @@ class WebWidget(object):
                 rstr += escape(con)
                 if not self.enclose_content:
                     rstr += self.delimiter_char
+            elif isinstance(con, datetime) and con.tzinfo is not None:
+                local_datetime = con.astimezone(pytz.FixedOffset(time.timezone / 60))
+                rstr += unicode(local_datetime.replace(microsecond=0, tzinfo=None))
             elif isinstance(con, (types.ListType, types.TupleType)):
                 for item in con:
                     if item is not None:
