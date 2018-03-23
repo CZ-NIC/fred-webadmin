@@ -762,6 +762,7 @@ class Mail(AdifPage, ListTableMixin):
 
     @check_onperm('read')
     def detail(self, **kwd):
+        context = {}
         log_req = self._create_log_req_for_object_view(**kwd)
         try:
             mail_id = int(kwd['id'])
@@ -774,6 +775,7 @@ class Mail(AdifPage, ListTableMixin):
             log_req.result = 'Success'
         except ccReg.Mailer.UnknownMailid, e:
             log_req.result = 'Fail'
+            context['main'] = _("Object_not_found")
         finally:
             log_req.close()
         return self._render('detail', context)
