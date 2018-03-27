@@ -211,7 +211,11 @@ class IsoDateTimeCorbaRecode(DaphneCorbaRecode):
     """Corba recoder for IsoDate and IsoDateTime format support."""
 
     def encode(self, answer):
+        from fred_webadmin.utils import get_local_timezone
+
         if isinstance(answer, datetime.datetime):
+            if answer.tzinfo is None:
+                answer = get_local_timezone().localize(answer)
             return encode_iso_datetime(answer)
         if isinstance(answer, datetime.date):
             return encode_iso_date(answer)
