@@ -8,6 +8,7 @@ from cherrypy.lib import http
 from omniORB.any import from_any
 from logging import debug
 import CosNaming
+import pytz
 
 import fred_webadmin.corbarecoder as recoder
 from corba import ccReg
@@ -524,3 +525,14 @@ def datetime_to_string_with_timezone(local_datetime):
     local_timestamp = time.mktime(local_datetime.timetuple())
     utc_datetime = datetime.datetime.utcfromtimestamp(local_timestamp)
     return utc_datetime.isoformat('T') + 'Z'  # 'Z' for Zulu, see IDL interface commentary
+
+
+def get_local_timezone():
+    # For some reason the altzone/timezone returns negative of time zone offset
+    if time.daylight:
+        offset = -time.altzone
+    else:
+        offset = -time.timezone
+
+    # offset is in seconds, FixedOffset requires minutes.
+    return pytz.FixedOffset(offset / 60)

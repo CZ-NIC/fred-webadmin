@@ -1,14 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-import time
 import types
 from cgi import escape
 from datetime import datetime
 
-import pytz
-
 import fred_webadmin.nulltype as fredtypes
+from fred_webadmin.utils import get_local_timezone
 
 
 class GPyWebError(Exception):
@@ -294,7 +291,7 @@ class WebWidget(object):
                 if not self.enclose_content:
                     rstr += self.delimiter_char
             elif isinstance(con, datetime) and con.tzinfo is not None:
-                local_datetime = con.astimezone(pytz.FixedOffset(time.timezone / 60))
+                local_datetime = con.astimezone(get_local_timezone())
                 rstr += unicode(local_datetime.replace(microsecond=0, tzinfo=None))
             elif isinstance(con, (types.ListType, types.TupleType)):
                 for item in con:
