@@ -528,11 +528,4 @@ def datetime_to_string_with_timezone(local_datetime):
 
 
 def get_local_timezone():
-    # For some reason the altzone/timezone returns negative of time zone offset
-    if time.daylight:
-        offset = -time.altzone
-    else:
-        offset = -time.timezone
-
-    # offset is in seconds, FixedOffset requires minutes.
-    return pytz.FixedOffset(offset / 60)
+    return pytz.timezone(config.timezone)

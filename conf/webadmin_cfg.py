@@ -96,6 +96,7 @@ localepath = locale_dir
 # Language to be used
 # lang = 'cs_CZ'
 lang = 'en_US'
+timezone = 'Europe/Prague'
 
 # Memory-caching server address (host:port)
 memcached_server = '127.0.0.1:11211'
