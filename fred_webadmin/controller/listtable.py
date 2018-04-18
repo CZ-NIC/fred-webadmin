@@ -379,7 +379,7 @@ class ListTableMixin(object):
 
     def _get_printout_pdf(self, handle, for_time):
         corba_function = getattr(cherrypy.session['RecordsStatement'], 'historic_{}_printout'.format(self.classname))
-        for_time_in_yet_another_fred_datetime_corba_type = Registry.RecordStatement.DateTime(
+        for_time_in_yet_another_fred_datetime_corba_type = Registry.IsoDateTime(
             datetime_to_string_with_timezone(for_time)
         )
         pdf_content = corba_function(u2c(handle), for_time_in_yet_another_fred_datetime_corba_type).data
