@@ -642,7 +642,7 @@ class PublicRequestDetail(Detail):
 
     def add_to_bottom(self):
         type_specific_button = None
-        if self.data and self.data.get('status') == Registry.PublicRequest.PRS_NEW:
+        if self.data and self.data.get('status') == Registry.PublicRequest.PRS_OPENED:
             if self.data.get('type') in (Registry.PublicRequest.PRT_MOJEID_CONTACT_IDENTIFICATION,
                                          Registry.PublicRequest.PRT_CONTACT_IDENTIFICATION):
                 type_specific_button = [
