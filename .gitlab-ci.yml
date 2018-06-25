@@ -8,7 +8,7 @@ stages:
         - nodejs
 
 .nodejs-xenial: &nodejs-xenial
-    image: cznic/ubuntu_xenial_nodejs:latest
+    image: $CI_REGISTRY/ginger/base/ubuntu_xenial_nodejs:latest
 
 ########################################################################################################################
 # Individual jobs
