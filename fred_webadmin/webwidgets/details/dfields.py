@@ -128,13 +128,6 @@ class CharDField(DField):
         return value
 
 
-class PaymentTypeDField(CharDField):
-    def resolve_value(self, value):
-        if value != fredtypes.Null():
-            value = editforms.payment_map[value]
-        return value
-
-
 #TODO(tom): Really convert here? Or is it already converted when
 # converting corba detail?
 class DateDField(DField):

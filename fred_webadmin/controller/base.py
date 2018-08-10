@@ -18,9 +18,8 @@ from fred_webadmin.webwidgets.templates.pages import (
     AllFiltersPage, FilterPage, ErrorPage, DigPage, SetInZoneStatusPage,
     DomainDetail, ContactDetail, NSSetDetail, KeySetDetail, RegistrarDetail,
     PublicRequestDetail, MailDetail, InvoiceDetail, LoggerDetail,
-    RegistrarEdit, BankStatementPairingEdit, BankStatementDetail,
-    BankStatementDetailWithPaymentPairing, GroupEditorPage, MessageDetail,
-    DomainBlocking, DomainBlockingResult, FormPage
+    RegistrarEdit, GroupEditorPage, MessageDetail, DomainBlocking,
+    DomainBlockingResult, FormPage
 )
 
 
@@ -58,8 +57,6 @@ class AdifPage(Page):
             return ErrorPage
         elif action == 'dig':
             return DigPage
-        elif action == 'pairstatements':
-            return BankStatementPairingEdit
         elif action == 'setinzonestatus':
             return SetInZoneStatusPage
         elif action == 'printout':

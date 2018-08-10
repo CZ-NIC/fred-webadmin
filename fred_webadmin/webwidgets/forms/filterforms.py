@@ -26,7 +26,6 @@ from fred_webadmin.corbalazy import (
     CorbaLazyRequestIterStruct, ServerNotAvailableError)
 from fred_webadmin.corba import Registry
 from fred_webadmin.mappings import f_urls
-import fred_webadmin.webwidgets.forms.editforms as editforms
 import fred_webadmin.webwidgets.forms.emptyvalue
 
 __all__ = ['UnionFilterForm', 'RegistrarFilterForm', 'ObjectStateFilterForm',
@@ -34,7 +33,7 @@ __all__ = ['UnionFilterForm', 'RegistrarFilterForm', 'ObjectStateFilterForm',
            'KeySetFilterForm', 'DomainFilterForm',
            'FilterFilterForm', 'PublicRequestFilterForm',
            'InvoiceFilterForm', 'MailFilterForm', 'FileFilterForm',
-           'LoggerFilterForm', 'BankStatementFilterForm', 'MessageFilterForm',
+           'LoggerFilterForm', 'MessageFilterForm',
            'PropertyFilterForm',
            'get_filter_forms_javascript']
 
@@ -404,43 +403,6 @@ class LoggerFilterForm(FilterForm):
     IsMonitoring = BooleanField(label=_("Monitoring"))
 
 
-class BankStatementFilterForm(FilterForm):
-    def _get_header_title(self):
-        return _("Payments")
-
-    default_fields_names = ['Type']
-
-    Type = IntegerChoiceField(label=_('Type'), choices=[
-        (editforms.PAYMENT_UNASSIGNED,
-            editforms.payment_map[editforms.PAYMENT_UNASSIGNED]),
-        (editforms.PAYMENT_REGISTRAR,
-            editforms.payment_map[editforms.PAYMENT_REGISTRAR]),
-        (editforms.PAYMENT_BANK,
-            editforms.payment_map[editforms.PAYMENT_BANK]),
-        (editforms.PAYMENT_ACCOUNTS,
-            editforms.payment_map[editforms.PAYMENT_ACCOUNTS]),
-        (editforms.PAYMENT_ACADEMIA,
-            editforms.payment_map[editforms.PAYMENT_ACADEMIA]),
-        (editforms.PAYMENT_OTHER,
-            editforms.payment_map[editforms.PAYMENT_OTHER])])
-
-    AccountDate = DateIntervalField(label=_('Account date'))
-
-    AccountNumber = CharField(label=_('Account number'))
-    BankCode = CharField(label=_('Bank code'))
-
-    ConstSymb = CharField(label=_('Constant symbol'))
-    VarSymb = CharField(label=_('Variable symbol'))
-
-    CrTime = DateTimeIntervalField(label=_('Import time'))
-    AccountMemo = CharField(label=_('Memo'))
-
-    AccountId = ChoiceField(
-        label=_('Destination account'),
-        choices=CorbaLazyRequestIterStruct(
-            'Admin', None, 'getBankAccounts', ['id', 'name'], None))
-
-
 class MessageFilterForm(FilterForm):
     default_fields_names = ['CrDate']
     CrDate = DateTimeIntervalField(label=_('Creation date'))
@@ -553,7 +515,6 @@ form_classes = [DomainFilterForm,
                 MailFilterForm,
                 ObjectStateFilterForm,
                 LoggerFilterForm,
-                BankStatementFilterForm,
                 MessageFilterForm,
                 PropertyFilterForm,
                 ResultCodeFilterForm,

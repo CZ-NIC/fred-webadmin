@@ -22,21 +22,6 @@ from fred_webadmin.webwidgets.forms.formsetlayouts import DivFormSetLayout
 from fred_webadmin.corba import Registry
 from fred_webadmin.webwidgets.utils import SortedDict
 
-PAYMENT_UNASSIGNED = 1
-PAYMENT_REGISTRAR = 2
-PAYMENT_BANK = 3
-PAYMENT_ACCOUNTS = 4
-PAYMENT_ACADEMIA = 5
-PAYMENT_OTHER = 6
-
-# Mapping between id and user description of invoice types.
-payment_map = dict([(PAYMENT_UNASSIGNED, u'Not assigned'),
-(PAYMENT_REGISTRAR, u'From/to registrar'),
-(PAYMENT_BANK, u"From/to bank"),
-(PAYMENT_ACCOUNTS, u'Between our own accounts'),
-(PAYMENT_ACADEMIA, u'Related to Academia'),
-(PAYMENT_OTHER, u'Other transfers')])
-
 
 class UpdateFailedError(adiferrors.AdifError):
     """ To be used in fire_actions when the action cannot be carried out.
@@ -440,19 +425,6 @@ class RegistrarEditForm(EditForm):
             reg_id=reg_id, *args, **kwargs)
 
 
-class BankStatementPairingEditForm(EditForm):
-    type = IntegerChoiceField(
-        label=_('Type'), choices=[
-            (PAYMENT_REGISTRAR, payment_map[PAYMENT_REGISTRAR]),
-            (PAYMENT_BANK, payment_map[PAYMENT_BANK]),
-            (PAYMENT_ACCOUNTS, payment_map[PAYMENT_ACCOUNTS]),
-            (PAYMENT_ACADEMIA, payment_map[PAYMENT_ACADEMIA]),
-            (PAYMENT_OTHER, payment_map[PAYMENT_OTHER])],
-        onchange="disableRegistrarHandle();")  # , onload="disableRegistrarHandle();")
-    handle = CharField(
-        label=_('Pair with Registrar Handle'), name="registrar_handle_input")
-
-
 class RegistrarGroupsEditForm(EditForm):
     name = CharField(label=_("Group name"))
     id = HiddenIntegerField()
@@ -513,6 +485,6 @@ class GroupManagerEditForm(EditForm):
 
 
 form_classes = [
-    AccessEditForm, RegistrarEditForm, BankStatementPairingEditForm,
+    AccessEditForm, RegistrarEditForm,
     ZoneEditForm, RegistrarGroupsEditForm, SingleGroupEditForm,
     GroupManagerEditForm, CertificationEditForm]

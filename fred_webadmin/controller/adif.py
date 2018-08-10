@@ -69,8 +69,7 @@ from fred_webadmin.translation import _
 
 # This must all be imported because of the way templates are dealt with.
 from fred_webadmin.webwidgets.templates.pages import (BaseSiteMenu, DomainBlocking, DomainBlockingResult,
-                                                      DomainFilterPage, BankStatementDetailWithPaymentPairing,
-                                                      GroupEditorPage, FormPage)
+                                                      DomainFilterPage, GroupEditorPage, FormPage)
 from fred_webadmin.webwidgets.gpyweb.gpyweb import (
     DictLookup, noesc, attr, ul, li, a, div, p)
 
@@ -78,8 +77,7 @@ from fred_webadmin.webwidgets.gpyweb.gpyweb import (
 from fred_webadmin.webwidgets.forms.adifforms import LoginForm
 
 # Must be imported because of template magic stuff. I think.
-from fred_webadmin.webwidgets.forms.editforms import (RegistrarEditForm,
-    BankStatementPairingEditForm, GroupManagerEditForm)
+from fred_webadmin.webwidgets.forms.editforms import RegistrarEditForm, GroupManagerEditForm
 import fred_webadmin.webwidgets.forms.editforms as editforms
 
 import fred_webadmin.webwidgets.forms.filterforms as filterforms
@@ -905,101 +903,6 @@ class Invoice(AdifPage, ListTableMixin):
     pass
 
 
-class BankStatement(AdifPage, ListTableMixin):
-    def _pair_payment_with_registrar(self, payment_id, payment_type, registrar_handle):
-        """ Links the payment with registrar. """
-        props = [("registrar_handle", registrar_handle)]
-        log_req = self._create_log_req_for_object_view('PaymentPair', properties=props, **{'id': str(payment_id)})
-        try:
-            invoicing = utils.get_corba_session().getBankingInvoicing()
-            success = True
-            if payment_type == editforms.PAYMENT_REGISTRAR:
-                success = invoicing.pairPaymentRegistrarHandle(payment_id, recoder.u2c(registrar_handle))
-
-            success = success and invoicing.setPaymentType(payment_id, payment_type)
-            if success:
-                log_req.result = 'Success'
-            else:
-                log_req.result = 'Fail'
-        finally:
-            log_req.close()
-        return success
-
-    @check_onperm('read')
-    def detail(self, **kwd):
-        """ Detail for Payment. If the payment is not paired with any
-            Registrar, we display a pairing form too.
-        """
-
-        log_req = self._create_log_req_for_object_view(**kwd)
-        try:
-            obj_id = int(kwd.get('id'))
-            context = {}
-            # Indicator whether the pairing action has been carried out
-            # successfully.
-            pairing_success = False
-
-            user = cherrypy.session['user']
-            user_has_change_perms = not user.check_nperms("change.bankstatement")
-
-            # When the user sends the pairing form we arrive at BankStatement
-            # detail again, but this time we receive registrar_handle in kwd
-            # => pair the payment with the registrar.
-            if cherrypy.request.method == 'POST' and user_has_change_perms:
-                registrar_handle = kwd.get('handle', None)
-                payment_type = kwd.get('type', None)
-                try:
-                    payment_type = int(payment_type)
-                except (TypeError, ValueError):
-                    log_req.result = 'Fail'
-                    context['main'] = _('Requires integer as parameter (got %s).' % payment_type)
-                    raise CustomView(self._render('base', ctx=context))
-                pairing_success = self._pair_payment_with_registrar(obj_id, payment_type, registrar_handle)
-
-            # Do not use cache - we want the updated BankStatementItem.
-            detail = utils.get_detail(self.classname, int(obj_id), use_cache=False)
-            context['detail'] = detail
-            context['form'] = BankStatementPairingEditForm(
-                method="POST",
-                initial={
-                    'handle': kwd.get('handle', None),
-                    'statementId': kwd.get('statementId', None),
-                    'type': kwd.get('type', 2),
-                },
-                onsubmit='return confirmAction();')
-            if cherrypy.request.method == 'POST' and not pairing_success:
-                # Pairing form was submitted, but pairing did not finish
-                # successfully => Show an error.
-                context['form'].non_field_errors().append(
-                    'Could not pair. Perhaps you have entered an invalid handle?')
-
-            if detail.type == editforms.PAYMENT_UNASSIGNED and user_has_change_perms:
-                # Payment not paired => show the payment pairing edit form
-                action = 'pair_payment'
-                # invoiceId is a link to detail, but for id == 0 this detail does
-                # not exist => hide invoiceId value so the link is not "clickable".
-                # Note: No information is lost, because id == 0 semantically means
-                # that there is no id.
-                context['detail'].invoiceId = ""
-            else:
-                action = 'detail'
-                if detail.type != editforms.PAYMENT_REGISTRAR:
-                    context['detail'].invoiceId = ""
-            res = self._render(action, context)
-            log_req.result = 'Success'
-        finally:
-            log_req.close()
-        return res
-
-    def _template(self, action=''):
-        if action == "pair_payment":
-            # Show detail with payment pairing form.
-            return BankStatementDetailWithPaymentPairing
-        else:
-            # Show normal detail.
-            return super(BankStatement, self)._template(action)
-
-
 class Message(AdifPage, ListTableMixin):
     pass
 
@@ -1148,7 +1051,6 @@ def prepare_root():
     root.file = File()
     root.publicrequest = PublicRequest()
     root.invoice = Invoice()
-    root.bankstatement = BankStatement()
     root.message = Message()
     root.filter = Filter()
     root.statistic = Statistics()

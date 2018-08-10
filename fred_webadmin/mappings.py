@@ -18,9 +18,7 @@
  {'classname': 'file', 'item': ccReg.FT_FILE},\
  {'classname': 'logger', 'item': ccReg.FT_LOGGER},\
  {'classname': 'session', 'item': ccReg.FT_SESSION},\
- {'classname': 'bankstatement', 'item': ccReg.FT_STATEMENTITEM},\
  {'classname': 'zone', 'item': ccReg.FT_ZONE},\
- {'classname': 'statementhead', 'item': ccReg.FT_STATEMENTHEAD},\
  {'classname': 'message', 'item': ccReg.FT_MESSAGE}]
     True
 """
@@ -37,10 +35,7 @@ def corbaname_to_classname(corbaname):
     """ Return classname (class name in lowercase) for a given ccReg.FT_FILTER*
         type.
     """
-    rules = {
-        ccReg.FT_STATEMENTITEM._v: 'bankstatement'
-    }
-    return rules.get(corbaname._v, corbaname._n[3:].lower())
+    return corbaname._n[3:].lower()
 
 
 def reverse_dict(dictionary):
@@ -93,7 +88,6 @@ def generate_dict(suffix):
 
         doctests:
         >>> generate_dict("TestSuffix") ==  {'session': 'SessionTestSuffix', \
-'bankstatement': 'BankStatementTestSuffix', \
 'domain': 'DomainTestSuffix', \
 'obj': 'ObjTestSuffix', \
 'invoice': 'InvoiceTestSuffix', \
@@ -106,7 +100,6 @@ def generate_dict(suffix):
 'nsset': 'NSSetTestSuffix', \
 'mail': 'MailTestSuffix', \
 'logger': 'LoggerTestSuffix', \
-'statementhead': 'StatementHeadTestSuffix',\
 'publicrequest': 'PublicRequestTestSuffix',\
 'message': 'MessageTestSuffix'}
         True
@@ -117,8 +110,6 @@ def generate_dict(suffix):
         'nsset': 'NSSet',
         'keyset': 'KeySet',
         'publicrequest': 'PublicRequest',
-        'bankstatement': 'BankStatement',
-        'statementhead': 'StatementHead',
     }
     result = dict(
         [
@@ -139,7 +130,7 @@ f_name_actionname = generate_dict('')
 f_name_req_object_type = dict([(item['classname'], item['classname']) for
     item in filter_type_items])
 f_name_req_object_type['logger'] = 'request'
-for object_type in ('filter', 'obj', 'session', 'statementhead', 'zone'):  # don't log references for these types:
+for object_type in ('filter', 'obj', 'session', 'zone'):  # don't log references for these types:
     f_name_req_object_type.pop(object_type)
 f_req_object_type_name = reverse_dict(f_name_req_object_type)
 

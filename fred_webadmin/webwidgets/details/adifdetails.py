@@ -730,25 +730,6 @@ class LoggerDetail(Detail):
         return True"""
 
 
-class BankStatementDetail(Detail):
-    accountNumber = CharDField(label=_('Account Number'))
-    bankCodeId = CharDField(label=_('Bank Code'))
-    code = CharDField(label=_('Code'))
-    type = PaymentTypeDField(label=_('Type'))
-    konstSym = CharDField(label=_('Constant Symbol'))
-    varSymb = CharDField(label=_('Variable Symbol'))
-    specSymb = CharDField(label=_('Specific Symbol'))
-    price = CharDField(label=_('Price'))
-    accountEvid = CharDField(label=_('Account Evid.'))
-    accountMemo = CharDField(label=_('Account Memo'))
-    accountName = CharDField(label=_('Account Name'))
-    invoiceId = ObjectHandleURLDField(
-        label=_('Invoice Id'), object_type_name="invoice", id_name="invoiceId",
-        handle_name="invoiceId")
-    crTime = CharDField(label=_('crTime'))
-    destAccountNumber = CharDField(label=_('Destination Account'))
-
-
 class SMSDetail(Detail):
     phone_number = CharDField(label=_('Phone number'))
     content = CharDField(label=_('Content'))
@@ -820,4 +801,4 @@ detail_classes = [AccessDetail, RegistrarDetail,
                   DomainDetail,
                   ActionDetail, PublicRequestDetail, MailDetail,
                   PaymentDetail, PaymentActionDetail, InvoiceDetail,
-                  BankStatementDetail, LoggerDetail, ZoneDetail]
+                  LoggerDetail, ZoneDetail]
