@@ -321,28 +321,6 @@ class LoggerDetail(DetailPage):
                 self.main.add('LoggerDETAIL:', pre(unicode(c.result).replace(u', ', u',\n')))
 
 
-class BankStatementDetail(DetailPage):
-    def __init__(self, context=None):
-        super(BankStatementDetail, self).__init__(context)
-        c = self.context
-        if c.get('detail'):
-            self.main.add(h1(_("Detail of payment")))
-            self.main.add(adifdetails.BankStatementDetail(c.detail, c.history))
-            if config.debug:
-                self.main.add('BankStatementDETAIL:', pre(unicode(c.detail).replace(u', ', u',\n')))
-
-
-class BankStatementDetailWithPaymentPairing(DetailPage):
-    def __init__(self, context=None):
-        super(BankStatementDetailWithPaymentPairing, self).__init__(context)
-        c = self.context
-        if c.get('detail'):
-            self.main.add(h1(_('Detail of payment')))
-            self.main.add(adifdetails.BankStatementDetail(c.detail, c.history))
-        if c.get('form'):
-            self.main.add(c.form)
-
-
 class MessageDetail(DetailPage):
     def __init__(self, context=None):
         super(MessageDetail, self).__init__(context)
@@ -372,10 +350,6 @@ class EditPage(BaseSiteMenu):
 
 
 class RegistrarEdit(EditPage):
-    pass
-
-
-class BankStatementPairingEdit(EditPage):
     pass
 
 

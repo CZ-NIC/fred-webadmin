@@ -73,7 +73,7 @@ table_max_row_limit = 1000
 table_max_row_limit_per_obj = {
     # Maximum number of rows in the table of domains
     'domain': 2000,
-    # Available keys: 'registrar', 'domain', 'bankstatement', 'invoice',
+    # Available keys: 'registrar', 'domain', 'invoice',
     # 'contact', 'nsset', 'keyset', 'file', 'logger', 'mail', 'message',
     # 'filter', 'publicrequest'
 }

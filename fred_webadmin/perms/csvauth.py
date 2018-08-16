@@ -12,7 +12,7 @@ class Authorizer(object):
         username2,perm1,perm2
         E.g.:
         "testuser","read.registrar","change.domain"
-        "testuser2","read.bankstatement"
+        "testuser2","read.invoice"
 
         Doctests:
             Mock the _get_reader call, so that we do not actually read

@@ -152,10 +152,8 @@ registrars_node = MenuNode(
                 'invoice', _('Invoices'), cssc='menu-item',
                 url=f_urls['invoice'] + 'allfilters/',
                 nperm='read.invoice'),
-            MenuNode(
-                'bankstatement', _('Payments'), cssc='menu-item',
-                url=f_urls['bankstatement'] + 'allfilters/',
-                nperm='read.bankstatement')])
+        ]
+)
 
 log_submenu = []
 
