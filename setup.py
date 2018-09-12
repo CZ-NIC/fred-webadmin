@@ -89,6 +89,7 @@ def main():
          for dest, files in find_data_files(srcdir, 'www')]
 
     setup(name=PROJECT_NAME,
+          version='3.24.0',
           description='Admin Interface for FRED (Fast Registry for Enum and Domains)',
           author='David Pospisilik, Tomas Divis, CZ.NIC',
           author_email='tdivis@nic.cz',
