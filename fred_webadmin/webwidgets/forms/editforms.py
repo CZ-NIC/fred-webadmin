@@ -19,7 +19,8 @@ from fred_webadmin.webwidgets.forms.formlayouts import (
     TableFormLayout)
 from fred_webadmin.webwidgets.forms.formsetlayouts import DivFormSetLayout
 
-from fred_webadmin.corba import Registry
+from fred_webadmin.corba import ccReg, Registry
+from fred_webadmin.nulltype import NullDate
 from fred_webadmin.webwidgets.utils import SortedDict
 
 
@@ -169,7 +170,7 @@ class CertificationEditForm(EditForm):
     evaluation_file_id = HiddenIntegerField()
 
     fromDate = DateField(label=_("From"))
-    toDate = DateField(label=_("To"))
+    toDate = DateField(label=_("To"), required=False)
     score = IntegerChoiceField(
         choices=[(0, 0), (1, 1), (2, 2), (3, 3), (4, 4), (5, 5)], label=_("Score"))
 
@@ -182,19 +183,16 @@ class CertificationEditForm(EditForm):
         """ Check that 'To' date is bigger than current date
         """
         super(CertificationEditForm, self).clean()
-        to_date = self.fields['toDate'].value
-        from_date = date.today()
+        to_date = self.cleaned_data['toDate']
         if to_date:
+            # recoder is broken, recode NullDate manually:
             if ('toDate' in self.changed_data and
-                    to_date < from_date.strftime("%Y-%m-%d")):
-                raise ValidationError(
-                    "'To' date must be bigger than current date.")
-        if (self.initial and self.initial.get('id', None) and
-                'toDate' in self.changed_data):
-            if (self.initial['toDate'].strftime("%Y-%m-%d") <
-                    self.fields['toDate'].value):
-                raise ValidationError(
-                    "It is disallowed to lengthen the certification.")
+                    not isinstance(to_date, NullDate) and
+                    to_date < date.today()):
+                raise ValidationError("'To' date must be bigger than current date.")
+        if self.initial and self.initial.get('id', None) and 'toDate' in self.changed_data:
+            if isinstance(to_date, NullDate) or self.initial['toDate'] < to_date:
+                raise ValidationError("It is disallowed to lengthen the certification.")
         return self.cleaned_data
 
     def _get_changed_data(self):
@@ -226,22 +224,6 @@ class CertificationEditForm(EditForm):
         super(CertificationEditForm, self).set_fields_values()
         if not self.initial.get("id"):
             now = date.today()
-            if now.month == 2 and now.day == 29:
-                # Handle leap year
-                initToDate = datetime.date(year=now.year + 1, month=3, day=1)
-            else:
-                initToDate = datetime.date(year=now.year + 1, month=now.month, day=now.day)
-            # TODO(Tom): Some funny stuff is happening here, take a look at it.
-            if (self.fields['toDate'].is_empty() or
-                self.fields['fromDate'].is_empty()):
-                # At least one of the date fields is empty => it's a new
-                # certification form => fill in the defult values. If both
-                # fields are filled, it's just a reload of a submitte form,
-                # so keep the data (don't change them).
-                self.fields['toDate'].value = initToDate.strftime("%Y-%m-%d")
-                self.fields['fromDate'].value = now.strftime("%Y-%m-%d")
-            if not self.initial.get('toDate'):
-                self.initial['toDate'] = initToDate
             if not self.initial.get('fromDate'):
                 self.initial['fromDate'] = now
             self.initial['score'] = 0
@@ -282,9 +264,12 @@ class CertificationEditForm(EditForm):
         if not self.cleaned_data['id']:
             # Create a new certification.
             try:
+                to_date = recoder.u2c(self.cleaned_data['toDate'])
+                if to_date is None:
+                    to_date = ccReg.DateType(0, 0, 0)
                 certs_mgr.createCertification(
                     reg_id, recoder.u2c(self.cleaned_data['fromDate']),
-                    recoder.u2c(self.cleaned_data['toDate']),
+                    to_date,
                     self.cleaned_data['score'], file_id)
             except Registry.Registrar.InvalidValue, e:
                 error(e)
