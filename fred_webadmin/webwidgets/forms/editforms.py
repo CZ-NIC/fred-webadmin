@@ -191,7 +191,8 @@ class CertificationEditForm(EditForm):
                     to_date < date.today()):
                 raise ValidationError("'To' date must be bigger than current date.")
         if self.initial and self.initial.get('id', None) and 'toDate' in self.changed_data:
-            if isinstance(to_date, NullDate) or self.initial['toDate'] < to_date:
+            if isinstance(to_date, NullDate) or (not isinstance(self.initial['toDate'], NullDate)
+                                                 and self.initial['toDate'] < to_date):
                 raise ValidationError("It is disallowed to lengthen the certification.")
         return self.cleaned_data
 
