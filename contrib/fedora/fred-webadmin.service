@@ -1,0 +1,19 @@
+[Unit]
+Description=fred-webadmin
+Documentation=https://fred.nic.cz/documentation/html/AdminManual/index.html
+After=network.target fred-adifd.service
+ConditionPathExists=!/etc/fred/shutdown
+
+[Service]
+User=fred
+WorkingDirectory=/
+StandardOutput=null
+StandardError=null
+ExecStart=/usr/bin/fred-webadmin
+KillMode=process
+Restart=on-failure
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+
+[Install]
+WantedBy=multi-user.target
+

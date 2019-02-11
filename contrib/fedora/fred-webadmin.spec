@@ -20,9 +20,12 @@ FRED (Free Registry for Enum and Domain) is free registry system for managing do
 
 %install
 PYTHONPATH=%{_topdir}/BUILD/distutils-%{distutils_branch}:$PYTHONPATH python setup.py install -cO2 --force --root=$RPM_BUILD_ROOT --record=INSTALLED_FILES --prefix=/usr --install-sysconf=/etc --install-localstate=/var --no-check-deps
+mkdir -p $RPM_BUILD_ROOT/%{_unitdir}
+install contrib/fedora/fred-webadmin.service $RPM_BUILD_ROOT/%{_unitdir}
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %files -f INSTALLED_FILES
 %defattr(-,root,root)
+%{_unitdir}/*
