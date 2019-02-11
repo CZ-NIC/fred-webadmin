@@ -1,3 +1,7 @@
+2019-02-11 (3.24.1)
+
+    * Add systemd service for fedora package
+
 2018-08-17 (3.24.0)
 
     * Remove bank payments (statements)
