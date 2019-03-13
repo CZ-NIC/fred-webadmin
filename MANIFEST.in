@@ -1,3 +1,5 @@
 recursive-include doc *
 include contrib/*
 include MANIFEST.in
+include COPYING
+include LICENSE
