@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2008-2018  CZ.NIC, z. s. p. o.
+# Copyright (C) 2008-2019  CZ.NIC, z. s. p. o.
 #
 # This file is part of FRED.
 #
@@ -419,7 +419,7 @@ class RegistrarEditForm(EditForm):
         except ccReg.Admin.UpdateFailed:
             raise UpdateFailedError(
                 "Updating registrar failed. Perhaps you tried to "
-                "create a registrar with an already used handle?")
+                "create a registrar with an already used handle or variable symbol?")
         # Set created/updated registrar id to result (it is used in ADIF
         # registrar page and other fire_action methods).
         kwargs["result"]['reg_id'] = reg_id
