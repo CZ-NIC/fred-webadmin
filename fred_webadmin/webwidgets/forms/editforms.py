@@ -293,8 +293,8 @@ class CertificationEditForm(EditForm):
             except Registry.Registrar.InvalidValue, e:
                 error(e)
                 raise UpdateFailedError(
-                    _("Failed to create a certification. Perhaps you have "
-                      "tried to create overlapping certifications?"))
+                    _("Failed to create a certification due to an invalid value. "
+                      "Check the certification validity dates."))
         else:
             # Update an existing certifications.
             try:
