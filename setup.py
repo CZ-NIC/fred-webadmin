@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2008-2018  CZ.NIC, z. s. p. o.
+# Copyright (C) 2008-2019  CZ.NIC, z. s. p. o.
 #
 # This file is part of FRED.
 #
@@ -37,7 +37,7 @@ class custom_sdist(sdist):
 
 setup(name='fred-webadmin',
       description='Admin Interface for FRED',
-      version='3.24.0',
+      version='3.25.1',
       author='David Pospisilik, Tomas Divis, CZ.NIC',
       author_email='podpora@nic.cz',
       url='http://fred.nic.cz/',
