@@ -3,7 +3,6 @@
 log
 pylogger
 sessions
-webadmin_cfg.py
 
 # Distribution
 /.eggs
