@@ -29,6 +29,7 @@ install contrib/fedora/webadmin_cfg.py $RPM_BUILD_ROOT/%{_sysconfdir}/fred/
 
 mkdir -p $RPM_BUILD_ROOT/%{_localstatedir}/log/fred-webadmin/
 mkdir -p $RPM_BUILD_ROOT/%{_localstatedir}/lib/fred-webadmin/
+mkdir -p $RPM_BUILD_ROOT/%{_localstatedir}/lib/fred-webadmin/sessions/
 
 %pre
 /usr/bin/getent passwd fred || /usr/sbin/useradd -r -d /etc/fred -s /bin/bash fred
@@ -46,3 +47,4 @@ rm -rf $RPM_BUILD_ROOT
 %config %{_sysconfdir}/fred/webadmin_cfg.py
 %{_localstatedir}/log/fred-webadmin/
 %{_localstatedir}/lib/fred-webadmin/
+%{_localstatedir}/lib/fred-webadmin/sessions/
