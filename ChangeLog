@@ -1,3 +1,7 @@
+2019-07-15 (3.25.3)
+
+    * Fix timezone conversion
+
 2019-06-27 (3.25.2)
 
     * Fix rpm build

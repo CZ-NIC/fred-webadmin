@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2008-2018  CZ.NIC, z. s. p. o.
+# Copyright (C) 2008-2019  CZ.NIC, z. s. p. o.
 #
 # This file is part of FRED.
 #
@@ -540,8 +540,10 @@ class DynamicWrapper(object):
 
 
 def datetime_to_string_with_timezone(local_datetime):
-    local_timestamp = time.mktime(local_datetime.timetuple())
-    utc_datetime = datetime.datetime.utcfromtimestamp(local_timestamp)
+    """Convert naive local datetime into ISO format in UTC."""
+    assert local_datetime.tzinfo is None
+    local_aware = get_local_timezone().localize(local_datetime)
+    utc_datetime = local_aware.astimezone(pytz.utc).replace(tzinfo=None)
     return utc_datetime.isoformat('T') + 'Z'  # 'Z' for Zulu, see IDL interface commentary
 
 
