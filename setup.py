@@ -37,7 +37,7 @@ class custom_sdist(sdist):
 
 setup(name='fred-webadmin',
       description='Admin Interface for FRED',
-      version='3.25.2',
+      version='3.25.3',
       author='David Pospisilik, Tomas Divis, CZ.NIC',
       author_email='podpora@nic.cz',
       url='http://fred.nic.cz/',
