@@ -165,9 +165,9 @@ def _create_logger(corba_server_spec):
             # cherrypy.session
             cherrypy.session['Logger'] = corba_logd
             if config.audit_log['force_critical_logging']:
-                logger = Logger(dao=corba_logd, corba_module=ccReg)
+                logger = Logger(dao=corba_logd)
             else:
-                logger = LoggerFailSilent(dao=corba_logd, corba_module=ccReg)
+                logger = LoggerFailSilent(dao=corba_logd)
     return logger
 
 
