@@ -10,13 +10,7 @@ URL:            http://fred.nic.cz
 Source0:        %{name}-%{version}.tar.gz
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-%(%{__id_u} -n)
 BuildRequires: python2-setuptools gettext systemd
-Requires: fred-pylogger fred-idl python2-simplejson python2-dns python2-omniORB omniORB-servers redhat-lsb
-%if 0%{?el7}
-Requires: python-ldap python-cherrypy
-%else
-Requires: python2-ldap python2-cherrypy
-%endif
-
+Requires: python2-fred-pylogger python2-fred-idl python2-simplejson python2-dns python2-omniORB omniORB-servers redhat-lsb python2-fred-pyfco python2-ldap python2-cherrypy
 
 %description
 FRED (Free Registry for Enum and Domain) is free registry system for managing domain registrations. This package contains web administration application
