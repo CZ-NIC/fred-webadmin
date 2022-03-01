@@ -3,26 +3,27 @@ stages:
 
 ########################################################################################################################
 # Basic declarations
-.requires-nodejs: &requires-nodejs
+.nodejs: &nodejs
+    image: node:16
     tags:
-        - nodejs
-
-.nodejs-xenial: &nodejs-xenial
-    image: $CI_REGISTRY/ginger/base/ubuntu_xenial_nodejs:latest
+        - common
 
 ########################################################################################################################
 # Individual jobs
 licensing:
-    <<: *nodejs-xenial
+    <<: *nodejs
+    variables:
+        SRC_DIR: /usr/local/env
     stage: analysis
     before_script:
-        - git clone git@gitlab.office.nic.cz:internal-tools/license-check.git --single-branch --depth 1
+        - install -m 700 -d $HOME/.ssh
+        - install -m 600 $SRC_DIR/{id_rsa,id_rsa.pub,known_hosts} $HOME/.ssh/
     script:
+        - git clone git@gitlab.office.nic.cz:internal-tools/license-check.git --single-branch --depth 1
         - ./license-check/license-check.sh -v
 
 css:
-    <<: *requires-nodejs
-    <<: *nodejs-xenial
+    <<: *nodejs
     stage: analysis
     before_script:
         - npm install -g stylelint stylelint-config-standard postcss-sass
@@ -31,3 +32,4 @@ css:
         - make check-css
     variables:
         NODE_PATH: "/usr/lib/node_modules"
+    allow_failure: true
