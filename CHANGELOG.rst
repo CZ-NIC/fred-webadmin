@@ -1,6 +1,14 @@
 ChangeLog
 =========
 
+3.25.6 (2022-03-01)
+-------------------
+
+* Fix rpm build
+* Fix CI
+* Fix deprecated code from pylogger
+* Rename changelog to CHANGELOG.rst to match all FRED projects
+
 3.25.5 (2020-01-31)
 -------------------
 
